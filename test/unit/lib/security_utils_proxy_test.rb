@@ -4,17 +4,20 @@ require 'test_helper'
 require 'security_utils'
 require 'minitest/mock'
 
+# rubocop:disable Metrics/ClassLength
 class SecurityUtilsProxyTest < ActiveSupport::TestCase
+  FASTLY_IPS = %w[
+    23.235.32.0/20 43.249.72.0/22 103.244.50.0/24 103.245.222.0/23
+    103.245.224.0/24 104.156.80.0/20 140.248.64.0/18 140.248.128.0/17
+    146.75.0.0/17 151.101.0.0/16 157.52.64.0/18 167.82.0.0/17
+    167.82.128.0/20 167.82.160.0/20 167.82.224.0/20 172.111.64.0/18
+    185.31.16.0/22 199.27.72.0/21 199.232.0.0/16 2a04:4e40::/32
+    2a04:4e42::/32
+  ].freeze
+
   def setup
     super
-    @fastly_ips = [
-      '23.235.32.0/20', '43.249.72.0/22', '103.244.50.0/24', '103.245.222.0/23',
-      '103.245.224.0/24', '104.156.80.0/20', '140.248.64.0/18',
-      '140.248.128.0/17', '146.75.0.0/17', '151.101.0.0/16', '157.52.64.0/18',
-      '167.82.0.0/17', '167.82.128.0/20', '167.82.160.0/20', '167.82.224.0/20',
-      '172.111.64.0/18', '185.31.16.0/22', '199.27.72.0/21', '199.232.0.0/16',
-      '2a04:4e40::/32', '2a04:4e42::/32'
-    ]
+    @fastly_ips = FASTLY_IPS
     @fastly_static = @fastly_ips.join(',')
     @fastly_json = {
       'addresses' => @fastly_ips.grep_v(/:/),
@@ -152,3 +155,4 @@ class SecurityUtilsProxyTest < ActiveSupport::TestCase
     assert_not SecurityUtils.edge_proxy?('')
   end
 end
+# rubocop:enable Metrics/ClassLength

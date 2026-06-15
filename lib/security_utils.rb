@@ -27,8 +27,12 @@ module SecurityUtils
   end
 
   # Orchestrates loading of trusted proxies from dynamic and static sources.
-  def self.load_trusted_proxies(url: nil, static: nil, fail_fast: false,
-                                disabled: false)
+  def self.load_trusted_proxies(
+    url: nil,
+    static: nil,
+    fail_fast: false,
+    disabled: false
+  )
     return [].freeze if disabled
 
     ips_dynamic = fetch_dynamic_proxies(url)
@@ -71,7 +75,7 @@ module SecurityUtils
 
   # Logs a warning if dynamic and static data differ (ignores order).
   def self.warn_if_mismatched(dynamic, static, url)
-    return unless dynamic.present? && static.present?
+    return if dynamic.blank? || static.blank?
     return if dynamic.sort == static.sort
 
     Rails.logger.warn 'SECURITY WARNING: TRUSTED_PROXIES (static) is ' \

@@ -31,9 +31,8 @@ class ApplicationController < ActionController::Base
   # authentication; they're being used to counter CDN piercing and to
   # ensure that our rate limits apply to the correct IP addresses.
   TRUSTED_PROXIES_DISABLED = ENV['TRUSTED_PROXIES_DISABLED'] == 'true'
-  ENFORCE_ORIGIN_SHIELDING = (
+  ENFORCE_ORIGIN_SHIELDING =
     ENV['ENFORCE_ORIGIN_SHIELDING'] == 'true' && !TRUSTED_PROXIES_DISABLED
-  )
 
   # Make criteria_level conversion methods available to views
   helper_method :criteria_level_to_internal, :normalize_criteria_level
