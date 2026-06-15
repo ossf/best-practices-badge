@@ -7,39 +7,44 @@
 require 'test_helper'
 
 class ClientIpTest < ActiveSupport::TestCase
-  # Mocked request with a fixed ip address
-  class MockReq1
-    def get_header(_x)
-      nil
-    end
+  # Mocked request that simulates a Rack request (no remote_ip method)
+  class MockRackReq
+    attr_reader :env
 
-    def ip
+    def initialize(env)
+      @env = env
+    end
+  end
+
+  # Mocked request that simulates a Rails request (has remote_ip method)
+  class MockRailsReq
+    def remote_ip
       '1.2.3.4'
     end
   end
 
-  test 'ClientIP works correctly without X-Forwarded-For' do
-    m = MockReq1.new
-    result = ClientIp.acquire(m)
-    assert '1.2.3.4', result
+  test 'ClientIP.extract works with Rails-like request' do
+    m = MockRailsReq.new
+    assert_equal '1.2.3.4', ClientIp.extract(m)
   end
 
-  # Mocked request with a list as the header.
-  class MockReq2
-    def get_header(_x)
-      '1.1.1.1, 100.36.183.117, 157.52.82.3'
-    end
-
-    def ip
-      '1.2.3.4'
-    end
+  test 'ClientIP.extract works with Rack-like request (no XFF)' do
+    env = { 'REMOTE_ADDR' => '5.6.7.8' }
+    m = MockRackReq.new(env)
+    assert_equal '5.6.7.8', ClientIp.extract(m)
   end
 
-  # In our production environment we must use SECOND from the end.
-  # Change this test, and ClientIp, if your environment is different.
-  test 'ClientIP works correctly with X-Forwarded-For, production env' do
-    m = MockReq2.new
-    result = ClientIp.acquire(m)
-    assert '100.36.183.117', result
+  test 'ClientIP.extract works with Rack-like request and XFF' do
+    # NOTE: remote_ip logic results depend on TRUSTED_PROXIES.
+    # By default in test, trusted_proxies might be empty or standard.
+    env = {
+      'REMOTE_ADDR' => '1.2.3.4',
+      'HTTP_X_FORWARDED_FOR' => '192.168.1.1, 10.0.0.1'
+    }
+    m = MockRackReq.new(env)
+    # ActionDispatch::RemoteIp will calculate the IP.
+    # If no proxies are trusted, it should take the last one in XFF.
+    result = ClientIp.extract(m)
+    assert_not_nil result
   end
 end

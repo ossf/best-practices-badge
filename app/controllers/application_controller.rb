@@ -26,6 +26,14 @@ class ApplicationController < ActionController::Base
                          "camera 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none';" \
                          "vibrate 'none'; payment 'none'"
 
+  # Security Configuration Constants (gathered once at startup)
+  # The trusted proxies' IP addresses are *not* being used for user
+  # authentication; they're being used to counter CDN piercing and to
+  # ensure that our rate limits apply to the correct IP addresses.
+  TRUSTED_PROXIES_DISABLED = ENV['TRUSTED_PROXIES_DISABLED'] == 'true'
+  ENFORCE_ORIGIN_SHIELDING =
+    ENV['ENFORCE_ORIGIN_SHIELDING'] == 'true' && !TRUSTED_PROXIES_DISABLED
+
   # Make criteria_level conversion methods available to views
   helper_method :criteria_level_to_internal, :normalize_criteria_level
 
@@ -79,6 +87,7 @@ class ApplicationController < ActionController::Base
   # skip_before_action :setup_authentication_state
   # We use before_action and override CSRF cache control
   before_action :set_default_cache_control
+  before_action :verify_origin_shielding
 
   # Append user information to the log payload for request tracking.
   # Records the current user's ID in logs when user is logged in.
@@ -89,6 +98,39 @@ class ApplicationController < ActionController::Base
   def append_info_to_payload(payload)
     super
     payload[:uid] = current_user&.id if logged_in?
+  end
+
+  # Verify that the request came through a trusted edge proxy (shielding).
+  #
+  # The trusted proxies' IP addresses are *not* being used for user
+  # authentication; they're being used to counter CDN piercing and to
+  # ensure that our rate limits apply to the correct IP addresses.
+  #
+  # In our infrastructure, the "Heroku Router" is the immediate connection.
+  # It identifies the IP address it received the request from and appends
+  # it to the "X-Forwarded-For" (XFF) header.
+  #
+  # If the request is properly shielded, it must have come from our CDN
+  # (Fastly). In that case, the last IP in the XFF chain will be a Fastly IP.
+  #
+  # If an attacker hits our Heroku origin directly, the Heroku Router
+  # will append the attacker's direct IP to the end of the chain.
+  # Even if the attacker tries to spoof the header by providing their
+  # own XFF values, the router will still append their true IP to the
+  # very end.
+  #
+  # We check this "anchor" IP against our trusted edge proxy list.
+  # @return [void]
+  def verify_origin_shielding
+    return unless ENFORCE_ORIGIN_SHIELDING
+
+    # The last IP in X-Forwarded-For is the one that reached the Heroku router.
+    # Using forwarded_for.last is blazingly fast and avoids private API hacks.
+    last_proxy = request.forwarded_for&.last
+    return if SecurityUtils.edge_proxy?(last_proxy)
+
+    render plain: '403 Forbidden - Direct origin access not allowed',
+           status: :forbidden
   end
 
   # Override PaperTrail's default user extraction.
