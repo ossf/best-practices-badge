@@ -151,6 +151,7 @@ class SecurityUtilsProxyTest < ActiveSupport::TestCase
     assert SecurityUtils.edge_proxy?('23.235.32.1')
     assert SecurityUtils.edge_proxy?(IPAddr.new('23.235.32.2'))
     assert_not SecurityUtils.edge_proxy?('1.2.3.4')
+    assert_not SecurityUtils.edge_proxy?('not-an-ip')
     assert_not SecurityUtils.edge_proxy?(nil)
     assert_not SecurityUtils.edge_proxy?('')
   end

@@ -7,6 +7,7 @@
 require 'test_helper'
 require 'ipaddr'
 
+# rubocop:disable Metrics/ClassLength
 class ApplicationControllerTest < ActionDispatch::IntegrationTest
   # These are special tests for how the ApplicationController works,
   # in particular for handling IP addresses.
@@ -146,4 +147,47 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
     # Verify session was NOT updated
     assert_nil mock_session[:time_last_used]
   end
+
+  test 'verify_origin_shielding blocks untrusted proxies' do
+    # Temporarily enable shielding
+    old_enforce = ApplicationController::ENFORCE_ORIGIN_SHIELDING
+    ApplicationController.send(:remove_const, :ENFORCE_ORIGIN_SHIELDING)
+    ApplicationController.const_set(:ENFORCE_ORIGIN_SHIELDING, true)
+
+    begin
+      controller = ApplicationController.new
+      mock_request = Minitest::Mock.new
+      # Mock request.forwarded_for returning an untrusted IP
+      mock_request.expect :forwarded_for, ['1.2.3.4']
+      controller.instance_variable_set(:@_request, mock_request)
+
+      # Mock render to verify it was called with 403
+      controller.define_singleton_method(:render) do |options|
+        @rendered_status = options[:status]
+        @rendered_plain = options[:plain]
+      end
+
+      # Should be blocked
+      controller.send(:verify_origin_shielding)
+      assert_equal :forbidden, controller.instance_variable_get(:@rendered_status)
+      assert_match(/Direct origin access not allowed/, controller.instance_variable_get(:@rendered_plain))
+
+      # Now mock a trusted IP
+      mock_request = Minitest::Mock.new
+      edge_ip = '23.235.32.1'
+      SecurityUtils.edge_proxies = [IPAddr.new('23.235.32.0/20')]
+      mock_request.expect :forwarded_for, [edge_ip]
+      controller.instance_variable_set(:@_request, mock_request)
+      controller.instance_variable_set(:@rendered_status, nil)
+
+      # Should NOT be blocked
+      controller.send(:verify_origin_shielding)
+      assert_nil controller.instance_variable_get(:@rendered_status)
+    ensure
+      # Restore original value
+      ApplicationController.send(:remove_const, :ENFORCE_ORIGIN_SHIELDING)
+      ApplicationController.const_set(:ENFORCE_ORIGIN_SHIELDING, old_enforce)
+    end
+  end
 end
+# rubocop:enable Metrics/ClassLength
