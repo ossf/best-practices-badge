@@ -9,12 +9,32 @@
 require 'net/https'
 require 'json'
 require 'ipaddr'
+require 'security_utils'
 
 # Download list of valid IP addresses from this (be SURE this is https!):
 # iplist_uri = 'https://api.fastly.com/public-ip-list'
 
 # Ensure that there's *a* value for valid_client_ips (nil=all allowed)
 Rails.configuration.valid_client_ips = nil
+
+# Configure Rails trusted proxies using dynamic and static sources.
+# The trusted proxies' IP addresses are *not* being used for user
+# authentication; they're being used to counter CDN piercing and to
+# ensure that our rate limits apply to the correct IP addresses.
+edge_proxies =
+  SecurityUtils.load_trusted_proxies(
+    url: ENV.fetch('TRUSTED_PROXIES_URL', nil),
+    static: ENV.fetch('TRUSTED_PROXIES', nil),
+    fail_fast: Rails.env.production?,
+    disabled: ENV['TRUSTED_PROXIES_DISABLED'] == 'true'
+  )
+
+# Store the edge-only list for fast Origin Shielding checks
+SecurityUtils.edge_proxies = edge_proxies
+
+# Merge with Rails defaults and freeze
+Rails.application.config.action_dispatch.trusted_proxies =
+  (ActionDispatch::RemoteIp::TRUSTED_PROXIES + edge_proxies).freeze
 
 if !Rails.env.test?
   Rails.logger.warn 'FASTLY_API_KEY not set.' unless ENV['FASTLY_API_KEY']

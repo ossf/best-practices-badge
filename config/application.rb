@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# The trusted proxies' IP addresses are *not* being used for user
+# authentication; they're being used to counter CDN piercing and to
+# ensure that our rate limits apply to the correct IP addresses.
+
 # Copyright 2015-2017, the Linux Foundation, IDA, and the
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
