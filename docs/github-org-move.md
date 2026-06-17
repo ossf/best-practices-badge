@@ -68,11 +68,13 @@ sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' \
 *Goal: Thoroughly update all documentation and localization files.*
 
 1. **Documentation Directory**:
+
    ```bash
    find docs/ -name "*.md" -exec sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' {} +
    ```
 
 2. **Localization & UI Strings**:
+
    ```bash
    find config/locales/ config/machine_translations/ -name "*.yml" -exec sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' {} +
    ```
@@ -99,6 +101,7 @@ The following patterns are all addressed by the `sed` commands in Phase 2 and 3:
 2. **Links**: Run a broken link checker on `README.md` and `CONTRIBUTING.md`.
 3. **Clone**: Run `./install-badge-dev-env` in a clean environment.
 4. **UI Verification**:
+
    ```bash
    # Check a sample localization file for the update
    grep "ossf/best-practices-badge" config/locales/en.yml | head -n 5
