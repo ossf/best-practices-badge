@@ -18,7 +18,7 @@ require 'json'
 require 'net/http'
 require 'uri'
 
-REPO = 'coreinfrastructure/best-practices-badge'
+REPO = 'ossf/best-practices-badge'
 MAX_PAGES = 5 # 100 releases/page * 5 = 500 releases searched
 
 # Perform an HTTPS GET request, setting GitHub API headers.

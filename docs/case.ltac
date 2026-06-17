@@ -66,10 +66,10 @@
           - Evidence BrakemanEv: Brakeman source code weakness analyzer (../.github/workflows/main.yml)
         - Claim FLOSSVerif: All reused components are verified as FLOSS
           - Evidence LicenseFinderEv: license_finder (../.circleci/config.yml)
-          - Evidence FOSSAEv: FOSSA check (https://github.com/coreinfrastructure/best-practices-badge/settings/)
+          - Evidence FOSSAEv: FOSSA check (https://github.com/ossf/best-practices-badge/settings/)
       - Claim DynamicVerif: Dynamic verifications are performed
         - Claim TestCoverage: Automated testing performed with excellent statement coverage
-          - Evidence CITestEv: Automated tests run by CI (https://codecov.io/gh/coreinfrastructure/best-practices-badge)
+          - Evidence CITestEv: Automated tests run by CI (https://codecov.io/gh/ossf/best-practices-badge)
         - Claim NegTests: Negative tests failed as desired
           - Evidence NegTestsEv: Negative test suite (../test/)
     - Claim CIRequired: Successful verification required by continuous integration before deployment
@@ -211,7 +211,7 @@
   - Claim FailSafe: Fail-safe defaults
     - Evidence FailSafeEv: can_edit_else_redirect and can_control_else_redirect redirect unauthenticated or unauthorized requests; default deny enforced server-side (../app/controllers/application_controller.rb)
   - Claim OpenDesign: Open design
-    - Evidence OpenDesignEv: Full source code publicly available; security does not depend on keeping implementation secret (https://github.com/coreinfrastructure/best-practices-badge)
+    - Evidence OpenDesignEv: Full source code publicly available; security does not depend on keeping implementation secret (https://github.com/ossf/best-practices-badge)
   - Claim SepPriv: Separation of privilege
     - Evidence SepPrivEv: admin? method in User model separates admin role from normal user; admin-only actions checked explicitly and separately from ownership (../app/models/user.rb)
   - Claim LeastPriv: Least privilege

@@ -40,7 +40,7 @@ de:
     footer_text_html: >-
       <small><strong>Brauchen Sie Hilfe? Haben Sie eine Frage?
       Sehen Sie ein Problem? Bitte <em><a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">senden
-      Sie eine E-Mail</a></em> oder <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      Sie eine E-Mail</a></em> oder <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">reichen Sie ein Problem ein</a></em>.</strong>
       © 2015-2018 <a href="https://openssf.org/" target="_blank"
       rel="noopener">Open Source Security Foundation</a>, ein
@@ -580,7 +580,7 @@ de:
           wissen). Wenn lediglich ein allgemeiner Kommentar angebeben
           werden soll, keine direkte Begründung, dann ist das
           erlaubt, wenn der Text mit "//" und einem Leerzeichen
-          beginnt. Feedback ist willkommen auf der<a href="https://github.com/coreinfrastructure/best-practices-badge">GitHub-Website
+          beginnt. Feedback ist willkommen auf der<a href="https://github.com/ossf/best-practices-badge">GitHub-Website
           als Issue oder Pull-Request</a>. Es gibt auch eine <a
           href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">E-Mail-Liste
           für allgemeine Diskussionen</a>.<br /><br /> Wir stellen
@@ -604,7 +604,7 @@ de:
           später bearbeiten). <br> <br> Wenn Sie Hilfe benötigen,
           eine Frage haben, oder ein Problem sehen, bitte <em><a
           href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">schicken
-          Sie uns eine E-Mail</a></em> oder <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          Sie uns eine E-Mail</a></em> oder <em><a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">erstellen Sie ein Issue</a>/em>.
         badge_alt: Badge-Level für Projekt %{id} ist %{level}
       level:
@@ -786,7 +786,7 @@ de:
       Wenn Sie Fragen haben oder Hilfe benötigen, wenden Sie sich bitte an
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       oder erstellen Sie ein Issue unter
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (Klicken Sie auf "New Issue").
       </p>
       <p>
@@ -817,7 +817,7 @@ de:
       Wenn Sie Fragen haben oder Hilfe benötigen, wenden Sie sich bitte an
       cii-badges-questions@lists.coreinfrastructure.org
       oder erstellen Sie ein Issue unter
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (Klicken Sie auf "New Issue").
       Wir werden Ihnen niemals Werbung senden, und wir werden nur selten
       eine E-Mail senden.
@@ -899,7 +899,7 @@ de:
       Wenn Sie Fragen haben oder Hilfe benötigen, wenden Sie sich bitte an
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       oder ein Problem melden wollen
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues"> https://github.com/coreinfrastructure/best-practices-badge/issues </a>
+      <a href="https://github.com/ossf/best-practices-badge/issues"> https://github.com/ossf/best-practices-badge/issues </a>
       (Klicken Sie auf "New Issue").
       </p>
       <p>
@@ -933,7 +933,7 @@ de:
       Wenn Sie Fragen haben oder Hilfe benötigen, wenden Sie sich bitte an
       cii-badges-questions@lists.coreinfrastructure.org
       oder ein Problem melden wollen bei
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (Klicken Sie auf "Neue Angelegenheit").
       Wir senden keine Erinnerungen, wenn Sie weiterhin Ihren Badge-Eintrag aktualisieren.
       und wir senden nur ungefähr alle 30-60 Tage Erinnerungen. Jedoch,
@@ -2786,7 +2786,7 @@ de:
           (wie Saltzer und Schroeer) und gemeinsame Implementierungssicherheitsschwächen
           (wie die OWASP Top 10 oder CWE/SANS Top 25) aufzurufen
           und zu zeigen, wie diesen entgegengewirkt wird. Die
-          <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp
+          <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp
           Assurance Case</a> kann ein nützliches Beispiel sein.
           Dies bezieht sich auf documentation_security, documentation_architecture
           und implement_secure_design.
@@ -3242,7 +3242,7 @@ de:
       p2_html: >-
         Weitere Informationen und Hintergründe zum OpenSSF-Best-Practices-Badge-Programm,
         wie zum Beispiel die <a href='/de/criteria/0'>Kriterien</a>,
-        sind <a href='https://github.com/coreinfrastructure/best-practices-badge'>auf
+        sind <a href='https://github.com/ossf/best-practices-badge'>auf
         GitHub verfügbar</a>. Ebenfalls verfügbar sind <a href="/de/project_stats">Projektstatistiken</a>
         und <a href="/de/criteria_stats">Kriterienstatistiken</a>.
         Unter <a href="/de/projects">Projekte</a> sind alle Projekte

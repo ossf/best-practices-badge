@@ -24,7 +24,7 @@ surprised by this change.
 This document describes the criteria for badges beyond the "passing" level
 (the "silver" and "gold" levels).
 Please
-[post an issue](https://github.com/coreinfrastructure/best-practices-badge/issues)
+[post an issue](https://github.com/ossf/best-practices-badge/issues)
 if you have comments on these criteria.
 These criteria build on the
 <a href="./criteria.md">criteria for the "passing" level</a>.
@@ -213,7 +213,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
     *NOTE*:
     This would mean that C/C++ would be required to use something like
     ASAN during some testing and/or fuzz testing. See:
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/256">consider giving links to asan/msan/tsan/ubsan and libFuzzer</a>
+    <a href="https://github.com/ossf/best-practices-badge/issues/256">consider giving links to asan/msan/tsan/ubsan and libFuzzer</a>
 
 *   Unchanged:
 
@@ -294,7 +294,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
     the <a href="https://www.rust-lang.org/en-US/conduct.html">The Rust Code of Conduct</a>.
 
     *Rationale* Suggested in
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/608">issue#608</a>
+    <a href="https://github.com/ossf/best-practices-badge/issues/608">issue#608</a>
     by Dan Kohn and in the NYC 2016 brainstorm session.
     The long list of examples shows that many widely-used FLOSS projects
     have a code of conduct (obviously there's no way to list them all!).
@@ -408,9 +408,9 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
     letting any user or researcher know what to expect.
     Many sources discuss the rationale for an "assurance case".
     This was inspired by
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/502">Security specification and facilitation of bug bounties</a>
+    <a href="https://github.com/ossf/best-practices-badge/issues/502">Security specification and facilitation of bug bounties</a>
     and by the
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+    <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
 
 *   <a name="documentation_quick_start"></a>
     The project MUST provide a "quick start" guide for new users
@@ -430,7 +430,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
     help someone get started and do something with the software;
     this feeling of accomplishment and demonstration that it works
     builds understanding and confidence in the user.
-    https://github.com/coreinfrastructure/best-practices-badge/issues/645
+    https://github.com/ossf/best-practices-badge/issues/645
 
 *   <a name="documentation_current"></a>
     The project MUST make an effort to
@@ -643,7 +643,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
 
     *Rationale*:
     Recommended in the
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+    <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
 
 *   <a name="vulnerability_response_process"></a>The project MUST have a
     documented process for responding to vulnerability reports.
@@ -843,7 +843,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
 
     *Rationale*:
     Inspired by the
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+    <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
 
 *   <a name="updateable_reused_components"></a>
     The project MUST either
@@ -909,7 +909,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
     If no native binaries are being generated, select "N/A".
 
     *Rationale*: See
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/453">Build system should honor CC, CFLAGS, CXX, CXXFLAGS</a>
+    <a href="https://github.com/ossf/best-practices-badge/issues/453">Build system should honor CC, CFLAGS, CXX, CXXFLAGS</a>
 
 *   <a name="build_preserve_debug"></a>
     The build and installation system SHOULD preserve debugging information if
@@ -1004,11 +1004,11 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
     *Rationale*   : This supports capturing the artifacts (e.g., for analysis)
     without interfering with the build or installation system due to
     system-wide changes. See
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/455">DESTDIR honored at install time</a>
+    <a href="https://github.com/ossf/best-practices-badge/issues/455">DESTDIR honored at install time</a>
     This doesn't apply when there's no "installation" process, or
     when POSIX filesystems aren't supported during installation (e.g.,
     Windows-only programs).  See
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/453">Build system should honor CC, CFLAGS, CXX, CXXFLAGS</a>
+    <a href="https://github.com/ossf/best-practices-badge/issues/453">Build system should honor CC, CFLAGS, CXX, CXXFLAGS</a>
 
 *   <a name="installation_development_quick"></a>
     The project MUST provide a way for potential developers to quickly install all
@@ -1024,7 +1024,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
 
     *Rationale*:
     Recommended in the
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+    <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
 
 ### Security
 
@@ -1048,7 +1048,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
 
     *Rationale*:
     This was inspired by the
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+    <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
 
 *   <a name="input_validation"></a>
     The project results MUST check
@@ -1094,7 +1094,7 @@ Upgrade some "passing" level SHOULD and SUGGESTED:
     The problem with this position is that no one can be certain about
     what that "one good algorithm" is; a new attack could be found at any time.
     See the discussion at
-    <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/215">Remove requirement for supporting alternative crypto algorithms (crypto_alternatives)?</a>
+    <a href="https://github.com/ossf/best-practices-badge/issues/215">Remove requirement for supporting alternative crypto algorithms (crypto_alternatives)?</a>
 
 *   <a name="crypto_credential_agility"></a>
     The project MUST support storing authentication credentials (such as
@@ -1571,7 +1571,7 @@ but we discussed possibly upgrading them.
     increase in code reviewers lowers maintainer workload while aiding
     in meeting the badge requirement two_person_review.
     See
-    https://github.com/coreinfrastructure/best-practices-badge/issues/699
+    https://github.com/ossf/best-practices-badge/issues/699
     from GeorgLink.
 
 *   <a name="build_reproducible"></a>
@@ -1681,7 +1681,7 @@ but we discussed possibly upgrading them.
 We are hoping to get good suggestions and feedback from the public;
 please contribute!
 Please
-[post an issue](https://github.com/coreinfrastructure/best-practices-badge/issues)
+[post an issue](https://github.com/ossf/best-practices-badge/issues)
 if you have comments on these criteria.
 
 See <a href="./criteria.md">criteria</a> for the main current set of criteria.

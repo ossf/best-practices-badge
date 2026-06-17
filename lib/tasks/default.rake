@@ -588,6 +588,10 @@ end
 def normalize_string(value, locale)
   # Remove trailing whitespace
   value.sub!(/\s+$/, '')
+  # Forcibly substitute GitHub organization with literal string match
+  value = value.gsub('github.com/coreinfrastructure/best-practices-badge',
+                     'github.com/ossf/best-practices-badge')
+
   return value if value.exclude?('<')
 
   # Google Translate generates html text that has predictable errors.

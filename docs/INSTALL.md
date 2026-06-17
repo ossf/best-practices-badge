@@ -93,7 +93,7 @@ You'll now need to fork the repo on GitHub.
 describe this in general.
 
 In our case, use your web browser to view
-<https://github.com/coreinfrastructure/best-practices-badge>,
+<https://github.com/ossf/best-practices-badge>,
 log in to your account (or create one), and click on the "Fork" button on the
 top right.  On In the right sidebar of your new fork's repository page,
 click on the "to clipboard" symbol to copy the clone URL for your fork.
@@ -212,8 +212,8 @@ rails console
 
 p = Project.new
 # Set values for project to evaluate.  We'll examine our own project.
-p[:repo_url] = 'https://github.com/coreinfrastructure/best-practices-badge'
-p[:homepage_url] = 'https://github.com/coreinfrastructure/best-practices-badge'
+p[:repo_url] = 'https://github.com/ossf/best-practices-badge'
+p[:homepage_url] = 'https://github.com/ossf/best-practices-badge'
 # Setup chief to analyze things:
 new_chief = Chief.new(p, proc { Octokit::Client.new })
 # Ask chief to find probable values:
@@ -283,11 +283,11 @@ but that approach is not documented here.
 It also adds an "upstream" remote so that you can easily track it:
 
 ~~~~sh
-git remote add upstream https://github.com/coreinfrastructure/best-practices-badge.git
+git remote add upstream https://github.com/ossf/best-practices-badge.git
 ~~~~
 
 <!-- If you have edit rights, do this instead:
-git clone <https://github.com/coreinfrastructure/best-practices-badge.git>
+git clone <https://github.com/ossf/best-practices-badge.git>
 cd best-practices-badge
 -->
 
@@ -425,7 +425,7 @@ An easy way to install scorecard on Ubuntu is:
 
     # Run scorecard, showing details
     export GITHUB_TOKEN='...'
-    scorecard --repo=github.com/coreinfrastructure/best-practices-badge \
+    scorecard --repo=github.com/ossf/best-practices-badge \
       --show-details --format=json | jq -C | less -R
 ~~~~
 

@@ -8,8 +8,8 @@
 # GitHub URL here makes click directives produce fully-qualified links that
 # navigate correctly regardless of rendering context.
 
-base_url = "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md"
+base_url = "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md"
 
 # Base URL for hyperlinks in ltac/markdown and ltac/html output.
 # Fragments work fine, so we won't override it.
-# markdown_base_url = "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md"
+# markdown_base_url = "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md"

@@ -13,7 +13,7 @@ module ApplicationHelper
   # URL for the automation proposals documentation page.
   # Update this if the documentation moves to a new location.
   AUTOMATION_PROPOSALS_URL =
-    'https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/automation-proposals.md'
+    'https://github.com/ossf/best-practices-badge/blob/main/docs/automation-proposals.md'
 
   # Frozen string constant: robot emoji for automation (memory optimization)
   ROBOT_EMOJI = '🤖 '

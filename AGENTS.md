@@ -21,7 +21,7 @@ However, documentation is often unnoticed and too much can obscure what's import
 **Key URLs:**
 
 - Production: https://www.bestpractices.dev/
-- GitHub: https://github.com/coreinfrastructure/best-practices-badge
+- GitHub: https://github.com/ossf/best-practices-badge
 
 ## Common Development Commands
 
