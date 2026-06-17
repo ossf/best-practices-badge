@@ -70,7 +70,8 @@ sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' \
 1. **Documentation Directory**:
 
    ```bash
-   find docs/ -name "*.md" -exec sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' {} +
+   find docs/ -name "*.md" ! -name "github-org-move.md" \
+     -exec sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' {} +
    ```
 
 2. **Localization & UI Strings**:
@@ -81,7 +82,32 @@ sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' \
 
 ---
 
-## 3. Specific File Changes (Technical Details)
+## 3. Translation Synchronization Strategy
+
+To ensure that future translation synchronizations do not revert these changes (if translators have not yet updated the strings on translation.io), the following code tweak is recommended for `lib/tasks/default.rake`.
+
+The `normalize_string` method should be updated to forcibly substitute the organization name in all retrieved strings.
+
+**Proposed change in `lib/tasks/default.rake`:**
+
+```ruby
+def normalize_string(value, locale)
+  # Remove trailing whitespace
+  value = value.sub(/\s+$/, '')
+  # Forcibly substitute GitHub organization with literal string match
+  value = value.gsub('github.com/coreinfrastructure/best-practices-badge',
+                     'github.com/ossf/best-practices-badge')
+
+  return value if value.exclude?('<')
+  # ... (rest of the existing HTML normalization logic)
+end
+```
+
+This ensures that whenever `rake translation:sync` is run, the local files are immediately patched with the correct repository URLs across all languages.
+
+---
+
+## 4. Specific File Changes (Technical Details)
 
 The following patterns are all addressed by the `sed` commands in Phase 2 and 3:
 
