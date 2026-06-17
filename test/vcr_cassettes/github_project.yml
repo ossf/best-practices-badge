@@ -182,7 +182,7 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - Basic M2U5MDE5NGM3MGI1N2I3MTE4OGU6ZDJlM2YwMDI4MzhmNjExYTUxNGI4NGExNzI3YmY2ZTUwMGE2N2QyYg==
+      - REDACTED
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
@@ -262,7 +262,7 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - Basic M2U5MDE5NGM3MGI1N2I3MTE4OGU6ZDJlM2YwMDI4MzhmNjExYTUxNGI4NGExNzI3YmY2ZTUwMGE2N2QyYg==
+      - REDACTED
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
@@ -1312,7 +1312,7 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - Basic M2U5MDE5NGM3MGI1N2I3MTE4OGU6ZDJlM2YwMDI4MzhmNjExYTUxNGI4NGExNzI3YmY2ZTUwMGE2N2QyYg==
+      - REDACTED
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
@@ -1384,7 +1384,7 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - Basic M2U5MDE5NGM3MGI1N2I3MTE4OGU6ZDJlM2YwMDI4MzhmNjExYTUxNGI4NGExNzI3YmY2ZTUwMGE2N2QyYg==
+      - REDACTED
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
@@ -1456,7 +1456,7 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - Basic M2U5MDE5NGM3MGI1N2I3MTE4OGU6ZDJlM2YwMDI4MzhmNjExYTUxNGI4NGExNzI3YmY2ZTUwMGE2N2QyYg==
+      - REDACTED
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
@@ -1528,7 +1528,7 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - Basic M2U5MDE5NGM3MGI1N2I3MTE4OGU6ZDJlM2YwMDI4MzhmNjExYTUxNGI4NGExNzI3YmY2ZTUwMGE2N2QyYg==
+      - REDACTED
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
@@ -1600,7 +1600,7 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - Basic M2U5MDE5NGM3MGI1N2I3MTE4OGU6ZDJlM2YwMDI4MzhmNjExYTUxNGI4NGExNzI3YmY2ZTUwMGE2N2QyYg==
+      - REDACTED
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
@@ -1672,7 +1672,7 @@ http_interactions:
       Content-Type:
       - application/json
       Authorization:
-      - Basic M2U5MDE5NGM3MGI1N2I3MTE4OGU6ZDJlM2YwMDI4MzhmNjExYTUxNGI4NGExNzI3YmY2ZTUwMGE2N2QyYg==
+      - REDACTED
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
   response:
