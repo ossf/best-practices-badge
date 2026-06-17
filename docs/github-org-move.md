@@ -1,10 +1,10 @@
 # Plan: Moving GitHub Organization from coreinfrastructure to ossf
 
-This document outlines the steps required to migrate the GitHub repository from the `coreinfrastructure` organization to the `ossf` organization. It was originally developed by Gemini.
+This document outlines the steps required to migrate the GitHub repository from the `coreinfrastructure` organization to the `ossf` organization.
 
 ## Objective
 
-Implement a seamless transition for CI/CD pipelines, contributors, and users while the repository moves from `https://github.com/coreinfrastructure/best-practices-badge` to its new home at `https://github.com/ossf/best-practices-badge`.
+Ensure a seamless transition for CI/CD pipelines, contributors, and users while the repository moves to its new home at `https://github.com/ossf/best-practices-badge`.
 
 **Note:**
 
@@ -18,22 +18,22 @@ Implement a seamless transition for CI/CD pipelines, contributors, and users whi
 ### Category A: CI/CD & Pipeline Stability
 
 * **`.circleci/config.yml`**: Update `working_directory` path.
-* **External Badges**: Update URLs for CircleCI, Codecov, Snyk, and Scorecard to point to the new `ossf` namespace.
+* **External Badges**: Update URLs for CircleCI, Codecov, Snyk, and Scorecard.
 
 ### Category B: Documentation (Links & References)
 
-* **Primary Files**: `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE.spdx`.
-* **Bulk Docs**: All Markdown files in the `docs/` directory that reference the old repository path.
+* **Primary Files**: `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE.spdx`, `AGENTS.md`.
+* **Bulk Docs**: All Markdown files in the `docs/` directory.
 
 ### Category C: Application Code
 
-* **Helpers**: `app/helpers/application_helper.rb` (hardcoded GitHub links).
-* **Models/Comments**: `app/models/project.rb` and `app/lib/github_basic_detective.rb`.
-* **Scripts**: `install-badge-dev-env` (clone URL).
+* **Helpers**: `app/helpers/application_helper.rb`.
+* **Scripts**: `install-badge-dev-env`.
+* **API Specs**: `best_practices.openapi.yaml`.
 
 ### Category D: Localization (UI Strings)
 
-* **Locales**: `config/locales/*.yml` and `config/machine_translations/*.yml` (links to issues and the repo in the UI).
+* **Locales**: `config/locales/*.yml` and `config/machine_translations/*.yml`.
 
 ---
 
@@ -41,126 +41,65 @@ Implement a seamless transition for CI/CD pipelines, contributors, and users whi
 
 ### Phase 1: Preparation (Before the Move)
 
-1. **Freeze PRs**: Briefly notify contributors of the move to minimize merge conflicts during the transition.
+1. **Freeze PRs**: Briefly notify contributors of the move.
 2. **Verify Access**: Ensure you have administrative access to the `ossf` organization.
 
-### Phase 2: Immediate Infrastructure Updates (High Priority)
+### Phase 2: Primary Bulk Update (High Priority)
 
-*Goal: Ensure the build green-lights and badges reflect the new location.*
+*Goal: Update all primary configuration, documentation, and application files in one step. This command specifically targets the repository path to avoid accidentally changing the mailing list or website domains.*
 
-1. **CircleCI Pathing**:
+Run this command to handle CI/CD pathing, primary documentation links, and application helpers:
 
-   ```bash
-   sed -i 's|~/coreinfrastructure/best-practices-badge|~/ossf/best-practices-badge|g' .circleci/config.yml
-   ```
+```bash
+sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' \
+  .circleci/config.yml \
+  README.md \
+  CONTRIBUTING.md \
+  SECURITY.md \
+  LICENSE.spdx \
+  AGENTS.md \
+  app/helpers/application_helper.rb \
+  install-badge-dev-env \
+  best_practices.openapi.yaml
+```
 
-2. **README Badges**:
+### Phase 3: Recursive Cleanup (Standard Priority)
 
-   ```bash
-   # CircleCI
-   sed -i 's|circleci.com/gh/coreinfrastructure/best-practices-badge|circleci.com/gh/ossf/best-practices-badge|g' README.md
-   # Codecov
-   sed -i 's|codecov.io/gh/coreinfrastructure/best-practices-badge|codecov.io/gh/ossf/best-practices-badge|g' README.md
-   # Scorecard
-   sed -i 's|api.scorecard.dev/projects/github.com/coreinfrastructure/best-practices-badge|api.scorecard.dev/projects/github.com/ossf/best-practices-badge|g' README.md
-   sed -i 's|scorecard.dev/viewer/?uri=github.com/coreinfrastructure/best-practices-badge|scorecard.dev/viewer/?uri=github.com/ossf/best-practices-badge|g' README.md
-   ```
+*Goal: Thoroughly update all documentation and localization files.*
 
-3. **LICENSE.spdx**:
-
-   ```bash
-   sed -i 's|https://github.com/coreinfrastructure/best-practices-badge|https://github.com/ossf/best-practices-badge|g' LICENSE.spdx
-   ```
-
-### Phase 3: Contributor & User Experience (High Priority)
-
-*Goal: Ensure users can find the new home and report issues correctly.*
-
-1. **Update CONTRIBUTING.md**:
-
-   ```bash
-   sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' CONTRIBUTING.md
-   ```
-
-2. **Update SECURITY.md**:
-
-   ```bash
-   sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' SECURITY.md
-   ```
-
-3. **Update README.md Main Links**:
-
-   ```bash
-   sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' README.md
-   ```
-
-### Phase 4: Application & Scripts (Medium Priority)
-
-1. **Update Helpers**:
-
-   ```bash
-   sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' app/helpers/application_helper.rb
-   ```
-
-2. **Update Scripts**:
-
-   ```bash
-   sed -i 's|github.com/coreinfrastructure/best-practices-badge|github.com/ossf/best-practices-badge|g' install-badge-dev-env
-   ```
-
-3. **OpenAPI Spec**:
-
-   ```bash
-   sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' best_practices.openapi.yaml
-   ```
-
-### Phase 5: Comprehensive Doc/UI Cleanup (Standard Priority)
-
-1. **Bulk Update Documentation**:
-
+1. **Documentation Directory**:
    ```bash
    find docs/ -name "*.md" -exec sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' {} +
    ```
 
-2. **Update Localization Files**:
-
+2. **Localization & UI Strings**:
    ```bash
    find config/locales/ config/machine_translations/ -name "*.yml" -exec sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' {} +
-   ```
-
-3. **Update Miscellaneous Metadata**:
-
-   ```bash
-   sed -i 's|coreinfrastructure/best-practices-badge|ossf/best-practices-badge|g' AGENTS.md
    ```
 
 ---
 
 ## 3. Specific File Changes (Technical Details)
 
-| File | Search Pattern | Replacement |
-| :--- | :--- | :--- |
-| `.circleci/config.yml` | `~/coreinfrastructure/` | `~/ossf/` |
-| Multiple | `github.com/coreinfrastructure/` | `github.com/ossf/` |
-| Multiple | `circleci.com/gh/coreinfrastructure/` | `circleci.com/gh/ossf/` |
-| Multiple | `codecov.io/gh/coreinfrastructure/` | `codecov.io/gh/ossf/` |
-| `app/mailers/report_mailer.rb` | *(None)* | *Do not change (List remains the same)* |
+The following patterns are all addressed by the `sed` commands in Phase 2 and 3:
+
+| Detail | Source | Target | Command |
+| :--- | :--- | :--- | :--- |
+| **CI Working Dir** | `~/coreinfrastructure/best-practices-badge` | `~/ossf/best-practices-badge` | Phase 2 `sed` |
+| **GitHub Repo** | `github.com/coreinfrastructure/best-practices-badge` | `github.com/ossf/best-practices-badge` | Phase 2 `sed` |
+| **CircleCI UI** | `circleci.com/gh/coreinfrastructure/best-practices-badge` | `circleci.com/gh/ossf/best-practices-badge` | Phase 2 `sed` |
+| **Codecov API** | `codecov.io/gh/coreinfrastructure/best-practices-badge` | `codecov.io/gh/ossf/best-practices-badge` | Phase 2 `sed` |
+| **Localization** | `config/locales/*.yml` | (Update all org refs) | Phase 3 `find/sed` |
 
 ---
 
 ## 4. Verification Steps
 
 1. **CircleCI**: Verify that the build triggers and succeeds after the directory path change.
-2. **Links**: Run a broken link checker (e.g., `awesome_bot`) on `README.md` and `CONTRIBUTING.md`.
-
+2. **Links**: Run a broken link checker on `README.md` and `CONTRIBUTING.md`.
+3. **Clone**: Run `./install-badge-dev-env` in a clean environment.
+4. **UI Verification**:
    ```bash
-   # Suggested check command:
-   bundle exec rake links:check # (If applicable in project)
-   ```
-
-3. **Clone**: Run `./install-badge-dev-env` in a clean environment to verify it correctly clones from the new OSSF URL.
-4. **UI Verification**: Visit a local development instance and verify that "GitHub" and "Issue" links in the footer and help sections point to the OSSF organization.
-
-   ```bash
-   grep -r "ossf/best-practices-badge" config/locales/ | head -n 5
+   # Check a sample localization file for the update
+   grep "ossf/best-practices-badge" config/locales/en.yml | head -n 5
    ```
