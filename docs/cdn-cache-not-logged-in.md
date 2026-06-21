@@ -245,6 +245,56 @@ Three coordinated changes:
   `user_id` cookies; the Fastly rule bypasses the cache for those cookies
   too, so they are not served a cached anonymous page.
 
+### 4.1 Redirects and caching
+
+A redirect that depends on per-browser request values (e.g. `Accept-Language`)
+**must not be cached**, or one browser's target would be served to everyone.
+We must therefore confirm that enabling show-page caching never lets a
+browser-dependent redirect be cached. There are three redirects on the path
+to a project show page; all are handled correctly:
+
+1. **Locale redirect** — `redir_missing_locale`
+   ([`application_controller.rb:400-428`](../app/controllers/application_controller.rb))
+   sends a no-locale URL to the best locale based on `Accept-Language`, so it
+   **is** browser-dependent. It already protects itself: it calls
+   `disable_cache` (`Cache-Control: private, no-store`) and uses **302**, not
+   301, with this exact rationale in the code:
+
+   ```ruby
+   # Where we go varies by browser, so we can't cache this redirect
+   disable_cache
+   # ... we must avoid 301 (Moved Permanently) ...
+   redirect_to preferred_url, status: :found
+   ```
+
+   It runs as an early `before_action` (before `set_default_cache_control`)
+   and halts the chain, so the `show` action — and our caching — never run
+   for it. **Unaffected by this change.**
+
+2. **Default-section redirect** — `redirect_to_default_section`
+   ([`projects_controller.rb:454`](../app/controllers/projects_controller.rb))
+   sends `/projects/:id` to its default section. It is **not**
+   browser-dependent (the section is fixed; the locale is already in the
+   URL) and uses 301. It is a separate action that never calls `cache_on_cdn`,
+   so `set_default_cache_control` leaves it `private, no-store` (uncached).
+   Conservative and **unaffected by this change**.
+
+3. **Obsolete-section redirect** — `redirect_obsolete_section_names`
+   ([`projects_controller.rb:1441-1448`](../app/controllers/projects_controller.rb))
+   runs *inside* `show` and 301-redirects obsolete names (`0` → `passing`).
+   It is **not** browser-dependent. But because `show` continues executing
+   after it redirects, our new HTML branch (and the pre-existing `:md` branch)
+   would otherwise attach `cache_on_cdn` headers to the redirect. The
+   `return if performed?` guard in Change 2 prevents that: once any redirect
+   is committed, `show` stops, leaving the redirect with its
+   `set_default_cache_control` value (`private, no-store`). This also
+   future-proofs `show` — if a browser-dependent redirect is ever added
+   there, caching still cannot attach to it.
+
+In short: the one browser-dependent redirect (locale) is already
+non-cacheable by design, and the `return if performed?` guard ensures our
+change never caches any redirect emitted from within `show`.
+
 ---
 
 ## 5. Exact Code Changes
@@ -280,14 +330,39 @@ with a guarded version:
 ### Change 2: Cache anonymous `projects#show` HTML
 
 In [`app/controllers/projects_controller.rb`](../app/controllers/projects_controller.rb),
-the `show` action currently caches only the markdown format:
+the `show` action first calls `redirect_obsolete_section_names` (which can
+issue a 301 redirect, e.g. `0` → `passing`) and currently caches only the
+markdown format:
 
 ```ruby
+  def show
+    redirect_obsolete_section_names
+    # ...
     # Enable CDN caching for markdown format (no user-specific content)
     cache_on_cdn if request.format.symbol == :md
+    # ...
+    respond_to do |format|
+      format.html
+      format.md { render_markdown_format }
+    end
+  end
 ```
 
-Replace it with a guard that also caches anonymous, flash-free HTML:
+Make two edits. **First, bail out the moment a redirect has been performed**,
+so the caching logic and `respond_to` never run for a redirect response
+(see Section 4.1 — *Redirects and caching*). Add immediately after
+`redirect_obsolete_section_names`:
+
+```ruby
+    redirect_obsolete_section_names
+    # A redirect (e.g. obsolete section 301) already committed the response;
+    # do not attach page-caching headers or render again. Its cache headers
+    # were set by set_default_cache_control (private, no-store).
+    return if performed?
+```
+
+**Second, replace the markdown-only cache line** with a guard that also
+caches anonymous, flash-free HTML:
 
 ```ruby
     # Enable CDN caching when the response carries no per-user state.
@@ -311,6 +386,13 @@ set `BADGEAPP_CACHE_SHOW_PROJECT=false` to instantly fall back to
 No change is needed to `cache_on_cdn`, `omit_session_cookie`, or
 `set_default_cache_control`; the default for any non-cached response remains
 `private, no-store`.
+
+> **Existing test to update.** `test/integration/project_get_test.rb`
+> requests the show page **anonymously** (its `@user` line is commented out)
+> and asserts `Cache-Control: private, no-store`
+> ([`project_get_test.rb:34-38`](../test/integration/project_get_test.rb)).
+> After this change an anonymous show response is `no-store` (plus
+> `Surrogate-Control`), so update that assertion to `no-store`.
 
 ### Change 3: Fastly configuration
 
@@ -348,6 +430,41 @@ if (req.http.Cookie && req.http.Cookie !~ "(_BadgeApp_session|remember_token|use
   unset req.http.Cookie;
 }
 ```
+
+### 5.1 This change is purely additive — existing caching is unchanged
+
+This change **only adds** CDN caching for anonymous project *show HTML*.
+Everything the site caches today keeps caching exactly as before; no existing
+cached resource loses or changes its caching. CDN caching is enabled in
+exactly four places (every call site of `cache_on_cdn`), and our edits touch
+only the show-HTML case:
+
+| Cached resource | Enabled at | Changed? |
+| --- | --- | --- |
+| Project **JSON** (`show_json`) | [`projects_controller.rb:105`](../app/controllers/projects_controller.rb) (`before_action :cache_on_cdn, only: %i[badge baseline_badge show_json]`) | No |
+| **Badge images** (`badge`, `baseline_badge`) | [`projects_controller.rb:105`](../app/controllers/projects_controller.rb) (same `before_action`) | No |
+| **Static badges** | [`badge_static_controller.rb:15`](../app/controllers/badge_static_controller.rb) (`before_action :cache_on_cdn, only: %i[show]`) | No |
+| Project **`.md`** | [`projects_controller.rb:429`](../app/controllers/projects_controller.rb) (`cache_on_cdn if request.format.symbol == :md`) | Preserved |
+| Project **show HTML** | `show` guard (Change 2) | **Added** |
+
+Two facts make this safe:
+
+1. **The `.md` branch is preserved, not replaced.** Change 2 keeps markdown
+   caching by OR-ing the new HTML condition onto the existing one
+   (`request.format.symbol == :md || (… :html …)`). Markdown is also rendered
+   with `layout: false`
+   ([`render_markdown_format`, `projects_controller.rb:1471-1478`](../app/controllers/projects_controller.rb)),
+   so it never emits the layout's CSRF tag and is untouched by Change 1.
+2. **Change 1 (conditional `csrf_meta_tags`) affects only responses that
+   render the application layout** — i.e., HTML pages. JSON responses, `.md`
+   (`layout: false`), and SVG badges do not render
+   [`app/views/layouts/application.html.erb`](../app/views/layouts/application.html.erb),
+   so none of them are affected.
+
+The only redirect-related effect is the `return if performed?` guard in
+`show`, which *stops* caching the obsolete-section 301 (a latent over-cache
+in today's `:md` path); it does not alter any JSON, badge, or `.md` content
+response.
 
 ---
 
@@ -462,6 +579,22 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
       get "/en/projects/#{@project.id}/passing"
       assert_select 'meta[name="csrf-token"]', count: 1
     end
+  end
+
+  # An obsolete-section 301 from inside show must NOT be cached: the
+  # "return if performed?" guard keeps cache_on_cdn from attaching to it.
+  test 'obsolete-section redirect is not CDN-cacheable' do
+    get "/en/projects/#{@project.id}/0" # "0" -> "passing"
+    assert_response :moved_permanently
+    assert_equal 'private, no-store', response.headers['Cache-Control']
+    assert_nil response.headers['Surrogate-Control']
+  end
+
+  # A locale redirect varies by Accept-Language and must never be cached.
+  test 'locale redirect is not cacheable' do
+    get "/projects/#{@project.id}/passing" # no locale in URL
+    assert_response :found # 302, not 301
+    assert_equal 'private, no-store', response.headers['Cache-Control']
   end
 
   def with_forgery_protection
@@ -694,11 +827,23 @@ always bypass the cache.
   never return `HIT`) as a periodic synthetic monitor against production and
   staging, so a regression in the rule is detected automatically.
 
-### 9.5 The bare-ID redirect is still uncached (minor, out of scope)
+### 9.5 The bare-ID redirect is intentionally left uncached
 
 `/en/projects/:id` redirects to the default section
 ([`projects#redirect_to_default_section`](../app/controllers/projects_controller.rb)),
-and that redirect is not cached, so a spider hitting the bare ID still makes
-one origin request before fetching the (cacheable) section page. This is far
-cheaper than rendering the full page and is out of scope here, but caching
-the redirect later would further cut origin load and log volume.
+so a spider hitting the bare ID makes one origin request before fetching the
+(cacheable) section page. We **deliberately do not cache this redirect** at
+this time:
+
+* It is cheap — a tiny redirect, not a full 200KiB render — and low-volume
+  relative to the full page loads we are offloading.
+* It is a **302 (`:found`)**, not a permanent 301, and the code comments it
+  as "temporary (may become configurable)"
+  ([`projects_controller.rb:484-490`](../app/controllers/projects_controller.rb)).
+  The default section may change (e.g., become per-project), so caching the
+  current target would be premature and would need surrogate-key purging to
+  stay correct.
+
+If this redirect ever becomes a measured load source *and* its target
+stabilizes, it could be cached then (anonymous-only, via the same
+cookie-bypass rule, with the project surrogate key for purging).
