@@ -31,8 +31,9 @@ jobs:
   brakeman:
     runs-on: ubuntu-latest
     permissions:
-      contents: read            # checkout
-      security-events: write    # upload SARIF to the code-scanning dashboard
+      contents: read            # checkout (nothing else is needed: the
+                                # Brakeman report is published as a public
+                                # workflow artifact, not to code scanning)
 
     steps:
       # Harden the runner and log egress (consistent with the other workflows).
@@ -86,23 +87,30 @@ jobs:
 
       # Run Brakeman over the source tree using its default check set, so the
       # results stay aligned with the accepted findings already recorded in
-      # config/brakeman.ignore (which Brakeman loads automatically).
-      #   -z        exit non-zero when warnings remain -> fails (gates) the build
-      #   -f sarif  emit SARIF so findings appear in the Security tab
-      # The SARIF file is written before the non-zero exit, so the upload step
-      # below still has a report to send even when the gate fails.
+      # config/brakeman.ignore (which Brakeman loads automatically). Brakeman
+      # infers each output format from the file extension, so we emit both a
+      # human-readable HTML report and machine-readable SARIF in one pass.
+      #   -z   exit non-zero when warnings remain -> fails (gates) the build
+      # The reports are written before the non-zero exit, so they are still
+      # available to publish even when the gate fails.
       - name: Run Brakeman
-        run: brakeman --no-pager -z -f sarif -o brakeman.sarif
+        run: brakeman --no-pager -z -o brakeman.html -o brakeman.sarif
 
-      # Upload results even when Brakeman fails the gate, so findings are
-      # visible in the code-scanning dashboard rather than only in the log.
-      # continue-on-error: this upload is purely informational -- the actual
-      # gate is the "Run Brakeman" step above. PRs from forks get a read-only
-      # token without security-events:write, so the upload cannot succeed
-      # there; we must not let that red-fail an otherwise-clean fork PR.
-      - name: Upload Brakeman SARIF to code scanning
+      # Publish the Brakeman report as a workflow artifact. On a public
+      # repository anyone can download run artifacts, so this is the public,
+      # human-readable record of why a PR did or did not pass -- no GitHub
+      # Advanced Security, code-scanning dashboard, or repo write access
+      # required. We deliberately do NOT keep this private: it is a report from
+      # a public tool run over public code, and there is nothing sensitive in
+      # findings that block a (not-yet-accepted) PR. Runs even when the gate
+      # fails (if: !cancelled()), so a rejected PR's findings are downloadable.
+      - name: Publish Brakeman report (public artifact)
         if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          sarif_file: brakeman.sarif
+          name: brakeman-report
+          path: |
+            brakeman.html
+            brakeman.sarif
+          if-no-files-found: error
+          retention-days: 30
