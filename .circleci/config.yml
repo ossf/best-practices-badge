@@ -9,10 +9,17 @@ version: 2.1
 # You could also run something like:
 # > docker pull circleci/postgres:13.14
 #
+# We deliberately use ONLY CircleCI-certified orbs here (the "circleci/*"
+# namespace). The previous codecov/codecov and naokikimura/dscar-brakeman
+# orbs are uncertified public orbs: loading them would require enabling the
+# org-wide "Allow uncertified public orbs" setting, which lets ANY community
+# orb run in ANY pipeline across the org -- a supply-chain risk we decline to
+# accept. Instead, Codecov upload is run natively below (pinned + hash-verified
+# CLI), and Brakeman now runs as a GitHub Actions check gating the main branch
+# (see .github/workflows/brakeman.yml). Because staging and production are only
+# ever advanced from main, gating main is sufficient for this static analyzer.
 orbs:
   browser-tools: circleci/browser-tools@1.4.9
-  codecov: codecov/codecov@3.2.4
-  dscar-brakeman: naokikimura/dscar-brakeman@0.9.0
 
 # Cache version is AUTOMATICALLY managed via checksums:
 # - {{ checksum ".ruby-version" }} invalidates cache when Ruby version changes
@@ -165,9 +172,44 @@ jobs:
         path: test/html_reports
     - store_artifacts:
         path: /tmp/circleci-test-results
-    - codecov/upload:
-        file: coverage/codecov-result.json
-    - dscar-brakeman/analyze
+    # Upload coverage to Codecov using the official Codecov CLI, pinned to a
+    # specific version and verified against a hardcoded SHA-256 hash before
+    # use. This matches the dependency-pinning policy stated at the top of this
+    # file and mirrors the Heroku CLI install in the deploy job: we never run
+    # an unpinned, unverified binary fetched over the network. The coverage
+    # JSON itself is produced by SimpleCov::Formatter::Codecov; see
+    # test/test_helper.rb. --disable-search + --file restrict the upload to
+    # exactly that file, and --plugin noop skips Codecov's coverage-generation
+    # plugins (we already have the report). We do NOT pass --fail-on-error, so
+    # a Codecov outage cannot break an otherwise-green build. The upload token,
+    # if any, is read from the CODECOV_TOKEN project environment variable.
+    #
+    # To upgrade: choose a release from
+    #   https://github.com/codecov/codecov-cli/releases
+    # then record its hash (the value before "  codecov") from
+    #   https://cli.codecov.io/<version>/linux/codecov.SHA256SUM
+    - run:
+        name: Upload coverage to Codecov (pinned, hash-verified CLI)
+        command: |
+          CODECOV_CLI_VERSION="v11.2.8"
+          CODECOV_EXPECTED_SHA256="8930c4bb30254a42f3d8c340706b1be340885e20c0df5160a24efa2e030e662b"
+          echo "** Downloading Codecov CLI ${CODECOV_CLI_VERSION}"
+          curl -fsS -o codecov \
+            "https://cli.codecov.io/${CODECOV_CLI_VERSION}/linux/codecov"
+          echo "** Verifying SHA-256 hash of downloaded CLI"
+          ACTUAL_SHA256="$(sha256sum codecov | cut -d' ' -f1)"
+          if [ "$ACTUAL_SHA256" != "$CODECOV_EXPECTED_SHA256" ]; then
+            echo "ERROR: Codecov CLI hash mismatch - possible supply chain attack"
+            echo "  Expected: $CODECOV_EXPECTED_SHA256"
+            echo "  Actual:   $ACTUAL_SHA256"
+            rm -f codecov
+            exit 1
+          fi
+          echo "** Hash verified. Uploading coverage."
+          chmod +x codecov
+          ./codecov upload-process --disable-search --plugin noop \
+            --file coverage/codecov-result.json
+          rm -f codecov
 
   # I haven't found a reliable way to calculate HEROKU_APP just once,
   # so it gets recalculated. This approach still greatly reduces

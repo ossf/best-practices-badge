@@ -102,8 +102,10 @@ used in the CI or production environments.
 
 ### Security Analysis
 
-GitHub runs Brakeman and CodeQL remotely for static security analysis, it's
-not done on the local system.
+GitHub runs Brakeman for static security analysis via
+`.github/workflows/brakeman.yml` (gating the main branch), and CodeQL where
+configured; this is not done on the local system. Brakeman's accepted
+findings are recorded in `config/brakeman.ignore`.
 
 ### Development Server
 

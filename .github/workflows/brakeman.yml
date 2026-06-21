@@ -1,0 +1,108 @@
+# Copyright the Linux Foundation and the CII Best Practices badge contributors
+# SPDX-License-Identifier: MIT
+
+name: Brakeman
+
+# Static security analysis of the Rails source with Brakeman.
+#
+# This is the project's authoritative Brakeman gate. It runs on every pull
+# request targeting main and on every push to main. Because the staging and
+# production branches are only ever advanced from main, gating main is
+# sufficient for a purely static analyzer: code cannot reach a deployment
+# branch without first passing through main, and therefore through this check.
+# Make this a required status check in the branch protection rules for main
+# so a failing Brakeman run blocks the merge.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Run on every pull request PROPOSED against main (so problems are caught
+# before merge, on the PR and on each subsequent push to it) and on every push
+# to main (defense in depth). Catching PRs is the point: code must clear this
+# check before it can be merged into main, and only main feeds staging/prod.
+
+# Default to no permissions; grant only what each job needs.
+permissions: {}
+
+jobs:
+  brakeman:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read            # checkout
+      security-events: write    # upload SARIF to the code-scanning dashboard
+
+    steps:
+      # Harden the runner and log egress (consistent with the other workflows).
+      # The Brakeman install step below fetches the gem from rubygems.org;
+      # that network access is recorded here.
+      - uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      # persist-credentials: false so a compromised later step cannot push code.
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      # OSPS-BR-01.02: validate the branch name before use in the pipeline.
+      - name: Validate branch name
+        run: script/validate_branch_name "$GITHUB_REF_NAME"
+
+      # Install Brakeman using the runner's preinstalled Ruby.
+      #
+      # Brakeman is VERSION-pinned, not hash-pinned, and that is deliberate:
+      #
+      #   * RubyGems.org guarantees published versions are immutable. The
+      #     contents of "brakeman 8.0.5" cannot be altered after release -- a
+      #     version can only be yanked, never overwritten or re-pushed with
+      #     different bits. We rely on that policy. So a version pin already
+      #     prevents the silent content-swap that hash-pinning a MUTABLE URL
+      #     (e.g. the Codecov binary in .circleci/config.yml, whose bytes at a
+      #     CDN path could change) is there to defend against. Different
+      #     delivery mechanism, different control.
+      #
+      #   * A hash pin here would buy little anyway: it could only cover the
+      #     top-level brakeman .gem, not its dependency tree (ruby_parser,
+      #     sexp_processor, racc, ...), which would still trust RubyGems.
+      #     Real tree-wide integrity would require a committed Bundler lockfile
+      #     with checksums -- disproportionate to the threat (see next point).
+      #
+      #   * This job runs in a SEPARATE, isolated container with NO secrets and
+      #     no production access. The worst a subverted Brakeman could do is
+      #     emit an inaccurate report; it cannot exfiltrate anything, reach
+      #     production, or otherwise cause harm. That bounds the blast radius
+      #     and is why version-pinning is sufficient assurance here.
+      #
+      # We also avoid a third-party Brakeman action (extra supply-chain
+      # dependency) and do not add Brakeman to the application Gemfile (it is a
+      # CI-only analyzer, not an app dependency).
+      # To upgrade: bump the version here after reviewing the Brakeman release
+      # notes at https://github.com/presidentbeef/brakeman/releases.
+      - name: Install Brakeman (version-pinned)
+        run: sudo gem install brakeman --version 8.0.5 --no-document
+
+      # Run Brakeman over the source tree using its default check set, so the
+      # results stay aligned with the accepted findings already recorded in
+      # config/brakeman.ignore (which Brakeman loads automatically).
+      #   -z        exit non-zero when warnings remain -> fails (gates) the build
+      #   -f sarif  emit SARIF so findings appear in the Security tab
+      # The SARIF file is written before the non-zero exit, so the upload step
+      # below still has a report to send even when the gate fails.
+      - name: Run Brakeman
+        run: brakeman --no-pager -z -f sarif -o brakeman.sarif
+
+      # Upload results even when Brakeman fails the gate, so findings are
+      # visible in the code-scanning dashboard rather than only in the log.
+      # continue-on-error: this upload is purely informational -- the actual
+      # gate is the "Run Brakeman" step above. PRs from forks get a read-only
+      # token without security-events:write, so the upload cannot succeed
+      # there; we must not let that red-fail an otherwise-clean fork PR.
+      - name: Upload Brakeman SARIF to code scanning
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        with:
+          sarif_file: brakeman.sarif
