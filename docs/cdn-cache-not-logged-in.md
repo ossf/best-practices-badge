@@ -168,11 +168,14 @@ cookie.
 
 9. **`csrf_meta_tags` in the layout `<head>`**
    ([`app/views/layouts/application.html.erb:7`](../app/views/layouts/application.html.erb)).
-   This helper calls `form_authenticity_token`, which executes
+   When forgery protection is active (always in production), this helper
+   calls `form_authenticity_token`, which executes
    `session[:_csrf_token] ||= ...`. It is currently emitted on **every**
    rendered page, including anonymous read-only pages that contain no forms
    and no JavaScript that uses the token. This single line is why ordinary
-   human guests accumulate a `_BadgeApp_session` cookie.
+   human guests accumulate a `_BadgeApp_session` cookie. (When forgery
+   protection is disabled — as in the test environment — `csrf_meta_tags`
+   emits nothing and writes nothing; see the testing caveat in Section 6.)
 10. **Form helpers** (`form_with` / `form_tag`) embed a hidden
     `authenticity_token` field, which also writes `session[:_csrf_token]`
     when the form is rendered. This applies to login, signup, password
@@ -215,11 +218,24 @@ Three coordinated changes:
 * The CDN bypass is **fail-safe**: *any* session state (login, flash, CSRF,
   or future per-user data) means the cookie is present, so the request is
   passed to the origin and the personalized response is rendered fresh.
-* `cache_on_cdn` calls `omit_session_cookie`
-  ([`app/controllers/application_controller.rb:288`](../app/controllers/application_controller.rb)),
-  which sets `request.session_options[:skip] = true`, so a cached anonymous
-  response never carries a `Set-Cookie` header even though rendering may
-  have touched the session in memory.
+* `cache_on_cdn`
+  ([`app/controllers/application_controller.rb:211-232`](../app/controllers/application_controller.rb))
+  sets the CDN headers and then suppresses the session cookie:
+
+  ```ruby
+  def cache_on_cdn
+    response.headers['Surrogate-Control'] = BADGE_CACHE_SURROGATE_CONTROL
+    response.headers['Cache-Control'] = 'no-store'
+    omit_session_cookie
+  end
+  ```
+
+  `omit_session_cookie`
+  ([`app/controllers/application_controller.rb:288-290`](../app/controllers/application_controller.rb))
+  sets `request.session_options[:skip] = true`, so a cached anonymous
+  response never carries a `Set-Cookie` header even if rendering touched the
+  session in memory. (`Cache-Control: no-store` is for browsers and other
+  intermediaries; the CDN obeys the private `Surrogate-Control` instead.)
 * Logged-in users vary the page header (account menu, logout, edit
   buttons). They always carry `_BadgeApp_session`, so they always bypass the
   cache and never receive the anonymous header.
@@ -341,8 +357,34 @@ These tests lock in the security-critical invariants. The most important is
 the negative one: an anonymous read-only request must never carry a session
 cookie, because that is the property the CDN bypass relies on.
 
-Add to an integration test (e.g.
-`test/integration/cdn_caching_test.rb`):
+> **Critical testing caveat.** Request forgery protection is **disabled** in
+> the test environment
+> ([`config/environments/test.rb:49`](../config/environments/test.rb)):
+>
+> ```ruby
+> config.action_controller.allow_forgery_protection = false
+> ```
+>
+> When it is off, Rails' `csrf_meta_tags` emits nothing and never writes
+> `session[:_csrf_token]` — so a test of "anonymous pages set no session
+> cookie" would pass *trivially*, even without our change, and a test that
+> the meta tag appears for logged-in users would *fail* (it would be absent
+> for everyone). Therefore the CSRF-sensitive tests below must explicitly
+> re-enable forgery protection. Note that re-enabling it makes unprotected
+> `POST`s fail, so log in (which `POST`s to `login_path`) *before* enabling
+> it. Add this helper to the test:
+>
+> ```ruby
+> def with_forgery_protection
+>   original = ActionController::Base.allow_forgery_protection
+>   ActionController::Base.allow_forgery_protection = true
+>   yield
+> ensure
+>   ActionController::Base.allow_forgery_protection = original
+> end
+> ```
+
+Add an integration test (e.g. `test/integration/cdn_caching_test.rb`):
 
 ```ruby
 # frozen_string_literal: true
@@ -360,68 +402,109 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
   # The CDN treats "has _BadgeApp_session" as "do not cache". Anonymous
   # read-only pages must therefore NOT set that cookie. If this fails, the
   # CDN would needlessly bypass the cache for ordinary guests.
+  # The page list is deliberately broad: if someone later adds anonymous
+  # UJS/AJAX (which would force the CSRF meta tag back on) to a common page,
+  # this test trips. Add new anonymous read-only pages here as they appear.
+  # Note: "/en/projects/:id" (project_redirect) is a redirect to the default
+  # section; the rendered show page is "/en/projects/:id/:section".
   test 'anonymous read-only GETs set no session cookie' do
-    [
-      '/en',
-      '/en/projects',
-      "/en/projects/#{@project.id}"
-    ].each do |path|
-      get path
-      assert_response :success
-      assert_nil cookies['_BadgeApp_session'],
-                 "#{path} unexpectedly set _BadgeApp_session"
-      assert_not response.headers['Set-Cookie'].to_s.include?('_BadgeApp_session'),
-                 "#{path} unexpectedly emitted a session Set-Cookie"
+    with_forgery_protection do
+      [
+        '/en',
+        '/en/projects',
+        "/en/projects/#{@project.id}/passing",
+        '/en/feed'
+      ].each do |path|
+        get path
+        assert_response :success
+        assert_nil cookies['_BadgeApp_session'],
+                   "#{path} unexpectedly set _BadgeApp_session"
+        assert_not response.headers['Set-Cookie'].to_s.include?(
+          '_BadgeApp_session'
+        ), "#{path} unexpectedly emitted a session Set-Cookie"
+      end
     end
   end
 
   # Anonymous project show (HTML) is cacheable: it must advertise a
   # Surrogate-Control header to the CDN and must not emit a session cookie.
   test 'anonymous project show is CDN-cacheable' do
-    get "/en/projects/#{@project.id}"
-    assert_response :success
-    assert response.headers['Surrogate-Control'].present?,
-           'show should send Surrogate-Control for the CDN'
-    assert_equal 'no-store', response.headers['Cache-Control']
-    assert_nil cookies['_BadgeApp_session']
+    with_forgery_protection do
+      get "/en/projects/#{@project.id}/passing"
+      assert_response :success
+      assert response.headers['Surrogate-Control'].present?,
+             'show should send Surrogate-Control for the CDN'
+      assert_equal 'no-store', response.headers['Cache-Control']
+      assert_nil cookies['_BadgeApp_session']
+    end
   end
 
-  # Logged-in users must bypass the cache: they get the personalized header,
-  # a session cookie, and a private, non-cacheable response.
+  # Logged-in users must bypass the cache: a private, non-cacheable response.
   test 'logged-in project show is not CDN-cacheable' do
-    log_in_as(users(:test_user))
-    get "/en/projects/#{@project.id}"
-    assert_response :success
-    assert_equal 'private, no-store', response.headers['Cache-Control']
+    log_in_as(users(:test_user)) # POSTs login; do this before enabling CSRF
+    with_forgery_protection do
+      get "/en/projects/#{@project.id}/passing"
+      assert_response :success
+      assert_equal 'private, no-store', response.headers['Cache-Control']
+    end
   end
 
-  # A flash present on the show response must suppress caching.
-  test 'project show with a flash is not CDN-cacheable' do
-    get "/en/projects/#{@project.id}", flash: { danger: 'boom' }
-    assert_equal 'private, no-store', response.headers['Cache-Control']
+  # The CSRF meta tag must be absent for anonymous users (so no session
+  # cookie is written) and present for logged-in users (UJS links need it).
+  test 'csrf meta tag is gated on login' do
+    with_forgery_protection do
+      get "/en/projects/#{@project.id}/passing"
+      assert_select 'meta[name="csrf-token"]', count: 0
+    end
+
+    log_in_as(users(:test_user))
+    with_forgery_protection do
+      get "/en/projects/#{@project.id}/passing"
+      assert_select 'meta[name="csrf-token"]', count: 1
+    end
+  end
+
+  def with_forgery_protection
+    original = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+    yield
+  ensure
+    ActionController::Base.allow_forgery_protection = original
   end
 end
 ```
 
-Add to a view/controller test asserting the CSRF meta tag is gated on login
-(e.g. in an existing layout or projects show test):
+A flash present when `show` renders must also suppress caching. This project
+uses `ActionDispatch::IntegrationTest` throughout (it intentionally avoids
+the obsolete `ActionController::TestCase`), and an integration test cannot
+inject an *incoming* flash directly. Instead, set a real **persistent** flash
+with one request and let the next request (the show page) render it.
+`password_resets#create` is a stable anonymous source: it always sets
+`flash[:info]` and redirects
+([`app/controllers/password_resets_controller.rb:33-47`](../app/controllers/password_resets_controller.rb)).
+Add this test to `CdnCachingTest`:
 
 ```ruby
-# The CSRF meta tag must be absent for anonymous users (so no session
-# cookie is written) and present for logged-in users (UJS links need it).
-test 'csrf meta tag is gated on login' do
-  get "/en/projects/#{projects(:one).id}"
-  assert_select 'meta[name="csrf-token"]', count: 0
-
-  log_in_as(users(:test_user))
-  get "/en/projects/#{projects(:one).id}"
-  assert_select 'meta[name="csrf-token"]', count: 1
+# A show page that renders a carried-over flash is per-user content and must
+# not be CDN-cached. (No forgery protection here: test env disables it, and
+# this exercises the flash guard, not CSRF.)
+test 'project show rendering a carried-over flash is not CDN-cacheable' do
+  # Sets a persistent flash[:info] in the session, then redirects.
+  post '/en/password_resets',
+       params: { password_reset: { email: 'nobody@example.org' } }
+  assert response.redirect?
+  # The next rendered page displays that flash, so show must skip caching.
+  get "/en/projects/#{@project.id}/passing"
+  assert_response :success
+  assert_equal 'private, no-store', response.headers['Cache-Control'],
+               'show rendering a carried-over flash must not be cached'
 end
 ```
 
-Confirm existing CSRF behavior still holds (these paths must keep working
-even though the meta tag is gone for anonymous users, because forms supply
-their own token). The suite already exercises these; verify they still pass:
+Finally, confirm existing CSRF behavior still holds (these paths must keep
+working even though the meta tag is gone for anonymous users, because forms
+supply their own token via `form_with`). The suite already exercises these;
+verify they still pass:
 
 * **Login** succeeds via the `sessions/new` form (POST validates the
   hidden `authenticity_token`).
@@ -429,12 +512,6 @@ their own token). The suite already exercises these; verify they still pass:
 * **Password reset** request and update succeed.
 * **Logout** works for a logged-in user (the UJS `method: "delete"`
   link relies on the meta tag, which *is* present when logged in).
-
-> **Note:** request forgery protection is disabled in the test environment
-> (`config/environments/test.rb`), so to meaningfully test that anonymous
-> POST forms still validate CSRF, either add a focused test with
-> `ActionController::Base.allow_forgery_protection = true` around it, or
-> rely on the existing system tests that submit the real forms.
 
 ---
 
@@ -466,11 +543,15 @@ sequenceDiagram
 
 ## 8. How to Verify on Staging
 
+The rendered show page is the canonical section URL
+(`/en/projects/:id/:section`); `/en/projects/:id` only redirects to it, so
+the tests below target the section URL directly.
+
 ### Anonymous request is cached
 
 ```bash
 curl -svo /dev/null -H "Fastly-Debug: 1" \
-  https://staging.bestpractices.dev/en/projects/1 2>&1 \
+  https://staging.bestpractices.dev/en/projects/1/passing 2>&1 \
   | grep -E "X-Cache|Surrogate-Control|Cache-Control|Set-Cookie"
 # Run twice: first MISS then HIT. There must be NO Set-Cookie:_BadgeApp_session.
 ```
@@ -480,7 +561,7 @@ curl -svo /dev/null -H "Fastly-Debug: 1" \
 ```bash
 curl -svo /dev/null -H "Fastly-Debug: 1" \
   -H "Cookie: _BadgeApp_session=anything" \
-  https://staging.bestpractices.dev/en/projects/1 2>&1 \
+  https://staging.bestpractices.dev/en/projects/1/passing 2>&1 \
   | grep -E "X-Cache|Cache-Control"
 # Must be PASS/MISS, never HIT; Cache-Control: private, no-store.
 ```
@@ -490,7 +571,7 @@ curl -svo /dev/null -H "Fastly-Debug: 1" \
 ```bash
 curl -svo /dev/null -H "Fastly-Debug: 1" \
   -H "Cookie: remember_token=anything" \
-  https://staging.bestpractices.dev/en/projects/1 2>&1 \
+  https://staging.bestpractices.dev/en/projects/1/passing 2>&1 \
   | grep -E "X-Cache|Cache-Control"
 # Must be PASS/MISS, never HIT.
 ```
@@ -506,25 +587,118 @@ curl -svo /dev/null -H "Fastly-Debug: 1" \
 
 ---
 
-## 9. Residual Risks and Edge Cases
+Each risk below lists its failure mode and how we reduce it. Several are
+already mitigated by existing infrastructure; the rest are covered by the
+tests in Section 6 or by a documented convention.
 
-* **Adding anonymous JavaScript that needs the CSRF token.** If a future
-  page adds an anonymous `link_to ... method:`, `button_to` to a non-GET
-  action driven by UJS, or an anonymous non-GET AJAX call, it will need the
-  meta tag. (`button_to` and `form_with` are fine — they embed their own
-  hidden token.) The "csrf meta tag is gated on login" test and the
-  "anonymous read-only GETs set no session cookie" test will catch the
-  common cases; reviewers should watch for new anonymous UJS/AJAX.
-* **A persistent flash to an anonymous user.** If an anonymous user receives
-  a persistent `flash[...]` (rare on read-only paths), the response that
-  sets it is not cached (it sets a cookie and the show guard sees a
-  non-empty flash), and the browser then carries `_BadgeApp_session` until
-  the flash is shown — those follow-up requests safely bypass the cache.
-  Prefer `flash.now[...]` for messages rendered on a `render` (not a
-  redirect) to avoid leaving a lingering cookie.
-* **Cache invalidation on project edits.** `projects#show` already emits a
-  `Surrogate-Key` of the project's `record_key`; ensure project updates
-  purge that surrogate key so cached anonymous pages are refreshed promptly.
-* **Header variance.** The page header differs for logged-in vs anonymous
-  users. Caching is correct only because logged-in users always carry
-  `_BadgeApp_session` and bypass the cache; do not weaken the bypass rule.
+### 9.1 A future anonymous page needs the CSRF token (fail-safe)
+
+If a future page adds an anonymous `link_to ... method:`, a UJS-driven
+non-GET link, or an anonymous non-GET AJAX call, it would need the meta tag,
+which our change omits for anonymous users.
+
+* **Failure mode is safe, not a bypass.** A missing token makes the
+  *non-GET action* fail CSRF validation (HTTP 422) — a visible functional
+  break in the new feature, never a security hole or a cache leak. GET pages
+  are unaffected (Rails does not CSRF-check GET).
+* **`button_to` and `form_with` are unaffected** — they embed their own
+  hidden `authenticity_token`, independent of the meta tag, so ordinary
+  anonymous forms (login, signup, password reset, unsubscribe, account
+  activation) keep working.
+* **Reduced by automation.** The "anonymous read-only GETs set no session
+  cookie" test iterates over a list of anonymous pages; adding UJS/AJAX to
+  any of them flips the meta tag back on and trips the test. Keep that list
+  current as anonymous pages are added.
+* **Do better (opt-in escape hatch).** If a specific anonymous page ever
+  legitimately needs the token, it should opt in explicitly rather than
+  forcing it globally. For example, gate the layout on login *or* an
+  explicit request:
+
+  ```erb
+  <% if logged_in? || content_for?(:needs_csrf_meta) %><%= csrf_meta_tags %><% end %>
+  ```
+
+  and have that one page set `content_for(:needs_csrf_meta) { true }`. This
+  keeps the default (no token, cacheable) safe while making the exception
+  loud and local.
+
+### 9.2 A persistent flash reaches an anonymous user
+
+`projects#show` itself sets **no** flash on its render path
+([`app/controllers/projects_controller.rb:414-436`](../app/controllers/projects_controller.rb)),
+so the only way an anonymous visitor sees a flash on a show page is by being
+redirected into it with a persistent `flash[...]` (e.g., an error elsewhere).
+
+* **Doubly safe.** Such a response is not cached: the show guard sees a
+  non-empty `flash` (`flash.empty?` is false) and skips `cache_on_cdn`, and
+  the request already carries `_BadgeApp_session` (set when the flash was
+  stored), so Fastly bypasses the cache anyway. The lingering cookie merely
+  costs cache hits for that one browser until the flash is swept.
+* **Do better (convention + verification).** Prefer `flash.now[...]` for
+  messages shown on a `render` (not a redirect); it is request-local and
+  leaves no lingering cookie (Section 3.C). The "anonymous read-only GETs
+  set no session cookie" test guards the common read-only pages against an
+  accidental persistent flash on those paths.
+
+### 9.3 Stale cached pages after an edit — already handled
+
+Caching anonymous show HTML reuses the **existing** purge path, because the
+show page is tagged with the project's surrogate key and edits already purge
+that exact key.
+
+* Show tags the response:
+  [`app/controllers/projects_controller.rb:423`](../app/controllers/projects_controller.rb)
+  — `set_surrogate_key_header @project.record_key`.
+* `update` and `destroy` purge that key
+  ([`projects_controller.rb:766`](../app/controllers/projects_controller.rb)
+  and [`:810`](../app/controllers/projects_controller.rb)), plus a delayed
+  retry job to close a known race
+  ([`PurgeCdnProjectJob`](../app/jobs/purge_cdn_project_job.rb)):
+
+  ```ruby
+  # app/models/project.rb:1206-1208
+  def purge_cdn_project
+    cdn_badge_key = record_key
+    FastlyRails.purge_by_key cdn_badge_key
+  end
+  ```
+
+  Because `record_key` (`"projects/<id>"`,
+  [`app/models/application_record.rb:23-25`](../app/models/application_record.rb))
+  is identical for the cached HTML, the existing badge/JSON purge now also
+  evicts the cached show page — **no new purge code is required**.
+* **Do better (lock it in).** Add a test asserting the HTML show response
+  carries `Surrogate-Key: projects/<id>` so the cached page and the purge
+  key can never silently diverge:
+
+  ```ruby
+  test 'show advertises the project surrogate key for purging' do
+    get "/en/projects/#{projects(:one).id}/passing"
+    assert_equal "projects/#{projects(:one).id}",
+                 response.headers['Surrogate-Key']
+  end
+  ```
+
+### 9.4 Header variance between logged-in and anonymous users
+
+The page header differs for logged-in vs anonymous users (account menu,
+logout, edit buttons). Caching the anonymous header is correct **only**
+because logged-in users always carry `_BadgeApp_session` and therefore
+always bypass the cache.
+
+* **Do better (treat the bypass rule as load-bearing config).** The Fastly
+  bypass rule (Section 5, Change 3) is a security control, not a
+  performance tweak: if it is removed or weakened, logged-in users could be
+  served a cached anonymous header. Keep it under change control and run the
+  Section 8 `curl` checks (session-cookie and remember-me requests must
+  never return `HIT`) as a periodic synthetic monitor against production and
+  staging, so a regression in the rule is detected automatically.
+
+### 9.5 The bare-ID redirect is still uncached (minor, out of scope)
+
+`/en/projects/:id` redirects to the default section
+([`projects#redirect_to_default_section`](../app/controllers/projects_controller.rb)),
+and that redirect is not cached, so a spider hitting the bare ID still makes
+one origin request before fetching the (cacheable) section page. This is far
+cheaper than rendering the full page and is out of scope here, but caching
+the redirect later would further cut origin load and log volume.
