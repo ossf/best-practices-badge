@@ -115,7 +115,7 @@ Rails.application.routes.draw do
   # Weird special case: for David A. Wheeler to get log issues from Google,
   # we have to let Google verify this.  Locale is irrelevant.
   # It isn't really HTML, even though the filename extension is .html. See:
-  # https://github.com/coreinfrastructure/best-practices-badge/issues/1223
+  # https://github.com/ossf/best-practices-badge/issues/1223
   get '/google75f94b1182a77eb8.html' => 'static_pages#google_verifier',
       defaults: FORMAT_TEXT
 

@@ -42,7 +42,7 @@ sw:
     footer_text_html: >-
       <small> <strong>Unahitaji msaada? Una swali? Unaona hitilafu?
       Tafadhali <em><a href="mailto:&#99;ii&#45;badges&#45;questions&#64;lists&#46;coreinfrastructure&#46;or&#103;">tuma
-      barua pepe</a> </em>or <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      barua pepe</a> </em>or <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">wasilisha suala</a></em>.</strong>
       © 2015-2018 <a href="https://openssf.org" target="_blank"
       rel="noopener">Open Source Security Foundation</a>, a <a
@@ -148,7 +148,7 @@ sw:
       p2_html: >-
         Unaweza ona kwa urahisi <a href="/sw/criteria/0">vigezo
         vya nishani iliyohitimu</a>. Taarifa zaidi kuhusu programu
-        ya nishani ya Mazoea Bora ya OpenSSF <a href='https://github.com/coreinfrastructure/best-practices-badge'>inapatikana
+        ya nishani ya Mazoea Bora ya OpenSSF <a href='https://github.com/ossf/best-practices-badge'>inapatikana
         katika GitHub</a>. <a href="/sw/project_stats">Takwimu
         ya mradi</a> na <a href="/sw/criteria_stats">takwimu ya
         vigezo</a> yapatikana. <a href="/sw/projects">Kurasa ya

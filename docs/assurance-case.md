@@ -175,7 +175,7 @@ ship to production unless tests pass, so there is usually no reason to
 see the test results unless a test fails.
 That said, the test results for the master branch
 are available if desired at:
-https://app.circleci.com/pipelines/github/coreinfrastructure/best-practices-badge?branch=master
+https://app.circleci.com/pipelines/github/ossf/best-practices-badge?branch=master
 
 (Note to editors: to edit the figures above, edit the .odg file, then
 export to .png so that it can viewed on GitHub.)
@@ -2621,7 +2621,7 @@ One area where we may *appear* to be vulnerable, but we
 believe we are not, involves nokogiri, libxml2, and
 [CVE-2016-9318](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-9318).
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 Here is our analysis justifying why we believe our use of
 nokogiri and libxml2 are not a vulnerability in our application.
 
@@ -2660,7 +2660,7 @@ The "erubis" module was identified as potentially vulnerable to
 cross-site scripting (XSS) as introduced through
 `pronto-rails_best_practices`.
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 
 However, rails_best_practices is only run in development and test,
 where the environment and input data are trusted,
@@ -2711,7 +2711,7 @@ The "actioncable" module was identified as potentially vulnerable to
 information exposure.
 This module is introduced by rails and traceroute.
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 
 Actioncable structures channels over a single WebSocket connection,
 however, there is
@@ -2831,7 +2831,7 @@ and how it helps make the software more secure:
   In practice our autoamted test suite coverage is much higher; it has achieved
   100% statement coverage for a long time.
   You can verify this by looking at the "CodeCov" value at the
-  [BadgeApp repository](https://github.com/coreinfrastructure/best-practices-badge).
+  [BadgeApp repository](https://github.com/ossf/best-practices-badge).
   This strong test suite
   makes it easier to update components (e.g., if a third-party component
   has a publicly disclosed vulnerability).

@@ -107,6 +107,12 @@ VCR.configure do |config|
   # Sometimes we have the "same" query but with and without per_page=...
   # query values.  Record both variants by recording new_episodes:
   config.default_cassette_options = { record: :new_episodes }
+  # Filter sensitive data from cassettes
+  # These aren't really sensitive since they're not real, but tools have
+  # trouble determining that and it's safer if we redact them no matter what.
+  config.filter_sensitive_data('REDACTED') do |interaction|
+    interaction.request.headers['Authorization']&.first
+  end
   # Default :match_requests_on => [:method, :uri]
   # You can also match on: scheme, port, method, host, path, query
   # You can create new matchers like this:

@@ -75,9 +75,9 @@ Targets `MarkdownProcessor.render` (`app/lib/markdown_processor.rb` +
 ## References
 
 - Production site: <https://www.bestpractices.dev/>
-- Source repository: <https://github.com/coreinfrastructure/best-practices-badge>
-- Security policy: <https://github.com/coreinfrastructure/best-practices-badge/blob/main/SECURITY.md>
-- Vulnerability reports: <https://github.com/coreinfrastructure/best-practices-badge/security/advisories/new>
+- Source repository: <https://github.com/ossf/best-practices-badge>
+- Security policy: <https://github.com/ossf/best-practices-badge/blob/main/SECURITY.md>
+- Vulnerability reports: <https://github.com/ossf/best-practices-badge/security/advisories/new>
 
 In the longer term we expect to move the GitHub location
 to the OpenSSF GitHub organization (ossf).

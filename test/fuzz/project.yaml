@@ -1,9 +1,9 @@
 homepage: https://www.bestpractices.dev
 language: ruby
 primary_contact: dwheeler@linuxfoundation.org
-main_repo: https://github.com/coreinfrastructure/best-practices-badge
+main_repo: https://github.com/ossf/best-practices-badge
 file_github_issue: true
-help_url: https://github.com/coreinfrastructure/best-practices-badge/security/advisories/new
+help_url: https://github.com/ossf/best-practices-badge/security/advisories/new
 
 # Ruzzy (the Ruby fuzzing library) is built on libFuzzer.
 # AFL, honggfuzz, and centipede are not compatible with Ruzzy harnesses.

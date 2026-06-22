@@ -1561,7 +1561,7 @@ Review these larger criteria sets for things to add:
 ### Probably not: Security Code review ideas from liujin28
 
 liujin28 proposed some specifics for security code review in
-<a href="https://github.com/coreinfrastructure/best-practices-badge/pull/536">PR 536</a>
+<a href="https://github.com/ossf/best-practices-badge/pull/536">PR 536</a>
 
 *Response*: We think this is too detailed, and too restrictive to
 specific situations.  Instead, we would want to discuss review, and

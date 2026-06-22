@@ -82,17 +82,17 @@ flowchart BT
     Maintenance[["<b>Maintenance</b>"]]
     Dot1((" ")):::sacmDot
     Dot2((" ")):::sacmDot
-    click Security "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-security"
-    click Processes "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#strategy-processes"
-    click Controls "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-controls"
-    click TechProcesses "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-techprocesses"
-    click NonTechnical "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-nontechnical"
-    click Requirements "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-requirements"
-    click Design "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-design"
-    click Implementation "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-implementation"
-    click Verification "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-verification"
-    click Deployment "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-deployment"
-    click Maintenance "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-maintenance"
+    click Security "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-security"
+    click Processes "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#strategy-processes"
+    click Controls "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-controls"
+    click TechProcesses "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-techprocesses"
+    click NonTechnical "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-nontechnical"
+    click Requirements "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-requirements"
+    click Design "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-design"
+    click Implementation "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-implementation"
+    click Verification "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-verification"
+    click Deployment "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-deployment"
+    click Maintenance "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-maintenance"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ Processes
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ Controls
@@ -165,26 +165,26 @@ flowchart BT
     Dot3((" ")):::sacmDot
     Dot4((" ")):::sacmDot
     Dot5((" ")):::sacmDot
-    click Requirements "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-requirements"
-    click SecTriad "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#strategy-sectriad"
-    click Assets "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-assets"
-    click Confidentiality "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-confidentiality"
-    click Integrity "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-integrity"
-    click Availability "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-availability"
-    click AccessControl "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-accesscontrol"
-    click AssetsIdentified "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-assetsidentified"
-    click ThreatsIdentified "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-threatsidentified"
-    click DataModAuth "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-datamodauth"
-    click AppModAuth "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-appmodauth"
-    click AuthN "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-authn"
-    click AuthZ "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-authz"
-    click DataModAuthEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-datamodauthev"
-    click AppModAuthEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-appmodauthev"
-    click LocalAuthN "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-localauthn"
-    click RemoteAuthN "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-remoteauthn"
-    click AuthZEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-authzev"
-    click LocalAuthNEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-localauthnev"
-    click OAuthEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-oauthev"
+    click Requirements "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-requirements"
+    click SecTriad "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#strategy-sectriad"
+    click Assets "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-assets"
+    click Confidentiality "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-confidentiality"
+    click Integrity "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-integrity"
+    click Availability "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-availability"
+    click AccessControl "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-accesscontrol"
+    click AssetsIdentified "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-assetsidentified"
+    click ThreatsIdentified "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-threatsidentified"
+    click DataModAuth "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-datamodauth"
+    click AppModAuth "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-appmodauth"
+    click AuthN "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-authn"
+    click AuthZ "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-authz"
+    click DataModAuthEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-datamodauthev"
+    click AppModAuthEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-appmodauthev"
+    click LocalAuthN "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-localauthn"
+    click RemoteAuthN "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-remoteauthn"
+    click AuthZEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-authzev"
+    click LocalAuthNEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-localauthnev"
+    click OAuthEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-oauthev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ SecTriad
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ Confidentiality
@@ -258,16 +258,16 @@ flowchart BT
     ScalabilityEv[("<b>ScalabilityEv</b>&nbsp;↗<br>Heroku dyno-based deployment enables horizontal scaling; Fastly CDN offloads static asset and badge requests from origin server")]
     MemSafeEv[("<b>MemSafeEv</b>&nbsp;↗<br>All custom application code is written in Ruby and JavaScript, both memory-managed languages; buffer overflows and memory corruption cannot occur in custom code")]
     Dot1((" ")):::sacmDot
-    click Design "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-design"
-    click SimpleDesign "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-simpledesign"
-    click STRIDE "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-stride"
-    click DesignPrinciples "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-designprinciples"
-    click Scalability "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-scalability"
-    click MemSafe "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-memsafe"
-    click SimpleDesignEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-simpledesignev"
-    click STRIDEEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-strideev"
-    click ScalabilityEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-scalabilityev"
-    click MemSafeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-memsafeev"
+    click Design "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-design"
+    click SimpleDesign "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-simpledesign"
+    click STRIDE "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-stride"
+    click DesignPrinciples "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-designprinciples"
+    click Scalability "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-scalability"
+    click MemSafe "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-memsafe"
+    click SimpleDesignEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-simpledesignev"
+    click STRIDEEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-strideev"
+    click ScalabilityEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-scalabilityev"
+    click MemSafeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-memsafeev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ DesignPrinciples
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ SimpleDesignEv
@@ -325,18 +325,18 @@ flowchart BT
     RailsGuideEv[("<b>RailsGuideEv</b>&nbsp;↗<br>Rails security guide reviewed and countermeasures applied for sessions, CSRF, XSS, injection, and other Rails-specific issues")]
     Dot1((" ")):::sacmDot
     Dot2((" ")):::sacmDot
-    click Implementation "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-implementation"
-    click CommonVulns "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#strategy-commonvulns"
-    click HardeningStrat "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#strategy-hardeningstrat"
-    click PubVulns "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-pubvulns"
-    click OWASPClaim "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-owaspclaim"
-    click MisconfigClaim "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-misconfigclaim"
-    click ReuseSec "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-reusesec"
-    click Hardening "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#package-hardening"
-    click PubVulnsBundleEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-pubvulnsbundleev"
-    click PubVulnsDependabotEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-pubvulnsdependabotev"
-    click RailsGuide "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-railsguide"
-    click RailsGuideEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-railsguideev"
+    click Implementation "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-implementation"
+    click CommonVulns "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#strategy-commonvulns"
+    click HardeningStrat "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#strategy-hardeningstrat"
+    click PubVulns "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-pubvulns"
+    click OWASPClaim "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-owaspclaim"
+    click MisconfigClaim "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-misconfigclaim"
+    click ReuseSec "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-reusesec"
+    click Hardening "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#package-hardening"
+    click PubVulnsBundleEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-pubvulnsbundleev"
+    click PubVulnsDependabotEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-pubvulnsdependabotev"
+    click RailsGuide "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-railsguide"
+    click RailsGuideEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-railsguideev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ CommonVulns
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ HardeningStrat
@@ -409,24 +409,24 @@ flowchart BT
     Dot3((" ")):::sacmDot
     Dot4((" ")):::sacmDot
     Dot5((" ")):::sacmDot
-    click Verification "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-verification"
-    click VerifStrat "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#strategy-verifstrat"
-    click VerifSteps "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-verifsteps"
-    click CIRequired "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-cirequired"
-    click StaticVerif "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-staticverif"
-    click DynamicVerif "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-dynamicverif"
-    click CIConfigEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-ciconfigev"
-    click StyleChecks "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-stylechecks"
-    click WeaknessAnalysis "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-weaknessanalysis"
-    click FLOSSVerif "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-flossverif"
-    click TestCoverage "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-testcoverage"
-    click NegTests "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-negtests"
-    click StyleEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-styleev"
-    click BrakemanEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-brakemanev"
-    click LicenseFinderEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-licensefinderev"
-    click FOSSAEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-fossaev"
-    click CITestEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-citestev"
-    click NegTestsEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-negtestsev"
+    click Verification "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-verification"
+    click VerifStrat "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#strategy-verifstrat"
+    click VerifSteps "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-verifsteps"
+    click CIRequired "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-cirequired"
+    click StaticVerif "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-staticverif"
+    click DynamicVerif "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-dynamicverif"
+    click CIConfigEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-ciconfigev"
+    click StyleChecks "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-stylechecks"
+    click WeaknessAnalysis "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-weaknessanalysis"
+    click FLOSSVerif "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-flossverif"
+    click TestCoverage "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-testcoverage"
+    click NegTests "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-negtests"
+    click StyleEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-styleev"
+    click BrakemanEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-brakemanev"
+    click LicenseFinderEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-licensefinderev"
+    click FOSSAEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-fossaev"
+    click CITestEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-citestev"
+    click NegTestsEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-negtestsev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ VerifStrat
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ CIConfigEv
@@ -497,18 +497,18 @@ flowchart BT
     IntLoggingEv[("<b>IntLoggingEv</b>&nbsp;↗<br>filter_parameter_logging.rb excludes passwords from logs; events stream to stdout per 12-factor app")]
     Dot1((" ")):::sacmDot
     Dot2((" ")):::sacmDot
-    click Deployment "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-deployment"
-    click DeployProvider "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-deployprovider"
-    click Detection "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-detection"
-    click OnlineCheckers "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-onlinecheckers"
-    click RecoveryPlan "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-recoveryplan"
-    click HerokuSecEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-herokusecev"
-    click ExtMonitor "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-extmonitor"
-    click IntLogging "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-intlogging"
-    click OnlineCheckersEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-onlinecheckersev"
-    click RecoveryPlanEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-recoveryplanev"
-    click ExtMonitorEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-extmonitorev"
-    click IntLoggingEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-intloggingev"
+    click Deployment "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-deployment"
+    click DeployProvider "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-deployprovider"
+    click Detection "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-detection"
+    click OnlineCheckers "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-onlinecheckers"
+    click RecoveryPlan "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-recoveryplan"
+    click HerokuSecEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-herokusecev"
+    click ExtMonitor "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-extmonitor"
+    click IntLogging "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-intlogging"
+    click OnlineCheckersEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-onlinecheckersev"
+    click RecoveryPlanEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-recoveryplanev"
+    click ExtMonitorEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-extmonitorev"
+    click IntLoggingEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-intloggingev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ HerokuSecEv
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ OnlineCheckersEv
@@ -561,12 +561,12 @@ flowchart BT
     RapidUpdateEv[("<b>RapidUpdateEv</b>&nbsp;↗<br>Bundler enables library updates in one command; high test coverage enables rapid verify-and-deploy; CI/CD pipeline deploys to Heroku automatically on passing tests")]
     Dot1((" ")):::sacmDot
     Dot2((" ")):::sacmDot
-    click Maintenance "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-maintenance"
-    click AutoDetect "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-autodetect"
-    click RapidUpdate "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-rapidupdate"
-    click AutoDetectBundleEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-autodetectbundleev"
-    click AutoDetectGitHubEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-autodetectgithubev"
-    click RapidUpdateEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-rapidupdateev"
+    click Maintenance "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-maintenance"
+    click AutoDetect "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-autodetect"
+    click RapidUpdate "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-rapidupdate"
+    click AutoDetectBundleEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-autodetectbundleev"
+    click AutoDetectGitHubEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-autodetectgithubev"
+    click RapidUpdateEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-rapidupdateev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ AutoDetectBundleEv
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ AutoDetectGitHubEv
@@ -630,29 +630,29 @@ flowchart BT
     Dot2((" ")):::sacmDot
     Dot3((" ")):::sacmDot
     Dot4((" ")):::sacmDot
-    click NonTechnical "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-nontechnical"
-    click AgreementProc "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-agreementproc"
-    click OrgProc "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-orgproc"
-    click TechMgmt "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-techmgmt"
-    click Acquisition "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-acquisition"
-    click Infrastructure "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-infrastructure"
-    click HumanRes "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-humanres"
-    click ProjectPlanning "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-projectplanning"
-    click RiskMgmt "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-riskmgmt"
-    click ConfigMgmt "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-configmgmt"
-    click QA "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-qa"
-    click Contracts "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-contracts"
-    click DevEnvSec "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-devenvsec"
-    click CINoData "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-cinodata"
-    click DevKnowledge "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-devknowledge"
-    click ProjectPlanningEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-projectplanningev"
-    click RiskMgmtEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-riskmgmtev"
-    click ConfigMgmtEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-configmgmtev"
-    click QAEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-qaev"
-    click ContractsEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-contractsev"
-    click DevEnvSecEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-devenvsecev"
-    click CINoDataEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-cinodataev"
-    click DevKnowledgeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-devknowledgeev"
+    click NonTechnical "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-nontechnical"
+    click AgreementProc "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-agreementproc"
+    click OrgProc "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-orgproc"
+    click TechMgmt "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-techmgmt"
+    click Acquisition "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-acquisition"
+    click Infrastructure "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-infrastructure"
+    click HumanRes "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-humanres"
+    click ProjectPlanning "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-projectplanning"
+    click RiskMgmt "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-riskmgmt"
+    click ConfigMgmt "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-configmgmt"
+    click QA "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-qa"
+    click Contracts "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-contracts"
+    click DevEnvSec "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-devenvsec"
+    click CINoData "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-cinodata"
+    click DevKnowledge "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-devknowledge"
+    click ProjectPlanningEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-projectplanningev"
+    click RiskMgmtEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-riskmgmtev"
+    click ConfigMgmtEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-configmgmtev"
+    click QAEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-qaev"
+    click ContractsEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-contractsev"
+    click DevEnvSecEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-devenvsecev"
+    click CINoDataEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-cinodataev"
+    click DevKnowledgeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-devknowledgeev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ ProjectPlanningEv
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ RiskMgmtEv
@@ -716,9 +716,9 @@ flowchart BT
     Controls["<b>Controls</b><br>Certifications & controls provide confidence in operating results"]
     CIIBadge["<b>CIIBadge</b><br>CII Best Practices Badge certification is obtained"]
     CIIBadgeEv[("<b>CIIBadgeEv</b>&nbsp;↗<br>BadgeApp achieves gold CII Best Practices Badge")]
-    click Controls "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-controls"
-    click CIIBadge "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-ciibadge"
-    click CIIBadgeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-ciibadgeev"
+    click Controls "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-controls"
+    click CIIBadge "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-ciibadge"
+    click CIIBadgeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-ciibadgeev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ CIIBadgeEv
     CIIBadgeEv --> CIIBadge
@@ -782,37 +782,37 @@ flowchart BT
     Dot1((" ")):::sacmDot
     Dot2((" ")):::sacmDot
     Dot3((" ")):::sacmDot
-    click OWASPClaim "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owaspclaim"
-    click OWASPStrat "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#strategy-owaspstrat"
-    click OWASP1013 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp1013"
-    click OWASP1 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp1"
-    click OWASP2 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp2"
-    click OWASP3 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp3"
-    click _Connector_00000000 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#connector-_connector_00000000"
-    click OWASP11 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp11"
-    click OWASP12 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp12"
-    click OWASP13 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp13"
-    click OWASP1Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp1ev"
-    click OWASP2Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp2ev"
-    click OWASP3Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp3ev"
-    click OWASP4 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp4"
-    click OWASP5 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp5"
-    click OWASP6 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp6"
-    click OWASP7 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp7"
-    click OWASP8 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp8"
-    click OWASP9 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp9"
-    click OWASP10 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-owasp10"
-    click OWASP11Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp11ev"
-    click OWASP12Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp12ev"
-    click OWASP13Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp13ev"
-    click OWASP4Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp4ev"
-    click OWASP5Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp5ev"
-    click OWASP6Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp6ev"
-    click OWASP7Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp7ev"
-    click OWASP8Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp8ev"
-    click OWASP9BundleEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp9bundleev"
-    click OWASP9DependabotEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp9dependabotev"
-    click OWASP10Ev "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-owasp10ev"
+    click OWASPClaim "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owaspclaim"
+    click OWASPStrat "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#strategy-owaspstrat"
+    click OWASP1013 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp1013"
+    click OWASP1 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp1"
+    click OWASP2 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp2"
+    click OWASP3 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp3"
+    click _Connector_00000000 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#connector-_connector_00000000"
+    click OWASP11 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp11"
+    click OWASP12 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp12"
+    click OWASP13 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp13"
+    click OWASP1Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp1ev"
+    click OWASP2Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp2ev"
+    click OWASP3Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp3ev"
+    click OWASP4 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp4"
+    click OWASP5 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp5"
+    click OWASP6 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp6"
+    click OWASP7 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp7"
+    click OWASP8 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp8"
+    click OWASP9 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp9"
+    click OWASP10 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-owasp10"
+    click OWASP11Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp11ev"
+    click OWASP12Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp12ev"
+    click OWASP13Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp13ev"
+    click OWASP4Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp4ev"
+    click OWASP5Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp5ev"
+    click OWASP6Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp6ev"
+    click OWASP7Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp7ev"
+    click OWASP8Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp8ev"
+    click OWASP9BundleEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp9bundleev"
+    click OWASP9DependabotEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp9dependabotev"
+    click OWASP10Ev "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-owasp10ev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ OWASPStrat
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ OWASP1Ev
@@ -905,23 +905,23 @@ flowchart BT
     HardenEmailEncEv[("<b>HardenEmailEncEv</b>&nbsp;↗<br>attr_encrypted and blind_index gems encrypt email addresses with AES-256-GCM and PBKDF2-HMAC-SHA256 index")]
     HardenGravatarEv[("<b>HardenGravatarEv</b>&nbsp;↗<br>use_gravatar boolean controls whether gravatar MD5 hash is revealed for each local user")]
     Dot1((" ")):::sacmDot
-    click Hardening "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardening"
-    click HardenHTTPS "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardenhttps"
-    click HardenCSP "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardencsp"
-    click HardenCookies "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardencookies"
-    click HardenCSRF "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardencsrf"
-    click HardenRateIn "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardenratein"
-    click HardenRateOut "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardenrateout"
-    click HardenEmailEnc "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardenemailenc"
-    click HardenGravatar "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-hardengravatar"
-    click HardenHTTPSEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-hardenhttpsev"
-    click HardenCSPEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-hardencspev"
-    click HardenCookiesEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-hardencookiesev"
-    click HardenCSRFEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-hardencsrfev"
-    click HardenRateInEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-hardenrateinev"
-    click HardenRateOutEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-hardenrateoutev"
-    click HardenEmailEncEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-hardenemailencev"
-    click HardenGravatarEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-hardengravatarev"
+    click Hardening "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardening"
+    click HardenHTTPS "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardenhttps"
+    click HardenCSP "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardencsp"
+    click HardenCookies "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardencookies"
+    click HardenCSRF "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardencsrf"
+    click HardenRateIn "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardenratein"
+    click HardenRateOut "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardenrateout"
+    click HardenEmailEnc "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardenemailenc"
+    click HardenGravatar "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardengravatar"
+    click HardenHTTPSEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-hardenhttpsev"
+    click HardenCSPEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-hardencspev"
+    click HardenCookiesEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-hardencookiesev"
+    click HardenCSRFEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-hardencsrfev"
+    click HardenRateInEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-hardenrateinev"
+    click HardenRateOutEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-hardenrateoutev"
+    click HardenEmailEncEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-hardenemailencev"
+    click HardenGravatarEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-hardengravatarev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ HardenHTTPSEv
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ HardenCSPEv
@@ -993,22 +993,22 @@ flowchart BT
     Dot2((" ")):::sacmDot
     Dot3((" ")):::sacmDot
     Dot4((" ")):::sacmDot
-    click Confidentiality "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-confidentiality"
-    click NonPublicData "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-nonpublicdata"
-    click UserPrivacy "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-userprivacy"
-    click MostDataPublic "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-mostdatapublic"
-    click ConfDataAtRest "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-confdataatrest"
-    click DataInMotion "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-datainmotion"
-    click SelfHostedAssets "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-selfhostedassets"
-    click GravatarPrivacyEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-gravatarprivacyev"
-    click Passwords "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-passwords"
-    click RememberMe "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-rememberme"
-    click EmailSecured "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-emailsecured"
-    click DataInMotionEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-datainmotionev"
-    click SelfHostedAssetsEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-selfhostedassetsev"
-    click PasswordsEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-passwordsev"
-    click RememberMeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-remembermeev"
-    click EmailSecuredEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-emailsecuredev"
+    click Confidentiality "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-confidentiality"
+    click NonPublicData "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-nonpublicdata"
+    click UserPrivacy "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-userprivacy"
+    click MostDataPublic "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-mostdatapublic"
+    click ConfDataAtRest "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-confdataatrest"
+    click DataInMotion "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-datainmotion"
+    click SelfHostedAssets "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-selfhostedassets"
+    click GravatarPrivacyEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-gravatarprivacyev"
+    click Passwords "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-passwords"
+    click RememberMe "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-rememberme"
+    click EmailSecured "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-emailsecured"
+    click DataInMotionEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-datainmotionev"
+    click SelfHostedAssetsEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-selfhostedassetsev"
+    click PasswordsEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-passwordsev"
+    click RememberMeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-remembermeev"
+    click EmailSecuredEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-emailsecuredev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ MostDataPublic
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ GravatarPrivacyEv
@@ -1075,19 +1075,19 @@ flowchart BT
     BackupsEv[("<b>BackupsEv</b>&nbsp;↗<br>Heroku Postgres automated daily backups retained across multiple snapshots; standard Rails and PostgreSQL restore mechanisms enable database recovery")]
     ScaleUpEv[("<b>ScaleUpEv</b>&nbsp;↗<br>Heroku cloud platform supports on-demand dyno scaling; Fastly CDN reduces origin load during traffic spikes")]
     Dot1((" ")):::sacmDot
-    click Availability "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-availability"
-    click CDNDDoS "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-cdnddos"
-    click Timeout "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-timeout"
-    click QuickRecovery "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-quickrecovery"
-    click LoginDisabled "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-logindisabled"
-    click Backups "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-backups"
-    click ScaleUp "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-scaleup"
-    click FastlyCDNEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-fastlycdnev"
-    click TimeoutEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-timeoutev"
-    click QuickRecoveryEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-quickrecoveryev"
-    click LoginDisabledEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-logindisabledev"
-    click BackupsEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-backupsev"
-    click ScaleUpEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-scaleupev"
+    click Availability "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-availability"
+    click CDNDDoS "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-cdnddos"
+    click Timeout "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-timeout"
+    click QuickRecovery "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-quickrecovery"
+    click LoginDisabled "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-logindisabled"
+    click Backups "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-backups"
+    click ScaleUp "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-scaleup"
+    click FastlyCDNEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-fastlycdnev"
+    click TimeoutEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-timeoutev"
+    click QuickRecoveryEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-quickrecoveryev"
+    click LoginDisabledEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-logindisabledev"
+    click BackupsEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-backupsev"
+    click ScaleUpEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-scaleupev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ FastlyCDNEv
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ TimeoutEv
@@ -1156,28 +1156,28 @@ flowchart BT
     LeastPrivEv[("<b>LeastPrivEv</b>&nbsp;↗<br>can_edit? grants edit access only to project owner or admins; additional_rights table enables explicit narrow collaborator grants")]
     LeastCommonEv[("<b>LeastCommonEv</b>&nbsp;↗<br>Per-request processing; session state stored in per-user encrypted client-side cookies, not shared server-side sessions")]
     Dot1((" ")):::sacmDot
-    click DesignPrinciples "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-designprinciples"
-    click EconomyMech "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-economymech"
-    click CompleteMed "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-completemed"
-    click FailSafe "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-failsafe"
-    click _Connector_00000000 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#connector-_connector_00000000"
-    click PsychAccept "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-psychaccept"
-    click LimitedAttack "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-limitedattack"
-    click InputValid "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-inputvalid"
-    click EconomyMechEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-economymechev"
-    click CompleteMedEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-completemedev"
-    click FailSafeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-failsafeev"
-    click OpenDesign "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-opendesign"
-    click SepPriv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-seppriv"
-    click LeastPriv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-leastpriv"
-    click LeastCommon "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-leastcommon"
-    click PsychAcceptEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-psychacceptev"
-    click LimitedAttackEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-limitedattackev"
-    click InputValidEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-inputvalidev"
-    click OpenDesignEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-opendesignev"
-    click SepPrivEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-sepprivev"
-    click LeastPrivEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-leastprivev"
-    click LeastCommonEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-leastcommonev"
+    click DesignPrinciples "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-designprinciples"
+    click EconomyMech "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-economymech"
+    click CompleteMed "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-completemed"
+    click FailSafe "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-failsafe"
+    click _Connector_00000000 "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#connector-_connector_00000000"
+    click PsychAccept "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-psychaccept"
+    click LimitedAttack "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-limitedattack"
+    click InputValid "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-inputvalid"
+    click EconomyMechEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-economymechev"
+    click CompleteMedEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-completemedev"
+    click FailSafeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-failsafeev"
+    click OpenDesign "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-opendesign"
+    click SepPriv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-seppriv"
+    click LeastPriv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-leastpriv"
+    click LeastCommon "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-leastcommon"
+    click PsychAcceptEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-psychacceptev"
+    click LimitedAttackEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-limitedattackev"
+    click InputValidEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-inputvalidev"
+    click OpenDesignEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-opendesignev"
+    click SepPrivEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-sepprivev"
+    click LeastPrivEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-leastprivev"
+    click LeastCommonEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-leastcommonev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ EconomyMechEv
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ CompleteMedEv
@@ -1259,26 +1259,26 @@ flowchart BT
     Dot1((" ")):::sacmDot
     Dot2((" ")):::sacmDot
     Dot3((" ")):::sacmDot
-    click ReuseSec "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-reusesec"
-    click ReuseStrat "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#strategy-reusestrat"
-    click KnownVulns "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-knownvulns"
-    click ReuseReview "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-reusereview"
-    click ReuseAuth "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-reuseauth"
-    click PkgMgr "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-pkgmgr"
-    click SpecialAnalysis "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-specialanalysis"
-    click KnownVulnsBundleEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-knownvulnsbundleev"
-    click KnownVulnsDependabotEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-knownvulnsdependabotev"
-    click ReuseReviewEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-reusereviewev"
-    click ReuseAuthEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-reuseauthev"
-    click PkgMgrEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-pkgmgrev"
-    click XXESafe "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-xxesafe"
-    click ErubisSafe "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-erubissafe"
-    click LocalSecretSafe "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-localsecretsafe"
-    click ActionCableSafe "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#claim-actioncablesafe"
-    click XXESafeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-xxesafeev"
-    click ErubisSafeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-erubissafeev"
-    click LocalSecretSafeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-localsecretsafeev"
-    click ActionCableSafeEv "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/case.md#evidence-actioncablesafeev"
+    click ReuseSec "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-reusesec"
+    click ReuseStrat "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#strategy-reusestrat"
+    click KnownVulns "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-knownvulns"
+    click ReuseReview "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-reusereview"
+    click ReuseAuth "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-reuseauth"
+    click PkgMgr "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-pkgmgr"
+    click SpecialAnalysis "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-specialanalysis"
+    click KnownVulnsBundleEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-knownvulnsbundleev"
+    click KnownVulnsDependabotEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-knownvulnsdependabotev"
+    click ReuseReviewEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-reusereviewev"
+    click ReuseAuthEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-reuseauthev"
+    click PkgMgrEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-pkgmgrev"
+    click XXESafe "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-xxesafe"
+    click ErubisSafe "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-erubissafe"
+    click LocalSecretSafe "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-localsecretsafe"
+    click ActionCableSafe "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-actioncablesafe"
+    click XXESafeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-xxesafeev"
+    click ErubisSafeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-erubissafeev"
+    click LocalSecretSafeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-localsecretsafeev"
+    click ActionCableSafeEv "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#evidence-actioncablesafeev"
 
     BottomPadding1["<br/><br/><br/>"]:::invisible ~~~~ ReuseStrat
     BottomPadding2["<br/><br/><br/>"]:::invisible ~~~~ KnownVulnsBundleEv
@@ -1430,7 +1430,7 @@ ship to production unless tests pass, so there is usually no reason to
 see the test results unless a test fails.
 That said, the test results for the master branch
 are available if desired at:
-https://app.circleci.com/pipelines/github/coreinfrastructure/best-practices-badge?branch=master
+https://app.circleci.com/pipelines/github/ossf/best-practices-badge?branch=master
 
 ## Assurance case tooling and notation
 
@@ -2021,7 +2021,7 @@ Referenced by: **[Package Confidentiality](#package-confidentiality)**
 
 Supports: **[Claim Passwords](#claim-passwords)**
 
-External Reference: [../app/models/user.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/models/user.rb)
+External Reference: [../app/models/user.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/user.rb)
 <!-- end verocase -->
 
 `has_secure_password` in user model stores passwords via bcrypt. See [../app/models/user.rb](../app/models/user.rb).
@@ -2085,7 +2085,7 @@ Referenced by: **[Package Confidentiality](#package-confidentiality)**
 
 Supports: **[Claim RememberMe](#claim-rememberme)**
 
-External Reference: [../app/controllers/sessions_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/sessions_controller.rb)
+External Reference: [../app/controllers/sessions_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/sessions_controller.rb)
 <!-- end verocase -->
 
 `remember` method in user model creates bcrypt-stored nonce; sessions controller and helper manage it; login test verifies cleartext not stored in cookie. See [../app/controllers/sessions_controller.rb](../app/controllers/sessions_controller.rb).
@@ -2225,7 +2225,7 @@ Referenced by: **[Package Confidentiality](#package-confidentiality)**
 
 Supports: **[Claim EmailSecured](#claim-emailsecured)**
 
-External Reference: [../app/views/users/](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/views/users/)
+External Reference: [../app/views/users/](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/views/users/)
 <!-- end verocase -->
 
 To verify that email addresses are only accessible to owners and admins:
@@ -2279,7 +2279,7 @@ Referenced by: **[Package Confidentiality](#package-confidentiality)**
 
 Supports: **[Claim DataInMotion](#claim-datainmotion)**
 
-External Reference: [../config/environments/production.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/environments/production.rb)
+External Reference: [../config/environments/production.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/environments/production.rb)
 <!-- end verocase -->
 
 `config.force_ssl = true` enforces HTTPS with TLS redirection and secure cookies in production. See [../config/environments/production.rb](../config/environments/production.rb).
@@ -2417,7 +2417,7 @@ Referenced by: **[Package Requirements](#package-requirements)**
 
 Supports: **[Claim DataModAuth](#claim-datamodauth)**
 
-External Reference: [../app/controllers/projects_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/projects_controller.rb)
+External Reference: [../app/controllers/projects_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/projects_controller.rb)
 <!-- end verocase -->
 
 `before_action` guards `can_edit_else_redirect` and `can_control_else_redirect` protect all project modifications. See [../app/controllers/projects_controller.rb](../app/controllers/projects_controller.rb).
@@ -2521,7 +2521,7 @@ Referenced by: **[Package Availability](#package-availability)**
 
 Supports: **[Claim Timeout](#claim-timeout)**
 
-External Reference: [../config/environments/production.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/environments/production.rb)
+External Reference: [../config/environments/production.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/environments/production.rb)
 <!-- end verocase -->
 
 `Rack::Timeout.service_timeout` set in production configuration limits all request times. See [../config/environments/production.rb](../config/environments/production.rb).
@@ -2622,7 +2622,7 @@ Referenced by: **[Package Availability](#package-availability)**
 
 Supports: **[Claim LoginDisabled](#claim-logindisabled)**
 
-External Reference: [../config/initializers/deny_login.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/deny_login.rb)
+External Reference: [../config/initializers/deny_login.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/deny_login.rb)
 <!-- end verocase -->
 
 `deny_login` initializer reads `BADGEAPP_DENY_LOGIN` env var to disable all logins. See [../config/initializers/deny_login.rb](../config/initializers/deny_login.rb).
@@ -3019,7 +3019,7 @@ Referenced by: **[Package Requirements](#package-requirements)**
 
 Supports: **[Claim AuthZ](#claim-authz)**
 
-External Reference: [../app/controllers/application_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
+External Reference: [../app/controllers/application_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
 <!-- end verocase -->
 
 `can_edit?` and `can_control?` methods implement role-based authorization; all access enforced server-side through controllers. See [../app/controllers/application_controller.rb](../app/controllers/application_controller.rb).
@@ -4586,7 +4586,7 @@ Referenced by: **[Package Hardening](#package-hardening)**
 
 Supports: **[Claim HardenHTTPS](#claim-hardenhttps)**
 
-External Reference: [../config/environments/production.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/environments/production.rb)
+External Reference: [../config/environments/production.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/environments/production.rb)
 <!-- end verocase -->
 
 `config.force_ssl` enables TLS redirection, secure cookies, and HSTS; domain in Chrome HSTS preload list. See [../config/environments/production.rb](../config/environments/production.rb).
@@ -4658,7 +4658,7 @@ Referenced by: **[Package Hardening](#package-hardening)**
 
 Supports: **[Claim HardenCSP](#claim-hardencsp)**
 
-External Reference: [../test/integration/project_get_test.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../test/integration/project_get_test.rb)
+External Reference: [../test/integration/project_get_test.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../test/integration/project_get_test.rb)
 <!-- end verocase -->
 
 `secure_headers` gem enforces CSP and security headers; integration test verifies header values. See [../test/integration/project_get_test.rb](../test/integration/project_get_test.rb).
@@ -4700,7 +4700,7 @@ Referenced by: **[Package Hardening](#package-hardening)**
 
 Supports: **[Claim HardenCookies](#claim-hardencookies)**
 
-External Reference: [../Gemfile](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile)
+External Reference: [../Gemfile](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile)
 <!-- end verocase -->
 
 `secure_headers` gem sets httponly, secure, and SameSite=Lax cookie attributes; session cookies use AES-256-GCM. See [../Gemfile](../Gemfile).
@@ -4741,7 +4741,7 @@ Referenced by: **[Package Hardening](#package-hardening)**
 
 Supports: **[Claim HardenCSRF](#claim-hardencsrf)**
 
-External Reference: [../app/controllers/application_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
+External Reference: [../app/controllers/application_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
 <!-- end verocase -->
 
 `protect_from_forgery` with per-form tokens and origin-header check, enabled via `load_defaults`. See [../app/controllers/application_controller.rb](../app/controllers/application_controller.rb).
@@ -4803,7 +4803,7 @@ Referenced by: **[Package Hardening](#package-hardening)**
 
 Supports: **[Claim HardenRateIn](#claim-hardenratein)**
 
-External Reference: [../config/initializers/rack_attack.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/rack_attack.rb)
+External Reference: [../config/initializers/rack_attack.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/rack_attack.rb)
 <!-- end verocase -->
 
 `Rack::Attack` rate limits on requests, logins, and signups by client IP address. See [../config/initializers/rack_attack.rb](../config/initializers/rack_attack.rb).
@@ -4839,7 +4839,7 @@ Referenced by: **[Package Hardening](#package-hardening)**
 
 Supports: **[Claim HardenRateOut](#claim-hardenrateout)**
 
-External Reference: [../app/models/project.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/models/project.rb)
+External Reference: [../app/models/project.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/project.rb)
 <!-- end verocase -->
 
 `projects_to_remind` class method and hard limit on outgoing reminder email count. See [../app/models/project.rb](../app/models/project.rb).
@@ -4972,7 +4972,7 @@ Referenced by: **[Package Hardening](#package-hardening)**
 
 Supports: **[Claim HardenEmailEnc](#claim-hardenemailenc)**
 
-External Reference: [../app/models/user.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/models/user.rb)
+External Reference: [../app/models/user.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/user.rb)
 <!-- end verocase -->
 
 `attr_encrypted` and `blind_index` gems encrypt email addresses with AES-256-GCM and PBKDF2-HMAC-SHA256 index. See [../app/models/user.rb](../app/models/user.rb).
@@ -5028,7 +5028,7 @@ Referenced by: **[Package Hardening](#package-hardening)**
 
 Supports: **[Claim HardenGravatar](#claim-hardengravatar)**
 
-External Reference: [../app/models/user.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/models/user.rb)
+External Reference: [../app/models/user.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/user.rb)
 <!-- end verocase -->
 
 `use_gravatar` boolean controls whether gravatar MD5 hash is revealed for each local user. See [../app/models/user.rb](../app/models/user.rb).
@@ -5220,7 +5220,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim PkgMgr](#claim-pkgmgr)**
 
-External Reference: [../Gemfile](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile)
+External Reference: [../Gemfile](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile)
 <!-- end verocase -->
 
 `Gemfile` and `Gemfile.lock` manage all gem dependencies via bundler. See [../Gemfile](../Gemfile).
@@ -5250,7 +5250,7 @@ One area where we may *appear* to be vulnerable, but we
 believe we are not, involves nokogiri, libxml2, and
 [CVE-2016-9318](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-9318).
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 Here is our analysis justifying why we believe our use of
 nokogiri and libxml2 are not a vulnerability in our application.
 
@@ -5289,7 +5289,7 @@ The "erubis" module was identified as potentially vulnerable to
 cross-site scripting (XSS) as introduced through
 `pronto-rails_best_practices`.
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 
 However, rails_best_practices is only run in development and test,
 where the environment and input data are trusted,
@@ -5340,7 +5340,7 @@ The "actioncable" module was identified as potentially vulnerable to
 information exposure.
 This module is introduced by rails and traceroute.
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 
 Actioncable structures channels over a single WebSocket connection,
 however, there is
@@ -5488,7 +5488,7 @@ and how it helps make the software more secure:
   In practice our autoamted test suite coverage is much higher; it has achieved
   100% statement coverage for a long time.
   You can verify this by looking at the "CodeCov" value at the
-  [BadgeApp repository](https://github.com/coreinfrastructure/best-practices-badge).
+  [BadgeApp repository](https://github.com/ossf/best-practices-badge).
   This strong test suite
   makes it easier to update components (e.g., if a third-party component
   has a publicly disclosed vulnerability).
@@ -5585,7 +5585,7 @@ Referenced by: **[Package Verification](#package-verification)**
 
 Supports: **[Claim StyleChecks](#claim-stylechecks)**
 
-External Reference: [../.circleci/config.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.circleci/config.yml)
+External Reference: [../.circleci/config.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.circleci/config.yml)
 <!-- end verocase -->
 
 Style checkers as pronto runners in Gemfile: eslint, rails_best_practices, rubocop. See [../.circleci/config.yml](../.circleci/config.yml).
@@ -5615,7 +5615,7 @@ Referenced by: **[Package Verification](#package-verification)**
 
 Supports: **[Claim WeaknessAnalysis](#claim-weaknessanalysis)**
 
-External Reference: [../.github/workflows/main.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.github/workflows/main.yml)
+External Reference: [../.github/workflows/main.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.github/workflows/main.yml)
 <!-- end verocase -->
 
 Brakeman source code weakness analyzer. See [../.github/workflows/main.yml](../.github/workflows/main.yml).
@@ -5645,7 +5645,7 @@ Referenced by: **[Package Verification](#package-verification)**
 
 Supports: **[Claim FLOSSVerif](#claim-flossverif)**
 
-External Reference: [../.circleci/config.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.circleci/config.yml)
+External Reference: [../.circleci/config.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.circleci/config.yml)
 <!-- end verocase -->
 
 `license_finder`. See [../.circleci/config.yml](../.circleci/config.yml).
@@ -5659,10 +5659,10 @@ Referenced by: **[Package Verification](#package-verification)**
 
 Supports: **[Claim FLOSSVerif](#claim-flossverif)**
 
-External Reference: [https://github.com/coreinfrastructure/best-practices-badge/settings/](https://github.com/coreinfrastructure/best-practices-badge/settings/)
+External Reference: [https://github.com/ossf/best-practices-badge/settings/](https://github.com/ossf/best-practices-badge/settings/)
 <!-- end verocase -->
 
-FOSSA check. See [https://github.com/coreinfrastructure/best-practices-badge/settings/](https://github.com/coreinfrastructure/best-practices-badge/settings/).
+FOSSA check. See [https://github.com/ossf/best-practices-badge/settings/](https://github.com/ossf/best-practices-badge/settings/).
 
 <!-- verocase-config element_level = 3 -->
 <!-- verocase element DynamicVerif -->
@@ -5706,10 +5706,10 @@ Referenced by: **[Package Verification](#package-verification)**
 
 Supports: **[Claim TestCoverage](#claim-testcoverage)**
 
-External Reference: [https://codecov.io/gh/coreinfrastructure/best-practices-badge](https://codecov.io/gh/coreinfrastructure/best-practices-badge)
+External Reference: [https://codecov.io/gh/ossf/best-practices-badge](https://codecov.io/gh/ossf/best-practices-badge)
 <!-- end verocase -->
 
-Automated tests run by CI. See [https://codecov.io/gh/coreinfrastructure/best-practices-badge](https://codecov.io/gh/coreinfrastructure/best-practices-badge).
+Automated tests run by CI. See [https://codecov.io/gh/ossf/best-practices-badge](https://codecov.io/gh/ossf/best-practices-badge).
 
 <!-- verocase element NegTests -->
 <!-- DO NOT EDIT text from here until "end verocase" -->
@@ -5736,7 +5736,7 @@ Referenced by: **[Package Verification](#package-verification)**
 
 Supports: **[Claim NegTests](#claim-negtests)**
 
-External Reference: [../test/](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../test/)
+External Reference: [../test/](https://github.com/ossf/best-practices-badge/blob/main/docs/../test/)
 <!-- end verocase -->
 
 Negative test suite. See [../test/](../test/).
@@ -5768,7 +5768,7 @@ Referenced by: **[Package Verification](#package-verification)**
 
 Supports: **[Claim CIRequired](#claim-cirequired)**
 
-External Reference: [../.circleci/config.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.circleci/config.yml)
+External Reference: [../.circleci/config.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.circleci/config.yml)
 <!-- end verocase -->
 
 CI configuration. See [../.circleci/config.yml](../.circleci/config.yml).
@@ -5975,7 +5975,7 @@ Referenced by: **[Package Deployment](#package-deployment)**
 
 Supports: **[Claim IntLogging](#claim-intlogging)**
 
-External Reference: [../config/initializers/filter_parameter_logging.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/filter_parameter_logging.rb)
+External Reference: [../config/initializers/filter_parameter_logging.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/filter_parameter_logging.rb)
 <!-- end verocase -->
 
 `filter_parameter_logging.rb` excludes passwords from logs; events stream to stdout per 12-factor app. See [../config/initializers/filter_parameter_logging.rb](../config/initializers/filter_parameter_logging.rb).
@@ -6189,7 +6189,7 @@ Referenced by: **[Package Maintenance](#package-maintenance)**
 
 Supports: **[Claim AutoDetect](#claim-autodetect)**
 
-External Reference: [../Gemfile.lock](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile.lock)
+External Reference: [../Gemfile.lock](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile.lock)
 <!-- end verocase -->
 
 `bundle-audit` checks all gem versions against NVD vulnerability database on every rake run. See [../Gemfile.lock](../Gemfile.lock).
@@ -6203,7 +6203,7 @@ Referenced by: **[Package Maintenance](#package-maintenance)**
 
 Supports: **[Claim AutoDetect](#claim-autodetect)**
 
-External Reference: [../.github/dependabot.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.github/dependabot.yml)
+External Reference: [../.github/dependabot.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.github/dependabot.yml)
 <!-- end verocase -->
 
 GitHub Dependabot alerts and automated pull requests for vulnerable dependencies. See [../.github/dependabot.yml](../.github/dependabot.yml).
@@ -6802,7 +6802,7 @@ Referenced by: **[Package NonTechnical](#package-nontechnical)**
 
 Supports: **[Claim ConfigMgmt](#claim-configmgmt)**
 
-External Reference: [../governance.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../governance.md)
+External Reference: [../governance.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../governance.md)
 <!-- end verocase -->
 
 Git version control via GitHub with authenticated access; governance documented. See [../governance.md](../governance.md).
@@ -7215,7 +7215,7 @@ Referenced by: **[Package NonTechnical](#package-nontechnical)**
 
 Supports: **[Claim QA](#claim-qa)**
 
-External Reference: [../.circleci/config.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.circleci/config.yml)
+External Reference: [../.circleci/config.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.circleci/config.yml)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-qa) for details.
@@ -7229,7 +7229,7 @@ Referenced by: **[Package NonTechnical](#package-nontechnical)**
 
 Supports: **[Claim RiskMgmt](#claim-riskmgmt)**
 
-External Reference: [../docs/case.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../docs/case.md)
+External Reference: [../docs/case.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../docs/case.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-riskmgmt) for details.
@@ -7243,7 +7243,7 @@ Referenced by: **[Package NonTechnical](#package-nontechnical)**
 
 Supports: **[Claim ProjectPlanning](#claim-projectplanning)**
 
-External Reference: [../governance.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../governance.md)
+External Reference: [../governance.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../governance.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-projectplanning) for details.
@@ -7257,7 +7257,7 @@ Referenced by: **[Package NonTechnical](#package-nontechnical)**
 
 Supports: **[Claim DevKnowledge](#claim-devknowledge)**
 
-External Reference: [../docs/background.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../docs/background.md)
+External Reference: [../docs/background.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../docs/background.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-devknowledge) for details.
@@ -7271,7 +7271,7 @@ Referenced by: **[Package NonTechnical](#package-nontechnical)**
 
 Supports: **[Claim CINoData](#claim-cinodata)**
 
-External Reference: [../.circleci/config.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.circleci/config.yml)
+External Reference: [../.circleci/config.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.circleci/config.yml)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-cinodata) for details.
@@ -7285,7 +7285,7 @@ Referenced by: **[Package NonTechnical](#package-nontechnical)**
 
 Supports: **[Claim DevEnvSec](#claim-devenvsec)**
 
-External Reference: [../CONTRIBUTING.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../CONTRIBUTING.md)
+External Reference: [../CONTRIBUTING.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../CONTRIBUTING.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-devenvsec) for details.
@@ -7313,7 +7313,7 @@ Referenced by: **[Package Maintenance](#package-maintenance)**
 
 Supports: **[Claim RapidUpdate](#claim-rapidupdate)**
 
-External Reference: [../.circleci/config.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.circleci/config.yml)
+External Reference: [../.circleci/config.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.circleci/config.yml)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-rapidupdate) for details.
@@ -7327,7 +7327,7 @@ Referenced by: **[Package Deployment](#package-deployment)**
 
 Supports: **[Claim RecoveryPlan](#claim-recoveryplan)**
 
-External Reference: [../docs/case.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../docs/case.md)
+External Reference: [../docs/case.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../docs/case.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-recoveryplan) for details.
@@ -7355,7 +7355,7 @@ Referenced by: **[Package Implementation](#package-implementation)**
 
 Supports: **[Claim PubVulns](#claim-pubvulns)**
 
-External Reference: [../.github/dependabot.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.github/dependabot.yml)
+External Reference: [../.github/dependabot.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.github/dependabot.yml)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-pubvulns) for details.
@@ -7369,7 +7369,7 @@ Referenced by: **[Package Implementation](#package-implementation)**
 
 Supports: **[Claim PubVulns](#claim-pubvulns)**
 
-External Reference: [../Gemfile.lock](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile.lock)
+External Reference: [../Gemfile.lock](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile.lock)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-pubvulns) for details.
@@ -7383,7 +7383,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim ReuseAuth](#claim-reuseauth)**
 
-External Reference: [../Gemfile.lock](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile.lock)
+External Reference: [../Gemfile.lock](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile.lock)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-reuseauth) for details.
@@ -7397,7 +7397,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim ReuseReview](#claim-reusereview)**
 
-External Reference: [../CONTRIBUTING.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../CONTRIBUTING.md)
+External Reference: [../CONTRIBUTING.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../CONTRIBUTING.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-reusereview) for details.
@@ -7425,7 +7425,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP13](#claim-owasp13)**
 
-External Reference: [../config/initializers/filter_parameter_logging.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/filter_parameter_logging.rb)
+External Reference: [../config/initializers/filter_parameter_logging.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/filter_parameter_logging.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp13) for details.
@@ -7439,7 +7439,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP12](#claim-owasp12)**
 
-External Reference: [../config/initializers/session_store.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/session_store.rb)
+External Reference: [../config/initializers/session_store.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/session_store.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp12) for details.
@@ -7453,7 +7453,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP11](#claim-owasp11)**
 
-External Reference: [../docs/case.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../docs/case.md)
+External Reference: [../docs/case.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../docs/case.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp11) for details.
@@ -7467,7 +7467,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP10](#claim-owasp10)**
 
-External Reference: [../app/controllers/sessions_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/sessions_controller.rb)
+External Reference: [../app/controllers/sessions_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/sessions_controller.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp10) for details.
@@ -7481,7 +7481,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP9](#claim-owasp9)**
 
-External Reference: [../.github/dependabot.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.github/dependabot.yml)
+External Reference: [../.github/dependabot.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.github/dependabot.yml)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp9) for details.
@@ -7495,7 +7495,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP9](#claim-owasp9)**
 
-External Reference: [../Gemfile.lock](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile.lock)
+External Reference: [../Gemfile.lock](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile.lock)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp9) for details.
@@ -7509,7 +7509,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP8](#claim-owasp8)**
 
-External Reference: [../app/controllers/application_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
+External Reference: [../app/controllers/application_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp8) for details.
@@ -7523,7 +7523,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP7](#claim-owasp7)**
 
-External Reference: [../app/controllers/application_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
+External Reference: [../app/controllers/application_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp7) for details.
@@ -7537,7 +7537,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP6](#claim-owasp6)**
 
-External Reference: [../config/initializers/filter_parameter_logging.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/filter_parameter_logging.rb)
+External Reference: [../config/initializers/filter_parameter_logging.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/filter_parameter_logging.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp6) for details.
@@ -7551,7 +7551,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP5](#claim-owasp5)**
 
-External Reference: [../config/initializers/secure_headers.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/secure_headers.rb)
+External Reference: [../config/initializers/secure_headers.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/secure_headers.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp5) for details.
@@ -7565,7 +7565,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP4](#claim-owasp4)**
 
-External Reference: [../app/controllers/projects_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/projects_controller.rb)
+External Reference: [../app/controllers/projects_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/projects_controller.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp4) for details.
@@ -7579,7 +7579,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP3](#claim-owasp3)**
 
-External Reference: [../config/initializers/secure_headers.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/secure_headers.rb)
+External Reference: [../config/initializers/secure_headers.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/secure_headers.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp3) for details.
@@ -7593,7 +7593,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP2](#claim-owasp2)**
 
-External Reference: [../config/initializers/session_store.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/session_store.rb)
+External Reference: [../config/initializers/session_store.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/session_store.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp2) for details.
@@ -7607,7 +7607,7 @@ Referenced by: **[Package OWASPClaim](#package-owaspclaim)**
 
 Supports: **[Claim OWASP1](#claim-owasp1)**
 
-External Reference: [../app/models/project.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/models/project.rb)
+External Reference: [../app/models/project.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/project.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-owasp1) for details.
@@ -7621,7 +7621,7 @@ Referenced by: **[Package Design](#package-design)**
 
 Supports: **[Claim MemSafe](#claim-memsafe)**
 
-External Reference: [../Gemfile](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile)
+External Reference: [../Gemfile](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-memsafe) for details.
@@ -7635,7 +7635,7 @@ Referenced by: **[Package Design](#package-design)**
 
 Supports: **[Claim Scalability](#claim-scalability)**
 
-External Reference: [../Procfile](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Procfile)
+External Reference: [../Procfile](https://github.com/ossf/best-practices-badge/blob/main/docs/../Procfile)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-scalability) for details.
@@ -7649,7 +7649,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim InputValid](#claim-inputvalid)**
 
-External Reference: [../app/models/project.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/models/project.rb)
+External Reference: [../app/models/project.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/project.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-inputvalid) for details.
@@ -7663,7 +7663,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim LimitedAttack](#claim-limitedattack)**
 
-External Reference: [../config/initializers/rack_attack.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/rack_attack.rb)
+External Reference: [../config/initializers/rack_attack.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/rack_attack.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-limitedattack) for details.
@@ -7677,7 +7677,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim PsychAccept](#claim-psychaccept)**
 
-External Reference: [../app/views/projects/](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/views/projects/)
+External Reference: [../app/views/projects/](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/views/projects/)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-psychaccept) for details.
@@ -7691,7 +7691,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim LeastCommon](#claim-leastcommon)**
 
-External Reference: [../config/initializers/session_store.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/session_store.rb)
+External Reference: [../config/initializers/session_store.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/session_store.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-leastcommon) for details.
@@ -7705,7 +7705,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim LeastPriv](#claim-leastpriv)**
 
-External Reference: [../app/controllers/application_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
+External Reference: [../app/controllers/application_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-leastpriv) for details.
@@ -7719,7 +7719,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim SepPriv](#claim-seppriv)**
 
-External Reference: [../app/models/user.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/models/user.rb)
+External Reference: [../app/models/user.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/user.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-seppriv) for details.
@@ -7733,7 +7733,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim OpenDesign](#claim-opendesign)**
 
-External Reference: [https://github.com/coreinfrastructure/best-practices-badge](https://github.com/coreinfrastructure/best-practices-badge)
+External Reference: [https://github.com/ossf/best-practices-badge](https://github.com/ossf/best-practices-badge)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-opendesign) for details.
@@ -7747,7 +7747,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim FailSafe](#claim-failsafe)**
 
-External Reference: [../app/controllers/application_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
+External Reference: [../app/controllers/application_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-failsafe) for details.
@@ -7761,7 +7761,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim CompleteMed](#claim-completemed)**
 
-External Reference: [../app/controllers/application_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
+External Reference: [../app/controllers/application_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/application_controller.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-completemed) for details.
@@ -7775,7 +7775,7 @@ Referenced by: **[Package DesignPrinciples](#package-designprinciples)**
 
 Supports: **[Claim EconomyMech](#claim-economymech)**
 
-External Reference: [../Gemfile](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile)
+External Reference: [../Gemfile](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-economymech) for details.
@@ -7789,7 +7789,7 @@ Referenced by: **[Package Design](#package-design)**
 
 Supports: **[Claim STRIDE](#claim-stride)**
 
-External Reference: [../docs/case.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../docs/case.md)
+External Reference: [../docs/case.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../docs/case.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-stride) for details.
@@ -7803,7 +7803,7 @@ Referenced by: **[Package Design](#package-design)**
 
 Supports: **[Claim SimpleDesign](#claim-simpledesign)**
 
-External Reference: [../docs/design.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../docs/design.md)
+External Reference: [../docs/design.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../docs/design.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-simpledesign) for details.
@@ -7851,7 +7851,7 @@ Referenced by: **[Package Requirements](#package-requirements)**
 
 Supports: **[Claim RemoteAuthN](#claim-remoteauthn)**
 
-External Reference: [../config/initializers/omniauth.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/omniauth.rb)
+External Reference: [../config/initializers/omniauth.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/omniauth.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-remoteauthn) for details.
@@ -7865,7 +7865,7 @@ Referenced by: **[Package Requirements](#package-requirements)**
 
 Supports: **[Claim LocalAuthN](#claim-localauthn)**
 
-External Reference: [../app/controllers/sessions_controller.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/controllers/sessions_controller.rb)
+External Reference: [../app/controllers/sessions_controller.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/controllers/sessions_controller.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-localauthn) for details.
@@ -7879,7 +7879,7 @@ Referenced by: **[Package Availability](#package-availability)**
 
 Supports: **[Claim ScaleUp](#claim-scaleup)**
 
-External Reference: [../Procfile](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Procfile)
+External Reference: [../Procfile](https://github.com/ossf/best-practices-badge/blob/main/docs/../Procfile)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-scaleup) for details.
@@ -7907,7 +7907,7 @@ Referenced by: **[Package Availability](#package-availability)**
 
 Supports: **[Claim QuickRecovery](#claim-quickrecovery)**
 
-External Reference: [../Procfile](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Procfile)
+External Reference: [../Procfile](https://github.com/ossf/best-practices-badge/blob/main/docs/../Procfile)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-quickrecovery) for details.
@@ -7921,7 +7921,7 @@ Referenced by: **[Package Availability](#package-availability)**
 
 Supports: **[Claim CDNDDoS](#claim-cdnddos)**
 
-External Reference: [../config/initializers/fastly.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/fastly.rb)
+External Reference: [../config/initializers/fastly.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/fastly.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-cdnddos) for details.
@@ -7935,7 +7935,7 @@ Referenced by: **[Package Requirements](#package-requirements)**
 
 Supports: **[Claim AppModAuth](#claim-appmodauth)**
 
-External Reference: [../governance.md](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../governance.md)
+External Reference: [../governance.md](https://github.com/ossf/best-practices-badge/blob/main/docs/../governance.md)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-appmodauth) for details.
@@ -7949,7 +7949,7 @@ Referenced by: **[Package Confidentiality](#package-confidentiality)**
 
 Supports: **[Claim UserPrivacy](#claim-userprivacy)**
 
-External Reference: [../app/models/user.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../app/models/user.rb)
+External Reference: [../app/models/user.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/user.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-userprivacy) for details.
@@ -7986,7 +7986,7 @@ Referenced by: **[Package Confidentiality](#package-confidentiality)**
 
 Supports: **[Claim SelfHostedAssets](#claim-selfhostedassets)**
 
-External Reference: [../config/initializers/secure_headers.rb](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../config/initializers/secure_headers.rb)
+External Reference: [../config/initializers/secure_headers.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../config/initializers/secure_headers.rb)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-selfhostedassets) for details.
@@ -8000,7 +8000,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim KnownVulns](#claim-knownvulns)**
 
-External Reference: [../.github/dependabot.yml](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../.github/dependabot.yml)
+External Reference: [../.github/dependabot.yml](https://github.com/ossf/best-practices-badge/blob/main/docs/../.github/dependabot.yml)
 <!-- end verocase -->
 
 We configure GitHub Dependabot to automatically scan our gem dependencies
@@ -8016,7 +8016,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim KnownVulns](#claim-knownvulns)**
 
-External Reference: [../Gemfile.lock](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile.lock)
+External Reference: [../Gemfile.lock](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile.lock)
 <!-- end verocase -->
 
 We run `bundle-audit` as part of every `rake` invocation. It compares
@@ -8054,7 +8054,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim ActionCableSafe](#claim-actioncablesafe)**
 
-External Reference: [../Gemfile.lock](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile.lock)
+External Reference: [../Gemfile.lock](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile.lock)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-actioncablesafe) for details.
@@ -8091,7 +8091,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim LocalSecretSafe](#claim-localsecretsafe)**
 
-External Reference: [../tmp/local_secret.txt](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../tmp/local_secret.txt)
+External Reference: [../tmp/local_secret.txt](https://github.com/ossf/best-practices-badge/blob/main/docs/../tmp/local_secret.txt)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-localsecretsafe) for details.
@@ -8125,7 +8125,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim ErubisSafe](#claim-erubissafe)**
 
-External Reference: [../Gemfile](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile)
+External Reference: [../Gemfile](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-erubissafe) for details.
@@ -8161,7 +8161,7 @@ Referenced by: **[Package ReuseSec](#package-reusesec)**
 
 Supports: **[Claim XXESafe](#claim-xxesafe)**
 
-External Reference: [../Gemfile.lock](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/../Gemfile.lock)
+External Reference: [../Gemfile.lock](https://github.com/ossf/best-practices-badge/blob/main/docs/../Gemfile.lock)
 <!-- end verocase -->
 
 See the [parent claim section](#claim-xxesafe) for details.
