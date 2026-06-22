@@ -339,7 +339,7 @@ workflows:
     jobs:
       - build
       - deploy:
-          context: heroku-deploy
+          context: bestpractices-heroku-deploy
           requires:
             - build
           filters:
