@@ -4,7 +4,7 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-module ApplicationHelper
+module ApplicationHelper # rubocop:disable Metrics/ModuleLength
   include Pagy::Frontend
 
   # Frozen string constant for unknown project names (memory optimization)
@@ -135,9 +135,39 @@ module ApplicationHelper
     cache_frozen_if(!condition, name, options, &)
   end
 
+  # Cache metrics (enabled via CACHE_PROFILE=1).
+  # Metrics are written to tmp/cache_metrics.json every 100 requests.
+  # Read with: script/cache_metrics_report.rb
+  CACHE_METRICS = {} # rubocop:disable Style/MutableConstant
+  CACHE_METRICS_MUTEX = Mutex.new
+  CACHE_METRICS_FILE = Rails.root.join('tmp/cache_metrics.json')
+  CACHE_METRICS_WRITE_INTERVAL = 100
+
+  def self.cache_metrics
+    CACHE_METRICS_MUTEX.synchronize do
+      CACHE_METRICS.values.sort_by { |m| -m[:hit_allocs] }
+    end
+  end
+
+  def self.cache_metrics_reset
+    CACHE_METRICS_MUTEX.synchronize { CACHE_METRICS.clear }
+  end
+
+  def self.cache_metrics_save
+    CACHE_METRICS_MUTEX.synchronize do
+      File.write(CACHE_METRICS_FILE, JSON.pretty_generate(CACHE_METRICS.values))
+    end
+  end
+
   private
 
   def cache_frozen_perform(name, options, &)
+    return cache_frozen_perform_profiled(name, options, &) if ENV['CACHE_PROFILE']
+
+    cache_frozen_perform_fast(name, options, &)
+  end
+
+  def cache_frozen_perform_fast(name, options, &)
     cache_key = controller.combined_fragment_cache_key(
       cache_fragment_name(name, **options.slice(:skip_digest))
     )
@@ -148,5 +178,52 @@ module ApplicationHelper
     end
     safe_concat(fragment)
   end
+
+  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  def cache_frozen_perform_profiled(name, options, &)
+    alloc_before = GC.stat(:total_allocated_objects)
+    cache_key = controller.combined_fragment_cache_key(
+      cache_fragment_name(name, **options.slice(:skip_digest))
+    )
+    fragment = controller.cache_store.read(cache_key, options)
+
+    if fragment
+      # HIT: measure only the overhead (key gen + read + concat)
+      safe_concat(fragment)
+      hit_allocs = GC.stat(:total_allocated_objects) - alloc_before
+      record_cache_metric(name, true, hit_allocs, 0)
+    else
+      # MISS: measure overhead separately from rendering
+      alloc_after_read = GC.stat(:total_allocated_objects)
+      fragment = output_buffer.capture(&).freeze
+      controller.cache_store.write(cache_key, fragment, options)
+      safe_concat(fragment)
+      total_allocs = GC.stat(:total_allocated_objects) - alloc_before
+      overhead_allocs = alloc_after_read - alloc_before # key gen + read
+      record_cache_metric(name, false, overhead_allocs, total_allocs)
+    end
+  end
+  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  def record_cache_metric(name, hit, overhead_allocs, miss_total_allocs)
+    key = name.is_a?(Array) ? name.map(&:to_s).join('/') : name.to_s
+    total = nil
+    CACHE_METRICS_MUTEX.synchronize do
+      m = CACHE_METRICS[key] ||= {
+        key: key, hits: 0, misses: 0, hit_allocs: 0, miss_allocs: 0
+      }
+      if hit
+        m[:hits] += 1
+        m[:hit_allocs] += overhead_allocs
+      else
+        m[:misses] += 1
+        m[:miss_allocs] += miss_total_allocs
+      end
+      total = CACHE_METRICS.values.sum { |v| v[:hits] + v[:misses] }
+    end
+    ApplicationHelper.cache_metrics_save if (total % CACHE_METRICS_WRITE_INTERVAL).zero?
+  end
+  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
   # rubocop:enable Rails/OutputSafety
 end

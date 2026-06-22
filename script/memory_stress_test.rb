@@ -17,6 +17,7 @@
 #   script/memory_stress_test.rb [options] [iterations] [base_url]
 #
 # Options:
+#   --crawler            Simulate web crawler: discover links, prefer unvisited pages
 #   --duration DURATION  Run for specified duration instead of iterations
 #                        Format: 30s, 10m, 6h, 1d (seconds, minutes, hours, days)
 #   --shuffle            Shuffle paths for randomized order (default for duration mode)
@@ -25,10 +26,16 @@
 #   --help               Show this help message
 #
 # Examples:
-#   script/memory_stress_test.rb 1000                    # 1000 iterations
-#   script/memory_stress_test.rb --duration 6h           # Run for 6 hours
-#   script/memory_stress_test.rb --duration 30m --shuffle  # 30 minutes, shuffled
-#   script/memory_stress_test.rb 5000 http://localhost:4000
+#   script/memory_stress_test.rb --crawler --duration 6h  # Realistic crawler simulation
+#   script/memory_stress_test.rb 1000                     # 1000 iterations (legacy mode)
+#   script/memory_stress_test.rb --duration 6h            # Run for 6 hours
+#   script/memory_stress_test.rb --duration 30m --shuffle # 30 minutes, shuffled
+#
+# Crawler mode simulates real web crawlers that:
+#   - Discover links from each page visited
+#   - Prefer unvisited URLs over previously visited ones
+#   - Cover all projects, sections, and locales systematically
+#   - Restart from beginning after visiting all pages (like real crawlers)
 #
 # Path sources (in order of priority):
 #   1. Files matching requested-paths-*.txt (real production paths)
@@ -60,6 +67,124 @@ EDIT_PAGE_PERCENT = 0
 
 # Pattern for path files
 PATH_FILE_PATTERN = 'requested-paths-*.txt'
+
+# Crawler state class - tracks visited/unvisited URLs
+class CrawlerState
+  attr_reader :visited_count, :discovered_count, :restart_count
+
+  def initialize(base_url, locales, sections)
+    @base_url = base_url
+    @locales = locales
+    @sections = sections
+    @visited = Set.new
+    @queue = []
+    @visited_count = 0
+    @discovered_count = 0
+    @restart_count = 0
+    seed_queue
+  end
+
+  def seed_queue
+    # Start with homepage and project list in all locales
+    @locales.each do |locale|
+      add_to_queue("/#{locale}/")
+      add_to_queue("/#{locale}/projects")
+      add_to_queue("/#{locale}/projects?page=1")
+    end
+    add_to_queue('/projects.json')
+  end
+
+  def add_to_queue(path)
+    return unless path && !path.empty?
+
+    # Normalize path
+    path = path.split('#').first # Remove fragment
+    path = path.split('?').first if path.include?('?') && !path.include?('page=')
+    return unless path&.start_with?('/')
+    return if @visited.include?(path) || @queue.include?(path)
+
+    @queue << path
+    @discovered_count += 1
+  end
+
+  def next_path
+    if @queue.empty?
+      # Restart crawl - revisit everything
+      @restart_count += 1
+      @visited.clear
+      seed_queue
+    end
+    path = @queue.shift
+    @visited.add(path)
+    @visited_count += 1
+    path
+  end
+
+  def queue_size
+    @queue.size
+  end
+
+  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  def extract_links_from_html(html, current_path)
+    return unless html
+
+    links_added = 0
+    # Extract href links
+    html.scan(/href=["']([^"']+)["']/).each do |match|
+      link = match.first
+      next if link.start_with?('http') && !link.include?(@base_url.sub(%r{https?://}, ''))
+      next if link.start_with?('mailto:', 'javascript:')
+
+      # Convert relative to absolute
+      if link.start_with?('/')
+        path = link
+      elsif !link.start_with?('http')
+        # Relative path
+        base = current_path.sub(%r{/[^/]*$}, '')
+        path = "#{base}/#{link}"
+      else
+        # Absolute URL to our domain - extract path
+        path = link.sub(%r{https?://[^/]+}, '')
+      end
+
+      # Only include app paths, not assets
+      next if /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|ttf)$/i.match?(path)
+      next if path.start_with?('/assets/')
+
+      add_to_queue(path)
+      links_added += 1
+    end
+    links_added
+  end
+  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+  # rubocop:disable Metrics/MethodLength
+  def extract_links_from_json(json_str)
+    return unless json_str
+
+    links_added = 0
+    begin
+      data = JSON.parse(json_str)
+      # Handle array of projects
+      projects = data.is_a?(Array) ? data : [data]
+      projects.each do |proj|
+        next unless proj.is_a?(Hash) && proj['id']
+
+        id = proj['id']
+        @locales.each do |locale|
+          @sections.each do |section|
+            add_to_queue("/#{locale}/projects/#{id}/#{section}")
+            links_added += 1
+          end
+        end
+      end
+    rescue JSON::ParserError
+      # Ignore parse errors
+    end
+    links_added
+  end
+  # rubocop:enable Metrics/MethodLength
+end
 
 # Parse duration string into seconds
 # Supports: 30s, 10m, 6h, 1d
@@ -235,12 +360,17 @@ options = {
   shuffle: nil, # nil means auto-detect based on mode
   report_interval: nil,
   iterations: nil,
-  base_url: DEFAULT_BASE_URL
+  base_url: DEFAULT_BASE_URL,
+  crawler: false
 }
 
 parser =
   OptionParser.new do |opts|
     opts.banner = "Usage: #{$PROGRAM_NAME} [options] [iterations] [base_url]"
+
+    opts.on('--crawler', 'Simulate web crawler behavior (discover links, prefer unvisited)') do
+      options[:crawler] = true
+    end
 
     opts.on('--duration DURATION', 'Run for specified duration (e.g., 30s, 10m, 6h, 1d)') do |d|
       options[:duration] = parse_duration(d)
@@ -320,38 +450,69 @@ Signal.trap('INT') do
   $stop_requested = true
 end
 
+# Crawler mode setup
+crawler_mode = options[:crawler]
+crawler = nil
+
 # Main execution
 puts '=' * 70
 puts 'Memory Stress Test for Best Practices Badge'
 puts '=' * 70
-if duration_mode
+if crawler_mode
+  puts "Mode:         Crawler simulation#{" (#{format_duration(duration_seconds)})" if duration_mode}"
+elsif duration_mode
   puts "Mode:         Duration-based (#{format_duration(duration_seconds)})"
 else
   puts "Mode:         Iteration-based (#{iterations} requests)"
 end
 puts "Base URL:     #{base_url}"
-puts "Path order:   #{shuffle_paths ? 'Shuffled' : 'Sequential'}"
+puts "Path order:   #{if crawler_mode
+                        'Crawler (prefer unvisited)'
+                      else
+                        (shuffle_paths ? 'Shuffled' : 'Sequential')
+                      end}"
 puts "Locales:      #{LOCALES.join(', ')}"
 puts "Report every: #{report_interval} requests"
 puts
 
-# Load paths from files first
-file_paths = load_paths_from_files
-paths_from_files = file_paths.length
-
-# Shuffle if requested
-file_paths.shuffle! if shuffle_paths && file_paths.any?
-
-# Fetch project IDs for generating additional paths if needed
+# Initialize path sources based on mode
+file_paths = []
+paths_from_files = 0
 project_ids = nil
-need_generated = duration_mode || (iterations && paths_from_files < iterations)
-if need_generated
-  print 'Fetching project IDs for generated paths... '
-  project_ids = fetch_project_ids(base_url)
-  puts "found #{project_ids.length} projects"
-  if !duration_mode && iterations
-    generated_needed = [0, iterations - paths_from_files].max
-    puts "Will generate #{generated_needed} additional paths" if generated_needed.positive?
+
+if crawler_mode
+  # Crawler mode - initialize crawler state
+  puts 'Initializing crawler...'
+  crawler = CrawlerState.new(base_url, LOCALES, SECTIONS)
+
+  # Seed with project IDs from JSON endpoint
+  print 'Fetching all project IDs... '
+  uri = URI("#{base_url}/projects.json")
+  response = Net::HTTP.get_response(uri)
+  if response.is_a?(Net::HTTPSuccess)
+    crawler.extract_links_from_json(response.body)
+    puts "seeded queue with #{crawler.queue_size} URLs"
+  else
+    puts 'failed, using default seeds'
+  end
+else
+  # Legacy mode - load paths from files
+  file_paths = load_paths_from_files
+  paths_from_files = file_paths.length
+
+  # Shuffle if requested
+  file_paths.shuffle! if shuffle_paths && file_paths.any?
+
+  # Fetch project IDs for generating additional paths if needed
+  need_generated = duration_mode || (iterations && paths_from_files < iterations)
+  if need_generated
+    print 'Fetching project IDs for generated paths... '
+    project_ids = fetch_project_ids(base_url)
+    puts "found #{project_ids.length} projects"
+    if !duration_mode && iterations
+      generated_needed = [0, iterations - paths_from_files].max
+      puts "Will generate #{generated_needed} additional paths" if generated_needed.positive?
+    end
   end
 end
 
@@ -395,8 +556,12 @@ loop do
     break
   end
 
-  # Get next path - cycle through file paths, then generate
-  if file_paths.any? && (duration_mode || path_index < file_paths.length)
+  # Get next path based on mode
+  if crawler_mode
+    path = crawler.next_path
+    source = crawler.restart_count.positive? ? 'REV' : 'NEW'
+    file_path_count += 1 # Reuse counter for crawler visited count
+  elsif file_paths.any? && (duration_mode || path_index < file_paths.length)
     # Cycle through file paths
     actual_index = path_index % file_paths.length
     path = file_paths[actual_index]
@@ -419,6 +584,15 @@ loop do
   url = "#{base_url}#{path}"
 
   response = make_request(url, accept_json: use_json)
+
+  # Crawler mode: extract links from response
+  if crawler_mode && response&.is_a?(Net::HTTPSuccess)
+    if use_json
+      crawler.extract_links_from_json(response.body)
+    else
+      crawler.extract_links_from_html(response.body, path)
+    end
+  end
 
   if response&.is_a?(Net::HTTPSuccess)
     success_count += 1
@@ -502,8 +676,15 @@ puts '-' * 70
 puts 'FINAL SUMMARY'
 puts '-' * 70
 puts "Total requests:   #{total_requests}"
-puts "  From files:     #{file_path_count}"
-puts "  Generated:      #{generated_path_count}"
+if crawler_mode
+  puts "  URLs visited:   #{crawler.visited_count}"
+  puts "  URLs discovered: #{crawler.discovered_count}"
+  puts "  Crawl restarts: #{crawler.restart_count}"
+  puts "  Queue remaining: #{crawler.queue_size}"
+else
+  puts "  From files:     #{file_path_count}"
+  puts "  Generated:      #{generated_path_count}"
+end
 puts "Successful:       #{success_count}"
 puts "Errors:           #{error_count}"
 puts "Total time:       #{format_duration(elapsed.to_i)} (#{elapsed.round(2)}s)"
