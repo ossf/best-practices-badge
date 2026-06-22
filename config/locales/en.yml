@@ -2189,8 +2189,8 @@ en:
           it with specific inputs. For example, the project MAY
           use a fuzzing tool (e.g., <a href="http://lcamtuf.coredump.cx/afl/">American
           Fuzzy Lop</a>) or a web application scanner (e.g., <a
-          href="https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project">OWASP
-          ZAP</a> or <a href="https://w3af.org/">w3af</a>). In
+          href="https://www.zaproxy.org">Zed Attack Proxy</a>
+          or <a href="https://w3af.org/">w3af</a>). In
           some cases the <a href="https://github.com/google/oss-fuzz#introduction">OSS-Fuzz</a>
           project may be willing to apply fuzz testing to your
           project. For purposes of this criterion the dynamic
