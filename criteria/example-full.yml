@@ -1,0 +1,411 @@
+project_identification:
+  name:              "Lorem Ipsum"
+  description:       "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+  url:               "https://example.org"
+  primary_repo_url:  "https://github.com/exampleOrg/lorem-ipsum"
+  primary_languages:
+    - "Lorem"
+    - "Ipsum"
+  comment:           "Optional comment about this project."
+  cpe:               "cpe:2.3:a:example:LoremIpsum:1.0.0:*:*:*:*:*:*:*"
+  disable_activity_reminder: false
+
+gold:
+  basics:
+    achieve_silver: true
+    bus_factor:
+      result: "met"
+      justification:
+        description: "Lorem ipsum dolor sit amet, bus factor justification."
+    contributors_unassociated:
+      result: "unknown"
+    copyright_per_file:
+      result: "met"
+      justification:
+        description: "All source files contain copyright notice."
+    license_per_file:
+      result: "met"
+      justification:
+        description: "All source files contain license notice."
+  change_control:
+    repo_distributed:
+      result: "met"
+    small_tasks:
+      result: "met"
+    require_2FA:
+      result: "met"
+    secure_2FA:
+      result: "met"
+  quality:
+    code_review_standards:
+      result: "na"
+      justification:
+        description: "Not applicable for this project."
+    two_person_review:
+      result: "na"
+      justification:
+        description: "Not applicable yet, but under consideration."
+    build_reproducible:
+      result: "unknown"
+    test_invocation:
+      result: "met"
+    test_continuous_integration:
+      result: "unmet"
+      justification:
+        description: "CI process is not fully automated yet."
+        links: 
+          - url:         "https://example.org/issues/123"
+            description: "Tracking issue for setting up CI"
+    test_statement_coverage90:
+      result: "unmet"
+      justification:
+        description: "Currently at ~70% statement coverage."
+        links: 
+          - url:         "https://github.com/exampleOrg/lorem-ipsum/coverage"
+            description: "Coverage reports"
+    test_branch_coverage80:
+      result: "unknown"
+  security:
+    crypto_used_network:
+      result: "unknown"
+    crypto_tls12:
+      result: "na"
+      justification:
+        description: "Project does not handle TLS directly."
+    hardened_site:
+      result: "met"
+      justification:
+        description: "Website uses security headers and follows best practices."
+    security_review:
+      result: "unknown"
+    hardening:
+      result: "na"
+      justification:
+        description: "Not relevant to the architecture."
+  analysis:
+    dynamic_analysis:
+      result: "unknown"
+    dynamic_analysis_enable_assertions:
+      result: "na"
+      justification:
+        description: "No dynamic analysis done at this point."
+
+silver:
+  basics:
+    achieve_passing: true
+    contribution_requirements:
+      result: "met"
+      justification:
+        description: "Contribution guidelines are clearly documented."
+    dco:
+      result: "unmet"
+      justification:
+        description: "Developer Certificate of Origin is not yet enforced."
+        links:
+          - url:         "https://example.org/issues/456"
+            description: "Tracking DCO implementation"
+    governance:
+      result: "met"
+    code_of_conduct:
+      result: "met"
+    roles_responsibilities:
+      result: "unknown"
+    access_continuity:
+      result: "met"
+    bus_factor:
+      result: "unknown"
+    documentation_roadmap:
+      result: "met"
+    documentation_architecture:
+      result: "na"
+      justification:
+        description: "Software is too simple to require an architecture doc."
+    documentation_security:
+      result: "unknown"
+    documentation_quick_start:
+      result: "met"
+      justification:
+        description: "Quick start guide is provided in README."
+    documentation_current:
+      result: "unmet"
+      justification:
+        description: "Some documentation is out of date."
+        links: 
+          - url:         "https://example.org/docs/outdated"
+            description: "List of outdated docs"
+    documentation_achievements:
+      result: "met"
+    accessibility_best_practices:
+      result: "unknown"
+    internationalization:
+      result: "na"
+      justification:
+        description: "English-only project at the moment."
+    sites_password_security:
+      result: "met"
+  change_control:
+    maintenance_or_update:
+      result: "unknown"
+  reporting:
+    report_tracker:
+      result: "met"
+    vulnerability_report_credit:
+      result: "na"
+      justification:
+        description: "Haven't published a vulnerability yet."
+    vulnerability_response_process:
+      result: "met"
+  quality:
+    coding_standards:
+      result: "na"
+      justification:
+        description: "No formal coding standards doc yet."
+    coding_standards_enforced:
+      result: "unknown"
+    build_standard_variables:
+      result: "unknown"
+    build_preserve_debug:
+      result: "na"
+      justification:
+        description: "Not relevant because we only produce Docker images."
+    build_non_recursive:
+      result: "unknown"
+    build_repeatable:
+      result: "unknown"
+    installation_common:
+      result: "unknown"
+    installation_standard_variables:
+      result: "unknown"
+    installation_development_quick:
+      result: "unknown"
+    external_dependencies:
+      result: "unmet"
+      justification:
+        description: "Some dependencies are unknown or not pinned."
+    dependency_monitoring:
+      result: "met"
+    updateable_reused_components:
+      result: "unknown"
+    interfaces_current:
+      result: "met"
+    automated_integration_testing:
+      result: "unmet"
+      justification:
+        description: "Integration tests not fully automated yet."
+    regression_tests_added50:
+      result: "unknown"
+    test_statement_coverage80:
+      result: "unknown"
+    test_policy_mandated:
+      result: "met"
+    tests_documented_added:
+      result: "na"
+      justification:
+        description: "No separate doc for added tests."
+    warnings_strict:
+      result: "met"
+      justification:
+        description: "Compiler warnings set to error in CI pipeline."
+  security:
+    implement_secure_design:
+      result: "unknown"
+    crypto_weaknesses:
+      result: "unknown"
+    crypto_algorithm_agility:
+      result: "na"
+      justification:
+        description: "Project does not handle encryption algorithms directly."
+    crypto_credential_agility:
+      result: "unknown"
+    crypto_used_network:
+      result: "unknown"
+    crypto_tls12:
+      result: "unknown"
+    crypto_certificate_verification:
+      result: "unknown"
+    crypto_verification_private:
+      result: "unknown"
+    signed_releases:
+      result: "unknown"
+    version_tags_signed:
+      result: "met"
+    input_validation:
+      result: "unknown"
+    hardening:
+      result: "na"
+      justification:
+        description: "Hardening guidelines not yet adopted."
+    assurance_case:
+      result: "met"
+  analysis:
+    static_analysis_common_vulnerabilities:
+      result: "unknown"
+    dynamic_analysis_unsafe:
+      result: "unknown"
+
+passing:
+  basics:
+    description_good:
+      result: "met"
+    interact:
+      result: "met"
+    contribution:
+      result: "unmet"
+      justification:
+        description: "Contribution docs are incomplete."
+        links: 
+          - url:         "https://example.org/issues/789"
+            description: "Tracking improvements for contribution docs"
+    contribution_requirements:
+      result: "met"
+    license_expression: "MIT"
+    floss_license:
+      result: "met"
+    floss_license_osi:
+      result: "met"
+    license_location:
+      result: "met"
+    documentation_basics:
+      result: "met"
+      justification:
+        description: "Basic docs exist in the main README."
+    documentation_interface:
+      result: "unknown"
+    sites_https:
+      result: "met"
+    discussion:
+      result: "unknown"
+    english:
+      result: "met"
+    maintained:
+      result: "met"
+  change_control:
+    repo_public:
+      result: "met"
+    repo_track:
+      result: "met"
+    repo_interim:
+      result: "unknown"
+    repo_distributed:
+      result: "met"
+    version_unique:
+      result: "met"
+    version_semver:
+      result: "met"
+    version_tags:
+      result: "met"
+    release_notes:
+      result: "unknown"
+    release_notes_vulns:
+      result: "na"
+      justification:
+        description: "No known vulnerabilities so far."
+  reporting:
+    report_process:
+      result: "met"
+    report_tracker:
+      result: "met"
+    report_responses:
+      result: "unknown"
+    enhancement_responses:
+      result: "unknown"
+    report_archive:
+      result: "unmet"
+      justification:
+        description: "Issue archives are not systematically organized."
+    vulnerability_report_process:
+      result: "unknown"
+    vulnerability_report_private:
+      result: "na"
+      justification:
+        description: "Vulnerabilities have not been reported privately."
+    vulnerability_report_response:
+      result: "unknown"
+  quality:
+    build:
+      result: "met"
+      justification:
+        description: "Build scripts provided for Linux and Windows."
+    build_common_tools:
+      result: "unknown"
+    build_floss_tools:
+      result: "met"
+    test:
+      result: "met"
+    test_invocation:
+      result: "met"
+    test_most:
+      result: "unknown"
+    test_continuous_integration:
+      result: "unmet"
+      justification:
+        description: "We have partial CI coverage only."
+    test_policy:
+      result: "met"
+    tests_are_added:
+      result: "met"
+    tests_documented_added:
+      result: "met"
+    warnings:
+      result: "unknown"
+    warnings_fixed:
+      result: "unknown"
+    warnings_strict:
+      result: "na"
+      justification:
+        description: "No compilation step is used; project is purely interpreted."
+  security:
+    know_secure_design:
+      result: "unknown"
+    know_common_errors:
+      result: "met"
+    crypography_used: true
+    crypto_published:
+      result: "unknown"
+    crypto_call:
+      result: "unknown"
+    crypto_floss:
+      result: "met"
+    crypto_keylength:
+      result: "unknown"
+    crypto_working:
+      result: "unknown"
+    crypto_weaknesses:
+      result: "unknown"
+    crypto_pfs:
+      result: "unmet"
+      justification:
+        description: "No support for Perfect Forward Secrecy yet."
+    crypto_password_storage:
+      result: "met"
+    crypto_random:
+      result: "unknown"
+    delivery_mitm:
+      result: "met"
+    delivery_unsigned:
+      result: "unknown"
+    vulnerabilities_fixed_60_days:
+      result: "unknown"
+    vulnerabilities_critical_fixed:
+      result: "unknown"
+    no_leaked_credentials:
+      result: "met"
+  analysis:
+    static_analysis:
+      result: "unknown"
+    static_analysis_common_vulnerabilities:
+      result: "na"
+      justification:
+        description: "No dedicated static analysis tool used yet."
+    static_analysis_fixed:
+      result: "unknown"
+    static_analysis_often:
+      result: "unknown"
+    dynamic_analysis:
+      result: "met"
+    dynamic_analysis_unsafe:
+      result: "unknown"
+    dynamic_analysis_enable_assertions:
+      result: "met"
+    dynamic_analysis_fixed:
+      result: "unknown"
