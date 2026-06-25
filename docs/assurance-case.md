@@ -3508,7 +3508,7 @@ This is evidence that the BadgeApp application is
 applying practices expected in a well-run FLOSS project.
 
 You can see the
-[CII Best Practices Badge entry for the BadgeApp](https://bestpractices.coreinfrastructure.org/en/projects/1/0).
+[CII Best Practices Badge entry for the BadgeApp](https://www.bestpractices.dev/en/projects/1/0).
 Note that we achieve a gold badge.
 
 ### Organizational Controls
@@ -3840,8 +3840,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 

@@ -290,7 +290,7 @@ desc 'Load current self.json'
 task :load_self_json do
   require 'json'
   require 'open-uri'
-  url = 'https://master.bestpractices.coreinfrastructure.org/projects/1.json'
+  url = 'https://staging.bestpractices.dev/projects/1.json'
   contents = URI.parse(url).open.read
   pretty_contents = JSON.pretty_generate(JSON.parse(contents))
   File.write('docs/self.json', pretty_contents)
@@ -452,7 +452,7 @@ namespace :fastly do
 
   desc 'Test Fastly Caching'
   task :test, [:site_name] do |_t, args|
-    args.with_defaults site_name: 'https://master.bestpractices.coreinfrastructure.org/projects/1/badge'
+    args.with_defaults site_name: 'https://staging.bestpractices.dev/projects/1/badge'
     puts 'Starting test of Fastly caching'
     verbose(false) do
       sh "script/fastly_test #{args.site_name}"
@@ -591,6 +591,15 @@ def normalize_string(value, locale)
   # Forcibly substitute GitHub organization with literal string match
   value = value.gsub('github.com/coreinfrastructure/best-practices-badge',
                      'github.com/ossf/best-practices-badge')
+
+  # Forcibly substitute the old production domain with the current one.
+  # Our site moved from bestpractices.coreinfrastructure.org to
+  # www.bestpractices.dev (we use the www. host, not the bare domain,
+  # because bare DNS domains complicate our Fastly CDN setup). Like the
+  # GitHub-org rewrite above, this catches stale references that arrive
+  # via translation.io so we don't have to hand-edit translated strings.
+  value = value.gsub('bestpractices.coreinfrastructure.org',
+                     'www.bestpractices.dev')
 
   return value if value.exclude?('<')
 

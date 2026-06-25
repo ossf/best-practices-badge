@@ -6849,7 +6849,7 @@ This is evidence that the BadgeApp application is
 applying practices expected in a well-run FLOSS project.
 
 You can see the
-[CII Best Practices Badge entry for the BadgeApp](https://bestpractices.coreinfrastructure.org/en/projects/1/0).
+[CII Best Practices Badge entry for the BadgeApp](https://www.bestpractices.dev/en/projects/1/0).
 Note that we achieve a gold badge.
 
 <!-- verocase element CIIBadgeEv -->
@@ -6861,10 +6861,10 @@ Referenced by: **[Package Controls](#package-controls)**
 
 Supports: **[Claim CIIBadge](#claim-ciibadge)**
 
-External Reference: [https://bestpractices.coreinfrastructure.org/en/projects/1](https://bestpractices.coreinfrastructure.org/en/projects/1)
+External Reference: [https://www.bestpractices.dev/en/projects/1](https://www.bestpractices.dev/en/projects/1)
 <!-- end verocase -->
 
-BadgeApp achieves gold CII Best Practices Badge. See [https://bestpractices.coreinfrastructure.org/en/projects/1](https://bestpractices.coreinfrastructure.org/en/projects/1).
+BadgeApp achieves gold CII Best Practices Badge. See [https://www.bestpractices.dev/en/projects/1](https://www.bestpractices.dev/en/projects/1).
 
 ### Organizational Controls
 
@@ -7195,8 +7195,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 
