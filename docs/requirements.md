@@ -124,7 +124,7 @@ We do *not* need to support offline editing of data.
 There are many specific requirements.
 Instead of having a huge unread requirements document,
 specific requirements are normally proposed and processed via the
-[GitHub issue tracker](https://github.com/coreinfrastructure/best-practices-badge/issues).
+[GitHub issue tracker](https://github.com/ossf/best-practices-badge/issues).
 See [CONTRIBUTING](../CONTRIBUTING.md) for more about our process.
 
 ## See also

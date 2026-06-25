@@ -103,7 +103,7 @@ We plan to add new criteria but mark them as "future" criteria, so that
 projects can add that information and maintain their badge.
 
 Feedback is *very* welcome via the
-[GitHub site as issues or pull requests](https://github.com/coreinfrastructure/best-practices-badge).
+[GitHub site as issues or pull requests](https://github.com/ossf/best-practices-badge).
 There is also a
 [mailing list for general discussion](https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges).
 

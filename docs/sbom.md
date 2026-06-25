@@ -15,7 +15,7 @@ Release tags use the form `sbom-BRANCH-YYYYMMDD-SHA8`, for example:
 `sbom-production-20260402-a1b2c3d4`.
 
 You can
-[browse all production SBOM releases on GitHub](https://github.com/coreinfrastructure/best-practices-badge/releases?q=sbom-production).
+[browse all production SBOM releases on GitHub](https://github.com/ossf/best-practices-badge/releases?q=sbom-production).
 
 If you know the commit SHA, the `script/get-sbom` script looks it up,
 displays its deployment date, and downloads the SBOM to your current
@@ -38,7 +38,7 @@ of the *current* main branch with the following command:
 curl -L \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2026-03-10" \
-  https://api.github.com/repos/coreinfrastructure/best-practices-badge/dependency-graph/sbom
+  https://api.github.com/repos/ossf/best-practices-badge/dependency-graph/sbom
 ~~~~
 
 You don't need to provide `-H "Authorization: Bearer <YOUR-TOKEN>"`

@@ -23,7 +23,7 @@ class EvidenceTest < ActiveSupport::TestCase
   end
 
   test 'get_secure uses CachedDnsResolver' do
-    url = 'https://raw.githubusercontent.com/coreinfrastructure/' \
+    url = 'https://raw.githubusercontent.com/ossf/' \
           'best-practices-badge/main/README.md'
 
     # Verify integration: ensure it can still fetch data with the new default
@@ -34,7 +34,7 @@ class EvidenceTest < ActiveSupport::TestCase
   end
 
   test 'get caches successful URL fetch' do
-    url = 'https://raw.githubusercontent.com/coreinfrastructure/' \
+    url = 'https://raw.githubusercontent.com/ossf/' \
           'best-practices-badge/main/README.md'
 
     VCR.use_cassette('evidence_get_success') do
@@ -77,7 +77,7 @@ class EvidenceTest < ActiveSupport::TestCase
   end
 
   test 'get respects MAXREAD limit' do
-    url = 'https://raw.githubusercontent.com/coreinfrastructure/' \
+    url = 'https://raw.githubusercontent.com/ossf/' \
           'best-practices-badge/main/README.md'
 
     VCR.use_cassette('evidence_get_success') do

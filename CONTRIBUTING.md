@@ -21,16 +21,16 @@ Here's help on how to make contributions, divided into the following sections:
 ## General information
 
 For specific proposals, please provide them as
-[pull requests](https://github.com/coreinfrastructure/best-practices-badge/pulls)
+[pull requests](https://github.com/ossf/best-practices-badge/pulls)
 or
-[issues](https://github.com/coreinfrastructure/best-practices-badge/issues)
+[issues](https://github.com/ossf/best-practices-badge/issues)
 via our
-[GitHub site](https://github.com/coreinfrastructure/best-practices-badge).
+[GitHub site](https://github.com/ossf/best-practices-badge).
 For general discussion, feel free to use the
 [cii-badges mailing list](https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges).
 
 We use GitHub. You may find
-[GitHub CLI (`gh`)](https://github.com/coreinfrastructure/best-practices-badge.git)
+[GitHub CLI (`gh`)](https://github.com/ossf/best-practices-badge.git)
 helpful if you're using the command line.
 It supports commands like `gh auth login` (login) and
 `gh pr create` (create a new pull request
@@ -52,7 +52,7 @@ locally (highly recommended if you're going to make code changes).
 It also provides a quick start guide.
 
 If you're new to the project (or FLOSS in general), the
-[Up-for-grabs](https://github.com/coreinfrastructure/best-practices-badge/labels/up-for-grabs)
+[Up-for-grabs](https://github.com/ossf/best-practices-badge/labels/up-for-grabs)
 issues are smaller tasks that may typically take 1-3 days.
 You are welcome aboard!
 The [roadmap.md](docs/roadmap.md) file provides an overview of future plans.
@@ -75,8 +75,8 @@ and
 ### How we handle proposals
 
 We use GitHub to track proposed changes via its
-[issue tracker](https://github.com/coreinfrastructure/best-practices-badge/issues) and
-[pull requests](https://github.com/coreinfrastructure/best-practices-badge/pulls).
+[issue tracker](https://github.com/ossf/best-practices-badge/issues) and
+[pull requests](https://github.com/ossf/best-practices-badge/pulls).
 Specific changes are proposed using those mechanisms.
 Issues are assigned to an individual, who works it and then marks it complete.
 If there are questions or objections, the conversation area of that
@@ -669,7 +669,7 @@ into the default "rake" checking task:
   developer tools / audits.  This runs a variety of tests and checks,
   including some security checks of the code delivered to the browser.
   Note that not all reports are relevant.
-* [Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low)
+* [Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low)
 * JSCS (JavaScript style checker) using the Node.js format.
 * JSHint (JavaScript error detector)
 * W3C link checker <https://validator.w3.org/checklink>
@@ -709,7 +709,7 @@ RAILS_ENV=production rake assets:precompile
 ### Testing during continuous integration
 
 Note that we also use
-[CircleCI](https://circleci.com/gh/coreinfrastructure/best-practices-badge)
+[CircleCI](https://circleci.com/gh/ossf/best-practices-badge)
 for continuous integration tools to check changes
 after they are checked into GitHub; if they find problems, please fix them.
 These run essentially the same set of checks as the default rake task.
@@ -1078,7 +1078,7 @@ You can reset this, if something has happened to it, using:
 
 ~~~~sh
 git remote add upstream \
-    https://github.com/coreinfrastructure/best-practices-badge.git
+    https://github.com/ossf/best-practices-badge.git
 ~~~~
 
 If the version of Ruby has changed (in the Gemfile),

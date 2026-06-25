@@ -39,7 +39,7 @@ ja:
     login_html: ログイン
     footer_text_html: >-
       <small> <strong>疑問、質問、または問題がある場合は<em> <a href="mailto:&#99;ii&#45;badges&#45;questions&#64;lists&#46;coreinfrastructure&#46;or&#103;">電子メールで報告する</a></em>か、<em>
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      <a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">こちらから問題を提出</a></em>してください。</strong>
       © 2015-2021 <a href="https://openssf.org" target="_blank"
       rel="noopener">Open Source Security Foundation</a>、<a href="https://www.linuxfoundation.org/"
@@ -380,7 +380,7 @@ ja:
         details_html: >-
           ソフトウェアに欠陥や脆弱性がないことを保証する手立てはありません。形式論的な証明ができたとしても、仕様や前提が間違っていると誤動作の可能性があります。また、プロジェクトが健全で、かつ機能的な開発コミュニティであり続けることを保証する手立てもありません。しかし、ベストプラクティスの採用は、プロジェクトの成果の向上に寄与する可能性があります。たとえば、いくつものベストプラクティスがリリース前の複数人によるレビューを定めていますが、それによりレビュー以外では発見困難な技術的脆弱性を見つけるのを助け、同時に異なる企業の開発者間の信頼を築き、さらに交流を続けることに対する意欲を生んでいます。バッジを獲得するには、すべてのMUSTおよびMUST
           NOT基準を満たさなければなりません。すべてのSHOULD基準も満たさなければなりませんが、正当な理由がある場合は満たさなくても構いません。<em>そして</em>すべてのSUGGESTED基準も満たさなければなりませんが、満たさないとしても、少なくとも考慮することが望まれます。フィードバックは、<a
-          href="https://github.com/coreinfrastructure/best-practices-badge">
+          href="https://github.com/ossf/best-practices-badge">
           GitHubサイトのissueまたはpull request</a>として提示されれば歓迎します。また、<a
           href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">議論のためのメールリスト</a>も用意されています。<br
           /> <br />私たちは多言語で情報を提供していますが、翻訳版に矛盾や意味の不一致がある場合は、英語版を正式な記述とします。
@@ -395,7 +395,7 @@ ja:
         editing_description_html: >-
           作業中のデータを保存するには、<strong>頻繁に「提出」</strong>してください（いつでも戻って編集作業を続けることができます）。
           <br> <br>ヘルプが必要な場合、質問がある場合、あるいは問題がある場合は、<em> <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">電子メールを送信する</a></em>か<em>
-          <a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          <a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">問題を提起</a> </em>します。
         badge_alt: プロジェクト %{id} のバッジ レベルは %{level} です
       level:
@@ -510,7 +510,7 @@ ja:
       ご不明な点がある場合、またはサポートが必要な場合は、以下までお問い合わせください。
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       または以下でissueを提出します
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       （"new issue"をクリックしてください）。
       </p>
       <p>
@@ -533,7 +533,7 @@ ja:
       ご不明な点がある場合、またはサポートが必要な場合は、以下までお問い合わせください
       cii-badges-questions@lists.coreinfrastructure.org
       または以下でissueを提出してください。
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       （"new issue" をクリックしてください。）
       私たちはあなたに広告を送ることは決してありません。また、電子メールを送ることもめったにありません。
       重要なバッジ申請イベントについてのメールはお送りします。
@@ -573,13 +573,13 @@ ja:
       より多くの情報を指すURLを追加することも含まれます。
       基準またはバッジ ウェブ アプリケーションを改善する方法の提案がある場合、
       以下で課題を提出してください：
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       バッジを取得するためにプロジェクトを変更した場合は、お知らせください
       電子メール：cii-badges-questions@lists.coreinfrastructure.org
       私たちの目標の1つは、プロジェクトの改善を促すことです。
       これらのレポートのいくつかを公開Wikiに載せます。
       変更内容を以下のサイトで公開したくない場合はお知らせください。
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       ありがとうございます、そして、おめでとうございます。
     lost_level_message: |-
       申し訳ありませんが、あなたのプロジェクトは「%{old_level}」バッジを有しておらず、現在は「%{new_level}」を有しています。
@@ -612,7 +612,7 @@ ja:
       ご不明な点がございましたら、以下にお気軽にお問い合わせください。
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       または、以下でissueを提出してください
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues"> https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues"> https://github.com/ossf/best-practices-badge/issues</a>
       （"new issue"をクリックしてください）。
       </p>
       <p>
@@ -648,7 +648,7 @@ ja:
       ご不明な点がある場合、またはサポートが必要な場合は、以下までお問い合わせください。
       cii-badges-questions@lists.coreinfrastructure.org
       または、以下にissueを提出してください。
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       （"new issue" をクリックしてください。）
       バッジ エントリを更新し続ける場合、リマインダーは送信されません。
       また、リマインダーは約30〜60日ごとに送信されます。なお、
@@ -1462,7 +1462,7 @@ ja:
           href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">「構造化された保証ケースモデルを使用したソフトウェア保証」、Thomas
           Rhodes他、NIST Interagency Report 7608 </a>）。信頼境界は、データまたは実行がその信頼レベル、例えば、典型的なウェブアプリケーションにおけるサーバの境界、を変更する境界である。安全な設計原則（SaltzerやSchroeerなど）と一般的な実装セキュリティの弱点（OWASPトップ10やCWE
           / SANSトップ25など）をリストし、それぞれがどのように対抗しているかを示すのは一般的です。 <a
-          href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">
+          href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">
           BadgeAppの保証ケース</a>は良い参考例になるかもしれません。これは、documentation_security、documentation_architecture、およびimplement_secure_designに関連しています。
       achieve_passing:
         description: プロジェクトは合格レベルバッジに達成しなければなりません。
@@ -1780,7 +1780,7 @@ ja:
         OpenSSF ベストプラクティス バッジは、GitHubのプロジェクトで利用可能な多くのバッジからインスピレーションを受けています。バッジの消費者は、どのFLOSSプロジェクトがベストプラクティスに従っているかを速やかに評価でき、その結果、より高品質で安全なソフトウェアを生産することができます。
       p2_html: >-
         <a href="/ja/criteria/0">バッジの合格基準はこちら</a>です。OpenSSF ベストプラクティス
-        バッジ プログラムの詳細については、<a href='https://github.com/coreinfrastructure/best-practices-badge'>GitHubで公開</a>されています。
+        バッジ プログラムの詳細については、<a href='https://github.com/ossf/best-practices-badge'>GitHubで公開</a>されています。
         <a href="/ja/project_stats">プロジェクトの統計情報</a>や<a href="/ja/criteria_stats">基準の統計情報</a>も確認できます。
         <a href="/ja/projects">プロジェクト ページ</a>には、参加しているプロジェクトが表示され、クエリも使用できます
         (「<a href="/ja/projects?gteq=100">合格バッジを持つプロジェクトだけ表示する</a
@@ -1964,7 +1964,7 @@ ja:
       （出典：<a href="http://www.dictionary.com/browse/best-practice"
       rel="nofollow">Dictionary.com</a>）。これらの基準は、より広いFLOSSコミュニティで広く「推奨または標準と見なされている」と私たちが信じているものです。</p>
     intro_p08_html: >-
-      <p>これらの基準がどのように開発されたかの詳細については、<a href="https://github.com/coreinfrastructure/best-practices-badge"
+      <p>これらの基準がどのように開発されたかの詳細については、<a href="https://github.com/ossf/best-practices-badge"
       >OpenSSF Best PracticesバッジGitHubサイト</a>を参照してください。</p> <p>また、<a
       href="/ja/criteria">完全な基準を見る</a>こともできます。</p>
     structure_p01_html: "<p></p> <h2 id='criteria_structure'>基準の構造</h2>"
@@ -1989,7 +1989,7 @@ ja:
       <p>
       これらの慣行とその詳細な基準は、時間の経過とともに更新されることを期待しています。新しい基準を追加する予定ですが、それを「将来の」基準としてマークしておくことで、プロジェクトがその情報を追加してバッジを維持できるようにします。</p>
     changes_p03_html: >-
-      <p>フィードバックは<em>大歓迎です</em>。<a href="https://github.com/coreinfrastructure/best-practices-badge"
+      <p>フィードバックは<em>大歓迎です</em>。<a href="https://github.com/ossf/best-practices-badge"
       >GitHubサイトからイシューやプルリクエスト</a>で提出してください。<a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges"
       rel="nofollow">一般的な議論のためのメーリング リスト</a>もあります。</p>
     keywords_p01_html: "<p></p> <h2 id='keywords'>キーワード</h2>"

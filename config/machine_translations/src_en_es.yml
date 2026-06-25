@@ -14,7 +14,7 @@ en:
     sw: Swahili
   layouts:
     toggle_navigation: Toggle collapsible navigation
-    footer_text_html: <small> <strong>Need help? Have a question? See a problem? Please <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues" target="_blank" rel="noopener">file an issue</a></em>.</strong> Copyright © <a href="https://www.bestpractices.dev" target="_blank" rel="noopener">OpenSSF Best Practices Badge a Series of LF Projects, LLC</a>. For web site terms of use, trademark policy and other project policies please see <a href="https://lfprojects.org" target="_blank" rel="noopener">these policies</a>. For more information, see the websites of the <a href="https://openssf.org" target="_blank" rel="noopener">Open Source Security Foundation (OpenSSF)</a> and <a href="https://www.linuxfoundation.org/" target="_blank" rel="noopener">The Linux Foundation</a>. All Rights Reserved. Please see our <a href="https://www.linuxfoundation.org/privacy" target="_blank" rel="noopener">privacy policy</a>.</small>
+    footer_text_html: <small> <strong>Need help? Have a question? See a problem? Please <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">file an issue</a></em>.</strong> Copyright © <a href="https://www.bestpractices.dev" target="_blank" rel="noopener">OpenSSF Best Practices Badge a Series of LF Projects, LLC</a>. For web site terms of use, trademark policy and other project policies please see <a href="https://lfprojects.org" target="_blank" rel="noopener">these policies</a>. For more information, see the websites of the <a href="https://openssf.org" target="_blank" rel="noopener">Open Source Security Foundation (OpenSSF)</a> and <a href="https://www.linuxfoundation.org/" target="_blank" rel="noopener">The Linux Foundation</a>. All Rights Reserved. Please see our <a href="https://www.linuxfoundation.org/privacy" target="_blank" rel="noopener">privacy policy</a>.</small>
     translation_disclaimer_html: This translation may contain errors. In case of conflict, the English original governs.
   admin_only: Admin only.
   account_activations:
@@ -354,7 +354,7 @@ en:
         badge_alt: Badge level for project %{id} is %{level}
         description_2: 'Here is how to embed it:'
         details_html: You can show your badge status by embedding this in your markdown file:<br /> %{markdown_embedding}<br /> or by embedding this in your HTML:<br /> %{html_embedding}<br />
-        editing_description_html: <strong>Please 'submit' often</strong> to save your work (you can always go back and edit more later). <br><br> If you need help, have a question, or see a problem, please <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues" target="_blank" rel="noopener">file an issue</a></em>.
+        editing_description_html: <strong>Please 'submit' often</strong> to save your work (you can always go back and edit more later). <br><br> If you need help, have a question, or see a problem, please <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">file an issue</a></em>.
       got_baseline_badge:
         description_1: 'If this is your project, please show your baseline badge status on your project page! The baseline badge status looks like this:'
         badge_alt: Baseline badge level for project %{id} is %{level}
@@ -479,7 +479,7 @@ en:
       If you have questions, or need help, please contact
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       or file an issue at
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (click on "new issue").
       </p>
       <p>
@@ -509,7 +509,7 @@ en:
       If you have questions, or need help, please contact
       cii-badges-questions@lists.coreinfrastructure.org
       or file an issue at
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (click on "new issue").
 
       We will never send you advertisements, and we will only rarely
@@ -560,7 +560,7 @@ en:
       If you have questions, or need help, please contact
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       or file an issue at
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (click on "new issue").
       </p>
 
@@ -600,7 +600,7 @@ en:
       If you have questions, or need help, please contact
       cii-badges-questions@lists.coreinfrastructure.org
       or file an issue at
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (click on "new issue").
 
       We don't send reminders if you continue to update your badge entry,
@@ -625,11 +625,11 @@ en:
       including adding URLs that point to more information.
       If you have suggestions on how to improve the criteria or
       badge web application, please file an issue at:
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       One of our goals is to encourage projects to make some improvements.
       We put some of these reports on the public wiki; please let us know
       if you do NOT want the changes publicly posted at
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       Thank you, and congratulations.
     in_markdown_add: 'In markdown you can add this:'
     in_html_add: 'In HTML you can add this:'
@@ -909,7 +909,7 @@ en:
         details: The idea is to show users how to get started and make the software do anything at all. This is critically important for potential users to get started.
       assurance_case:
         description: 'The project MUST provide an assurance case that justifies why its security requirements are met. The assurance case MUST include: a description of the threat model, clear identification of trust boundaries, an argument that secure design principles have been applied, and an argument that common implementation security weaknesses have been countered.'
-        details: An assurance case is "a documented body of evidence that provides a convincing and valid argument that a specified set of critical claims regarding a system’s properties are adequately justified for a given application in a given environment" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Software Assurance Using Structured Assurance Case Models", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Trust boundaries are boundaries where data or execution changes its level of trust, e.g., a server's boundaries in a typical web application. It's common to list secure design principles (such as Saltzer and Schroeer) and common implementation security weaknesses (such as the OWASP top 10 or CWE/SANS top 25), and show how each are countered. The <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp assurance case</a> may be a useful example. This is related to documentation_security, documentation_architecture, and implement_secure_design.
+        details: An assurance case is "a documented body of evidence that provides a convincing and valid argument that a specified set of critical claims regarding a system’s properties are adequately justified for a given application in a given environment" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Software Assurance Using Structured Assurance Case Models", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Trust boundaries are boundaries where data or execution changes its level of trust, e.g., a server's boundaries in a typical web application. It's common to list secure design principles (such as Saltzer and Schroeer) and common implementation security weaknesses (such as the OWASP top 10 or CWE/SANS top 25), and show how each are countered. The <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp assurance case</a> may be a useful example. This is related to documentation_security, documentation_architecture, and implement_secure_design.
       documentation_current:
         description: The project MUST make an effort to keep the documentation consistent with the current version of the project results (including software produced by the project). Any <em>known</em> documentation defects making it inconsistent MUST be fixed. If the documentation is generally current, but erroneously includes some older information that is no longer true, just treat that as a defect, then track and fix as usual.
         details: The documentation MAY include information about differences or changes between versions of the software and/or link to older versions of the documentation. The intent of this criterion is that an effort is made to keep the documentation consistent, not that the documentation must be perfect.
@@ -1319,7 +1319,7 @@ en:
     intro_p05_html: "<p> These best practices have been created to:</p>"
     intro_p06_html: "<ol> <li>encourage projects to follow best practices,</li> <li>help new projects discover what those practices are, and</li> <li>help users know which projects are following best practices (so users can prefer such projects).</li> </ol>"
     intro_p07_html: '<p> The idiom "best practices" means "a procedure or set of procedures that is preferred or considered standard within an organization, industry, etc." (source: <a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>). These criteria are what we believe are widely "preferred or considered standard" in the wider FLOSS community.</p>'
-    intro_p08_html: <p> For more information on how these criteria were developed, see the <a href="https://github.com/coreinfrastructure/best-practices-badge" >OpenSSF Best Practices badge GitHub site</a>.</p> <p> You may also <a href="/en/criteria">see the full criteria</a>.</p>
+    intro_p08_html: <p> For more information on how these criteria were developed, see the <a href="https://github.com/ossf/best-practices-badge" >OpenSSF Best Practices badge GitHub site</a>.</p> <p> You may also <a href="/en/criteria">see the full criteria</a>.</p>
     structure_p01_html: "<p></p> <h2 id='criteria_structure'>Criteria Structure</h2>"
     structure_p02_html: "<p> The best practices criteria are divided into three levels:<ul> <li><b>Passing</b> focuses on best practices that well-run FLOSS projects typically already follow. Getting the passing badge is an achievement; at any one time only about 10% of projects pursuing a badge achieve the passing level. <li><b>Silver</b> is a more stringent set of criteria than passing but is expected to be achievable by small and single-organization projects. <li><b>Gold</b> is even more stringent than silver and includes criteria that are not achievable by small or single-organization projects. </ul>"
     structure_p03_html: "<p> Every criterion has a short name, shown as superscripted text inside square brackets after the criteria text."
@@ -1331,7 +1331,7 @@ en:
     automation_p04_html: <p>However, we have intentionally prioritized on "what is important", even if can't be affordably automated. We love automated measurements, but not everything important is automatable or can be automated affordably.</p>
     changes_p01_html: "<p></p> <h2 id='criteria_changes'>Changes over time</h2>"
     changes_p02_html: <p> We expect that these practices and their detailed criteria will be updated over time. We plan to add new criteria but mark them as "future" criteria, so that projects can add that information and maintain their badge.</p>
-    changes_p03_html: <p> Feedback is <em>very</em> welcome via the <a href="https://github.com/coreinfrastructure/best-practices-badge" >GitHub site as issues or pull requests</a>. There is also a <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">mailing list for general discussion</a>.</p>
+    changes_p03_html: <p> Feedback is <em>very</em> welcome via the <a href="https://github.com/ossf/best-practices-badge" >GitHub site as issues or pull requests</a>. There is also a <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">mailing list for general discussion</a>.</p>
     keywords_p01_html: "<p></p> <h2 id='keywords'>Key words</h2>"
     keywords_p02_html: <p> The key words "MUST", "MUST NOT", "SHOULD", "SHOULD NOT", and "MAY" in this document are to be interpreted as described in <a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a>. The additional term SUGGESTED is added. In summary, these key words have the following meanings:</p>
     keywords_p03_html: "<ul> <li>The term MUST is an absolute requirement, and MUST NOT is an absolute prohibition.</li>"

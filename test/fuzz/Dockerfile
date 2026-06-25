@@ -27,7 +27,7 @@ FROM gcr.io/oss-fuzz-base/base-builder-ruby
 # so no Rust toolchain is required in this image.
 
 RUN git clone --depth=1 \
-    https://github.com/coreinfrastructure/best-practices-badge.git \
+    https://github.com/ossf/best-practices-badge.git \
     "$SRC/best-practices-badge"
 
 COPY build.sh "$SRC/"

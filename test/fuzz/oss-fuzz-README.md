@@ -33,4 +33,4 @@ We expect this to grow over time; this is a starting point.
 
 ## Reporting vulnerabilities
 
-Use the [GitHub private vulnerability reporting form](https://github.com/coreinfrastructure/best-practices-badge/security/advisories/new).
+Use the [GitHub private vulnerability reporting form](https://github.com/ossf/best-practices-badge/security/advisories/new).

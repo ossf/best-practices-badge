@@ -37,7 +37,7 @@ en:
     login_html: Login
     footer_text_html: >-
       <small> <strong>Need help? Have a question? See a problem?
-      Please <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      Please <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">file an issue</a></em>.</strong>
       Copyright ©
       <a href="https://www.bestpractices.dev" target="_blank" rel="noopener">OpenSSF Best Practices Badge a Series of LF Projects, LLC</a>.
@@ -175,7 +175,7 @@ en:
         Automated analysis will determine many of the criteria answers for you
         (and prevent obviously incorrect answers).
         More information on the OpenSSF Best Practices Badging program is
-        <a href='https://github.com/coreinfrastructure/best-practices-badge'>available
+        <a href='https://github.com/ossf/best-practices-badge'>available
         on GitHub</a>. <a href="/en/project_stats">Project statistics</a>
         and <a href="/en/criteria_stats">criteria statistics</a> are available.
         The <a href="/en/projects">projects page</a> shows participating
@@ -729,7 +729,7 @@ en:
           instead of being a rationale that the situation is acceptable,
           start the text block with '//' followed by a space.
           Feedback is welcome via the
-          <a href="https://github.com/coreinfrastructure/best-practices-badge">GitHub
+          <a href="https://github.com/ossf/best-practices-badge">GitHub
           site as issues or pull requests</a> There is also a
           <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">mailing
           list for general discussion</a>.<br /><br /> We gladly
@@ -774,7 +774,7 @@ en:
           <strong>Please 'submit' often</strong> to save your
           work (you can always go back and edit more later). <br><br>
           If you need help, have a question, or see a problem,
-          please <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          please <em><a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">file an issue</a></em>.
       got_baseline_badge:
         description_1: >-
@@ -1009,7 +1009,7 @@ en:
       If you have questions, or need help, please contact
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       or file an issue at
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (click on "new issue").
       </p>
       <p>
@@ -1039,7 +1039,7 @@ en:
       If you have questions, or need help, please contact
       cii-badges-questions@lists.coreinfrastructure.org
       or file an issue at
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (click on "new issue").
 
       We will never send you advertisements, and we will only rarely
@@ -1090,7 +1090,7 @@ en:
       If you have questions, or need help, please contact
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       or file an issue at
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (click on "new issue").
       </p>
 
@@ -1130,7 +1130,7 @@ en:
       If you have questions, or need help, please contact
       cii-badges-questions@lists.coreinfrastructure.org
       or file an issue at
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (click on "new issue").
 
       We don't send reminders if you continue to update your badge entry,
@@ -1155,11 +1155,11 @@ en:
       including adding URLs that point to more information.
       If you have suggestions on how to improve the criteria or
       badge web application, please file an issue at:
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       One of our goals is to encourage projects to make some improvements.
       We put some of these reports on the public wiki; please let us know
       if you do NOT want the changes publicly posted at
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       Thank you, and congratulations.
     in_markdown_add: 'In markdown you can add this:'
     in_html_add: 'In HTML you can add this:'
@@ -2452,7 +2452,7 @@ en:
           to list secure design principles (such as Saltzer and
           Schroeer) and common implementation security weaknesses
           (such as the OWASP top 10 or CWE/SANS top 25), and show
-          how each are countered. The <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp
+          how each are countered. The <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp
           assurance case</a> may be a useful example. This is
           related to documentation_security, documentation_architecture,
           and implement_secure_design.
@@ -3494,7 +3494,7 @@ en:
       <p>
       For more information on how these criteria were developed,
       see the <a
-      href="https://github.com/coreinfrastructure/best-practices-badge"
+      href="https://github.com/ossf/best-practices-badge"
       >OpenSSF Best Practices badge GitHub site</a>.</p>
       <p>
       You may also <a href="/en/criteria">see the full criteria</a>.</p>
@@ -3561,7 +3561,7 @@ en:
     changes_p03_html:  >-
       <p>
       Feedback is <em>very</em> welcome via the
-      <a href="https://github.com/coreinfrastructure/best-practices-badge"
+      <a href="https://github.com/ossf/best-practices-badge"
       >GitHub site as issues or pull requests</a>.
       There is also a
       <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges"

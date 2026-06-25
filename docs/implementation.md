@@ -1223,7 +1223,7 @@ You can then run, e.g.:
 
 ~~~~
 checklink-norobots -b -e \
-  https://github.com/coreinfrastructure/best-practices-badge | tee results
+  https://github.com/ossf/best-practices-badge | tee results
 ~~~~
 
 ## Spam countering: Markdown, nofollow, and ogc
@@ -1270,8 +1270,8 @@ Here’s a quick example that may help:
 rails console
 p = Project.new
 # Set values for project to evaluate.  We'll examine our own project.
-p[:repo_url] = 'https://github.com/coreinfrastructure/best-practices-badge'
-p[:homepage_url] = 'https://github.com/coreinfrastructure/best-practices-badge'
+p[:repo_url] = 'https://github.com/ossf/best-practices-badge'
+p[:homepage_url] = 'https://github.com/ossf/best-practices-badge'
 # Setup chief to analyze things:
 new_chief = Chief.new(p, proc { Octokit::Client.new })
 # Ask chief to find probable values:
@@ -1390,7 +1390,7 @@ Per the Heroku instructions, add the public key here:
 
 CircleCI needs to prove it's authorized, so we need to give it the
 private key (sigh). Go to this page:
-https://app.circleci.com/settings/project/github/coreinfrastructure/best-practices-badge/ssh
+https://app.circleci.com/settings/project/github/ossf/best-practices-badge/ssh
 
 Under "Additional SSH keys" (for keys to the builid VMs that you need to
 deploy to your machines), remove any heroku.com keys, add a new key

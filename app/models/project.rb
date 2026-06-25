@@ -918,7 +918,7 @@ class Project < ApplicationRecord
   LAST_SENT_REMINDER = (ENV['BADGEAPP_LAST_SENT_REMINDER'] || 60).to_i
 
   # Returns projects that should be reminded to work on their badges.
-  # See: https://github.com/coreinfrastructure/best-practices-badge/issues/487
+  # See: https://github.com/ossf/best-practices-badge/issues/487
   # Selects in-progress projects that are inactive, not recently reminded,
   # have valid email, and owner accepts emails. Uses single database query.
   # @return [ActiveRecord::Relation] projects eligible for reminders
