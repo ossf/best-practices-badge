@@ -10,7 +10,7 @@
 # recorded cassettes, so existing fixtures match what a fresh recording
 # would produce. Idempotent: re-running it changes nothing once scrubbed.
 #
-# Usage: ruby script/redact_vcr_circleci_shas.rb
+# Usage: ruby script/redact_vcr_git_shas.rb
 
 require_relative '../test/test_helper_redaction'
 
@@ -18,7 +18,7 @@ CASSETTE_GLOB = File.expand_path('../test/vcr_cassettes/**/*.yml', __dir__)
 
 Dir.glob(CASSETTE_GLOB).each do |path|
   original = File.read(path)
-  scrubbed = VcrRedaction.redact_circleci_shas(original)
+  scrubbed = VcrRedaction.redact_git_shas(original)
   next if scrubbed == original
 
   File.write(path, scrubbed)

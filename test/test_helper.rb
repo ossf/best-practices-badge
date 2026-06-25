@@ -117,12 +117,13 @@ VCR.configure do |config|
   config.filter_sensitive_data('REDACTED') do |interaction|
     interaction.request.headers['Authorization']&.first
   end
-  # Neutralize git SHA-1 object ids that secret scanners mistake for CircleCI
-  # tokens (see VcrRedaction above). Runs only when recording new episodes,
-  # so freshly created/updated cassettes are scrubbed automatically.
+  # Neutralize 40-hex strings (git SHAs, ETags, session HMACs) that secret
+  # scanners mistake for CircleCI tokens (see VcrRedaction). Runs only when
+  # recording new episodes, so freshly created/updated cassettes are scrubbed
+  # automatically.
   config.before_record do |interaction|
-    interaction.response.body =
-      VcrRedaction.redact_circleci_shas(interaction.response.body)
+    VcrRedaction.redact_message!(interaction.request)
+    VcrRedaction.redact_message!(interaction.response)
   end
   # Default :match_requests_on => [:method, :uri]
   # You can also match on: scheme, port, method, host, path, query

@@ -61,7 +61,7 @@ http_interactions:
       Cross-Origin-Resource-Policy:
       - cross-origin
       X-Fastly-Request-Id:
-      - f1d0fe5cec26d9869d562492db3ee595041d980d
+      - 0000000000000000000000000000000000000000
       Expires:
       - Tue, 10 Feb 2026 22:20:32 GMT
       Source-Age:
@@ -135,7 +135,7 @@ http_interactions:
       Cross-Origin-Resource-Policy:
       - cross-origin
       X-Fastly-Request-Id:
-      - 27f77c92a1a0dcc6db6d6747c43390dc991ca53e
+      - 0000000000000000000000000000000000000000
       Expires:
       - Wed, 17 Jun 2026 19:42:35 GMT
       Source-Age:
