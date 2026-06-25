@@ -96,6 +96,10 @@ WebMock.disable_net_connect!(allow_localhost: true, allow: driver_urls)
 # Rails will try to automatically load them into models, resulting in
 # confusing error messages.
 require 'vcr'
+# Shared rule that neutralizes git SHA-1 object ids which secret scanners
+# mistake for CircleCI tokens; see the file for the full rationale.
+require_relative 'test_helper_redaction'
+
 VCR.configure do |config|
   config.ignore_localhost = true
   # We use Google Chrome for testing, which chattily updates.
@@ -107,6 +111,20 @@ VCR.configure do |config|
   # Sometimes we have the "same" query but with and without per_page=...
   # query values.  Record both variants by recording new_episodes:
   config.default_cassette_options = { record: :new_episodes }
+  # Filter sensitive data from cassettes
+  # These aren't really sensitive since they're not real, but tools have
+  # trouble determining that and it's safer if we redact them no matter what.
+  config.filter_sensitive_data('REDACTED') do |interaction|
+    interaction.request.headers['Authorization']&.first
+  end
+  # Neutralize 40-hex strings (git SHAs, ETags, session HMACs) that secret
+  # scanners mistake for CircleCI tokens (see VcrRedaction). Runs only when
+  # recording new episodes, so freshly created/updated cassettes are scrubbed
+  # automatically.
+  config.before_record do |interaction|
+    VcrRedaction.redact_message!(interaction.request)
+    VcrRedaction.redact_message!(interaction.response)
+  end
   # Default :match_requests_on => [:method, :uri]
   # You can also match on: scheme, port, method, host, path, query
   # You can create new matchers like this:

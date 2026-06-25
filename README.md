@@ -7,14 +7,14 @@
     <td align="left" border="0" valign="middle">
       <a href="https://bestpractices.coreinfrastructure.org/projects/1"><img src="https://bestpractices.coreinfrastructure.org/projects/1/badge" alt="OpenSSF Best Practices" align="middle"></a>&nbsp;
       <a href="https://www.bestpractices.dev/projects/1"><img src="https://www.bestpractices.dev/projects/1/baseline" alt="OpenSSF Baseline" align="middle"></a>&nbsp;
-      <a href="https://app.circleci.com/pipelines/github/coreinfrastructure/best-practices-badge"><img src="https://circleci.com/gh/coreinfrastructure/best-practices-badge.svg?&style=shield" alt="CircleCI Build Status" align="middle"></a>&nbsp;
-      <a href="https://codecov.io/gh/coreinfrastructure/best-practices-badge"><img src="https://codecov.io/gh/coreinfrastructure/best-practices-badge/branch/master/graph/badge.svg" alt="codecov" align="middle"></a>&nbsp;
+      <a href="https://app.circleci.com/pipelines/github/ossf/best-practices-badge"><img src="https://circleci.com/gh/ossf/best-practices-badge.svg?&style=shield" alt="CircleCI Build Status" align="middle"></a>&nbsp;
+      <a href="https://codecov.io/gh/ossf/best-practices-badge"><img src="https://codecov.io/gh/ossf/best-practices-badge/branch/master/graph/badge.svg" alt="codecov" align="middle"></a>&nbsp;
       <a href="https://badges.mit-license.org"><img src="https://img.shields.io/:license-mit-blue.svg" alt="License" align="middle"></a>&nbsp;
-      <a href="https://scorecard.dev/viewer/?uri=github.com/coreinfrastructure/best-practices-badge"><img src="https://api.scorecard.dev/projects/github.com/coreinfrastructure/best-practices-badge/badge" alt="OpenSSF Scorecard" align="middle"></a>
+      <a href="https://scorecard.dev/viewer/?uri=github.com/ossf/best-practices-badge"><img src="https://api.scorecard.dev/projects/github.com/ossf/best-practices-badge/badge" alt="OpenSSF Scorecard" align="middle"></a>
     </td>
     <td align="left" border="0" valign="middle">
       <a href="https://github.com/ossf/tac/blob/main/process/project-lifecycle-documents/best_practices_badge_graduation_stage.md">
-        <img src="https://raw.githubusercontent.com/coreinfrastructure/best-practices-badge/main/docs/graduated.svg" alt="OpenSSF graduated project" height="80">
+        <img src="https://raw.githubusercontent.com/ossf/best-practices-badge/main/docs/graduated.svg" alt="OpenSSF graduated project" height="80">
       </a>
     </td>
   </tr>
@@ -39,7 +39,7 @@ See the
 This is the development site for the criteria and badge application
 software that runs the website.
 Feedback is very welcome via the
-[GitHub site](https://github.com/coreinfrastructure/best-practices-badge)
+[GitHub site](https://github.com/ossf/best-practices-badge)
 as issues or pull (merge) requests.
 There is also a
 [mailing list](https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges)
@@ -59,7 +59,7 @@ Interesting pages include:
 * **[Criteria for all badging levels](https://bestpractices.coreinfrastructure.org/criteria)**
 * Information on how to **[contribute](./CONTRIBUTING.md)**
 * Information on **[our own security, including how to report vulnerabilities in our badge application](./SECURITY.md)**
-* [Up-for-grabs](https://github.com/coreinfrastructure/best-practices-badge/labels/up-for-grabs)
+* [Up-for-grabs](https://github.com/ossf/best-practices-badge/labels/up-for-grabs)
   lists smaller tasks that may take 1-3 days, and are ideal for people
   new to the project (or FLOSS in general)
 * **[Background](./docs/background.md)** on Badging

@@ -1675,11 +1675,11 @@ flowchart BT
     %% A fragment URL "#..." does not work, because it's in an iframe
     %% so the relative jump is inside a sandbox dedicated to only the image.
     C_High["<b>C: Higher level</b><br>The system meets all<br>specified security requirements"]
-    click C_High "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/sacm-mermaid.md#Introduction"
+    click C_High "https://github.com/ossf/best-practices-badge/blob/main/docs/sacm-mermaid.md#Introduction"
 
     Inf1((" ")):::sacmDot
     C1["<b>C1</b>"]
-    click C1 "https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/sacm-mermaid.md#Introduction"
+    click C1 "https://github.com/ossf/best-practices-badge/blob/main/docs/sacm-mermaid.md#Introduction"
 
     C1 --- Inf1
     Inf1 --> C_High

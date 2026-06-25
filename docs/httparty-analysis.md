@@ -10,7 +10,7 @@
 
 **Patch Status:** No patch available
 
-**Alert:** <https://github.com/coreinfrastructure/best-practices-badge/security/dependabot/99>
+**Alert:** <https://github.com/ossf/best-practices-badge/security/dependabot/99>
 
 **Disposition:** NOT VULNERABLE
 

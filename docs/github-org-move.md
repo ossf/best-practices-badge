@@ -11,9 +11,16 @@ Ensure a seamless transition for CI/CD pipelines, contributors, and users while 
 * The production domain (`www.bestpractices.dev`) is **NOT** changing.
 * The mailing list (`lists.coreinfrastructure.org`) is **NOT** changing.
 
+This document focuses on changes to the project, not to individual developer work environments. They will generally need to execute one of these:
+
+~~~~sh
+git remote set-url origin https://github.com/ossf/best-practices-badge.git
+git remote set-url upstream https://github.com/ossf/best-practices-badge.git
+~~~~
+
 ---
 
-## 1. Summary of Items to Change
+## 1. Summary of Items to Change in Repo
 
 ### Category A: CI/CD & Pipeline Stability
 
