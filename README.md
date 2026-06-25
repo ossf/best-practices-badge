@@ -8,7 +8,7 @@
       <a href="https://bestpractices.coreinfrastructure.org/projects/1"><img src="https://bestpractices.coreinfrastructure.org/projects/1/badge" alt="OpenSSF Best Practices" align="middle"></a>&nbsp;
       <a href="https://www.bestpractices.dev/projects/1"><img src="https://www.bestpractices.dev/projects/1/baseline" alt="OpenSSF Baseline" align="middle"></a>&nbsp;
       <a href="https://app.circleci.com/pipelines/github/ossf/best-practices-badge"><img src="https://circleci.com/gh/ossf/best-practices-badge.svg?&style=shield" alt="CircleCI Build Status" align="middle"></a>&nbsp;
-      <a href="https://codecov.io/gh/ossf/best-practices-badge"><img src="https://codecov.io/gh/ossf/best-practices-badge/branch/master/graph/badge.svg" alt="codecov" align="middle"></a>&nbsp;
+      <a href="https://codecov.io/gh/ossf/best-practices-badge"><img src="https://codecov.io/gh/ossf/best-practices-badge/branch/main/graph/badge.svg" alt="codecov" align="middle"></a>&nbsp;
       <a href="https://badges.mit-license.org"><img src="https://img.shields.io/:license-mit-blue.svg" alt="License" align="middle"></a>&nbsp;
       <a href="https://scorecard.dev/viewer/?uri=github.com/ossf/best-practices-badge"><img src="https://api.scorecard.dev/projects/github.com/ossf/best-practices-badge/badge" alt="OpenSSF Scorecard" align="middle"></a>
     </td>
