@@ -954,6 +954,22 @@ task 'test:coverage_gaps' do
 
   puts "Combined Coverage: #{result.covered_percent.round(2)}%"
 
+  # In CI, write coverage/codecov-result.json from the merged result so the
+  # Codecov CLI (see .circleci/config.yml) has a file to upload. This MUST
+  # happen here, not in test_helper.rb: the test workers run with
+  # DEFER_COVERAGE set, which swaps in the minimal SimpleFormatter, so the
+  # Codecov formatter never runs during the test processes. The merged
+  # result is only complete once all parallel + system test runs finish.
+  #
+  # We call the gem's inner Codecov::SimpleCov::Formatter directly rather
+  # than SimpleCov::Formatter::Codecov, because the latter also invokes the
+  # gem's deprecated built-in network uploader. We upload separately with a
+  # pinned, hash-verified CLI, so we want ONLY the file-writing half here.
+  if ENV['CI']
+    require 'codecov'
+    Codecov::SimpleCov::Formatter.new.format(result)
+  end
+
   # Iterate through files using SimpleCov's own 'missed_lines' logic
   # to report what we missed.
   gaps_found = false
