@@ -177,8 +177,8 @@ jobs:
     # use. This matches the dependency-pinning policy stated at the top of this
     # file and mirrors the Heroku CLI install in the deploy job: we never run
     # an unpinned, unverified binary fetched over the network. The coverage
-    # JSON itself is produced by SimpleCov::Formatter::Codecov; see
-    # test/test_helper.rb. --disable-search + --file restrict the upload to
+    # JSON itself is produced by SimpleCov::Formatter::JSONFormatter in the
+    # test:coverage_gaps rake task. --disable-search + --file restrict the upload to
     # exactly that file, and --plugin noop skips Codecov's coverage-generation
     # plugins (we already have the report). We do NOT pass --fail-on-error, so
     # a Codecov outage cannot break an otherwise-green build. The upload token,
@@ -208,7 +208,7 @@ jobs:
           echo "** Hash verified. Uploading coverage."
           chmod +x codecov
           ./codecov upload-process --disable-search --plugin noop \
-            --file coverage/codecov-result.json
+            --file coverage/coverage.json
           rm -f codecov
 
   # I haven't found a reliable way to calculate HEROKU_APP just once,

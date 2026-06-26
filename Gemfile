@@ -183,7 +183,6 @@ end
 
 group :test do
   gem 'capybara-slow_finder_errors', require: false # ID slow Capybara finders
-  gem 'codecov', require: false # Report test code coverage
   # Pin minitest < 6.0 until minitest-reporters supports it.
   # Minitest 6.0 introduced breaking changes that cause minitest-reporters 1.7.1
   # to fail silently (tests don't run). Remove this constraint when
@@ -196,7 +195,12 @@ group :test do
   # Note: Updating 'rails-controller-testing' to '1.0.5' causes failures
   gem 'rails-controller-testing', '~> 1.0' # for `assigns` and `assert_template`
   gem 'selenium-webdriver' # Automates browser i/f for Rails system testing
-  # We don't list "simplecov"; code depends on it & brings it in
+  # Test coverage. We require both directly: simplecov in test_helper.rb, and
+  # simplecov_json_formatter in test:coverage_gaps to write coverage/coverage.json
+  # for the Codecov upload. List both so a future simplecov release that stops
+  # bundling the JSON formatter can't break us in a surprising way.
+  gem 'simplecov', require: false
+  gem 'simplecov_json_formatter', require: false
   gem 'webmock', '~> 3.0', require: false # Mock HTTP requests for testing
 end
 
