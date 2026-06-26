@@ -215,6 +215,28 @@ Three coordinated changes:
 
 ### Why this is safe
 
+* **The core correctness invariant: the anonymous show response does not vary
+  between anonymous users.** Caching a single object and serving it to all
+  anonymous visitors is correct *only* if every anonymous visitor would have
+  received byte-identical content. This holds because the only things that
+  personalize a show page are login-derived or carried in the URL.
+  `show.html.erb` branches solely on `@cached_can_edit` (`can_edit?`) and
+  `can_control?`
+  ([`app/views/projects/show.html.erb:5,23,26`](../app/views/projects/show.html.erb)),
+  both of which derive from `current_user` and are always false for an
+  anonymous request (yielding the read-only `_table` / `_details` rendering);
+  the header's account menu, logout, and edit affordances are gated on
+  `@session_user_id`
+  ([`app/views/layouts/_header.html.erb`](../app/views/layouts/_header.html.erb)),
+  so all anonymous users get the same login/signup header; locale is in the URL
+  (`/en/projects/:id/:section`) and thus part of the cache key, not hidden
+  variance; and after Change 1 the CSRF meta tag — the one remaining
+  per-session value in the layout `<head>` — is absent for anonymous users.
+  There is therefore no anonymous-only variance by IP, `Accept-Language` (the
+  locale redirect happens *before* `show`; see Section 4.1), A/B assignment, or
+  request time. This invariant is locked in by an explicit "two anonymous
+  requests are byte-identical" test (Section 6) and by the page-variance
+  reasoning in Section 9.4.
 * The CDN bypass is **fail-safe**: *any* session state (login, flash, CSRF,
   or future per-user data) means the cookie is present, so the request is
   passed to the origin and the personalized response is rendered fresh.
@@ -295,6 +317,23 @@ In short: the one browser-dependent redirect (locale) is already
 non-cacheable by design, and the `return if performed?` guard ensures our
 change never caches any redirect emitted from within `show`.
 
+### 4.2 Content encoding (`Vary` / `Accept-Encoding`)
+
+Caching anonymous HTML introduces a content type whose on-the-wire bytes vary
+with compression (`Accept-Encoding: gzip, br, …`). This is **not new risk**:
+the resources we already cache (project JSON and the SVG badges via the same
+`cache_on_cdn` path) are likewise compressible, and Fastly handles encoding
+the same way for HTML as for those. Fastly normalizes `Accept-Encoding` into a
+small number of buckets and stores a separate compressed object per bucket, so
+a client never receives an encoding it did not request. We therefore do not
+set or change any `Vary` header: HTML show pages inherit exactly the encoding
+behavior the already-cached JSON and badge responses rely on today. (Locale is
+not an encoding concern — it is in the URL and thus already part of the cache
+key; see Section 4.1.) If Fastly's default `Accept-Encoding` normalization is
+ever disabled for this service, that change must be treated as cache-affecting
+and re-reviewed, because it would apply equally to the existing cached JSON
+and badges.
+
 ---
 
 ## 5. Exact Code Changes
@@ -332,15 +371,27 @@ with a guarded version:
 In [`app/controllers/projects_controller.rb`](../app/controllers/projects_controller.rb),
 the `show` action first calls `redirect_obsolete_section_names` (which can
 issue a 301 redirect, e.g. `0` → `passing`) and currently caches only the
-markdown format:
+markdown format. The real action does several things between the redirect
+call and the cache line — section normalization, surrogate-key tagging, and
+section data loading — all of which run **even when a redirect was already
+issued** (the quote below is abbreviated only by the `# ...` comments; the
+named calls are present verbatim):
 
 ```ruby
   def show
     redirect_obsolete_section_names
-    # ...
+
+    @section = @criteria_level
+    validate_section(@section)
+
+    # Tell CDN the surrogate key so we can quickly erase cache later
+    set_surrogate_key_header @project.record_key
+
+    load_section_data_for_show(@section)
+
     # Enable CDN caching for markdown format (no user-specific content)
     cache_on_cdn if request.format.symbol == :md
-    # ...
+
     respond_to do |format|
       format.html
       format.md { render_markdown_format }
@@ -349,17 +400,28 @@ markdown format:
 ```
 
 Make two edits. **First, bail out the moment a redirect has been performed**,
-so the caching logic and `respond_to` never run for a redirect response
-(see Section 4.1 — *Redirects and caching*). Add immediately after
-`redirect_obsolete_section_names`:
+so neither the section-loading work, the caching logic, nor the `respond_to`
+runs for a redirect response (see Section 4.1 — *Redirects and caching*). Add
+immediately after `redirect_obsolete_section_names`, **before** the
+`@section = @criteria_level` line:
 
 ```ruby
     redirect_obsolete_section_names
     # A redirect (e.g. obsolete section 301) already committed the response;
-    # do not attach page-caching headers or render again. Its cache headers
-    # were set by set_default_cache_control (private, no-store).
+    # do not attach page-caching headers, reload section data, or render
+    # again. Its cache headers were set by set_default_cache_control
+    # (private, no-store).
     return if performed?
 ```
+
+**Behavioral note — the obsolete-section 301 loses its `Surrogate-Key`.**
+Today, because execution falls through, an obsolete-section redirect still
+runs `set_surrogate_key_header @project.record_key` and so carries a
+`Surrogate-Key`. With the guard placed before that line, the redirect no
+longer gets one. This is harmless and arguably more correct: the redirect is
+`private, no-store` and is never cached, so it has no cache entry to purge by
+key. (The relevant assertion in Section 6 checks `Surrogate-Control`, the
+header that actually gates CDN caching — not `Surrogate-Key`.)
 
 **Second, replace the markdown-only cache line** with a guard that also
 caches anonymous, flash-free HTML:
@@ -489,17 +551,10 @@ cookie, because that is the property the CDN bypass relies on.
 > for everyone). Therefore the CSRF-sensitive tests below must explicitly
 > re-enable forgery protection. Note that re-enabling it makes unprotected
 > `POST`s fail, so log in (which `POST`s to `login_path`) *before* enabling
-> it. Add this helper to the test:
->
-> ```ruby
-> def with_forgery_protection
->   original = ActionController::Base.allow_forgery_protection
->   ActionController::Base.allow_forgery_protection = true
->   yield
-> ensure
->   ActionController::Base.allow_forgery_protection = original
-> end
-> ```
+> it. The tests use a `with_forgery_protection` helper that flips the flag and
+> restores it in an `ensure`. It is defined once at the bottom of the test
+> class below — do not also paste it here, or it would be a duplicate
+> definition.
 
 Add an integration test (e.g. `test/integration/cdn_caching_test.rb`):
 
@@ -553,6 +608,26 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
              'show should send Surrogate-Control for the CDN'
       assert_equal 'no-store', response.headers['Cache-Control']
       assert_nil cookies['_BadgeApp_session']
+    end
+  end
+
+  # CORE CORRECTNESS INVARIANT (Sections 4.1 and 9.4): the CDN serves one
+  # cached object to every anonymous visitor, so two anonymous show responses
+  # must be byte-identical. All show-page personalization is login-derived
+  # (can_edit?, can_control?, the @session_user_id header gate) or carried in
+  # the URL (locale, section); an anonymous request has nothing left to vary.
+  # If a future change adds anonymous-only variance (an IP-, Accept-Language-,
+  # A/B-, or time-dependent fragment in the body or header), this test fails.
+  test 'anonymous project show is identical across requests' do
+    with_forgery_protection do
+      get "/en/projects/#{@project.id}/passing"
+      assert_response :success
+      first_body = response.body
+      get "/en/projects/#{@project.id}/passing"
+      assert_response :success
+      assert_equal first_body, response.body,
+                   'anonymous show responses must be byte-identical so the ' \
+                   'CDN can safely share one cached object among all guests'
     end
   end
 
@@ -812,12 +887,25 @@ that exact key.
   end
   ```
 
-### 9.4 Header variance between logged-in and anonymous users
+### 9.4 Page variance between users
 
-The page header differs for logged-in vs anonymous users (account menu,
-logout, edit buttons). Caching the anonymous header is correct **only**
-because logged-in users always carry `_BadgeApp_session` and therefore
-always bypass the cache.
+Two distinct variance axes must both be safe.
+
+* **Logged-in vs anonymous (handled by the bypass).** The header and body
+  differ for logged-in users (account menu, logout, edit/control
+  affordances). Caching the anonymous rendering is correct **only** because
+  logged-in users always carry `_BadgeApp_session` and therefore always
+  bypass the cache (and remember-me users are bypassed on their persistent
+  cookies). They never receive the anonymous object.
+* **Among anonymous users (must be none).** This is the core correctness
+  invariant from Section 4.1's *Why this is safe* list: every anonymous show
+  response must be byte-identical, because the CDN serves one cached object to
+  all of them. All show-page personalization is login-derived (`can_edit?`,
+  `can_control?`, the `@session_user_id` header gate) or in the URL (locale,
+  section), so for anonymous requests there is nothing left to vary. The
+  "two anonymous requests are byte-identical" test in Section 6 enforces this;
+  if a future change introduces anonymous-only variance (e.g. an IP- or
+  `Accept-Language`-dependent fragment in the body), that test fails.
 
 * **Do better (treat the bypass rule as load-bearing config).** The Fastly
   bypass rule (Section 5, Change 3) is a security control, not a
