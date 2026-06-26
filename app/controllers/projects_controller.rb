@@ -690,8 +690,34 @@ class ProjectsController < ApplicationController
   def update
     # Only accept updates if there's no repo_url change OR if change is ok
     if repo_url_unchanged_or_change_allowed?
-      # Send CDN purge early, to give it time to distribute purge request
+      # Purge this project from the CDN as soon as the request is authorized,
+      # BEFORE saving, doing BOTH an immediate purge and a delayed re-purge --
+      # and do BOTH unconditionally here, not only after a successful save.
+      #
+      # Why a delayed re-purge at all: the server always has the newest data
+      # once committed, but TCP/IP does not guarantee the CDN receives our
+      # replies in send order. The CDN can receive an *old* in-flight response
+      # *after* our purge and cache it, holding stale data until max-age. A
+      # second purge a few seconds later evicts that straggler; the next
+      # request then repopulates the cache with correct data.
+      #
+      # Why unconditionally (rather than only on @project.save success):
+      # update_additional_rights (below) writes the AdditionalRight table in
+      # its own transaction -- data the anonymous /permissions page renders --
+      # and that write commits independently of @project.save and is NOT
+      # rolled back if the save later fails. So a save-fails-after-rights-
+      # changed path still changes what anonymous users see; scheduling the
+      # delayed re-purge here closes the TCP-reorder race for that path too.
+      # Extra purges are harmless (no long-term effect), and by this point the
+      # request is already authorized.
+      #
+      # Note: in production ActiveJob is backed by solid_queue (a database
+      # queue), so the delayed purge is durable -- it survives a restart
+      # during its wait, and the race-closer is not lost.
       @project.purge_cdn_project
+      PurgeCdnProjectJob.set(
+        wait: BADGE_PURGE_DELAY.seconds
+      ).perform_later(@project.record_key)
       # Capture the level being worked on (baseline or traditional badge)
       old_badge_level = current_working_level(@criteria_level, @project)
       final_project_params = project_params
@@ -744,29 +770,11 @@ class ProjectsController < ApplicationController
         # after saving.
         if @project.save
           successful_update(format, old_badge_level, @criteria_level)
-          # We must send a purge later, not just now, due to a subtle race
-          # condition. Here's what is going on.
-          # The server and the CDN communicate over TCP/IP. This *server*
-          # will always produce the newest information once it's committed.
-          # However, TCP/IP does *NOT* guarantee that different replies
-          # from a server will be received (by the CDN) in the same order that
-          # they were sent. This means that the CDN can receive *old* data
-          # after # receiving a purge request and newer data, resulting in
-          # a CDN caches with obsolete data that will be held for a long time.
-          # A solution: Wait a short time, then send *another* purge. That way
-          # even if the CDN receives updates out-of-order, that old data will
-          # be purged. The next request following this additional purge will
-          # receive the updated data, and then the CDN will have correct data.
-          #
-          # Note: ActiveJob by default stores jobs in RAM. If the system is
-          # restarted while a job is active, and jobs are stored in RAM, the
-          # job will be lost and not executed. The long-term solution is to put
-          # jobs in the database.
-          PurgeCdnProjectJob.set(
-            wait: BADGE_PURGE_DELAY.seconds
-          ).perform_later(@project.record_key)
-          # Also send CDN purge last, to increase likelihood of being purged
-          # and replaced with correct data even before the delayed purpose.
+          # Final immediate purge after the commit, so the freshest data
+          # evicts any stale copy as soon as possible. The delayed re-purge
+          # that closes the TCP-reorder race was already scheduled
+          # unconditionally on entry (see the comment there), so we do not
+          # schedule another one here.
           @project.purge_cdn_project
         else
           format.html { render :edit, criteria_level: @criteria_level }
@@ -811,7 +819,16 @@ class ProjectsController < ApplicationController
       end
       format.json { head :no_content }
     end
+    # Purge the deleted project from the CDN, both immediately and on a delay.
+    # The delayed re-purge closes the same TCP-reorder race as in update (see
+    # the long comment there): an old, in-flight show response could reach the
+    # CDN just after the immediate purge and re-cache a deleted project's page
+    # for up to max-age. record_key still resolves after destroy! (the id
+    # remains in memory). solid_queue makes the delayed job durable.
     @project.purge_cdn_project
+    PurgeCdnProjectJob.set(
+      wait: BADGE_PURGE_DELAY.seconds
+    ).perform_later(@project.record_key)
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
