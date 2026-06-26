@@ -34,6 +34,16 @@ class ApplicationController < ActionController::Base
   ENFORCE_ORIGIN_SHIELDING =
     ENV['ENFORCE_ORIGIN_SHIELDING'] == 'true' && !TRUSTED_PROXIES_DISABLED
 
+  # Name of the Rails session cookie, read from config so this stays correct
+  # if the key is ever renamed (see config/initializers/session_store.rb).
+  SESSION_COOKIE_NAME = Rails.application.config.session_options[:key]
+
+  # Session keys that are framework bookkeeping, not real per-user content:
+  # Rack's always-present session_id and the flash.
+  # Method drop_unneeded_session_cookie
+  # ignores these when deciding whether the session still holds anything.
+  SESSION_BOOKKEEPING_KEYS = %w[session_id flash].freeze
+
   # Make criteria_level conversion methods available to views
   helper_method :criteria_level_to_internal, :normalize_criteria_level
 
@@ -67,6 +77,7 @@ class ApplicationController < ActionController::Base
   # This before_action handles session timeout and the remember token.
   before_action :setup_authentication_state
   after_action :update_session_timestamp
+  after_action :drop_unneeded_session_cookie
 
   # For the PaperTrail gem. We must call this *after* the action
   # `setup_authentication_state`; this action calls
@@ -587,6 +598,59 @@ class ApplicationController < ActionController::Base
 
     session[:time_last_used] = Time.now.utc
     @session_timestamp = session[:time_last_used] # Update cache
+  end
+
+  # Actively expire the session cookie once it is carrying nothing useful,
+  # so a browser that previously received one (e.g. just logged out, or was
+  # shown a stored flash) falls back onto the CDN-cached anonymous pages on
+  # its NEXT request, instead of bypassing the cache until the browser
+  # closes.
+  #
+  # This complements omit_session_cookie: that only *skips writing* a cookie
+  # and cannot remove one the browser already holds; this sends an explicit
+  # deletion. Runs as an after_action. See docs/cdn-cache-not-logged-in.md.
+  #
+  # Deliberately resilient to Rails/middleware internals: the session is
+  # never literally empty (Rack always keeps a session_id, and the flash is
+  # committed by middleware *after* this runs, so a spent 'flash' key may
+  # still linger). We therefore use flash.empty? as the authoritative "is
+  # there a flash to carry" signal and a read-only check for "is there any
+  # real user content left", then suppress the session middleware's own
+  # write. Correctness is pinned by
+  # test/integration/drop_session_cookie_test.rb, which asserts the final
+  # cookie state rather than any internal behavior.
+  # @return [void]
+  def drop_unneeded_session_cookie
+    # Only act when the browser actually sent the cookie. This is
+    # load-bearing: an anonymous request WITHOUT it is the cacheable case,
+    # and we must never add a Set-Cookie there (it would be cached and
+    # shipped to every visitor). Requests that DO carry it are already
+    # passed to origin by the CDN (never cached), so a deletion header on
+    # them is safe. Also the cheap early-out that keeps the hot cacheable
+    # path free.
+    return unless request.cookies.key?(SESSION_COOKIE_NAME)
+    return if logged_in?            # never touch a logged-in user's session
+    return unless flash.empty?      # a pending flash still needs the cookie
+
+    # Keep the cookie if the session still holds real per-user content (a CSRF
+    # token a rendered form needs, locale, forwarding_url, ...).
+    return if session_has_user_content?
+
+    # Suppress the session middleware's own Set-Cookie so it cannot emit a
+    # competing cookie alongside our deletion.
+    omit_session_cookie
+    cookies.delete(SESSION_COOKIE_NAME, path: '/')
+  end
+
+  # True when the session holds real per-user data -- anything beyond the
+  # framework bookkeeping keys (Rack's always-present session_id and a spent
+  # flash). any? short-circuits on the first real key and allocates no
+  # intermediate arrays. Read-only on purpose: mutating the session here would
+  # itself generate a session_id and defeat the check. Unknown future keys
+  # count as content, so callers fail safe (keep the cookie).
+  # @return [Boolean]
+  def session_has_user_content?
+    session.keys.any? { |key| !SESSION_BOOKKEEPING_KEYS.include?(key.to_s) }
   end
 
   # Attempts to login using remember token cookies.
