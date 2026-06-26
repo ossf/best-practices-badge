@@ -23,6 +23,23 @@ class StaticPagesController < ApplicationController
   # because flashes are stored in the session.
   before_action :omit_session_cookie, only: %i[robots google_verifier]
 
+  # Cache "unchanging" pages on the CDN for anonymous users -- pages whose
+  # output does not change until the next deploy. These actions render
+  # translation-driven content with no mutable DB state and issue no internal
+  # redirect, so the before_action (which commits cache headers before the
+  # body) is safe. The locale redirect for a locale-less URL is handled earlier
+  # by redir_missing_locale, which halts the chain first.
+  # See docs/cdn-cache-not-logged-in.md Section 10.
+  #
+  # rubocop:disable Rails/LexicallyScopedActionFilter
+  # "cookies" intentionally has no action method: defining one would shadow
+  # ActionController::Cookies#cookies (the cookie jar), breaking auth. It
+  # renders via implicit render from cookies.html.erb; the filter still matches
+  # by action name, so the cop's "define it on the class" rule cannot apply.
+  before_action :cache_unchanging_page_on_cdn,
+                only: %i[home cookies criteria_discussion criteria_stats]
+  # rubocop:enable Rails/LexicallyScopedActionFilter
+
   def home; end
 
   def criteria_stats; end

@@ -175,6 +175,20 @@ class ApplicationController < ActionController::Base
   BADGE_CACHE_SURROGATE_CONTROL =
     "max-age=#{BADGE_CACHE_MAX_AGE}, stale-if-error=#{BADGE_CACHE_STALE_AGE}".freeze
 
+  # Kill switch: set BADGEAPP_CACHE_UNCHANGING=false to instantly stop caching
+  # the "unchanging" pages (home, cookies, criteria discussion/stats, criteria
+  # index/show) -- pages whose rendered output does not change while the
+  # application runs (only on deploy) -- falling back to private, no-store
+  # without a redeploy. Mirrors CACHE_SHOW_PROJECT.
+  # See docs/cdn-cache-not-logged-in.md Section 10.
+  CACHE_UNCHANGING_PAGES = ENV['BADGEAPP_CACHE_UNCHANGING'] != 'false'
+
+  # One shared surrogate key for every "unchanging" page, so a single purge
+  # refreshes all of them. Deliberately NOT per-page: these pages all change
+  # together (only on deploy), and one key avoids a purge_all that would
+  # needlessly evict the valuable project-show, JSON, and badge caches.
+  UNCHANGING_SURROGATE_KEY = 'unchanging'
+
   # Fewer pages are cacheable than you might initially expect.
   # Most of the pages on this site vary depending on whether or not
   # you're logged in (because the header varies), so we can't cache most
@@ -243,6 +257,29 @@ class ApplicationController < ActionController::Base
     response.headers['Surrogate-Key'] = surrogate_keys.join(' ')
   end
   # rubocop:enable Naming/AccessorMethodName
+
+  # Cache an "unchanging" page on the CDN for anonymous users -- a page whose
+  # rendered output does not change while the application runs (only on deploy).
+  # Mirrors the projects#show HTML guard (cache only when the response carries
+  # no per-user state). cache_on_cdn also calls omit_session_cookie, so no
+  # Set-Cookie is emitted.
+  #
+  # Used as a before_action on qualifying actions; it runs after the inherited
+  # set_default_cache_control before_action, so it correctly overrides the
+  # private, no-store default for anonymous, flash-free HTML. The qualifying
+  # actions issue no internal redirect, so committing cache headers in a
+  # before_action (before the body runs) is safe; the browser-dependent locale
+  # redirect is handled earlier by redir_missing_locale, which halts the chain
+  # before this runs. See docs/cdn-cache-not-logged-in.md Section 10.
+  # @return [void]
+  def cache_unchanging_page_on_cdn
+    return unless CACHE_UNCHANGING_PAGES
+    return unless request.format.symbol == :html
+    return if logged_in? || !flash.empty?
+
+    set_surrogate_key_header UNCHANGING_SURROGATE_KEY
+    cache_on_cdn
+  end
 
   # Completely disables caching for sensitive pages.
   # Uses **no-store** to prevent any caching of the response.

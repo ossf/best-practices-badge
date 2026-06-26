@@ -53,6 +53,28 @@ environment ENV.fetch('RAILS_ENV') { 'development' }
 #   ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
 # end
 
+# After the web server boots a new release, refresh the shared CDN cache of
+# "unchanging" pages (home, cookies, criteria pages) so a deploy's
+# content/translation changes become visible. after_booted fires once, only in
+# the server process -- not in `rails console`, rake tasks, or tests -- so no
+# guard is needed. (Puma 7 deprecated the older on_booted name.)
+# See docs/cdn-cache-not-logged-in.md Section 10.
+after_booted do
+  if ApplicationController::CACHE_UNCHANGING_PAGES
+    key = ApplicationController::UNCHANGING_SURROGATE_KEY
+    # Immediate purge. purge_by_key catches its own errors and returns false
+    # (never raises), and is a no-op without Fastly credentials, so a Fastly
+    # hiccup (or a non-production boot) cannot break startup.
+    FastlyRails.purge_by_key(key)
+    # Delayed re-purge closes the rolling-deploy race: an old, still-draining
+    # process can repopulate the cache just after the immediate purge. This is
+    # the same recovery path PurgeCdnProjectJob provides for project edits.
+    PurgeCdnProjectJob
+      .set(wait: ApplicationController::BADGE_PURGE_DELAY.seconds)
+      .perform_later(key)
+  end
+end
+
 # Allow puma to be restarted by `rails restart` command.
 plugin :tmp_restart
 

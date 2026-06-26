@@ -7,6 +7,14 @@
 # Controller for criteria functionality.
 #
 class CriteriaController < ApplicationController
+  # Cache these "unchanging" pages on the CDN for anonymous users (output does
+  # not change until the next deploy). index/show only read URL-derived params
+  # (no mutable DB state) and issue no internal redirect. Query-string variants
+  # (?details=, etc.) are distinct cache objects under Fastly's URL-based key
+  # and all share UNCHANGING_SURROGATE_KEY.
+  # See docs/cdn-cache-not-logged-in.md Section 10.
+  before_action :cache_unchanging_page_on_cdn, only: %i[index show]
+
   # Displays list of resources.
   # @return [void]
   def index

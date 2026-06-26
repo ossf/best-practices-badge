@@ -27,7 +27,12 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
         '/en',
         '/en/projects',
         "/en/projects/#{@project.id}/passing",
-        '/en/feed'
+        '/en/feed',
+        '/en/cookies',
+        '/en/criteria_discussion',
+        '/en/criteria_stats',
+        '/en/criteria',
+        '/en/criteria/0'
       ].each do |path|
         get path
         assert_response :success
@@ -179,6 +184,127 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
         additional_rights_changes: "+ #{users(:test_user_mark).id}"
       }
     end
+  end
+
+  # ----------------------------------------------------------------------
+  # "Unchanging" pages (Section 10): home, cookies, criteria discussion/stats,
+  # and the criteria index/show pages. Their rendered output does not change
+  # until the next deploy. They reuse the exact machinery of the project-show
+  # caching above.
+  # ----------------------------------------------------------------------
+
+  # These pages are translation-driven, so exercise a non-English locale too.
+  # Each locale is a distinct cache object (the locale is in the URL, hence in
+  # Fastly's cache key), so caching one must never leak into another.
+  UNCHANGING_LOCALES = %w[en fr].freeze
+
+  # The locale-prefixed pages the CDN actually caches, for a given locale.
+  # "/<locale>/criteria/0" is the criteria show page; "/<locale>/criteria" is
+  # the index.
+  def unchanging_paths(locale)
+    %W[
+      /#{locale} /#{locale}/cookies /#{locale}/criteria_discussion
+      /#{locale}/criteria_stats /#{locale}/criteria /#{locale}/criteria/0
+    ]
+  end
+
+  # Each unchanging page is CDN-cacheable when anonymous: it advertises
+  # Surrogate-Control, the shared "unchanging" Surrogate-Key (so one purge
+  # refreshes all of them), no-store Cache-Control, and sets no session cookie.
+  test 'anonymous unchanging pages are CDN-cacheable' do
+    with_forgery_protection do
+      UNCHANGING_LOCALES.each do |locale|
+        unchanging_paths(locale).each do |path|
+          get path
+          assert_response :success
+          assert response.headers['Surrogate-Control'].present?,
+                 "#{path} should send Surrogate-Control for the CDN"
+          assert_equal 'no-store', response.headers['Cache-Control'], path
+          assert_equal ApplicationController::UNCHANGING_SURROGATE_KEY,
+                       response.headers['Surrogate-Key'], path
+          assert_nil cookies['_BadgeApp_session'], path
+        end
+      end
+    end
+  end
+
+  # CORE CORRECTNESS INVARIANT (Section 9.4): the CDN serves one cached object
+  # to every anonymous visitor, so two anonymous responses must be byte-
+  # identical. These pages are translation-driven with no mutable DB state, so
+  # an anonymous request has nothing left to vary. If a future change adds
+  # anonymous-only variance, this fails.
+  test 'anonymous unchanging pages are identical across requests' do
+    with_forgery_protection do
+      UNCHANGING_LOCALES.each do |locale|
+        unchanging_paths(locale).each do |path|
+          get path
+          assert_response :success
+          first_body = response.body
+          get path
+          assert_response :success
+          assert_equal first_body, response.body,
+                       "#{path} must be byte-identical so the CDN can share " \
+                       'one cached object among all guests'
+        end
+      end
+    end
+  end
+
+  # Logged-in users must bypass the cache: a private, non-cacheable response
+  # with no Surrogate-Control. (Locale-independent, so en is sufficient.)
+  test 'logged-in unchanging pages are not CDN-cacheable' do
+    log_in_as(users(:test_user)) # POSTs login; do this before enabling CSRF
+    with_forgery_protection do
+      unchanging_paths('en').each do |path|
+        get path
+        assert_response :success
+        assert_equal 'private, no-store', response.headers['Cache-Control'],
+                     path
+        assert_nil response.headers['Surrogate-Control'], path
+      end
+    end
+  end
+
+  # An unchanging page that renders a carried-over flash is per-user content
+  # and must not be CDN-cached. (No forgery protection here: test env disables
+  # it, and this exercises the flash guard, not CSRF.) Uses the same persistent
+  # flash source as the show-page flash test (password_resets#create).
+  test 'unchanging page rendering a carried-over flash is not cacheable' do
+    post '/en/password_resets',
+         params: { password_reset: { email: 'nobody@example.org' } }
+    assert response.redirect?
+    get '/en/cookies'
+    assert_response :success
+    assert_equal 'private, no-store', response.headers['Cache-Control'],
+                 'a page rendering a carried-over flash must not be cached'
+  end
+
+  # A locale-less request to any of these pages must 302-redirect (uncached) to
+  # its locale-prefixed form: the redirect target varies by Accept-Language, so
+  # it must never be cached (Section 4.1). Only the page it lands on is
+  # cacheable.
+  test 'locale-less unchanging paths redirect uncached' do
+    [
+      '/', '/cookies', '/criteria_discussion', '/criteria_stats',
+      '/criteria'
+    ].each do |path|
+      get path
+      assert_response :found # 302, not 301
+      assert_equal 'private, no-store', response.headers['Cache-Control'], path
+      assert_nil response.headers['Surrogate-Control'], path
+    end
+  end
+
+  # The Atom feed renders Project.recently_updated -- mutable data that changes
+  # while the application runs -- so it must NEVER be CDN-cached, unlike the
+  # static-after-boot pages above. It calls no cache_on_cdn, so it keeps the
+  # set_default_cache_control default. This guards against a future change that
+  # mistakenly adds it to the cacheable set.
+  test 'the feed is not CDN-cacheable' do
+    get '/en/feed'
+    assert_response :success
+    assert_equal 'private, no-store', response.headers['Cache-Control']
+    assert_nil response.headers['Surrogate-Control']
   end
 
   def with_forgery_protection
