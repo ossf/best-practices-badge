@@ -993,6 +993,18 @@ that exact key.
   end
   ```
 
+* **Known limitation — non-controller writes.** Purging is wired into the
+  controller `update`/`destroy` actions
+  ([`projects_controller.rb:694,765-770,814`](../app/controllers/projects_controller.rb))
+  and the bulk recalculation (`Project.update_all_badge_percentages`, which
+  ends with `FastlyRails.purge_all`) — **not** into a model callback. Any
+  *other* path that changes a displayed project field via `save` /
+  `update_column` without purging would leave the cached show page stale until
+  `Surrogate-Control`'s `max-age` expires (10 days). No such path is known
+  today, but the safety net is fragile. Moving the purge into an `after_commit`
+  model callback would make purging robust against *any* write path; the design,
+  with its pros and cons, is in **Section 11**.
+
 ### 9.4 Page variance between users
 
 Two distinct variance axes must both be safe.
@@ -1251,3 +1263,143 @@ new paths (e.g. `/en` and `/en/criteria`), confirming first-`MISS`-then-`HIT`,
 no `Set-Cookie`, and that a session-cookie request returns `private, no-store`.
 If anything misbehaves, set `BADGEAPP_CACHE_MISC_PAGES=false` to disable
 instantly.
+
+---
+
+## 11. Potential future work: purge the CDN from a model callback
+
+> **Status: not implemented; a proposal.** Today CDN purging is triggered
+> explicitly from the controller `update`/`destroy` actions and from the bulk
+> recalculation (`Project.update_all_badge_percentages`). This section records
+> the design for making purging a model-level `after_commit` callback — a more
+> robust "single source of truth" — together with its pros, cons, and the
+> pitfalls that make a *naive* callback worse than the status quo. It is written
+> down so the decision can be made deliberately later; it is **not** required
+> for the project-show caching to be correct as shipped.
+
+### 11.1 Motivation
+
+Purging is currently wired into specific code paths rather than the data model:
+
+* Controller `update`/`destroy` call `@project.purge_cdn_project` and schedule
+  a delayed `PurgeCdnProjectJob`
+  ([`projects_controller.rb:694,765-770,814`](../app/controllers/projects_controller.rb)).
+* The bulk recalculation issues one `FastlyRails.purge_all`
+  ([`project.rb`](../app/models/project.rb), `update_all_badge_percentages`).
+
+Both known write paths are covered, so the shipped feature is correct. The
+weakness is structural: nothing *guarantees* that a **future** code path which
+changes a displayed project field (name, badge percentages,
+`achieved_passing_at` / `lost_passing_at`, any criterion answer or
+justification) also purges. Such a path would leave the cached anonymous show
+page stale until `Surrogate-Control`'s `max-age` expires (10 days). Because the
+show page renders almost every project field, the set of "fields that matter" is
+effectively "the whole record", so the safe rule is *purge whenever the project
+changes*. An `after_commit` callback expresses exactly that, independent of who
+performed the save.
+
+### 11.2 Proposed implementation
+
+Add a single callback to [`app/models/project.rb`](../app/models/project.rb),
+reusing the existing `record_key` and `PurgeCdnProjectJob`:
+
+```ruby
+# Purge this project's cached CDN resources (badge, JSON, and the anonymous
+# show HTML -- all tagged with record_key) whenever the project changes by
+# ANY path, not just controller edits. Skipped during bulk recalculation,
+# which issues a single purge_all itself (update_all_badge_percentages).
+after_commit :enqueue_cdn_purge, on: %i[update destroy], unless: :skip_callbacks
+
+private
+
+def enqueue_cdn_purge
+  PurgeCdnProjectJob.perform_later(record_key)
+  # Delayed re-purge closes the rolling-deploy / read-repopulation race --
+  # the same recovery the controller schedules today.
+  PurgeCdnProjectJob
+    .set(wait: ApplicationController::BADGE_PURGE_DELAY.seconds)
+    .perform_later(record_key)
+end
+```
+
+The implementation details that make this correct (a naive callback is *worse*
+than today without them):
+
+1. **Gate on `skip_callbacks` — the critical pitfall.**
+   `update_all_badge_percentages` sets the `cattr_accessor :skip_callbacks`
+   true, saves 10,000+ projects, and then issues **one** `FastlyRails.purge_all`.
+   Without `unless: :skip_callbacks`, the callback would fire on every one of
+   those commits and enqueue 20,000+ individual purge jobs in place of that
+   single purge_all — a severe regression. The flag is still true during each
+   in-loop commit, so the guard suppresses it correctly.
+2. **Use `after_commit`, not `after_save`.** Purge only after the data is
+   durably committed; purging inside the transaction lets a concurrent anonymous
+   read re-populate the cache with pre-commit (or about-to-roll-back) content.
+3. **Enqueue the job; do not purge synchronously in the callback.** A
+   synchronous `FastlyRails.purge_by_key` adds a Fastly network round-trip (10 s
+   timeout) to *every* commit on *every* path. `PurgeCdnProjectJob` is async
+   with retry/backoff and is the better fit now that purging fires everywhere.
+   (This is a slight behavior change from the controller's current synchronous
+   pre/post-save purge.)
+4. **Scope to `update`/`destroy`.** A newly created project has no cached page
+   yet, so a create-time purge is wasted work. `record_key` still resolves in
+   `after_commit` on destroy (the id remains in memory).
+5. **Remove the now-redundant controller purges** (the calls at
+   `projects_controller.rb:694,765-770,814`), or every controller edit purges
+   twice. Collapsing three call sites into one definition is the main
+   maintainability payoff.
+6. **Purge on *any* update; do not build a "displayed-columns changed"
+   allowlist.** Because the show page renders nearly every field, an allowlist
+   is fragile and would risk re-introducing the exact staleness bug this change
+   exists to prevent. Reads vastly outnumber writes here, so an occasional purge
+   for a bookkeeping-only update is cheap insurance — correctness over hit rate.
+
+### 11.3 Pros and cons
+
+**Pros**
+
+* **Robust by construction.** Any current or future write path — console
+  fix-ups, rake tasks, background jobs, new controllers — purges automatically.
+  Closes the Section 9.3 "non-controller writes" limitation.
+* **DRY.** One definition replaces three controller call sites; the purge
+  policy lives next to the data it protects.
+* **Reuses existing machinery** (`record_key`, `PurgeCdnProjectJob`,
+  `BADGE_PURGE_DELAY`); no new infrastructure.
+
+**Cons**
+
+* **A new global invariant with a sharp edge.** The correctness of the
+  high-volume bulk path now depends on the `skip_callbacks` guard. If a future
+  refactor introduces another bulk write without that flag, it could trigger a
+  purge storm. (Mitigated by a test; see Section 11.4.)
+* **More purges overall.** Every update — including ones that touch only
+  non-displayed bookkeeping columns — now enqueues two purge jobs. Negligible
+  given the read/write ratio, but non-zero load on the job queue and Fastly API.
+* **Slight timing change.** Moving from synchronous to job-based purging adds
+  sub-second job-pickup latency before eviction; the delayed re-purge already
+  tolerates this.
+* **Not a full solution to cross-model staleness** (next subsection), so it can
+  create a false sense of "all staleness is handled".
+
+### 11.4 Residual limitation: cross-model changes
+
+The show page renders `@project.user_display_name`. A model callback on
+`Project` does **not** fire when the owning `User` renames themselves, so that
+project's cached page would still show the old name until the next project edit
+or `max-age` expiry. Fully closing this would need an `after_commit` on `User`
+that purges every `record_key` of that user's projects — a larger change with
+its own performance considerations (a prolific owner could trigger many
+purges). It is almost certainly not worth it for a display-name change, but it
+should be acknowledged rather than silently assumed handled.
+
+### 11.5 Tests
+
+* Assert a plain change enqueues the purge:
+  `assert_enqueued_with(job: PurgeCdnProjectJob, args: [project.record_key])`
+  after `project.update!(name: 'x')`.
+* Assert the **bulk path does not** enqueue per-project purges (guarding the
+  `skip_callbacks` pitfall in 11.2.1): run `update_all_badge_percentages` and
+  assert zero `PurgeCdnProjectJob` enqueues from the loop (the single
+  `purge_all` is a separate call).
+* Keep the Section 9.3 `Surrogate-Key` test, which ties the cached page to the
+  key the callback purges.

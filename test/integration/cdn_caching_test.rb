@@ -7,6 +7,8 @@ require 'test_helper'
 
 # rubocop:disable Metrics/ClassLength
 class CdnCachingTest < ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
+
   setup do
     @project = projects(:one)
   end
@@ -156,6 +158,27 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
     get "/en/projects/#{@project.id}/passing"
     assert_equal "projects/#{@project.id}",
                  response.headers['Surrogate-Key']
+  end
+
+  # A permissions-only edit changes the AdditionalRight table -- which the
+  # anonymous /permissions page renders via additional_rights_to_s -- without
+  # necessarily changing the projects row. The cached page must still be
+  # purged. projects#update schedules the delayed re-purge UNCONDITIONALLY on
+  # entry (not gated on @project.save), so even a rights-only change (and the
+  # save-fails-after-rights-changed path) enqueues a purge of the project's
+  # surrogate key. This guards against a future refactor that re-gates the
+  # purge on @project.saved_changes? and would silently serve stale rights.
+  test 'permissions-only update enqueues a CDN purge of the project key' do
+    log_in_as(@project.user)
+    assert_enqueued_with(
+      job: PurgeCdnProjectJob, args: [@project.record_key]
+    ) do
+      patch "/en/projects/#{@project.id}", params: {
+        # Leave the project row unchanged; exercise the rights-only path.
+        project: { name: @project.name },
+        additional_rights_changes: "+ #{users(:test_user_mark).id}"
+      }
+    end
   end
 
   def with_forgery_protection
