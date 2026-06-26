@@ -851,7 +851,9 @@ desc 'Backfill baseline_tiered_percentage for all projects'
 task backfill_baseline_tiered_percentage: :environment do
   puts 'Backfilling baseline_tiered_percentage for all projects...'
   count = 0
-  Project.find_each do |project|
+  # Small batch: projects are very wide (>400 cols), so the default 1000 can
+  # OOM a 512MB dyno. See Project::BULK_RECALC_BATCH_SIZE.
+  Project.find_each(batch_size: Project::BULK_RECALC_BATCH_SIZE) do |project|
     # rubocop:disable Rails/SkipsModelValidations
     # Intentionally skip validations for performance; we're computing from existing data
     project.update_column(:baseline_tiered_percentage,
@@ -1418,22 +1420,6 @@ end
 desc 'Update Database list of bad passwords from raw-bad-passwords-lowercase'
 task update_bad_password_db: :environment do
   BadPassword.force_load
-end
-
-desc 'Convert old papertrail version values from YAML to json'
-task convert_papertrail_yaml_to_json: :environment do
-  # We request access to the full environment; that makes this easier to do
-  # since that loads what we need.
-  PaperTrail::Version.where.not(old_yaml_object: nil).find_each do |version|
-    # Show progress
-    puts "#{version.item_id} #{version.event} #{version.created_at} " \
-         "#{version.whodunnit} " \
-         "#{version.old_yaml_object[0..200].tr("\n", ' ')}\n\n"
-    # rubocop:disable Rails/SkipsModelValidations
-    version.update_columns old_yaml_object: nil,
-                           object: YAML.unsafe_load(version.old_yaml_object)
-    # rubocop:enable Rails/SkipsModelValidations
-  end
 end
 
 desc 'Update SVG badge images from shields.io'

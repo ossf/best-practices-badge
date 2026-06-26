@@ -680,6 +680,15 @@ class Project < ApplicationRecord
   # Updates badge percentages for all project entries.
   # Use this after badging rules have changed. We precalculate and store
   # percentages in the database for speed, but rule changes don't automatically
+  # Batch size for the whole-table recalc loops below. A `projects` row is
+  # extremely wide (>400 columns, about half of them text: every criterion's status
+  # and justification across all levels), so each loaded Project object is
+  # large. find_each's default batch of 1000 keeps ~1000 of these giants alive
+  # at once, peaking over 1GB and OOM-killing a standard 512MB dyno (R14/R15,
+  # SIGKILL/exit 137) -- which silently aborts these migrations. A small batch
+  # bounds the working set so the recalc fits in a normal dyno.
+  BULK_RECALC_BATCH_SIZE = 100
+
   # update the precalculated values.
   # NOTE: No emails are sent to badge losers or gainers — email notification
   # only happens through the controller's normal save flow.
@@ -695,7 +704,7 @@ class Project < ApplicationRecord
       raise ArgumentError, "Invalid level: #{l}" unless l.in? Criteria.keys
     end
     Project.skip_callbacks = true
-    Project.find_each do |project|
+    Project.find_each(batch_size: BULK_RECALC_BATCH_SIZE) do |project|
       project.with_lock do
         # Snapshot current badge levels before recalculation so we can
         # record any losses for later notification.
@@ -758,7 +767,7 @@ class Project < ApplicationRecord
     # before_save callback cannot fire.  update_columns bypasses callbacks
     # unconditionally, making skip_callbacks both unnecessary and risky
     # (an exception would leave it true for the process lifetime).
-    Project.find_each do |project|
+    Project.find_each(batch_size: BULK_RECALC_BATCH_SIZE) do |project|
       apply_badge_warning_for_project(project, levels,
                                       effective_date: effective_date,
                                       report: report)
