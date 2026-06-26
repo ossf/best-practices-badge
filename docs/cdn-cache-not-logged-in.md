@@ -935,3 +935,213 @@ this time:
 If this redirect ever becomes a measured load source *and* its target
 stabilizes, it could be cached then (anonymous-only, via the same
 cookie-bypass rule, with the project surrogate key for purging).
+
+---
+
+## 10. Planned future work: CDN cache of static pages
+
+> **Status: not part of this branch.** Everything in this section is recorded
+> here so the work is *ready to start* later; it will be implemented on a
+> **separate branch** after the project-show caching above (Sections 1–9) has
+> shipped. It is written down now because the design depends on, and reuses,
+> the mechanisms introduced above — capturing it here keeps the rationale and
+> the decisions in one place so the future branch is a straightforward
+> execution rather than a re-derivation.
+
+### 10.1 Goal and rationale
+
+Extend anonymous CDN caching beyond `projects#show` to the site's other
+high-traffic anonymous pages whose rendered output **does not change after
+application startup for a given locale** — most importantly the home page
+(`/`). These pages are translation-driven and read no mutable database state,
+so for a given URL every anonymous visitor would receive byte-identical HTML.
+They are exactly the kind of heavy, repeatedly-spidered render that the CDN
+should absorb, and they are offloaded by the *same* machinery as the show
+page: the conditional CSRF meta tag (Change 1), `cache_on_cdn` /
+`omit_session_cookie`, and the Fastly cookie-bypass rule (Change 3).
+
+This section therefore introduces **no new caching primitives**. It adds (a) a
+small shared guard that marks such an action cacheable, (b) one shared
+surrogate key for all of them, and (c) a startup-triggered purge so a deploy's
+content changes become visible.
+
+### 10.2 Which pages qualify — a precise, testable criterion
+
+A page qualifies when **its entire body is wrapped in a single
+`cache_frozen [locale]` fragment (optionally keyed by URL-derived values) and
+it reads no mutable database state.** That wrapper is not incidental: if such a
+page depended on per-request or live data, the *existing* fragment cache would
+already serve stale content. So the wrapper is simultaneously the selection
+rule and the evidence the page is static-after-boot. The initial set:
+
+| Page | Controller#action | Fragment cache key today |
+| --- | --- | --- |
+| Home (`/`) | `StaticPagesController#home` | `cache_frozen locale` |
+| Cookies policy | `StaticPagesController#cookies` | `cache_frozen locale` |
+| Criteria discussion | `StaticPagesController#criteria_discussion` | `cache_frozen locale` |
+| Criteria stats | `StaticPagesController#criteria_stats` | `cache_frozen locale` |
+| Criteria index | `CriteriaController#index` | `cache_frozen [locale, @details, @rationale, @autofill]` |
+| Criteria show | `CriteriaController#show` | `cache_frozen [...]` (per level) |
+
+The criteria index/show pages vary by query parameters (`?details=…`, etc.).
+That is safe: Fastly's default cache key includes the full URL (path + query
+string), so each variant is a distinct cache object, and a single boot-time
+purge of the shared key (Section 10.4) evicts *all* variants at once.
+
+**Explicitly excluded:** `project_stats#index`
+(`cache ['project_stats', locale, @is_normal]`) reflects live project
+statistics — it is *not* static-after-boot and must not use this mechanism; if
+it is ever cached it needs time-based invalidation instead. `robots.txt`
+already sets its own `expires_in 6.hours, public` and is left as-is.
+
+**Pre-flight verification (per page, in the future branch):** confirm the
+action writes nothing into the session (no `store_location_and_locale`,
+`store_internal_referer`, or flash on the render path — see Section 3); the
+"sets no session cookie" test (Section 10.5) makes a regression here fail
+loudly. Also confirm `criteria_stats` renders only static criteria counts, not
+project data.
+
+### 10.3 Shared cacheability guard (reused mechanism)
+
+Add a single helper to
+[`app/controllers/application_controller.rb`](../app/controllers/application_controller.rb),
+alongside the existing cache constants, plus a kill switch mirroring
+`CACHE_SHOW_PROJECT`:
+
+```ruby
+# Kill switch: set BADGEAPP_CACHE_MISC_PAGES=false to instantly stop caching
+# these pages (falls back to private, no-store) without a redeploy.
+CACHE_MISC_PAGES = ENV['BADGEAPP_CACHE_MISC_PAGES'] != 'false'
+
+# One shared surrogate key for every "static after startup" page, so a single
+# purge refreshes all of them. Deliberately NOT per-page: these pages all
+# change together (only on deploy), and one key avoids a purge_all that would
+# needlessly evict the valuable project-show, JSON, and badge caches.
+MISC_SURROGATE_KEY = 'miscellaneous'
+
+# Cache a "static after startup" page on the CDN for anonymous users.
+# Mirrors the projects#show HTML guard (Section 5, Change 2): cache only when
+# the response carries no per-user state. cache_on_cdn also calls
+# omit_session_cookie, so no Set-Cookie is emitted.
+def cache_static_page_on_cdn
+  return unless CACHE_MISC_PAGES
+  return unless request.format.symbol == :html
+  return if logged_in? || !flash.empty?
+
+  set_surrogate_key_header MISC_SURROGATE_KEY
+  cache_on_cdn
+end
+```
+
+Attach it as a `before_action` on the qualifying actions. It runs *after* the
+inherited `set_default_cache_control` `before_action`, so it correctly
+overrides the `private, no-store` default for anonymous, flash-free HTML:
+
+```ruby
+# app/controllers/static_pages_controller.rb
+before_action :cache_static_page_on_cdn,
+              only: %i[home cookies criteria_discussion criteria_stats]
+
+# app/controllers/criteria_controller.rb
+before_action :cache_static_page_on_cdn, only: %i[index show]
+```
+
+Because these actions set no flash on their render path, checking the incoming
+flash in a `before_action` is sufficient. As with the show page, Change 1
+guarantees the anonymous response carries no CSRF meta tag, so nothing writes
+`_BadgeApp_session`.
+
+### 10.4 Invalidation: boot-time purge + delayed re-purge (decided)
+
+These pages change only when a new version is deployed (new code or
+translations). The chosen model is **purge the shared key when the web server
+boots, then re-purge after a short delay** — reusing the existing job rather
+than building a deploy-pipeline hook.
+
+*Decision and rationale.* A deploy-pipeline rake task was considered and
+rejected: this project has no per-deploy hook today, that integration lives
+partly outside the app (deploy-system-specific, harder to test/version with the
+code), and it would *still* need a delayed re-purge to beat the rolling-deploy
+race — i.e. it ends up being the boot approach plus extra infrastructure. The
+boot approach is entirely in-repo, reuses patterns already used 5+ times
+(`after_initialize`) and the existing purge job, and is fully unit-testable.
+Purging on non-deploy restarts (crash, autoscale) is harmless for these
+low-volume pages and merely tightens the staleness bound.
+
+`PurgeCdnProjectJob#perform(cdn_badge_key)`
+([`app/jobs/purge_cdn_project_job.rb`](../app/jobs/purge_cdn_project_job.rb))
+already purges an **arbitrary** key with `retry_on` backoff, so **reuse it**
+directly (optionally rename it `PurgeCdnKeyJob`, since it is no longer
+project-specific). Trigger from Puma's `on_booted` hook in
+[`config/puma.rb`](../config/puma.rb), which fires once, only in the server
+process — not in `rails console`, rake tasks, or tests, avoiding spurious
+purges:
+
+```ruby
+# config/puma.rb
+# After the web server boots a new release, refresh the shared cache of
+# "static after startup" pages so a deploy's content/translation changes
+# become visible.
+on_booted do
+  if ApplicationController::CACHE_MISC_PAGES
+    key = ApplicationController::MISC_SURROGATE_KEY
+    # Immediate purge. purge_by_key catches its own errors and returns
+    # false (never raises), so a Fastly hiccup cannot break boot.
+    FastlyRails.purge_by_key(key)
+    # Delayed re-purge closes the rolling-deploy race: an old, still-draining
+    # process can repopulate the cache just after the immediate purge. This
+    # is the same recovery path PurgeCdnProjectJob provides for project edits.
+    PurgeCdnProjectJob
+      .set(wait: ApplicationController::BADGE_PURGE_DELAY.seconds)
+      .perform_later(key)
+  end
+end
+```
+
+(If a Puma hook proves awkward, the fallback is an `after_initialize` block
+*guarded to the server process* so it does not fire for console/rake/test;
+the `on_booted` hook is preferred precisely because it needs no such guard.)
+In development and test, `FastlyRails.purge_by_key` is a no-op when Fastly
+credentials are absent, so this is inert outside production.
+
+### 10.5 Tests
+
+Reuse the `CdnCachingTest` harness (Section 6), including
+`with_forgery_protection`. Add the static paths to the existing
+"anonymous read-only GETs set no session cookie" list, and add, looping over
+the qualifying paths (`/en`, `/en/cookies`, `/en/criteria_discussion`,
+`/en/criteria_stats`, `/en/criteria`, `/en/criteria/0`):
+
+* **Cacheable when anonymous** — `Surrogate-Control` present, `Cache-Control:
+  no-store`, `Surrogate-Key` equals `miscellaneous`, and no `_BadgeApp_session`
+  cookie.
+* **Byte-identical across two requests** — the same core-invariant test as the
+  show page (Section 6), so any future anonymous-only variance trips it.
+* **Logged-in bypass** — `private, no-store` (no `Surrogate-Control`).
+* **Carried-over flash bypass** — same persistent-flash technique as Section 6
+  (`password_resets#create`), asserting `private, no-store` on the next page.
+* **Kill switch** — with `CACHE_MISC_PAGES` stubbed false, the response is
+  `private, no-store`.
+
+The reused `PurgeCdnProjectJob` already has coverage for purging an arbitrary
+key; add a job assertion only if it is renamed.
+
+### 10.6 Fastly configuration: nothing new
+
+No Fastly change is required beyond Change 3 (Section 5). Those pages are plain
+HTML paths — not assets, badges, or JSON — so the existing bypass rule already
+passes any request carrying `_BadgeApp_session` / remember-me cookies to the
+origin and serves anonymous requests from cache. Query-string variants of the
+criteria pages are handled by Fastly's default URL-based cache key.
+
+### 10.7 Dependencies and rollout
+
+This work **must land after** the Section 1–9 changes are in production,
+because it relies on Change 1 (no anonymous CSRF meta tag ⇒ no gratuitous
+session cookie) and Change 3 (the cookie-bypass rule). Suggested order on the
+future branch: add the guard + constants + `before_action`s and tests; add the
+`on_booted` purge; deploy; verify with the Section 8 `curl` recipe against the
+new paths (e.g. `/en` and `/en/criteria`), confirming first-`MISS`-then-`HIT`,
+no `Set-Cookie`, and that a session-cookie request returns `private, no-store`.
+If anything misbehaves, set `BADGEAPP_CACHE_MISC_PAGES=false` to disable
+instantly.
