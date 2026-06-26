@@ -8,13 +8,17 @@
     Only emit the CSRF token when it can actually be used. Emitting it calls
     form_authenticity_token, which writes session[:_csrf_token] and forces a
     _BadgeApp_session cookie -- defeating CDN caching for anonymous visitors.
-    Anonymous read-only pages need no token: form_with embeds its own hidden
-    authenticity_token (so login/signup/reset forms still work), and the only
-    JavaScript consumer of this meta tag (jQuery UJS "method:" links such as
-    logout and user-delete) appears only on logged-in pages. See
-    docs/cdn-cache-not-logged-in.md.
+    Most anonymous read-only pages need no token: form_with embeds its own
+    hidden authenticity_token (so login/signup/reset forms still work).
+    The exception is an anonymous page with a rails-ujs "method:" link, which
+    reads the token from this meta tag -- e.g. the login page's "Log in with
+    GitHub" button (a link_to ... method: 'post'). Such a page must opt in
+    explicitly with `content_for :needs_csrf_meta, 'true'` (the non-block form;
+    a block returning bare `true` outputs nothing, so content_for? stays
+    false), keeping the safe, cacheable default (no token) for other pages. See
+    docs/cdn-cache-not-logged-in.md (Change 1 and Section 9.1).
   -%>
-  <% if logged_in? %><%= csrf_meta_tags %><% end %>
+  <% if logged_in? || content_for?(:needs_csrf_meta) %><%= csrf_meta_tags %><% end %>
   <%= yield :special_head_values %>
 <%# The following are the same for a given locale, cache for speed -%>
 <% cache_frozen locale do # do not cache csrf_meta_tags -%>

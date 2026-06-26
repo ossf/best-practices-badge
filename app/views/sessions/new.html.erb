@@ -1,3 +1,13 @@
+<%# The "Log in with GitHub" button below is a rails-ujs link_to ... method:
+    'post'; rails-ujs reads the CSRF token from the <meta name="csrf-token">
+    tag, which the layout omits for anonymous users (CDN caching, Change 1).
+    Opt back in so the token is present and the POST to /auth/github passes
+    CSRF. This page is never CDN-cached, so emitting the tag here is harmless.
+    See docs/cdn-cache-not-logged-in.md Section 9.1. %>
+<%# Use the non-block form: a content_for block captures the block's *output*,
+    and a block returning a bare `true` outputs nothing, so content_for? would
+    stay false. A non-empty string value makes content_for? true. %>
+<% content_for :needs_csrf_meta, 'true' %>
 <% content_for :special_head_values do %>
   <%# same-origin (must NOT be no-referrer):
       Cross-origin requests (e.g. the OmniAuth redirect to github.com) carry no

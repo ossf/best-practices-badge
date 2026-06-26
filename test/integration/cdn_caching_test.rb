@@ -5,6 +5,7 @@
 
 require 'test_helper'
 
+# rubocop:disable Metrics/ClassLength
 class CdnCachingTest < ActionDispatch::IntegrationTest
   setup do
     @project = projects(:one)
@@ -102,6 +103,21 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # The login page initiates GitHub OAuth with a rails-ujs "method: post"
+  # link, which reads the CSRF token from the meta tag. Change 1 removes that
+  # tag for anonymous users, so the login page must opt back in via
+  # content_for(:needs_csrf_meta). Without the tag the POST to /auth/github
+  # fails CSRF (ActionController::InvalidAuthenticityToken) and login 404s.
+  # This must be tested with forgery protection ON: it is off by default in
+  # the test env, so the bug is invisible otherwise (see Section 6 caveat).
+  test 'anonymous login page emits the CSRF meta tag for GitHub OAuth' do
+    with_forgery_protection do
+      get login_path(locale: :en)
+      assert_response :success
+      assert_select 'meta[name="csrf-token"]', count: 1
+    end
+  end
+
   # An obsolete-section 301 from inside show must NOT be cached: the
   # "return if performed?" guard keeps cache_on_cdn from attaching to it.
   test 'obsolete-section redirect is not CDN-cacheable' do
@@ -150,3 +166,4 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
     ActionController::Base.allow_forgery_protection = original
   end
 end
+# rubocop:enable Metrics/ClassLength
