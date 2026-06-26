@@ -15,16 +15,12 @@ require 'simplecov'
 # *MUST* state VERY EARLY that we're in the test environment.
 ENV['RAILS_ENV'] ||= 'test'
 
-# Configure SimpleCov formatting before we start it
-if ENV['CI']
-  require 'codecov'
-  SimpleCov.formatters = [
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Codecov
-  ]
-else
-  SimpleCov.formatters = SimpleCov::Formatter::HTMLFormatter
-end
+# Configure SimpleCov formatting before we start it.
+# The HTML report is for humans; the machine-readable JSON report uploaded to
+# Codecov is written separately by the test:coverage_gaps rake task, since CI
+# runs with DEFER_COVERAGE set (which swaps in SimpleFormatter below) and the
+# merged result is only complete once all parallel + system runs finish.
+SimpleCov.formatters = SimpleCov::Formatter::HTMLFormatter
 
 # Start SimpleCov to track coverage
 # NOTE: If you change SimpleCov configuration (used locally), you may also
