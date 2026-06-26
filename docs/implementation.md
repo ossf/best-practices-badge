@@ -482,12 +482,12 @@ See [security.md](./security.md) for more information.
 
 Users indicate the locale via the URL.
 The recommended form is at the beginning of that path, e.g.,
-<https://bestpractices.coreinfrastructure.org/fr/projects/>
+<https://www.bestpractices.dev/fr/projects/>
 selects the locale "fr" (French) when displaying "/projects".
 This even works at the top page, e.g.,
-<https://bestpractices.coreinfrastructure.org/fr/>.
+<https://www.bestpractices.dev/fr/>.
 It also supports the locale as a query parameter, e.g.,
-<https://bestpractices.coreinfrastructure.org/projects?locale=fr>
+<https://www.bestpractices.dev/projects?locale=fr>
 
 ### Fixing locale data
 
@@ -1407,7 +1407,7 @@ these keys from anywhere else:
 ## Project stats omission on 2017-02-28
 
 The production site maintains a number of daily statistics and can
-[display the statistics graphically](https://bestpractices.coreinfrastructure.org/project_stats), but it is
+[display the statistics graphically](https://www.bestpractices.dev/project_stats), but it is
 missing a report for 2017-02-28.
 This was due to a multi-hour downtime in
 Amazon’s S3 web-based storage service, part of
@@ -1595,8 +1595,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 

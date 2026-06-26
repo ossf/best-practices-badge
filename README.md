@@ -5,7 +5,7 @@
 <table border="0">
   <tr>
     <td align="left" border="0" valign="middle">
-      <a href="https://bestpractices.coreinfrastructure.org/projects/1"><img src="https://bestpractices.coreinfrastructure.org/projects/1/badge" alt="OpenSSF Best Practices" align="middle"></a>&nbsp;
+      <a href="https://www.bestpractices.dev/projects/1"><img src="https://www.bestpractices.dev/projects/1/badge" alt="OpenSSF Best Practices" align="middle"></a>&nbsp;
       <a href="https://www.bestpractices.dev/projects/1"><img src="https://www.bestpractices.dev/projects/1/baseline" alt="OpenSSF Baseline" align="middle"></a>&nbsp;
       <a href="https://app.circleci.com/pipelines/github/ossf/best-practices-badge"><img src="https://circleci.com/gh/ossf/best-practices-badge.svg?&style=shield" alt="CircleCI Build Status" align="middle"></a>&nbsp;
       <a href="https://codecov.io/gh/ossf/best-practices-badge"><img src="https://codecov.io/gh/ossf/best-practices-badge/branch/main/graph/badge.svg" alt="codecov" align="middle"></a>&nbsp;
@@ -34,7 +34,7 @@ We support both our original "metal" badge criteria and the
 OpenSSF Baseline criteria.
 
 See the
-*[OpenSSF Best Practices badge website](https://bestpractices.coreinfrastructure.org/)* if you want to try to actually get a badge.
+*[OpenSSF Best Practices badge website](https://www.bestpractices.dev/)* if you want to try to actually get a badge.
 
 This is the development site for the criteria and badge application
 software that runs the website.
@@ -55,8 +55,8 @@ the CII Best Practices badge.
 
 Interesting pages include:
 
-* Badging **[Criteria for the passing level](https://bestpractices.coreinfrastructure.org/criteria/0)**
-* **[Criteria for all badging levels](https://bestpractices.coreinfrastructure.org/criteria)**
+* Badging **[Criteria for the passing level](https://www.bestpractices.dev/criteria/0)**
+* **[Criteria for all badging levels](https://www.bestpractices.dev/criteria)**
 * Information on how to **[contribute](./CONTRIBUTING.md)**
 * Information on **[our own security, including how to report vulnerabilities in our badge application](./SECURITY.md)**
 * [Up-for-grabs](https://github.com/ossf/best-practices-badge/labels/up-for-grabs)
