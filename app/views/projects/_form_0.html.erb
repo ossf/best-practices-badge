@@ -22,7 +22,11 @@
   <div class="col-md-12">
  <div>
   <%# Don't provide criteria_level, as '0' is the default. %>
-  <%= bootstrap_form_for project, url: edit_project_section_path(project, criteria_level) do |f| %>
+  <%# In view_only mode the form is for display only and is never submitted,
+      so suppress the per-request authenticity_token. This keeps anonymous
+      show pages byte-identical (and free of a useless session-CSRF write) so
+      the CDN can share one cached object. See docs/cdn-cache-not-logged-in.md. %>
+  <%= bootstrap_form_for project, url: edit_project_section_path(project, criteria_level), authenticity_token: (false if view_only) do |f| %>
     <%= render 'shared/error_messages', object: f.object %>
     <%= f.hidden_field :lock_version %>
 
