@@ -1092,9 +1092,17 @@ page depended on per-request or live data, the *existing* fragment cache would
 already serve stale content. So the wrapper is simultaneously the selection
 rule and the evidence the page is static-after-boot. The initial set:
 
+The "Page" column names each page by its canonical, **locale-prefixed** URL
+(e.g. `/en`, `/en/criteria`) — that is the object the CDN caches. The
+locale-less form (bare `/`, `/cookies`, `/criteria`, …) is **never** the cached
+object: it 302-redirects to the locale-prefixed URL via `redir_missing_locale`
+(an early parent `before_action` that calls `disable_cache` and halts the chain
+before `cache_static_page_on_cdn` can run — see Section 4.1 and the
+"locale-less static paths redirect uncached" test in Section 10.5).
+
 | Page | Controller#action | Fragment cache key today |
 | --- | --- | --- |
-| Home (`/`) | `StaticPagesController#home` | `cache_frozen locale` |
+| Home (`/en`) | `StaticPagesController#home` | `cache_frozen locale` |
 | Cookies policy | `StaticPagesController#cookies` | `cache_frozen locale` |
 | Criteria discussion | `StaticPagesController#criteria_discussion` | `cache_frozen locale` |
 | Criteria stats | `StaticPagesController#criteria_stats` | `cache_frozen locale` |
@@ -1169,6 +1177,20 @@ flash in a `before_action` is sufficient. As with the show page, Change 1
 guarantees the anonymous response carries no CSRF meta tag, so nothing writes
 `_BadgeApp_session`.
 
+> **Caveat — these actions must never gain an *internal* redirect.** Unlike
+> `projects#show` (which guards an internal obsolete-section 301 with
+> `return if performed?`, Section 5, Change 2), `cache_static_page_on_cdn` is a
+> `before_action` that commits the `Surrogate-Control` / `Cache-Control`
+> headers *before* the action body runs. The qualifying actions are safe today
+> because none of them redirects internally (`home`, `cookies`,
+> `criteria_discussion`, `criteria_stats` have empty bodies;
+> `CriteriaController#index`/`#show` only call `set_params` /
+> `set_criteria_level`). If a future change makes one of these actions
+> redirect (other than the locale redirect, which is handled earlier in the
+> parent `before_action` chain), it would wrongly inherit cache headers — at
+> that point move the guard in-action with `return if performed?`, as `show`
+> does.
+
 ### 10.4 Invalidation: boot-time purge + delayed re-purge (decided)
 
 These pages change only when a new version is deployed (new code or
@@ -1240,6 +1262,27 @@ the qualifying paths (`/en`, `/en/cookies`, `/en/criteria_discussion`,
   (`password_resets#create`), asserting `private, no-store` on the next page.
 * **Kill switch** — with `CACHE_MISC_PAGES` stubbed false, the response is
   `private, no-store`.
+* **Locale-less paths redirect uncached** — the browser-dependent locale
+  redirect (`redir_missing_locale`) must never be cached, so requesting each
+  page *without* a locale prefix must 302 to its locale-prefixed form with
+  `private, no-store` and **no** `Surrogate-Control`. This is the precise
+  invariant that keeps a browser's `Accept-Language`-chosen target from being
+  served to everyone (Section 4.1):
+
+  ```ruby
+  # The locale redirect varies by Accept-Language and must never be cached;
+  # only the locale-prefixed page it lands on is cacheable.
+  test 'locale-less static paths redirect uncached' do
+    ['/', '/cookies', '/criteria_discussion', '/criteria_stats',
+     '/criteria'].each do |path|
+      get path
+      assert_response :found # 302, not 301
+      assert_equal 'private, no-store',
+                   response.headers['Cache-Control'], path
+      assert_nil response.headers['Surrogate-Control'], path
+    end
+  end
+  ```
 
 The reused `PurgeCdnProjectJob` already has coverage for purging an arbitrary
 key; add a job assertion only if it is renamed.
