@@ -1056,7 +1056,7 @@ cookie-bypass rule, with the project surrogate key for purging).
 
 ---
 
-## 10. Planned future work: CDN cache of static pages
+## 10. Planned future work: CDN cache of unchanging pages
 
 > **Status: not part of this branch.** Everything in this section is recorded
 > here so the work is *ready to start* later; it will be implemented on a
@@ -1090,11 +1090,20 @@ A page qualifies when **its entire body is wrapped in a single
 it reads no mutable database state.** That wrapper is not incidental: if such a
 page depended on per-request or live data, the *existing* fragment cache would
 already serve stale content. So the wrapper is simultaneously the selection
-rule and the evidence the page is static-after-boot. The initial set:
+rule and the evidence the page is unchanging (static after boot; it does not
+change until the next deploy). The initial set:
+
+The "Page" column names each page by its canonical, **locale-prefixed** URL
+(e.g. `/en`, `/en/criteria`) — that is the object the CDN caches. The
+locale-less form (bare `/`, `/cookies`, `/criteria`, …) is **never** the cached
+object: it 302-redirects to the locale-prefixed URL via `redir_missing_locale`
+(an early parent `before_action` that calls `disable_cache` and halts the chain
+before `cache_unchanging_page_on_cdn` can run — see Section 4.1 and the
+"locale-less unchanging paths redirect uncached" test in Section 10.5).
 
 | Page | Controller#action | Fragment cache key today |
 | --- | --- | --- |
-| Home (`/`) | `StaticPagesController#home` | `cache_frozen locale` |
+| Home (`/en`) | `StaticPagesController#home` | `cache_frozen locale` |
 | Cookies policy | `StaticPagesController#cookies` | `cache_frozen locale` |
 | Criteria discussion | `StaticPagesController#criteria_discussion` | `cache_frozen locale` |
 | Criteria stats | `StaticPagesController#criteria_stats` | `cache_frozen locale` |
@@ -1127,26 +1136,27 @@ alongside the existing cache constants, plus a kill switch mirroring
 `CACHE_SHOW_PROJECT`:
 
 ```ruby
-# Kill switch: set BADGEAPP_CACHE_MISC_PAGES=false to instantly stop caching
+# Kill switch: set BADGEAPP_CACHE_UNCHANGING=false to instantly stop caching
 # these pages (falls back to private, no-store) without a redeploy.
-CACHE_MISC_PAGES = ENV['BADGEAPP_CACHE_MISC_PAGES'] != 'false'
+CACHE_UNCHANGING_PAGES = ENV['BADGEAPP_CACHE_UNCHANGING'] != 'false'
 
-# One shared surrogate key for every "static after startup" page, so a single
-# purge refreshes all of them. Deliberately NOT per-page: these pages all
-# change together (only on deploy), and one key avoids a purge_all that would
+# One shared surrogate key for every "unchanging" page, so a single purge
+# refreshes all of them. Deliberately NOT per-page: these pages all change
+# together (only on deploy), and one key avoids a purge_all that would
 # needlessly evict the valuable project-show, JSON, and badge caches.
-MISC_SURROGATE_KEY = 'miscellaneous'
+UNCHANGING_SURROGATE_KEY = 'unchanging'
 
-# Cache a "static after startup" page on the CDN for anonymous users.
+# Cache an "unchanging" page on the CDN for anonymous users -- a page whose
+# rendered output does not change until the next deploy.
 # Mirrors the projects#show HTML guard (Section 5, Change 2): cache only when
 # the response carries no per-user state. cache_on_cdn also calls
 # omit_session_cookie, so no Set-Cookie is emitted.
-def cache_static_page_on_cdn
-  return unless CACHE_MISC_PAGES
+def cache_unchanging_page_on_cdn
+  return unless CACHE_UNCHANGING_PAGES
   return unless request.format.symbol == :html
   return if logged_in? || !flash.empty?
 
-  set_surrogate_key_header MISC_SURROGATE_KEY
+  set_surrogate_key_header UNCHANGING_SURROGATE_KEY
   cache_on_cdn
 end
 ```
@@ -1157,17 +1167,31 @@ overrides the `private, no-store` default for anonymous, flash-free HTML:
 
 ```ruby
 # app/controllers/static_pages_controller.rb
-before_action :cache_static_page_on_cdn,
+before_action :cache_unchanging_page_on_cdn,
               only: %i[home cookies criteria_discussion criteria_stats]
 
 # app/controllers/criteria_controller.rb
-before_action :cache_static_page_on_cdn, only: %i[index show]
+before_action :cache_unchanging_page_on_cdn, only: %i[index show]
 ```
 
 Because these actions set no flash on their render path, checking the incoming
 flash in a `before_action` is sufficient. As with the show page, Change 1
 guarantees the anonymous response carries no CSRF meta tag, so nothing writes
 `_BadgeApp_session`.
+
+> **Caveat — these actions must never gain an *internal* redirect.** Unlike
+> `projects#show` (which guards an internal obsolete-section 301 with
+> `return if performed?`, Section 5, Change 2), `cache_unchanging_page_on_cdn` is a
+> `before_action` that commits the `Surrogate-Control` / `Cache-Control`
+> headers *before* the action body runs. The qualifying actions are safe today
+> because none of them redirects internally (`home`, `cookies`,
+> `criteria_discussion`, `criteria_stats` have empty bodies;
+> `CriteriaController#index`/`#show` only call `set_params` /
+> `set_criteria_level`). If a future change makes one of these actions
+> redirect (other than the locale redirect, which is handled earlier in the
+> parent `before_action` chain), it would wrongly inherit cache headers — at
+> that point move the guard in-action with `return if performed?`, as `show`
+> does.
 
 ### 10.4 Invalidation: boot-time purge + delayed re-purge (decided)
 
@@ -1190,19 +1214,20 @@ low-volume pages and merely tightens the staleness bound.
 ([`app/jobs/purge_cdn_project_job.rb`](../app/jobs/purge_cdn_project_job.rb))
 already purges an **arbitrary** key with `retry_on` backoff, so **reuse it**
 directly (optionally rename it `PurgeCdnKeyJob`, since it is no longer
-project-specific). Trigger from Puma's `on_booted` hook in
+project-specific). Trigger from Puma's `after_booted` hook in
 [`config/puma.rb`](../config/puma.rb), which fires once, only in the server
 process — not in `rails console`, rake tasks, or tests, avoiding spurious
-purges:
+purges. (Puma 7 deprecated the older `on_booted` name in favor of
+`after_booted`.)
 
 ```ruby
 # config/puma.rb
 # After the web server boots a new release, refresh the shared cache of
-# "static after startup" pages so a deploy's content/translation changes
+# "unchanging" pages so a deploy's content/translation changes
 # become visible.
-on_booted do
-  if ApplicationController::CACHE_MISC_PAGES
-    key = ApplicationController::MISC_SURROGATE_KEY
+after_booted do
+  if ApplicationController::CACHE_UNCHANGING_PAGES
+    key = ApplicationController::UNCHANGING_SURROGATE_KEY
     # Immediate purge. purge_by_key catches its own errors and returns
     # false (never raises), so a Fastly hiccup cannot break boot.
     FastlyRails.purge_by_key(key)
@@ -1218,28 +1243,50 @@ end
 
 (If a Puma hook proves awkward, the fallback is an `after_initialize` block
 *guarded to the server process* so it does not fire for console/rake/test;
-the `on_booted` hook is preferred precisely because it needs no such guard.)
+the `after_booted` hook is preferred precisely because it needs no such guard.)
 In development and test, `FastlyRails.purge_by_key` is a no-op when Fastly
 credentials are absent, so this is inert outside production.
 
 ### 10.5 Tests
 
 Reuse the `CdnCachingTest` harness (Section 6), including
-`with_forgery_protection`. Add the static paths to the existing
+`with_forgery_protection`. Add the unchanging paths to the existing
 "anonymous read-only GETs set no session cookie" list, and add, looping over
 the qualifying paths (`/en`, `/en/cookies`, `/en/criteria_discussion`,
-`/en/criteria_stats`, `/en/criteria`, `/en/criteria/0`):
+`/en/criteria_stats`, `/en/criteria`, `/en/criteria/0`) across more than one
+locale:
 
 * **Cacheable when anonymous** — `Surrogate-Control` present, `Cache-Control:
-  no-store`, `Surrogate-Key` equals `miscellaneous`, and no `_BadgeApp_session`
+  no-store`, `Surrogate-Key` equals `unchanging`, and no `_BadgeApp_session`
   cookie.
 * **Byte-identical across two requests** — the same core-invariant test as the
   show page (Section 6), so any future anonymous-only variance trips it.
 * **Logged-in bypass** — `private, no-store` (no `Surrogate-Control`).
 * **Carried-over flash bypass** — same persistent-flash technique as Section 6
   (`password_resets#create`), asserting `private, no-store` on the next page.
-* **Kill switch** — with `CACHE_MISC_PAGES` stubbed false, the response is
+* **Kill switch** — with `CACHE_UNCHANGING_PAGES` stubbed false, the response is
   `private, no-store`.
+* **Locale-less paths redirect uncached** — the browser-dependent locale
+  redirect (`redir_missing_locale`) must never be cached, so requesting each
+  page *without* a locale prefix must 302 to its locale-prefixed form with
+  `private, no-store` and **no** `Surrogate-Control`. This is the precise
+  invariant that keeps a browser's `Accept-Language`-chosen target from being
+  served to everyone (Section 4.1):
+
+  ```ruby
+  # The locale redirect varies by Accept-Language and must never be cached;
+  # only the locale-prefixed page it lands on is cacheable.
+  test 'locale-less unchanging paths redirect uncached' do
+    ['/', '/cookies', '/criteria_discussion', '/criteria_stats',
+     '/criteria'].each do |path|
+      get path
+      assert_response :found # 302, not 301
+      assert_equal 'private, no-store',
+                   response.headers['Cache-Control'], path
+      assert_nil response.headers['Surrogate-Control'], path
+    end
+  end
+  ```
 
 The reused `PurgeCdnProjectJob` already has coverage for purging an arbitrary
 key; add a job assertion only if it is renamed.
@@ -1258,10 +1305,10 @@ This work **must land after** the Section 1–9 changes are in production,
 because it relies on Change 1 (no anonymous CSRF meta tag ⇒ no gratuitous
 session cookie) and Change 3 (the cookie-bypass rule). Suggested order on the
 future branch: add the guard + constants + `before_action`s and tests; add the
-`on_booted` purge; deploy; verify with the Section 8 `curl` recipe against the
+`after_booted` purge; deploy; verify with the Section 8 `curl` recipe against the
 new paths (e.g. `/en` and `/en/criteria`), confirming first-`MISS`-then-`HIT`,
 no `Set-Cookie`, and that a session-cookie request returns `private, no-store`.
-If anything misbehaves, set `BADGEAPP_CACHE_MISC_PAGES=false` to disable
+If anything misbehaves, set `BADGEAPP_CACHE_UNCHANGING=false` to disable
 instantly.
 
 ---

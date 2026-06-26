@@ -40,7 +40,12 @@ driver = ENV['DRIVER'].try(:to_sym)
 Capybara.javascript_driver = driver.present? ? driver : :headless_chrome
 Capybara.default_driver = driver.present? ? driver : :headless_chrome
 
-Capybara.default_max_wait_time = 5
+# Headroom for the polling/wait helpers (ensure_choice, wait_for_jquery,
+# wait_for_url) whose Timeout budgets derive from this. Under load (a full
+# system-test batch contending for CPU and the browser), 5s was too tight and
+# they would all time out together; 10s costs nothing on the happy path since
+# waits return as soon as their condition is met.
+Capybara.default_max_wait_time = 10
 Capybara.server_port = 31_337
 
 # By default newer versions of Capybara have the annoying habit of
@@ -64,5 +69,10 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   driver = ENV['DRIVER'].try(:to_sym)
   driven_by :selenium, using: driver || :headless_chrome, screen_size: [1400, 1400] do |option|
     option.add_argument('no-sandbox')
+    # Use /tmp instead of /dev/shm for Chrome's shared memory. /dev/shm is
+    # often capped at 64MB in containers/CI; when it fills under load the
+    # renderer process crashes, killing the browser session and cascading into
+    # spurious errors in later tests. This flag is the standard fix.
+    option.add_argument('disable-dev-shm-usage')
   end
 end
