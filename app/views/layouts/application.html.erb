@@ -4,7 +4,17 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <%= csrf_meta_tags %>
+  <%#
+    Only emit the CSRF token when it can actually be used. Emitting it calls
+    form_authenticity_token, which writes session[:_csrf_token] and forces a
+    _BadgeApp_session cookie -- defeating CDN caching for anonymous visitors.
+    Anonymous read-only pages need no token: form_with embeds its own hidden
+    authenticity_token (so login/signup/reset forms still work), and the only
+    JavaScript consumer of this meta tag (jQuery UJS "method:" links such as
+    logout and user-delete) appears only on logged-in pages. See
+    docs/cdn-cache-not-logged-in.md.
+  -%>
+  <% if logged_in? %><%= csrf_meta_tags %><% end %>
   <%= yield :special_head_values %>
 <%# The following are the same for a given locale, cache for speed -%>
 <% cache_frozen locale do # do not cache csrf_meta_tags -%>

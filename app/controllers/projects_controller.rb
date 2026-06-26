@@ -414,6 +414,11 @@ class ProjectsController < ApplicationController
   def show
     # Handle obsolete section names (e.g., "0" -> "passing", "bronze" -> "passing")
     redirect_obsolete_section_names
+    # A redirect (e.g. obsolete section 301) already committed the response;
+    # do not attach page-caching headers, reload section data, or render
+    # again. Its cache headers were set by set_default_cache_control
+    # (private, no-store).
+    return if performed?
 
     # Use normalized section for rendering (set by before_action :set_criteria_level)
     @section = @criteria_level
@@ -425,8 +430,7 @@ class ProjectsController < ApplicationController
     # Load section-specific data for rendering
     load_section_data_for_show(@section)
 
-    # Enable CDN caching for markdown format (no user-specific content)
-    cache_on_cdn if request.format.symbol == :md
+    cache_on_cdn_if_safe
 
     # Respond to different formats
     respond_to do |format|
@@ -1419,6 +1423,21 @@ class ProjectsController < ApplicationController
     # Permissions section: no criteria needed, just render the view
     # Criteria sections: @project already loaded with optimized fields
     # This method is a placeholder for future section-specific loading
+  end
+
+  # Enable CDN caching of the response when it carries no per-user state.
+  #   - :md is always safe (no layout/header, no forms, no CSRF token).
+  #   - :html is safe only when the user is not logged in AND there is no
+  #     flash, and only when the CACHE_SHOW_PROJECT kill switch is on.
+  # cache_on_cdn also calls omit_session_cookie, so no Set-Cookie is sent.
+  # See docs/cdn-cache-not-logged-in.md.
+  # @return [void]
+  def cache_on_cdn_if_safe
+    cacheable =
+      request.format.symbol == :md ||
+      (CACHE_SHOW_PROJECT && request.format.symbol == :html &&
+       !logged_in? && flash.empty?)
+    cache_on_cdn if cacheable
   end
 
   # Sets and validates criteria level/section from parameters.

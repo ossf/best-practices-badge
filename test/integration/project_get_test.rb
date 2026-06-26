@@ -32,8 +32,11 @@ class ProjectGetTest < ActionDispatch::IntegrationTest
     # Check some normal headers
     assert_equal('text/html; charset=utf-8', @response.headers['Content-Type'])
     assert_equal(
-      # Note that this test *is* seeing the rack middleware result!
-      'private, no-store',
+      # This request is anonymous, so the anonymous project show page is now
+      # CDN-cacheable (see docs/cdn-cache-not-logged-in.md): cache_on_cdn sets
+      # Cache-Control to 'no-store' (plus a private Surrogate-Control for the
+      # CDN). Note that this test *is* seeing the rack middleware result!
+      'no-store',
       @response.headers['Cache-Control']
     )
 
