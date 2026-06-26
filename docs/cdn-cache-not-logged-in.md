@@ -354,17 +354,49 @@ with a guarded version:
     Only emit the CSRF token when it can actually be used. Emitting it calls
     form_authenticity_token, which writes session[:_csrf_token] and forces a
     _BadgeApp_session cookie -- defeating CDN caching for anonymous visitors.
-    Anonymous read-only pages need no token: form_with embeds its own hidden
-    authenticity_token (so login/signup/reset forms still work), and the only
-    JavaScript consumer of this meta tag (jQuery UJS "method:" links such as
-    logout and user-delete) appears only on logged-in pages. See
-    docs/cdn-cache-not-logged-in.md.
+    Most anonymous read-only pages need no token: form_with embeds its own
+    hidden authenticity_token (so login/signup/reset forms still work).
+    The exception is an anonymous page with a rails-ujs "method:" link, which
+    reads the token from this meta tag -- e.g. the login page's "Log in with
+    GitHub" button (a link_to ... method: 'post'). Such a page must opt in
+    explicitly with `content_for :needs_csrf_meta, 'true'` (the non-block form;
+    a block returning bare `true` outputs nothing, so content_for? stays
+    false), keeping the safe, cacheable default (no token) for other pages. See
+    docs/cdn-cache-not-logged-in.md (Change 1 and Section 9.1).
   -%>
-  <% if logged_in? %><%= csrf_meta_tags %><% end %>
+  <% if logged_in? || content_for?(:needs_csrf_meta) %><%= csrf_meta_tags %><% end %>
 ```
 
 `logged_in?` is the existing `SessionsHelper` predicate
 (`@session_user_id.present?`) and is available in views.
+
+> **The login page is a real anonymous UJS consumer — do not skip the opt-in.**
+> An earlier draft of this plan claimed UJS `method:` links "appear only on
+> logged-in pages." That is **wrong**: `app/views/sessions/new.html.erb`
+> renders the "Log in with GitHub" button as `link_to … method: 'post'`, and
+> rails-ujs reads the token from this meta tag. Without the opt-in, the
+> anonymous login page has no meta tag, the generated POST to `/auth/github`
+> carries no token, and OmniAuth rejects it
+> (`ActionController::InvalidAuthenticityToken` → `/auth/failure` → 404). The
+> login page therefore sets `content_for :needs_csrf_meta, 'true'` (see the
+> per-page opt-in note below). The header's "Login"/"Sign up" entries are
+> ordinary GET `link_to`s, so they do **not** trigger this and every other
+> anonymous page stays cookie-free and cacheable. A regression test
+> (`test/integration/cdn_caching_test.rb`, "anonymous login page emits the CSRF
+> meta tag for GitHub OAuth") locks this in **with forgery protection enabled**
+> — without that flag the bug is invisible in the test environment (Section 6).
+
+**Per-page opt-in — use the non-block `content_for`.** On a page that needs the
+token, set the flag at the top of its template:
+
+```erb
+<% content_for :needs_csrf_meta, 'true' %>
+```
+
+Use the **non-block** form with a non-empty string value. The block form
+`content_for(:needs_csrf_meta) { true }` does **not** work: `content_for`
+captures the block's rendered *output*, and a block returning a bare `true`
+outputs nothing, so `content_for?` stays false and the tag is never emitted.
 
 ### Change 2: Cache anonymous `projects#show` HTML
 
@@ -464,6 +496,14 @@ cookies.
 
 #### Option A: Fastly Web UI Request Setting (recommended)
 
+This is the configuration actually used in production. Because it lives in the
+Fastly service (not in this repository), it is **not** under the project's
+normal version control — so the exact steps are recorded here. It is a
+load-bearing security control (Section 9.4): without it, a logged-in or
+remember-me user can be served a cached anonymous page.
+
+The setting in summary:
+
 * **Name:** `Bypass cache for personalized requests`
 * **Action:** `Pass`
 * **Condition** — Apply if:
@@ -471,6 +511,55 @@ cookies.
   ```text
   req.http.Cookie ~ "(_BadgeApp_session|remember_token|user_id)=" && req.url.path !~ "\.(css|js|png|gif|jpg|jpeg|svg|json|csv|txt|ico|woff2?|map)$" && req.url.path !~ "/(badge|baseline)$"
   ```
+
+**Step-by-step in the Fastly web UI:**
+
+1. **Identify the service.** The Fastly service is named by the `FASTLY_SERVICE_ID`
+   environment variable on the corresponding Heroku app
+   (`heroku config -a <app> | grep FASTLY_SERVICE_ID`). Match that ID in the
+   dashboard. Do staging first, then production.
+2. **Open and clone the active version.** At
+   [manage.fastly.com](https://manage.fastly.com), open the service, then click
+   **Edit configuration → Clone version N to edit**. Fastly will not let you
+   edit the live version directly; cloning creates an editable draft, and
+   nothing goes live until you Activate (step 6).
+3. **Create the request setting.** In the left sidebar click **Settings** (the
+   gear). In the **Request Settings** section click **Create a request
+   setting**, then set **Name** = `Bypass cache for personalized requests` and
+   **Action** = **Pass**. Leave the other fields at their defaults.
+4. **Attach the condition.** In the same form, under **Conditions** / **Request
+   condition**, click **Create a new condition**. Set **Name** =
+   `Personalized page request` and paste the **Apply if** expression above
+   verbatim (it is valid VCL; if the UI rejects it, the usual cause is a
+   smart-quote introduced by copy/paste — make sure the quotes are plain `"`).
+   Save the condition, then save the request setting.
+5. **(Optional) Cookie-stripping for hit rate.** The `unset req.http.Cookie`
+   optimization in Option B (which lets guests carrying only unrelated cookies,
+   e.g. analytics, still share one cached object) is **not** expressible as a
+   simple Request Setting. It is *not required for correctness* — Option A above
+   is sufficient and safe on its own. If you want the hit-rate improvement, add
+   it via a small custom VCL snippet (Option B) instead.
+6. **Activate.** Click **Activate** on the draft version to make it live (a few
+   seconds to propagate).
+
+> **If your UI has no "Pass" action on Request Settings:** the equivalent is a
+> **Cache Setting** with **Action: Pass** plus a **Cache condition** using the
+> same expression.
+
+**Companion Rails kill switch.** The Fastly rule and the Rails kill switch
+(`BADGEAPP_CACHE_SHOW_PROJECT`, Change 2) are independent. Caching HTML only
+actually happens when *both* are enabled: the Fastly bypass rule is active *and*
+`BADGEAPP_CACHE_SHOW_PROJECT` is not `false`. If show pages return
+`private, no-store` with no `Surrogate-Control` even after the Rails deploy,
+check `heroku config -a <app> | grep BADGEAPP_CACHE_SHOW_PROJECT` — set it to
+`true` (or unset it; the default is on) and restart. Conversely, setting it to
+`false` is the instant rollback for HTML caching, leaving this Fastly rule
+harmlessly in place.
+
+**Verify after activating** with `script/verify_cdn_caching.sh -v <base-url>`
+(Section 8): a request carrying `_BadgeApp_session` or `remember_token` must
+return a non-`HIT` `X-Cache` even when an anonymous cached object exists, while
+an anonymous request gets `MISS` then `HIT`.
 
 #### Option B: Custom VCL snippet (placement: `recv`)
 
@@ -755,6 +844,13 @@ The rendered show page is the canonical section URL
 (`/en/projects/:id/:section`); `/en/projects/:id` only redirects to it, so
 the tests below target the section URL directly.
 
+[`script/verify_cdn_caching.sh`](../script/verify_cdn_caching.sh) automates all
+of the checks in this section (run it as
+`script/verify_cdn_caching.sh -v https://staging.bestpractices.dev 1`); it
+exits non-zero on any failure, so it also serves as the periodic synthetic
+monitor recommended in Section 9.4. The raw `curl` recipes below remain useful
+for ad-hoc inspection.
+
 ### Anonymous request is cached
 
 ```bash
@@ -817,18 +913,28 @@ which our change omits for anonymous users.
   cookie" test iterates over a list of anonymous pages; adding UJS/AJAX to
   any of them flips the meta tag back on and trips the test. Keep that list
   current as anonymous pages are added.
-* **Do better (opt-in escape hatch).** If a specific anonymous page ever
-  legitimately needs the token, it should opt in explicitly rather than
-  forcing it globally. For example, gate the layout on login *or* an
-  explicit request:
+* **Opt-in escape hatch (implemented).** A specific anonymous page that
+  legitimately needs the token opts in explicitly rather than forcing it
+  globally. The layout is gated on login *or* an explicit request:
 
   ```erb
   <% if logged_in? || content_for?(:needs_csrf_meta) %><%= csrf_meta_tags %><% end %>
   ```
 
-  and have that one page set `content_for(:needs_csrf_meta) { true }`. This
-  keeps the default (no token, cacheable) safe while making the exception
-  loud and local.
+  and the page sets the flag at the top of its template:
+
+  ```erb
+  <% content_for :needs_csrf_meta, 'true' %>
+  ```
+
+  This is **already in use** by the login page
+  (`app/views/sessions/new.html.erb`), whose "Log in with GitHub" button is a
+  rails-ujs `link_to … method: 'post'` that needs the token (see the warning
+  under Change 1). Use the **non-block** form with a non-empty string:
+  `content_for(:needs_csrf_meta) { true }` does **not** work because
+  `content_for` captures the block's *output*, and a block returning a bare
+  `true` outputs nothing, leaving `content_for?` false. The default (no token,
+  cacheable) stays safe for every page that does not opt in.
 
 ### 9.2 A persistent flash reaches an anonymous user
 
