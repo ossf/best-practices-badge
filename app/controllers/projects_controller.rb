@@ -109,6 +109,21 @@ class ProjectsController < ApplicationController
   # Cache control for show action - can be disabled via environment variable
   CACHE_SHOW_PROJECT = ENV['BADGEAPP_CACHE_SHOW_PROJECT'] != 'false'
 
+  # Seconds to cache the unfiltered projects-index total count, avoiding a
+  # redundant COUNT(*) on every index/pagination request (most importantly on
+  # rapid crawler "next page" walks). The displayed total is also invalidated
+  # immediately on project create/destroy (see Project#bust_index_count_cache),
+  # so this TTL mainly bounds cross-process staleness and acts as a backstop.
+  # Override (in seconds) via the BADGEAPP_PROJECTS_COUNT_TTL env var.
+  PROJECTS_COUNT_TTL =
+    (ENV['BADGEAPP_PROJECTS_COUNT_TTL'] || '60').to_i.seconds
+
+  # Index query params that change the WHERE clause, and therefore the count.
+  # When any of these is present we recount instead of using the cached total
+  # (sort and page never affect the count). These mirror the filters applied
+  # in retrieve_projects.
+  COUNT_FILTER_PARAMS = %i[status gteq lteq pq url q ids].freeze
+
   # These are the only allowed values for "sort" (if a value is provided)
   ALLOWED_SORT =
     %w[
@@ -1343,8 +1358,10 @@ class ProjectsController < ApplicationController
   # Optimizes data selection and implements pagination.
   # Selects minimal fields for HTML requests, includes associations for JSON
   # to prevent N+1 queries, and sets up pagination with count tracking.
-  # @return [void] Modifies @projects, @pagy, @count, and @pagy_locale instance
-  #   variables
+  # When no count-affecting filter is present (the hot path), the total count
+  # is served from a short-lived cache to avoid a redundant COUNT(*) on every
+  # request; filtered/search requests recount. See docs/pagy-43.md.
+  # @return [void] Modifies @projects, @pagy, and @count instance variables
   def select_data_subset
     # If we're supplying html (common case), select only needed fields
     format = request&.format&.symbol
@@ -1355,13 +1372,18 @@ class ProjectsController < ApplicationController
     elsif format == :json
       @projects = @projects.includes(:additional_rights)
     end
-    @pagy, @projects = pagy(@projects.includes(:user))
-    # We want to know the *total* count, even if we're paging.
-    # Pagy has to figure that out anyway, so instead of doing this:
-    # # @count = @projects.count
-    # we will extract it from pagy.
+    # Seed pagy with the cached total count on the unfiltered hot path;
+    # otherwise pass nil so pagy runs a fresh COUNT for the filtered result.
+    count =
+      if COUNT_FILTER_PARAMS.any? { |key| params[key].present? }
+        nil
+      else
+        Project.cached_index_count(PROJECTS_COUNT_TTL)
+      end
+    @pagy, @projects = pagy(:offset, @projects.includes(:user), count: count)
+    # We want the *total* count, even when paging; pagy exposes it (reusing
+    # the value we seeded above on the unfiltered path).
     @count = @pagy.count
-    @pagy_locale = I18n.locale.to_s # Pagy requires a string version
   end
   # rubocop:enable Metrics/MethodLength
   # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity

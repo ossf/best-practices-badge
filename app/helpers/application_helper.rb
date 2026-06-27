@@ -5,8 +5,6 @@
 # SPDX-License-Identifier: MIT
 
 module ApplicationHelper
-  include Pagy::Frontend
-
   # Frozen string constant for unknown project names (memory optimization)
   NAME_UNKNOWN = '(Name Unknown)'
 

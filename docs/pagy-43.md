@@ -377,18 +377,21 @@ The `trim` extra is **discontinued** in pagy 43, and `series_nav` emits
 `rel="canonical"` tag and `robots.txt` does not block `?page=`,
 crawlers could index `/projects?page=1` as a duplicate of `/projects`.
 
-**Fix (better than `trim`):** add a canonical link tag on paginated
-index pages, driven by pagy's own URL builder, which omits the param on
-page 1 and includes it elsewhere:
+**Fix (better than `trim`):** add a canonical link tag on the paginated
+index, driven by pagy's own URL builder. Note that `page_url(:current)`
+always emits the page number (even `page=1`), whereas `page_url(:first)`
+omits it — so we select the target by page:
 
 ```erb
-<link rel="canonical" href="<%= @pagy.page_url(:current) %>">
+<% target = @pagy.page == 1 ? :first : :current %>
+<link rel="canonical" href="<%= @pagy.page_url(target, absolute: true) %>">
 ```
 
-This collapses the `?page=1` duplicate to the bare URL and gives each
-deep page a correct self-canonical — an SEO improvement we do not have
-today. With plain `:offset` the URL stays clean (no count to strip).
-Pagy builds these URLs about 20x faster than Rails' `url_for`.
+Page 1 then canonicalizes to the bare URL (`/projects`) while each
+deeper page self-canonicalizes (`?page=N`) — collapsing the `?page=1`
+duplicate and adding SEO value we do not have today. With plain
+`:offset` the URL stays clean (no count to strip). Pagy builds these
+URLs about 20x faster than Rails' `url_for`.
 
 ## First-page / last-page navigation (new feature)
 
@@ -480,19 +483,21 @@ and `limit` as readers plus `pages` (an alias of `last`).
    * Delete the `@pagy_locale = I18n.locale.to_s` lines. (No count
      cache here; these pages are lower traffic.)
 
-8. **Views with the nav** (`projects/index.html.erb`,
-   `users/index.html.erb`, `users/show.html.erb`):
-   * Change `pagy_bootstrap_nav(@pagy)` to `@pagy.series_nav(:bootstrap)`
-     (keep the `if @pagy.pages > 1` guard).
-   * Add the First/Last jump links where appropriate.
+8. **Shared pagination partial + views.** Add
+   `app/views/shared/_pagination.html.erb` containing
+   `@pagy.series_nav(:bootstrap)` (guarded by `pagy.pages > 1`) plus the
+   First/Last jump links, and render it from `projects/index.html.erb`,
+   `users/index.html.erb`, and `users/show.html.erb`. A shared partial
+   keeps the three call sites DRY and the First/Last UI consistent.
 
-9. **Canonical tag.** Add `<link rel="canonical" href="<%=
-   @pagy.page_url(:current) %>">` to the paginated index views (or the
-   layout, guarded by presence of `@pagy`).
+9. **Canonical tag.** In `projects/index.html.erb`, emit a
+   `rel="canonical"` link into the layout's `:special_head_values`
+   content block (rendered outside the per-locale head cache), using
+   `:first` on page 1 and `:current` otherwise (see "Canonical URLs").
 
-10. **Locales.** Add `first` / `last` translation keys for the affected
-    index views to our locale files; route them through translation.io
-    like other strings.
+10. **Locales.** Add shared `pagination.first` / `pagination.last`
+    translation keys to `config/locales/en.yml`; translation.io syncs
+    the other locales (they fall back to English until translated).
 
 11. **Document the env var.** Add `BADGEAPP_PROJECTS_COUNT_TTL`
     (seconds; default 60) to the deployment/environment configuration

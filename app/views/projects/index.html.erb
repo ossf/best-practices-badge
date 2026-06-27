@@ -18,6 +18,18 @@
     [t('.gold_300'), 300],
   ]
 %>
+<% if @pagy %>
+  <%# Canonical URL: omits ?page=1 on the first page (replacing pagy's
+      discontinued "trim" extra) and self-canonicalizes deeper pages, so
+      crawlers don't index /projects?page=1 as a duplicate of /projects.
+      page_url(:current) always emits the page number, so use :first
+      (which omits it) when on page 1. %>
+  <% content_for :special_head_values do %>
+    <% canonical_target = @pagy.page == 1 ? :first : :current %>
+    <link rel="canonical" href="<%=
+      @pagy.page_url(canonical_target, absolute: true) %>">
+  <% end %>
+<% end %>
 <% provide :nav_extras do %>
   <li>
     <% if logged_in? %>
@@ -49,5 +61,5 @@
 <br>
 <br>
   <%= render 'table', projects: @projects, locale: locale %>
-  <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>
+  <%= render 'shared/pagination', pagy: @pagy %>
 </div>

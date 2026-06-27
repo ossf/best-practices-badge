@@ -31,8 +31,7 @@ class UsersController < ApplicationController
   # @return [void]
   def index
     user_result = search_users
-    @pagy, @users = pagy(user_result)
-    @pagy_locale = I18n.locale.to_s # Pagy requires a string version
+    @pagy, @users = pagy(:offset, user_result)
   end
 
   # Search users for desired_name (which is presumed to be non-empty)
@@ -208,8 +207,7 @@ class UsersController < ApplicationController
     # Paginate the list of user-owned projects.
     # Use "select_needed" to minimize the fields we extract
     # Note: No need to eager-load user - all projects belong to @user
-    @pagy, @projects = pagy(select_needed(@user.projects))
-    @pagy_locale = I18n.locale.to_s # Pagy requires a string version
+    @pagy, @projects = pagy(:offset, select_needed(@user.projects))
 
     # Don't bother paginating the projects with additional rights,
     # we practically never have that many and the interface would be confusing.
