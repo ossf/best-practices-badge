@@ -21,7 +21,7 @@ jobs:
       - name: Checkout
         # Pin to commit SHA to prevent supply chain attacks via tag mutation.
         # Verify: curl -s https://api.github.com/repos/actions/checkout/git/ref/tags/v5.0.0
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       # OSPS-BR-01.02: Validate branch name before use in pipeline
       # This protects against potential future use of branch names in commands
       # GITHUB_REF_NAME is the short ref name (e.g., "main" not "refs/heads/main")
