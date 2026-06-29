@@ -1,176 +1,27 @@
 # frozen_string_literal: true
 
-# Pagy initializer file (9.4.0)
-# Customize only what you really need.
-# Extras
-# See https://ddnexus.github.io/pagy/extras
-
-# Backend Extras
-
-# Array extra: Paginate arrays efficiently, avoiding expensive array-wrapping and without overriding
-# See https://ddnexus.github.io/pagy/extras/array
-# require 'pagy/extras/array'
-
-# Countless extra: Paginate without any count, saving one query per rendering
-# See https://ddnexus.github.io/pagy/extras/countless
-# require 'pagy/extras/countless'
-# Pagy::DEFAULT[:cycle] = false    # default
-
-# Elasticsearch Rails extra: Paginate `ElasticsearchRails::Results` objects
-# See https://ddnexus.github.io/pagy/extras/elasticsearch_rails
-# require 'pagy/extras/elasticsearch_rails'
-
-# Searchkick extra: Paginate `Searchkick::Results` objects
-# See https://ddnexus.github.io/pagy/extras/searchkick
-# require 'pagy/extras/searchkick'
-
-# Frontend Extras
-
-# Bootstrap extra: Add nav, nav_js and combo_nav_js helpers and templates for Bootstrap pagination
-# See https://ddnexus.github.io/pagy/extras/bootstrap
-# require 'pagy/extras/bootstrap'
-require 'pagy/extras/bootstrap'
-
-# Bulma extra: Add nav, nav_js and combo_nav_js helpers and templates for Bulma pagination
-# See https://ddnexus.github.io/pagy/extras/bulma
-# require 'pagy/extras/bulma'
-
-# Navs extra: Add nav_js and combo_nav_js javascript helpers
-# Notice: the other frontend extras add their own framework-styled versions,
-# so require this extra only if you need the unstyled version
-# See https://ddnexus.github.io/pagy/extras/navs
-# require 'pagy/extras/navs'
-
-# Feature Extras
-
-# Headers extra: http response headers (and other helpers) useful for API pagination
-# See http://ddnexus.github.io/pagy/extras/headers
-# require 'pagy/extras/headers'
-# Pagy::DEFAULT[:headers] = { page: 'Current-Page', items: 'Page-Items', count: 'Total-Count', pages: 'Total-Pages' }     # default
-
-# Support extra: Extra support for features like: incremental, infinite, auto-scroll pagination
-# See https://ddnexus.github.io/pagy/extras/support
-# require 'pagy/extras/support'
-
-# Items extra: Allow the client to request a custom number of items per page with an optional selector UI
-# See https://ddnexus.github.io/pagy/extras/items
-# require 'pagy/extras/items'
-# Pagy::DEFAULT[:limit_param] = :limit    # default
-# Pagy::DEFAULT[:limit_max]   = 100       # default
-
-# Overflow extra: Allow for easy handling of overflowing pages
-# See https://ddnexus.github.io/pagy/extras/overflow
-
-# By default pagy raises an exception if the page# is too large, which
-# has a lot of overhead for a common circumstance. Instead,
-# just show an empty page if it's empty.
-
-require 'pagy/extras/overflow'
-# Pagy::DEFAULT[:overflow] = :empty_page    # default  (other options: :last_page and :exception)
-
-# Metadata extra: Provides the pagination metadata to Javascript frameworks like Vue.js, react.js, etc.
-# See https://ddnexus.github.io/pagy/extras/metadata
-# you must require the shared internal extra (BEFORE the metadata extra) ONLY if you need also the :sequels
-# require 'pagy/extras/shared'
-# require 'pagy/extras/metadata'
-# For performance reason, you should explicitly set ONLY the metadata you use in the frontend
-# Pagy::DEFAULT[:metadata] = [:scaffold_url, :count, :page, :prev, :next, :last]    # example
-
-# Trim extra: Remove the page=1 param from links
-# See https://ddnexus.github.io/pagy/extras/trim
-# require 'pagy/extras/trim'
-require 'pagy/extras/trim'
-
-# Pagy Variables
-# See https://ddnexus.github.io/pagy/api/pagy#variables
-# All the Pagy::DEFAULT are set for all the Pagy instances but can be overridden
-# per instance by just passing them to Pagy.new or the #pagy controller method
-
-# Instance variables
-# See https://ddnexus.github.io/pagy/api/pagy#instance-variables
-# Pagy::DEFAULT[:limit] = 20                                   # default
-# Reduced from 30 to 20 to reduce memory usage, especially for deep
-# pagination requests from crawlers that nowadays are overwhelming.
-Pagy::DEFAULT[:limit] = 20
-
-# Other Variables
-# See https://ddnexus.github.io/pagy/api/pagy#other-variables
-# Pagy::DEFAULT[:size]       = [1,4,4,1]                       # default
-# Pagy::DEFAULT[:page_param] = :page                           # default
-# Pagy::DEFAULT[:params]     = {}                              # default
-# Pagy::DEFAULT[:anchor]     = '#anchor'                       # example
-# Pagy::DEFAULT[:link_extra] = 'data-remote="true"'            # example
-# Pagy::DEFAULT[:size] = [2, 4, 4, 2]  # Array format no longer supported in v9
-# Use integer size with :ends option instead for similar functionality
-Pagy::DEFAULT[:size] = 4
-Pagy::DEFAULT[:ends] = true
-
-# Rails
-
-# Rails: extras assets path required by the helpers that use javascript
-# (pagy*_nav_js, pagy*_combo_nav_js, and pagy_items_selector_js)
-# See https://ddnexus.github.io/pagy/extras#javascript
-# Rails.application.config.assets.paths << Pagy.root.join('javascripts')
-
-# I18n
-
-# Pagy internal I18n: ~18x faster using ~10x less memory than the i18n gem
-# See https://ddnexus.github.io/pagy/api/frontend#i18n
-# Notice: No need to configure anything in this section if your app uses only "en"
-# or if you use the i18n extra below
+# Pagy initializer file (pagy 43.x)
+# See https://ddnexus.github.io/pagy/ and docs/pagy-43.md for the rationale
+# behind this configuration and the upgrade from pagy 9.
 #
-# Examples:
-# load the "de" built-in locale:
-# Pagy::I18n.load(locale: 'de')
-#
-# load the "de" locale defined in the custom file at :filepath:
-# Pagy::I18n.load(locale: 'de', filepath: 'path/to/pagy-de.yml')
-#
-# load the "de", "en" and "es" built-in locales:
-# (the first passed :locale will be used also as the default_locale)
-# Pagy::I18n.load({locale: 'de'},
-#                 {locale: 'en'},
-#                 {locale: 'es'})
-#
-# load the "en" built-in locale, a custom "es" locale,
-# and a totally custom locale complete with a custom :pluralize proc:
-# (the first passed :locale will be used also as the default_locale)
-# Pagy::I18n.load({locale: 'en'},
-#                 {locale: 'es', filepath: 'path/to/pagy-es.yml'},
-#                 {locale: 'xyz',  # not built-in
-#                  filepath: 'path/to/pagy-xyz.yml',
-#                  pluralize: lambda{|count| ... } )
+# Pagy 43 is a complete redesign of pagy 9. Notable differences relevant here:
+# * Application configuration lives in Pagy::OPTIONS (pagy 9 used
+#   Pagy::DEFAULT, which is now an internal frozen base).
+# * The Bootstrap, overflow, and trim "extras" no longer exist as separate
+#   requires: Bootstrap styling is built in (@pagy.series_nav(:bootstrap)),
+#   serving an empty page on overflow is the default, and "trim" was
+#   discontinued (we instead emit a rel="canonical" link; see the views).
+# * Pagy ships dictionaries for every locale we use and auto-loads them on
+#   demand, so there is no locale list to load here. The per-request locale
+#   is set by a before_action in ApplicationController.
 
-# Load pagy locales for all the locales we use, preferring speed.
-# This presumes that 'en' is listed first in I18n.available_locales (true).
+# Reduced from pagy's history of 30 down to 20 to reduce memory usage,
+# especially for deep pagination requests from crawlers that nowadays are
+# overwhelming. (Pagy 43's built-in default limit is already 20; we set it
+# explicitly to document intent and guard against an upstream change.)
+Pagy::OPTIONS[:limit] = 20
 
-# Disable Rubocop warning; we need to chain "freeze" onto a multiline block,
-# and the style checker doesn't provide a mechanism to do that.
-# rubocop:disable Style/MethodCalledOnDoEndBlock
-
-# We have to specially handle locales not supported by Pagy. Here's how:
-# PAGY_LOCALES = I18n.available_locales.map do |lang|
-#   if lang == :sw # Specially handle locales not supported by Pagy
-#     {
-#       locale: lang.to_s,
-#       filepath: "config/locales/pagy-#{lang}.yml"
-#     }
-#   else
-#     { locale: lang.to_s }
-#   end
-# end.freeze
-PAGY_LOCALES = I18n.available_locales.map do |lang|
-  { locale: lang.to_s }
-end.freeze
-# rubocop:enable Style/MethodCalledOnDoEndBlock
-
-Pagy::I18n.load(*PAGY_LOCALES)
-
-# I18n extra: uses the standard i18n gem which is ~18x slower
-# using ~10x more memory
-# than the default pagy internal i18n (see above)
-# See https://ddnexus.github.io/pagy/extras/i18n
-# require 'pagy/extras/i18n'
-
-# Default i18n key
-# Pagy::DEFAULT[:i18n_key] = 'pagy.item_name'   # default
+# We rely on pagy's default :slots (9), which renders the first and last
+# pages with "..." gaps around the current page -- the pagy-43 equivalent of
+# our former :size/:ends configuration. Set Pagy::OPTIONS[:slots] only to
+# tune how many page links appear.

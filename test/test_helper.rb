@@ -200,6 +200,11 @@ module ActiveSupport
       # rubocop:disable Rails/I18nLocaleAssignment
       I18n.locale = :en
       # rubocop:enable Rails/I18nLocaleAssignment
+      # The projects-index count cache key is process-global and is NOT rolled
+      # back with the test transaction, so clear it before each test to keep a
+      # stale count from leaking between tests. (after_commit invalidation does
+      # not fire under transactional tests, so we cannot rely on it here.)
+      Rails.cache.delete(Project::INDEX_COUNT_CACHE_KEY)
     end
 
     def teardown

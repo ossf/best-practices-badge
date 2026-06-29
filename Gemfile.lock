@@ -350,7 +350,10 @@ GEM
       actionpack (>= 4.2)
       omniauth (~> 2.0)
     ostruct (0.6.3)
-    pagy (9.4.0)
+    pagy (43.5.6)
+      json
+      uri
+      yaml
     paleta (0.3.0)
     paper_trail (17.0.0)
       activerecord (>= 7.1)
@@ -596,6 +599,7 @@ GEM
       rexml
     xpath (3.2.0)
       nokogiri (~> 1.8)
+    yaml (0.4.0)
     yaml-lint (0.1.2)
     zeitwerk (2.8.2)
 
@@ -659,7 +663,7 @@ DEPENDENCIES
   omniauth-github (~> 2.0)
   omniauth-rails_csrf_protection (~> 2.0)
   ostruct
-  pagy (~> 9.0)
+  pagy (~> 43.5)
   paleta (~> 0.3)
   paper_trail (~> 17.0)
   pg (~> 1.4)

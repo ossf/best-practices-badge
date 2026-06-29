@@ -13,7 +13,7 @@ require 'ipaddr'
 #
 # rubocop: disable Metrics/ClassLength
 class ApplicationController < ActionController::Base
-  include Pagy::Backend
+  include Pagy::Method
 
   # Frozen HTTP header values (memory optimization - avoid creating on every request)
   PERMISSIONS_POLICY_VALUE = 'fullscreen=(), geolocation=(), midi=(), ' \
@@ -67,6 +67,12 @@ class ApplicationController < ActionController::Base
   # The locale in the URL always takes precedent, so normally that's
   # what is set here.
   before_action :set_locale_to_best_available
+
+  # Tell pagy which locale to use for its pagination nav text. Pagy 43 reads
+  # this from a per-request thread-local (its own fast i18n, not the i18n
+  # gem), so we mirror the Rails locale here, after it has been resolved
+  # above. This is thread-safe under our multi-threaded server.
+  before_action { Pagy::I18n.locale = I18n.locale.to_s }
 
   # Extract and validate authentication state from session.
   # Sets instance variables (@session_user_id, etc.) that are guaranteed

@@ -128,6 +128,12 @@ The application is configured by various environment variables:
   Note that application admins cannot log in, or use their privileges,
   when this mode is enabled.  Only hosting site admins can turn this mode
   on or off (since they're the only ones who can set environment variables).
+* BADGEAPP_PROJECTS_COUNT_TTL (default 60): Seconds to cache the unfiltered
+  projects-index total count, avoiding a redundant `COUNT(*)` on every index
+  and pagination request (most importantly on rapid crawler "next page"
+  walks). The count is also invalidated immediately when a project is created
+  or destroyed, so this mainly bounds cross-process staleness and acts as a
+  backstop. See docs/pagy-43.md.
 * RATE_details - a rate limit setting.  Rate limits provide an automated
   partial countermeasure against denial-of-service and
   password-guessing attacks.

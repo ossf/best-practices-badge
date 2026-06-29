@@ -20,6 +20,20 @@ class Project < ApplicationRecord
   include PgSearch::Model # PostgreSQL-specific text search
   include LevelConversion # Shared level name/number conversion
 
+  # Cache key for the total (unfiltered) number of projects shown on the
+  # projects index. The count is cached to avoid a COUNT(*) on every
+  # index/pagination request; see ProjectsController and docs/pagy-43.md.
+  INDEX_COUNT_CACHE_KEY = 'projects/index/count'
+
+  # Return the total number of projects, cached for +ttl+ to avoid a COUNT(*)
+  # on every unfiltered index/pagination request (which matters most for
+  # rapid crawler "next page" walks).
+  # @param ttl [ActiveSupport::Duration, Integer] cache lifetime
+  # @return [Integer] total number of projects
+  def self.cached_index_count(ttl)
+    Rails.cache.fetch(INDEX_COUNT_CACHE_KEY, expires_in: ttl) { count }
+  end
+
   # When did we add met_justification_required?
   STATIC_ANALYSIS_JUSTIFICATION_REQUIRED_DATE =
     Time.iso8601('2017-04-25T00:00:00Z')
@@ -311,6 +325,12 @@ class Project < ApplicationRecord
 
   before_validation :normalize_entry_locale
   before_save :update_badge_percentages, unless: :skip_callbacks
+
+  # Invalidate the cached unfiltered index count whenever a project is added
+  # or removed (edits never change the total). Best-effort per process: with
+  # the production :memory_store this clears the entry only in the process
+  # that runs it, so the cache TTL remains the cross-process bound.
+  after_commit :bust_index_count_cache, on: %i[create destroy]
 
   # A project is associated with a user (optional: user_id may be NULL in DB)
   belongs_to :user, optional: true
@@ -1220,6 +1240,12 @@ class Project < ApplicationRecord
   WHAT_IS_ENOUGH = %i[criterion_passing criterion_barely].freeze
 
   private
+
+  # Clear the cached unfiltered index count (see INDEX_COUNT_CACHE_KEY).
+  # Triggered by after_commit on create/destroy.
+  def bust_index_count_cache
+    Rails.cache.delete(INDEX_COUNT_CACHE_KEY)
+  end
 
   # Normalize blank entry_locale to 'en' (the expected default)
   # HTML forms submit empty string ("") for blank selects. We normalize

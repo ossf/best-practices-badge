@@ -11,6 +11,9 @@ en:
     few: "%{count} Projects"
     many: "%{count} Projects"
     other: "%{count} Projects"
+  pagination:
+    first: First
+    last: Last
   feed_title: OpenSSF Best Practices BadgeApp Updated Projects
   project_name_unknown: "(Name unknown)"
   locale_name:
