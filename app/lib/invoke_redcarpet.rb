@@ -74,12 +74,28 @@
 module InvokeRedcarpet
   require 'redcarpet'
 
-  # Markdown renderer configuration for Redcarpet
-  REDCARPET_MARKDOWN_RENDERER_OPTS = {
-    filter_html: true, no_images: true,
-    no_styles: true, safe_links_only: true,
-    link_attributes: { rel: 'nofollow ugc noopener noreferrer' }
-  }.freeze
+  # Attributes attached to every generated link. All values are static
+  # literals, so Ruby folds this into a compile-time constant.
+  LINK_ATTRS = { rel: 'nofollow ugc noopener noreferrer' }.freeze
+
+  # Markdown renderer configuration for Redcarpet.
+  #
+  # Keep the first key/value pair on the assignment line below. Because this
+  # hash has a non-static value (LINK_ATTRS), Ruby builds it at run time, and
+  # `Coverage.line_stub` - which SimpleCov uses to synthesize coverage for a
+  # file that a given test process never loaded - then attributes the
+  # statement to a *different* line than the running interpreter does.
+  # Merging those two disagreeing results invents a line that no test can
+  # ever cover, failing the "untested production code" check in
+  # `rake test:coverage_gaps`. Moving the `{` back onto its own line brings
+  # the phantom straight back - which is exactly what the cop disabled here
+  # would do, so it must stay disabled.
+  # rubocop:disable Layout/FirstHashElementLineBreak
+  REDCARPET_MARKDOWN_RENDERER_OPTS = { filter_html: true, no_images: true,
+                                       no_styles: true,
+                                       safe_links_only: true,
+                                       link_attributes: LINK_ATTRS }.freeze
+  # rubocop:enable Layout/FirstHashElementLineBreak
 
   REDCARPET_MARKDOWN_PROCESSOR_OPTS = {
     no_intra_emphasis: true, autolink: true,

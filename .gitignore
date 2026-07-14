@@ -68,3 +68,8 @@ tmp/baseline_cache/
 
 # Let's just ignore .files in general
 .*
+
+# ... but .simplecov is real configuration and MUST be tracked. SimpleCov
+# auto-loads it on `require 'simplecov'`, so it is what keeps the test
+# processes and the coverage-merging rake task using identical settings.
+!/.simplecov

@@ -4,52 +4,22 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# NOTE: If you change SimpleCov configuration (used locally), you may also
-# need to change codecov configuration (used on the website) as managed
-# via codecov.yml.
-
 # *MUST* load 'simplecov' FIRST, before any other code is run.
 # See: https://github.com/colszowka/simplecov/issues/296
+#
+# Requiring simplecov also auto-loads the project's `.simplecov` file, which
+# holds ALL of our SimpleCov configuration. Configure coverage there, not
+# here: the rake process that merges results and reports coverage gaps
+# (lib/tasks/default.rake) only does `require 'simplecov'`, so it picks up
+# `.simplecov` but never loads this file. Settings placed here alone silently
+# fail to apply to the merge. See `.simplecov` for the gory details.
 require 'simplecov'
 
 # *MUST* state VERY EARLY that we're in the test environment.
 ENV['RAILS_ENV'] ||= 'test'
 
-# Configure SimpleCov formatting before we start it.
-# The HTML report is for humans; the machine-readable JSON report uploaded to
-# Codecov is written separately by the test:coverage_gaps rake task, since CI
-# runs with DEFER_COVERAGE set (which swaps in SimpleFormatter below) and the
-# merged result is only complete once all parallel + system runs finish.
-SimpleCov.formatters = SimpleCov::Formatter::HTMLFormatter
-
-# Start SimpleCov to track coverage
-# NOTE: If you change SimpleCov configuration (used locally), you may also
-# need to change codecov configuration (used on the website) as managed
-# via codecov.yml.
-SimpleCov.start 'rails' do
-  # Ensure this is NOT set to false - we'll use its test merging capabilities
-  use_merging true
-  # Set a long merge_timeout (default is 10 mins) to ensure
-  # system tests don't take so long that the regular test results "expire"
-  merge_timeout 3600
-
-  # Give each process a unique name so they don't overwrite each other
-  # if running in parallel.
-  command_name "job-#{ENV['TEST_ENV_NUMBER'] || 'manual'}"
-
-  # If we are deferring, don't generate the HTML/Text formatter output yet
-  if ENV['DEFER_COVERAGE']
-    formatter SimpleCov::Formatter::SimpleFormatter # Minimal overhead
-  end
-
-  add_group 'Validators', 'app/validators'
-  add_filter '/config/'
-  add_filter '/lib/tasks'
-  add_filter '/test/'
-  add_filter '/vendor/'
-  # Exclude baseline development scripts (not run in production)
-  add_filter %r{^/lib/baseline_.*\.rb$}
-end
+# Begin measuring coverage, using the configuration `.simplecov` just applied.
+SimpleCov.start
 
 # Some tests flap, producing false failures, so enable auto-retry
 if ENV['CI']
