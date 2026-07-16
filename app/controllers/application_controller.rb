@@ -372,7 +372,39 @@ class ApplicationController < ActionController::Base
     Sections::INPUT_TO_INTERNAL[level] || '0'
   end
 
+  # Empty, frozen params used as the safe fallback for hash_param when a
+  # request omits a nested key or sends it as a scalar/array. Shared and frozen
+  # so no allocation occurs on the malformed-input path either.
+  EMPTY_PARAMS = ActionController::Parameters.new.freeze
+
   private
+
+  # Safely read a scalar (String) request parameter.
+  # Rails parses `k[]=v` into an Array and `k[x]=v` into a Hash, so a crafted
+  # request can make params[key] a non-String (or nil). Calling String methods
+  # on such a value raises (NoMethodError/TypeError), turning a crafted request
+  # into an unhandled 500. This returns `default` unless the value is genuinely
+  # a String, letting callers treat request input uniformly. There is no
+  # allocation on the common path.
+  # @param key [Symbol, String] the parameter name
+  # @param default [Object] returned when the param is absent or not a String
+  # @return [String, Object] the String value, or `default`
+  def scalar_param(key, default = nil)
+    value = params[key]
+    value.is_a?(String) ? value : default
+  end
+
+  # Safely read a nested params hash (e.g. params[:session]).
+  # Returns EMPTY_PARAMS when the key is absent or was sent as a scalar/array,
+  # so callers can index the result uniformly (every field reads as nil)
+  # without risking a 500. The common path (a real nested hash) is returned
+  # as-is, with no allocation.
+  # @param key [Symbol, String] the parameter name
+  # @return [ActionController::Parameters] the nested params, or EMPTY_PARAMS
+  def hash_param(key)
+    value = params[key]
+    value.is_a?(ActionController::Parameters) ? value : EMPTY_PARAMS
+  end
 
   # Ensures all URLs include the current locale parameter.
   # Always includes locale in URLs for consistent internationalization,

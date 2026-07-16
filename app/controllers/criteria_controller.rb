@@ -45,16 +45,19 @@ class CriteriaController < ApplicationController
   end
 
   # Convert user-provided parameter "name" into true/false.
-  # This is untrusted input, be cautious with it.
-  # @param name [String] The name name
-  # @param default_value [Object] The default value parameter
+  # This is untrusted input, be cautious with it. scalar_param yields the
+  # default (nil here) for an absent, bare, or non-scalar value (e.g.
+  # ?details[]=1, which Rails parses into an Array); without that guard,
+  # calling casecmp? on a non-String would raise, turning a crafted query
+  # string into an unhandled 500 on this public, unauthenticated page.
+  # @param name [Symbol] The parameter name to read
+  # @param default_value [Object] The value to use when the param is absent
+  #   or is not a simple string
   # @return [Boolean]
   def boolean_param(name, default_value = true)
-    if params.key?(name)
-      user_value = params[name]
-      user_value.casecmp?('true') || user_value == '1'
-    else
-      default_value
-    end
+    value = scalar_param(name)
+    return default_value if value.nil?
+
+    value.casecmp?('true') || value == '1'
   end
 end

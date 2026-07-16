@@ -234,5 +234,21 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
       Rails.application.config.deny_login = old_deny
     end
   end
+
+  # Security/robustness: a crafted login request can send the nested `session`
+  # key as a scalar, or omit it entirely. Neither must raise an unhandled
+  # exception (previously TypeError/NoMethodError -> 500) on this public,
+  # unauthenticated endpoint; both should be treated as a failed login.
+  test 'local login with scalar session param does not error' do
+    post '/en/login', params: { session: 'foo' }
+    assert_response :success # re-renders 'new'
+    assert flash&.now && flash.now[:danger]
+  end
+
+  test 'local login with missing session param does not error' do
+    post '/en/login'
+    assert_response :success # re-renders 'new'
+    assert flash&.now && flash.now[:danger]
+  end
 end
 # rubocop:enable Metrics/ClassLength

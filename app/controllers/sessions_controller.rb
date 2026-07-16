@@ -52,7 +52,7 @@ class SessionsController < ApplicationController
       render 'new', status: :forbidden
     elsif request.env['omniauth.auth'].present?
       omniauth_login
-    elsif params[:session][:provider] == 'local'
+    elsif hash_param(:session)[:provider] == 'local'
       local_login
     else
       # There is no information disclosure in this error message.
@@ -145,9 +145,10 @@ class SessionsController < ApplicationController
   # Handles local email/password authentication.
   # @return [void]
   def local_login
+    session_params = hash_param(:session)
     user = User.authenticate_local_user(
-      params[:session][:email],
-      params[:session][:password]
+      session_params[:email],
+      session_params[:password]
     )
 
     if user
@@ -189,10 +190,11 @@ class SessionsController < ApplicationController
       flash.now[:danger] = t('sessions.cannot_login_yet')
       render 'new', status: :forbidden
     else
-      return_to = params.dig(:session, :return_to)
+      session_params = hash_param(:session)
+      return_to = session_params[:return_to]
       return_to = nil unless valid_return_path?(return_to)
       successful_login(user, return_to)
-      params[:session][:remember_me] == '1' ? remember(user) : forget(user)
+      session_params[:remember_me] == '1' ? remember(user) : forget(user)
     end
   end
   # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
