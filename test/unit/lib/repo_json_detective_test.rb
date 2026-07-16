@@ -221,6 +221,22 @@ class RepoJsonDetectiveTest < ActiveSupport::TestCase
     assert_equal({}, result)
   end
 
+  # Security: valid JSON that is not an object (array, scalar, string, bool,
+  # null) must be rejected cleanly. Without the is_a?(Hash) guard these raise
+  # NoMethodError (e.g. Integer#each, Integer#to_sym), relying on Chief's outer
+  # rescue; the detective should be safe on its own.
+  test 'returns empty for non-object top-level JSON' do
+    detective = RepoJsonDetective.new
+    [
+      '[1,2,3]', '123', '"a string"', 'true', 'null',
+      '[["contribution_status","Met"]]'
+    ].each do |raw|
+      repo_files = MockRepoFiles.new(primary_content: raw)
+      result = detective.analyze(nil, { repo_files: repo_files })
+      assert_equal({}, result, "expected {} for top-level JSON #{raw}")
+    end
+  end
+
   test 'processes multiple fields with mixed validity' do
     json_content = {
       'contribution_status' => 'Met',
