@@ -49,7 +49,13 @@ class Evidence
     allow_private_ips: ENV['ALLOW_PRIVATE_IPS'] == 'true'
   )
     @project = project # ActiveRecord. Detectives should NOT change this.
+    # Two independent caches keyed by URL: response headers (get) and decoded
+    # bodies (get_body). A body is fetched only when get_body is called, so a
+    # headers-only consumer never buffers the body. A nil in either cache
+    # records a tried-and-failed fetch, so we neither retry nor re-enter the
+    # network, and a failed body fetch never invalidates good headers.
     @cached_data = {}
+    @cached_bodies = {}
     @resolver = resolver
     # Defense in depth: the insecure path (get_insecure uses open-uri with NO
     # SSRF filtering) is a test/development convenience only. Force it off on
@@ -122,90 +128,116 @@ class Evidence
   #     expand into gigabytes in memory. MAXREAD bounds the *stored* bytes in
   #     every case.
   #
-  # Today the only consumer of a fetched body reads response *headers*, not the
-  # body (HardenedSitesDetective). We still fetch and store the body, so if a
-  # future detective (e.g. a non-GitHub content path) needs the actual bytes
-  # and they arrived compressed, it MUST decompress through SafeInflate, which
-  # caps decompressed output, rather than calling Zlib or an auto-decoding HTTP
-  # client directly. Frozen so we allocate it once, not per request.
+  # get reads only headers; the body is pulled into memory solely by get_body,
+  # the moment a caller needs it. If the peer ignored identity and sent gzip,
+  # get_body inflates through SafeInflate (output-capped), so we never hand
+  # attacker data to an auto-decoding HTTP client or an unbounded inflate.
+  # Frozen so we allocate it once, not per request.
   REQUEST_HEADERS = {
     'User-Agent' => USER_AGENT,
     'Accept-Encoding' => 'identity'
   }.freeze
 
-  # Get contents of given URL and return it (cached).
-  # Returns a hash with :meta (headers) and :body (content) if successful.
+  # Fetch `url` and return its response metadata (HTTP headers), cached.
+  #
+  # This reads only the response *headers*. It deliberately does NOT pull the
+  # body into memory; call get_body when the body is actually needed, so a
+  # headers-only consumer (the common case, e.g. HardenedSitesDetective) never
+  # buffers up to MAXREAD bytes it will not use.
   #
   # @param url [String] The URL to fetch data from.
-  # @return [Hash, nil] The fetched data or nil if the URL is invalid or the
-  #   fetch fails.
+  # @return [Hash, nil] { meta: {headers} }, or nil if the URL is invalid or
+  #   the fetch failed.
   def get(url)
     return if url.blank?
 
-    fetch_if_needed(url) unless @cached_data.key?(url)
-    @cached_data[url]
+    fetch_into(@cached_data, url, want_body: false)
+  end
+
+  # Fetch `url` and return its (decoded) response body, cached.
+  #
+  # The body is pulled from the network and decompressed only here, the moment
+  # a caller asks for it. We request identity encoding, so the body is normally
+  # plaintext; if the peer ignored that and sent gzip, it is inflated through
+  # SafeInflate (output-capped at MAXREAD) so a decompression bomb cannot
+  # exhaust memory. get and get_body fetch independently; no consumer needs
+  # both today, so we do not complicate the caches to share one round trip.
+  #
+  # @param url [String] The URL to fetch data from.
+  # @return [String, nil] the response body (binary), or nil if the URL is
+  #   invalid or the fetch failed.
+  def get_body(url)
+    return if url.blank?
+
+    fetch_into(@cached_bodies, url, want_body: true)
   end
 
   private
 
-  # Decide whether to fetch `url` over the network and do so, subject to our
-  # two entry guards (dubious-URL rejection and the per-instance fetch budget).
-  # Every path here records a result in @cached_data so `get` can return it.
-  # @param url [String] The (uncached) URL to consider fetching.
-  # @return [void]
-  def fetch_if_needed(url)
-    # Security: Ignore dubious URLs (SSRF protection & possible attack).
-    # They *should* already have been rejected earlier during input
-    # validation, but re-checking here is cheap and *ensures* we never fetch
-    # something like `https://127.0.0.1` regardless of how we were called.
+  # Return the cached value for `url` in `cache`, fetching it once if absent.
+  # A failed fetch caches nil, so we neither retry nor re-enter the network for
+  # a URL already tried. Header and body fetches use separate caches, so a
+  # failed body fetch never invalidates good headers (or vice versa).
+  # @return [Object, nil] the cached fetch result.
+  def fetch_into(cache, url, want_body:)
+    unless cache.key?(url)
+      cache[url] = guarded_fetch(url, want_body: want_body)
+    end
+    cache[url]
+  end
+
+  # Fetch `url` over the network subject to our two entry guards (dubious-URL
+  # rejection and the per-instance fetch budget), returning the fetch result
+  # (a { meta: } hash, a body String, or nil). Both guards return nil, which
+  # fetch_into caches. The URL is logged as-is; repo/homepage URLs are
+  # validated upstream (UrlValidator forbids control characters).
+  # @return [Object, nil] the fetch result, or nil if refused or failed.
+  def guarded_fetch(url, want_body:)
+    # Security: Ignore dubious URLs (SSRF protection & possible attack). They
+    # *should* already have been rejected during input validation, but
+    # re-checking here is cheap and *ensures* we never fetch something like
+    # `https://127.0.0.1` regardless of how we were called.
     if SecurityUtils.dubious_url?(url)
-      reject_fetch(url, 'Ignoring dubious URL for evidence')
+      Rails.logger.warn "Ignoring dubious URL for evidence: #{url}"
+      nil
     elsif @fetch_count >= MAX_FETCHES
       # Provable amplification bound: refuse once this instance has already
       # fetched MAX_FETCHES distinct URLs.
-      reject_fetch(url, "Evidence fetch budget (#{MAX_FETCHES}) exhausted")
+      Rails.logger.warn(
+        "Evidence fetch budget (#{MAX_FETCHES}) exhausted: #{url}"
+      )
+      nil
     else
-      # Count only real network attempts: cached URLs short-circuit in `get`,
-      # and dubious/over-budget URLs never reach here.
+      # Count only real network attempts: cached URLs short-circuit in
+      # fetch_into, and dubious/over-budget URLs never reach here.
       @fetch_count += 1
-      fetch_url_with_timeout(url)
+      fetch_url_with_timeout(url, want_body: want_body)
     end
-  end
-
-  # Record a refusal to fetch `url`: log why and cache nil so a repeat get of
-  # the same URL is a no-op rather than a fresh refusal (and never a re-fetch).
-  # The URL is logged as-is, like the rest of this class; repo/homepage URLs
-  # are validated upstream (UrlValidator forbids control characters), so there
-  # is nothing to escape for log safety.
-  # @param url [String] The rejected URL.
-  # @param reason [String] Human-readable reason for the refusal.
-  # @return [void]
-  def reject_fetch(url, reason)
-    Rails.logger.warn "#{reason}: #{url}"
-    @cached_data[url] = nil
   end
 
   # Fetch data from the URL with a global timeout.
   #
   # @param url [String] The URL to fetch data from.
-  # @return [void]
-  def fetch_url_with_timeout(url)
+  # @param want_body [Boolean] Whether to read/decode the body (get_body) or
+  #   only the headers (get).
+  # @return [Object, nil] the fetch result, or nil on error.
+  def fetch_url_with_timeout(url, want_body:)
     Timeout.timeout(MAX_TOTAL_TIME) do
       if @allow_private_ips
-        get_insecure(url)
+        get_insecure(url, want_body: want_body)
       else
-        get_secure(url)
+        get_secure(url, want_body: want_body)
       end
     end
   rescue StandardError => e
     handle_fetch_error(url, e)
   end
 
-  # Log error and mark the URL as failed in the cache.
+  # Log a fetch error and return nil (fetch_into caches it).
   #
   # @param url [String] The URL that failed.
   # @param error [StandardError] The error that occurred.
-  # @return [void]
+  # @return [nil]
   def handle_fetch_error(url, error)
     msg =
       if error.is_a?(Timeout::Error)
@@ -214,21 +246,54 @@ class Evidence
         "Error: #{error.message}"
       end
     Rails.logger.warn "#{msg} fetching URL #{url}"
-    @cached_data[url] = nil
+    nil
   end
 
-  # Extract the body from the response, respecting MAXREAD.
+  # Build the cached value from a successful response: headers only, or the
+  # decoded body, per the caller's request. Only here, on a body request, do we
+  # pull the body into memory (and decompress it if the peer compressed it).
+  #
+  # @param res [Net::HTTPResponse] The successful response object.
+  # @param want_body [Boolean] Whether the caller asked for the body.
+  # @return [Hash, String] a frozen { meta: } hash, or the frozen body.
+  def build_result(res, want_body)
+    return { meta: extract_meta(res) }.freeze unless want_body
+
+    decode_body(read_raw_body(res), res['content-encoding'])
+  end
+
+  # Read the response body into memory, never exceeding MAXREAD bytes. This is
+  # the point at which body bytes are pulled off the socket; a headers-only
+  # get never reaches here.
   #
   # @param res [Net::HTTPResponse] The response object.
-  # @return [String] The frozen body string.
-  def extract_body(res)
+  # @return [String] The (binary) body, at most MAXREAD bytes. Not frozen;
+  #   decode_body produces the frozen result.
+  def read_raw_body(res)
     body = (+'').force_encoding('BINARY')
     res.read_body do |chunk|
       body << chunk
       break if body.bytesize >= MAXREAD
     end
     # Truncate if we went over in the last chunk
-    body.byteslice(0, MAXREAD).freeze
+    body.byteslice(0, MAXREAD)
+  end
+
+  # Return the usable body. We requested identity, so the normal case is
+  # plaintext and we just freeze it. A peer that ignored identity and sent
+  # gzip is inflated through SafeInflate, which caps output at MAXREAD so a
+  # compressed bomb cannot exhaust memory. Any other Content-Encoding is left
+  # as raw bytes (we do not attempt to decode it).
+  #
+  # @param raw [String] The raw body bytes.
+  # @param encoding [String, nil] The response Content-Encoding, if any.
+  # @return [String] The frozen, usable body.
+  def decode_body(raw, encoding)
+    if %w[gzip x-gzip].include?(encoding.to_s.strip.downcase)
+      SafeInflate.gunzip(raw, max_bytes: MAXREAD).freeze
+    else
+      raw.freeze
+    end
   end
 
   # Extract and limit headers from the response to prevent resource exhaustion.
@@ -245,7 +310,7 @@ class Evidence
   # @param url [String] The URL to fetch data from.
   # @return [void]
   # rubocop:disable Metrics/MethodLength
-  def get_secure(url)
+  def get_secure(url, want_body:)
     # Use ssrf_filter to ensure GET requests are not performed if the
     # domain dynamically resolves (possibly via redirects) to a
     # reserved IP address (either IPv4 or IPv6) such as 127.0.0.1.
@@ -257,18 +322,15 @@ class Evidence
       headers: REQUEST_HEADERS
     }
     options[:resolver] = @resolver if @resolver
+    result = nil
     SsrfFilter.get(url, options) do |res|
-      # Only process successful responses
-      @cached_data[url] =
-        if res.is_a?(Net::HTTPSuccess)
-          {
-            meta: extract_meta(res), body: extract_body(res)
-          }.freeze
-        end
+      # ssrf_filter yields every hop; only the final success carries evidence.
+      result = build_result(res, want_body) if res.is_a?(Net::HTTPSuccess)
     end
+    result
   rescue SsrfFilter::Error => e
     Rails.logger.warn "SSRF Filter error fetching URL #{url}: #{e.message}"
-    @cached_data[url] ||= nil
+    nil
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -280,8 +342,9 @@ class Evidence
   # @param url [String] The URL to fetch data from.
   # @return [void]
   # rubocop:disable Metrics/MethodLength
-  def get_insecure(url)
+  def get_insecure(url, want_body:)
     require 'open-uri'
+    result = nil
     URI.parse(url).open(
       'rb',
       'User-Agent' => USER_AGENT,
@@ -289,14 +352,18 @@ class Evidence
       open_timeout: 5,
       read_timeout: 5
     ) do |file|
-      meta = extract_open_uri_meta(file)
-      @cached_data[url] = {
-        meta: meta, body: file.read(MAXREAD).freeze
-      }.freeze
+      result =
+        if want_body
+          raw = file.read(MAXREAD) || (+'').force_encoding('BINARY')
+          decode_body(raw, file.meta['content-encoding'])
+        else
+          { meta: extract_open_uri_meta(file) }.freeze
+        end
     end
+    result
   rescue StandardError => e
     Rails.logger.warn "Error fetching URL #{url} (insecure): #{e.message}"
-    @cached_data[url] ||= nil
+    nil
   end
   # rubocop:enable Metrics/MethodLength
 

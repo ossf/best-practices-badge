@@ -42,10 +42,10 @@ class EvidenceTest < ActiveSupport::TestCase
     VCR.use_cassette('evidence_get_success') do
       result = @evidence.get(url)
 
-      # Verify the result contains meta and body
+      # get returns headers only; the body is deferred to get_body.
       assert_not_nil result
       assert result.key?(:meta)
-      assert result.key?(:body)
+      assert_not result.key?(:body)
 
       # Verify it's cached (second call returns same object)
       result2 = @evidence.get(url)
@@ -78,15 +78,15 @@ class EvidenceTest < ActiveSupport::TestCase
     assert_nil result2
   end
 
-  test 'get respects MAXREAD limit' do
+  test 'get_body respects MAXREAD limit' do
     url = 'https://raw.githubusercontent.com/ossf/' \
           'best-practices-badge/main/README.md'
 
     VCR.use_cassette('evidence_get_success') do
-      result = @evidence.get(url)
+      body = @evidence.get_body(url)
 
       # Verify body doesn't exceed MAXREAD
-      assert result[:body].bytesize <= Evidence::MAXREAD
+      assert body.bytesize <= Evidence::MAXREAD
     end
   end
 
@@ -124,10 +124,11 @@ class EvidenceTest < ActiveSupport::TestCase
 
     result = evidence_insecure.get(url)
     assert_not_nil result
-    assert_equal 'Insecure content', result[:body]
     # In open-uri, meta returns a hash-like object.
     # Our get_insecure uses file.meta directly.
     assert_not_nil result[:meta]
+    # The body is fetched separately, only on demand.
+    assert_equal 'Insecure content', evidence_insecure.get_body(url)
   end
 
   test 'get_insecure handles errors gracefully' do
@@ -226,7 +227,7 @@ class EvidenceTest < ActiveSupport::TestCase
     assert result.frozen?
     assert result[:meta].frozen?
     assert result[:meta]['content-type'].frozen?
-    assert result[:body].frozen?
+    assert @evidence.get_body(url).frozen?
   end
 
   test 'get_insecure returns frozen data' do
@@ -244,7 +245,60 @@ class EvidenceTest < ActiveSupport::TestCase
     assert result.frozen?
     assert result[:meta].frozen?
     assert result[:meta]['Content-Type'].frozen?
-    assert result[:body].frozen?
+    assert evidence_insecure.get_body(url).frozen?
+  end
+
+  # The whole point of get/get_body: a headers-only get must not pull the body
+  # into memory. We assert both that get's result carries no body and that the
+  # body cache stays empty until get_body is called.
+  test 'get returns headers only; body extraction is deferred to get_body' do
+    url = 'http://split.example.com/'
+    mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
+    evidence = Evidence.new(@project, resolver: mock_resolver)
+    stub_request(:get, url).to_return(
+      status: 200, body: 'the body',
+      headers: { 'Content-Type' => 'text/plain' }
+    )
+
+    meta_result = evidence.get(url)
+    assert meta_result.key?(:meta)
+    assert_not meta_result.key?(:body)
+    assert_empty evidence.instance_variable_get(:@cached_bodies)
+
+    assert_equal 'the body', evidence.get_body(url)
+  end
+
+  # If the peer ignores our identity request and sends gzip, get_body must
+  # inflate it (through SafeInflate) so the caller still gets usable content.
+  test 'get_body inflates a gzip-encoded body' do
+    url = 'http://gz.example.com/'
+    mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
+    evidence = Evidence.new(@project, resolver: mock_resolver)
+    payload = 'documentation ' * 100
+    stub_request(:get, url).to_return(
+      status: 200, body: Zlib.gzip(payload),
+      headers: { 'Content-Encoding' => 'gzip' }
+    )
+
+    # payload is ASCII-only, so it compares equal to the binary result.
+    assert_equal payload, evidence.get_body(url)
+  end
+
+  # Security: a gzip *bomb* body must be refused (get_body returns nil) rather
+  # than inflated in full. SafeInflate caps output at MAXREAD, raising, which
+  # the fetch treats as a failed fetch.
+  test 'get_body refuses a gzip bomb, returning nil' do
+    url = 'http://bomb.example.com/'
+    mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
+    evidence = Evidence.new(@project, resolver: mock_resolver)
+    bomb = Zlib.gzip('A' * (200 * 1024 * 1024))
+    assert bomb.bytesize < Evidence::MAXREAD, 'bomb is small compressed'
+    stub_request(:get, url).to_return(
+      status: 200, body: bomb,
+      headers: { 'Content-Encoding' => 'gzip' }
+    )
+
+    assert_nil evidence.get_body(url)
   end
 
   # Security: one project analysis must never become an unbounded
@@ -334,26 +388,26 @@ class EvidenceTest < ActiveSupport::TestCase
     assert_equal 'identity', captured[:headers]['Accept-Encoding']
   end
 
-  # A response that merely *declares* gzip is stored as-is and never inflated,
-  # so a compressed payload cannot expand past MAXREAD in memory.
-  test 'get does not inflate a gzip-declared response body' do
-    raw = 'A' * (5 * 1024 * 1024) # 5 MB if it were ever inflated
+  # A gzip body that would inflate beyond MAXREAD is refused by get_body: the
+  # cap is enforced during inflation (via SafeInflate), so an over-cap payload
+  # can never expand past MAXREAD in memory. This uses a streaming GzipWriter
+  # (distinct from Zlib.gzip) at a size just over the cap, complementing the
+  # extreme 200 MB bomb case above.
+  test 'get_body never inflates a gzip body past MAXREAD' do
+    raw = 'A' * (5 * 1024 * 1024) # would be 5 MB inflated, over MAXREAD
     gz = StringIO.new
     Zlib::GzipWriter.wrap(gz) { |w| w.write(raw) }
-    bomb = gz.string
+    over_cap = gz.string
 
     url = 'http://gzip.example.com/'
     mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
     evidence = Evidence.new(@project, resolver: mock_resolver)
     stub_request(:get, url).to_return(
-      status: 200, body: bomb,
+      status: 200, body: over_cap,
       headers: { 'Content-Encoding' => 'gzip' }
     )
 
-    result = evidence.get(url)
-    assert_not_nil result
-    assert_operator result[:body].bytesize, :<=, Evidence::MAXREAD
-    assert_operator result[:body].bytesize, :<, raw.bytesize
+    assert_nil evidence.get_body(url)
   end
 end
 # rubocop:enable Metrics/ClassLength
