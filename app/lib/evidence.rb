@@ -105,19 +105,29 @@ class Evidence
   # MAX_FETCHES * (MAX_REDIRECTS + 1).
   MAX_FETCHES = 100
 
-  # Request identity (no compression) so we never decompress attacker-supplied
-  # data. This is a deliberate anti-"zip bomb" measure: Net::HTTP only turns on
-  # transparent gzip/deflate inflation when *it* auto-adds the Accept-Encoding
-  # header, so by setting it ourselves we disable that inflation entirely.
-  # Consequences, both good and easy to reason about:
-  #   - A server that honours it sends uncompressed bytes, so MAXREAD bounds
-  #     the actual content.
-  #   - A server that ignores it and sends gzip anyway has its body stored
-  #     as-is (still compressed) and never inflated, so a small response can
-  #     never expand into gigabytes in memory. MAXREAD bounds the *stored*
-  #     bytes in every case.
-  # No detective reads the body (only headers), so declining decompression
-  # costs us nothing. Frozen so we allocate it once, not per request.
+  # Request identity (no compression) so the HTTP stack never *transparently*
+  # inflates an attacker-supplied response. This is the first layer of our
+  # anti-"decompression bomb" defense and it is applied on every fetch path:
+  # here, and on the GitHub content path (see GithubContentAccess), so the
+  # whole system is uniform and easy to reason about.
+  #
+  # Net::HTTP only turns on transparent gzip/deflate inflation when *it*
+  # auto-adds the Accept-Encoding header; by setting it ourselves we leave
+  # decode_content off, so no inflation happens regardless of what the peer
+  # sends. Both outcomes are bounded:
+  #   - A peer that honours identity sends uncompressed bytes, so MAXREAD
+  #     bounds the actual content directly.
+  #   - A peer that ignores it and sends gzip anyway has its body stored as-is
+  #     (still compressed) and never inflated, so a small response can never
+  #     expand into gigabytes in memory. MAXREAD bounds the *stored* bytes in
+  #     every case.
+  #
+  # Today the only consumer of a fetched body reads response *headers*, not the
+  # body (HardenedSitesDetective). We still fetch and store the body, so if a
+  # future detective (e.g. a non-GitHub content path) needs the actual bytes
+  # and they arrived compressed, it MUST decompress through SafeInflate, which
+  # caps decompressed output, rather than calling Zlib or an auto-decoding HTTP
+  # client directly. Frozen so we allocate it once, not per request.
   REQUEST_HEADERS = {
     'User-Agent' => USER_AGENT,
     'Accept-Encoding' => 'identity'

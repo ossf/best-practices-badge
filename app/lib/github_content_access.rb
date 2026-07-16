@@ -23,6 +23,16 @@ class GithubContentAccess
 
   EMPTY = [].freeze
 
+  # Anti-"decompression bomb" defense, matching Evidence's outbound fetch
+  # policy. Octokit's Faraday stack has no compression middleware, so if we say
+  # nothing Net::HTTP auto-adds Accept-Encoding and *transparently inflates*
+  # the GitHub response (the entire inflated body lands in memory before we can
+  # check its size). By requesting identity we leave decode_content off, so an
+  # attacker-authored repo file can never be inflated on us; the size caps
+  # below then bound the raw bytes. Sent on every request this class makes,
+  # since every one of them reads untrusted repository data.
+  IDENTITY_ENCODING = { 'Accept-Encoding' => 'identity' }.freeze
+
   # Given a filename, reply with information about it.
   # - For files (type='file') this is a hash of data
   #   Fields include: name, path, size, html_url.
@@ -39,7 +49,9 @@ class GithubContentAccess
   #   (possibly empty) scan from an inaccessible repo.
   def get_info(filename, not_found_result: EMPTY)
     @octokit_client = @octokit_client_factory.call if @octokit_client.nil?
-    @octokit_client.contents @fullname, path: filename
+    @octokit_client.contents(
+      @fullname, path: filename, headers: IDENTITY_ENCODING
+    )
   rescue Octokit::NotFound
     not_found_result
   end
@@ -69,6 +81,11 @@ class GithubContentAccess
   # us to load oversized content into memory. If this is unacceptable, the
   # only solution is HTTP streaming with size limits at a lower level than
   # the Octokit gem provides.
+  #
+  # We do close the *decompression* amplification vector: we request identity
+  # encoding (see IDENTITY_ENCODING) so a small compressed response can never
+  # be transparently inflated into gigabytes on us. What remains is only a raw
+  # oversized response, bounded by trusting GitHub's reported size over HTTPS.
   # rubocop:disable Metrics/MethodLength
   def get_content(filename, max_size: 100_000)
     # First, get metadata to check size BEFORE fetching content
@@ -91,7 +108,8 @@ class GithubContentAccess
     content = @octokit_client.contents(
       @fullname,
       path: filename,
-      accept: 'application/vnd.github.raw'
+      accept: 'application/vnd.github.raw',
+      headers: IDENTITY_ENCODING
     )
 
     # Defense in depth: Verify actual size matches GitHub's claim
