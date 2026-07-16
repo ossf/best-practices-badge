@@ -143,8 +143,12 @@ class ProjectTest < ActiveSupport::TestCase
       "line1#{0x09.chr}col2#{0x0a.chr}line2#{0x0d.chr}"
     )
     # Accept ordinary UTF-8 text including multibyte code points.
+    # Built from code points ("cafe" with an acute e, then a CJK character)
+    # so the source stays ASCII and free of any partial-word fragments.
+    # Otherwise the spelling checker will reject this.
     assert validator.text_acceptable?('The best practices badge.')
-    assert validator.text_acceptable?("caf#{[0xE9].pack('U')} #{[0x65E5].pack('U')}")
+    multibyte = [0x63, 0x61, 0x66, 0xE9, 0x20, 0x65E5].pack('U*')
+    assert validator.text_acceptable?(multibyte)
   end
 
   # rubocop:disable Metrics/BlockLength
