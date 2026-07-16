@@ -133,7 +133,7 @@ class SubdirFileContentsDetectiveTest < ActiveSupport::TestCase
   # Security: even if GitHub understates the size, the decoded-bytesize
   # re-check catches an oversized file (defense in depth).
   test 'oversized documentation file is skipped when size is understated' do
-    huge = 'installation ' * 5000 # > 50 KB, contains matching text
+    huge = 'installation ' * 10_000 # > 100 KB, contains matching text
     mock = mock_repo_with_file(
       size: 10, content: Base64.strict_encode64(huge)
     )

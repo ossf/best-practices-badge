@@ -61,7 +61,7 @@ class SubdirFileContentsDetective < Detective
   # so a malicious repo cannot make us decode and scan an oversized file.
   # GitHub's contents API already inlines the (base64) content in the metadata
   # response, so we enforce the cap without an extra request.
-  MAX_FILE_SIZE = 50_000
+  MAX_FILE_SIZE = 100_000
 
   # Fetch and decode the content of a single file entry.
   # Returns nil when get_info returns 404 ([] or nil), the entry has no

@@ -48,7 +48,7 @@ class RepoJsonDetective < Detective
 
   # File locations to check (in order)
   FILE_LOCATIONS = ['.bestpractices.json', '.project.d/bestpractices.json'].freeze
-  MAX_FILE_SIZE = 50_000 # 50 KB
+  MAX_FILE_SIZE = 100_000 # 100 KB
 
   def analyze(_evidence, current)
     repo_files = current[:repo_files]

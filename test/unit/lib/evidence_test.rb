@@ -6,6 +6,8 @@
 
 require 'test_helper'
 require 'minitest/mock'
+require 'zlib'
+require 'stringio'
 
 # rubocop:disable Metrics/ClassLength
 class EvidenceTest < ActiveSupport::TestCase
@@ -311,6 +313,47 @@ class EvidenceTest < ActiveSupport::TestCase
 
     assert_equal Evidence::MAX_REDIRECTS, captured[:max_redirects]
     assert_equal Evidence::ALLOWED_SCHEMES, captured[:scheme_whitelist]
+  end
+
+  # Security (anti "zip bomb"): we request identity encoding so Net::HTTP never
+  # turns on transparent gzip/deflate inflation. Without this a small response
+  # could inflate to gigabytes in memory; with it MAXREAD bounds the stored
+  # bytes in every case.
+  test 'get_secure requests identity content-encoding' do
+    captured = nil
+    fake_get =
+      lambda do |_url, options, &_block|
+        captured = options
+        nil
+      end
+
+    SsrfFilter.stub :get, fake_get do
+      @evidence.get('http://enc.example.com/')
+    end
+
+    assert_equal 'identity', captured[:headers]['Accept-Encoding']
+  end
+
+  # A response that merely *declares* gzip is stored as-is and never inflated,
+  # so a compressed payload cannot expand past MAXREAD in memory.
+  test 'get does not inflate a gzip-declared response body' do
+    raw = 'A' * (5 * 1024 * 1024) # 5 MB if it were ever inflated
+    gz = StringIO.new
+    Zlib::GzipWriter.wrap(gz) { |w| w.write(raw) }
+    bomb = gz.string
+
+    url = 'http://gzip.example.com/'
+    mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
+    evidence = Evidence.new(@project, resolver: mock_resolver)
+    stub_request(:get, url).to_return(
+      status: 200, body: bomb,
+      headers: { 'Content-Encoding' => 'gzip' }
+    )
+
+    result = evidence.get(url)
+    assert_not_nil result
+    assert_operator result[:body].bytesize, :<=, Evidence::MAXREAD
+    assert_operator result[:body].bytesize, :<, raw.bytesize
   end
 end
 # rubocop:enable Metrics/ClassLength

@@ -70,7 +70,7 @@ class GithubContentAccess
   # only solution is HTTP streaming with size limits at a lower level than
   # the Octokit gem provides.
   # rubocop:disable Metrics/MethodLength
-  def get_content(filename, max_size: 50_000)
+  def get_content(filename, max_size: 100_000)
     # First, get metadata to check size BEFORE fetching content
     file_info = get_info(filename)
     return if file_info.blank? || file_info.is_a?(Array)

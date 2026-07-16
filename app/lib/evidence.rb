@@ -105,6 +105,24 @@ class Evidence
   # MAX_FETCHES * (MAX_REDIRECTS + 1).
   MAX_FETCHES = 100
 
+  # Request identity (no compression) so we never decompress attacker-supplied
+  # data. This is a deliberate anti-"zip bomb" measure: Net::HTTP only turns on
+  # transparent gzip/deflate inflation when *it* auto-adds the Accept-Encoding
+  # header, so by setting it ourselves we disable that inflation entirely.
+  # Consequences, both good and easy to reason about:
+  #   - A server that honours it sends uncompressed bytes, so MAXREAD bounds
+  #     the actual content.
+  #   - A server that ignores it and sends gzip anyway has its body stored
+  #     as-is (still compressed) and never inflated, so a small response can
+  #     never expand into gigabytes in memory. MAXREAD bounds the *stored*
+  #     bytes in every case.
+  # No detective reads the body (only headers), so declining decompression
+  # costs us nothing. Frozen so we allocate it once, not per request.
+  REQUEST_HEADERS = {
+    'User-Agent' => USER_AGENT,
+    'Accept-Encoding' => 'identity'
+  }.freeze
+
   # Get contents of given URL and return it (cached).
   # Returns a hash with :meta (headers) and :body (content) if successful.
   #
@@ -226,7 +244,7 @@ class Evidence
       read_timeout: 5,
       max_redirects: MAX_REDIRECTS,
       scheme_whitelist: ALLOWED_SCHEMES,
-      headers: { 'User-Agent' => USER_AGENT }
+      headers: REQUEST_HEADERS
     }
     options[:resolver] = @resolver if @resolver
     SsrfFilter.get(url, options) do |res|
@@ -245,7 +263,9 @@ class Evidence
   # rubocop:enable Metrics/MethodLength
 
   # Perform an insecure GET request (allows private IPs) using open-uri.
-  # This is only used if ALLOW_PRIVATE_IPS is set.
+  # This is only used if ALLOW_PRIVATE_IPS is set (never on real production).
+  # We still request identity encoding so open-uri does not transparently
+  # decompress a response; see REQUEST_HEADERS for the anti-zip-bomb rationale.
   #
   # @param url [String] The URL to fetch data from.
   # @return [void]
@@ -255,6 +275,7 @@ class Evidence
     URI.parse(url).open(
       'rb',
       'User-Agent' => USER_AGENT,
+      'Accept-Encoding' => 'identity',
       open_timeout: 5,
       read_timeout: 5
     ) do |file|

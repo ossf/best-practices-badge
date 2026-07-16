@@ -50,7 +50,7 @@
 # Oversized comment injection:
 #   Comment strings extracted from SI data are truncated to MAX_SI_COMMENT_SIZE
 #   before being embedded in justification text, preventing a malicious file
-#   from bloating stored justifications up to the 50 KB file cap.
+#   from bloating stored justifications up to the 100 KB file cap.
 #
 # SQL / XSS injection:
 #   No SQL is constructed from SI data. The explanation/justification string
@@ -59,8 +59,8 @@
 # rubocop:disable Metrics/ClassLength
 class SecurityInsightsDetective < Detective
   # Maximum size of a security-insights file we will fetch and parse.
-  # 50 KB is generous; real files are typically a few kilobytes.
-  MAX_SI_SIZE = 50_000
+  # 100 KB is generous; real files are typically a few kilobytes.
+  MAX_SI_SIZE = 100_000
 
   # Maximum length of a comment string extracted from the SI file to include
   # in a justification.  Prevents a malicious file from injecting an
