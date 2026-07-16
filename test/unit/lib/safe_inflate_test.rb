@@ -7,70 +7,66 @@
 require 'test_helper'
 
 class SafeInflateTest < ActiveSupport::TestCase
-  # --- Happy path: real content round-trips through both framings ---
+  # --- Happy path: gzip content round-trips ---
 
-  test 'inflates a gzip stream back to the original content' do
+  test 'gunzips a gzip stream back to the original content' do
     original = 'Installation instructions and usage notes.' * 10
-    compressed = Zlib.gzip(original)
-    result = SafeInflate.inflate(compressed, max_bytes: 1_000_000)
+    result = SafeInflate.gunzip(Zlib.gzip(original), max_bytes: 1_000_000)
     assert_equal original, result.force_encoding('UTF-8')
   end
 
-  test 'inflates a zlib/deflate stream (auto-detected framing)' do
-    original = 'security policy text'
-    compressed = Zlib::Deflate.deflate(original)
-    result = SafeInflate.inflate(compressed, max_bytes: 1_000_000)
-    assert_equal original, result.force_encoding('UTF-8')
-  end
-
-  test 'output is bytes even when input spans many INPUT_SLICE chunks' do
-    # Larger than one INPUT_SLICE of *compressed* input to exercise the
-    # multi-slice feed loop, but well under the cap.
-    original = 'x' * (SafeInflate::INPUT_SLICE * 4)
-    compressed = Zlib.gzip(original)
-    result = SafeInflate.inflate(compressed, max_bytes: original.bytesize + 10)
+  test 'gunzips content larger than one internal read buffer' do
+    original = 'x' * (256 * 1024)
+    result = SafeInflate.gunzip(Zlib.gzip(original), max_bytes: original.bytesize)
     assert_equal original.bytesize, result.bytesize
   end
 
-  # --- Security: decompression bombs are refused ---
+  test 'an empty gzip stream yields an empty string' do
+    assert_equal '', SafeInflate.gunzip(Zlib.gzip(''), max_bytes: 1_000)
+  end
 
-  test 'raises TooLarge on a decompression bomb without materializing it' do
-    # ~5 MB of a single repeated byte compresses to a few KB: a classic bomb.
-    bomb = Zlib.gzip('A' * 5_000_000)
-    assert bomb.bytesize < 10_000, 'sanity: bomb should be tiny compressed'
+  # --- Security: decompression bombs are refused without materializing ---
+
+  test 'raises TooLarge on a decompression bomb' do
+    # ~200 MB of a single repeated byte compresses to a few hundred KB. The
+    # pull-based reader must stop after ~max_bytes, never inflating the rest.
+    bomb = Zlib.gzip('A' * (200 * 1024 * 1024))
+    assert bomb.bytesize < 1_000_000, 'sanity: bomb should be small compressed'
     assert_raises(SafeInflate::TooLarge) do
-      SafeInflate.inflate(bomb, max_bytes: 1_000)
+      SafeInflate.gunzip(bomb, max_bytes: 1_000)
     end
   end
 
   test 'output exactly at the cap is allowed' do
-    original = 'y' * 500
-    compressed = Zlib.gzip(original)
-    result = SafeInflate.inflate(compressed, max_bytes: 500)
+    result = SafeInflate.gunzip(Zlib.gzip('y' * 500), max_bytes: 500)
     assert_equal 500, result.bytesize
   end
 
   test 'one byte over the cap raises TooLarge' do
-    original = 'z' * 501
-    compressed = Zlib.gzip(original)
     assert_raises(SafeInflate::TooLarge) do
-      SafeInflate.inflate(compressed, max_bytes: 500)
+      SafeInflate.gunzip(Zlib.gzip('z' * 501), max_bytes: 500)
     end
   end
 
-  # --- Input validation and malformed streams ---
+  # --- Input validation and unsupported/malformed streams ---
 
   test 'rejects a non-positive max_bytes' do
-    compressed = Zlib.gzip('hello')
-    assert_raises(ArgumentError) { SafeInflate.inflate(compressed, max_bytes: 0) }
-    assert_raises(ArgumentError) do
-      SafeInflate.inflate(compressed, max_bytes: -1)
+    gz = Zlib.gzip('hello')
+    assert_raises(ArgumentError) { SafeInflate.gunzip(gz, max_bytes: 0) }
+    assert_raises(ArgumentError) { SafeInflate.gunzip(gz, max_bytes: -1) }
+  end
+
+  test 'raises Zlib::Error on data that is not a gzip stream' do
+    assert_raises(Zlib::Error) do
+      SafeInflate.gunzip('this is not compressed', max_bytes: 1_000)
     end
   end
 
-  test 'raises Zlib::Error on data that is not a valid compressed stream' do
+  test 'raw deflate (non-gzip framing) is not accepted' do
+    # We intentionally support only gzip framing; a raw zlib/deflate stream
+    # must be rejected rather than silently decoded.
     assert_raises(Zlib::Error) do
-      SafeInflate.inflate('this is not compressed', max_bytes: 1_000)
+      SafeInflate.gunzip(Zlib::Deflate.deflate('some text'), max_bytes: 1_000)
     end
   end
 end
