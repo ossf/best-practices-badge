@@ -244,5 +244,73 @@ class EvidenceTest < ActiveSupport::TestCase
     assert result[:meta]['Content-Type'].frozen?
     assert result[:body].frozen?
   end
+
+  # Security: one project analysis must never become an unbounded
+  # outbound-request amplifier. At the MAX_FETCHES ceiling, a further distinct
+  # URL is refused without touching the network. We fast-forward @fetch_count
+  # to the boundary so the test asserts the invariant regardless of the
+  # (deliberately large) budget value.
+  test 'get enforces the MAX_FETCHES budget per instance' do
+    mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
+    evidence = Evidence.new(@project, resolver: mock_resolver)
+    stub_request(:get, 'http://last.example.com/')
+      .to_return(status: 200, body: 'ok')
+    stub_request(:get, 'http://over.example.com/')
+      .to_return(status: 200, body: 'ok')
+
+    # Fast-forward to one fetch below the budget.
+    evidence.instance_variable_set(:@fetch_count, Evidence::MAX_FETCHES - 1)
+
+    # The fetch that reaches the budget still succeeds.
+    assert_not_nil evidence.get('http://last.example.com/')
+    # The next distinct URL exceeds the budget: refused (nil) and cached,
+    # without ever hitting the network.
+    assert_nil evidence.get('http://over.example.com/')
+    assert_nil evidence.get('http://over.example.com/') # cached, still nil
+    assert_not_requested :get, 'http://over.example.com/'
+  end
+
+  # Security: fetching the same URL repeatedly stays within budget (it is
+  # cached), so a legitimate re-check is never starved by the cap.
+  test 'repeated fetch of one URL does not consume extra budget' do
+    mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
+    evidence = Evidence.new(@project, resolver: mock_resolver)
+    stub_request(:get, 'http://repeat.example.com/')
+      .to_return(status: 200, body: 'ok')
+
+    (Evidence::MAX_FETCHES * 2).times do
+      assert_not_nil evidence.get('http://repeat.example.com/')
+    end
+    assert_equal 1, evidence.instance_variable_get(:@fetch_count)
+  end
+
+  # Security: the unfiltered (open-uri) path must be impossible on the real
+  # production site, even if ALLOW_PRIVATE_IPS is set by misconfiguration.
+  test 'insecure path is force-disabled on the real production site' do
+    original = ENV.fetch('BADGEAPP_REAL_PRODUCTION', nil)
+    ENV['BADGEAPP_REAL_PRODUCTION'] = 'true'
+    evidence = Evidence.new(@project, allow_private_ips: true)
+    assert_equal false, evidence.instance_variable_get(:@allow_private_ips)
+  ensure
+    ENV['BADGEAPP_REAL_PRODUCTION'] = original
+  end
+
+  # Security: the secure fetch pins scheme and redirect limits explicitly,
+  # so our outbound policy cannot silently drift to a library default.
+  test 'get_secure passes explicit scheme and redirect limits' do
+    captured = nil
+    fake_get =
+      lambda do |_url, options, &_block|
+        captured = options
+        nil
+      end
+
+    SsrfFilter.stub :get, fake_get do
+      @evidence.get('http://opts.example.com/')
+    end
+
+    assert_equal Evidence::MAX_REDIRECTS, captured[:max_redirects]
+    assert_equal Evidence::ALLOWED_SCHEMES, captured[:scheme_whitelist]
+  end
 end
 # rubocop:enable Metrics/ClassLength

@@ -51,10 +51,24 @@ class Evidence
     @project = project # ActiveRecord. Detectives should NOT change this.
     @cached_data = {}
     @resolver = resolver
-    @allow_private_ips = allow_private_ips
+    # Defense in depth: the insecure path (get_insecure uses open-uri with NO
+    # SSRF filtering) is a test/development convenience only. Force it off on
+    # the real production site even if ALLOW_PRIVATE_IPS is set, so production
+    # can never be tricked into an unfiltered fetch by a misconfiguration.
+    @allow_private_ips =
+      allow_private_ips && ENV['BADGEAPP_REAL_PRODUCTION'] != 'true'
+    # Number of distinct URLs actually fetched over the network by this
+    # instance, bounded by MAX_FETCHES (see get).
+    @fetch_count = 0
   end
 
   attr_reader :project
+
+  # == Outbound fetch policy (all limits are explicit on purpose) ==
+  # Every value below is a hard bound on what a single project analysis can do
+  # to the outside world, so the whole policy can be read in one place. The
+  # inputs are attacker-controlled (project repo_url / homepage_url), so we
+  # keep these deliberately tight rather than trusting library defaults.
 
   # Don't download more than this number of bytes per file;
   # this helps counter easy DoS attacks.
@@ -66,6 +80,31 @@ class Evidence
   # Don't store more than this many bytes of HTTP headers.
   MAX_HEADER_SIZE = 64 * 1024
 
+  # Follow at most this many redirects for a single fetch. ssrf_filter
+  # re-validates the resolved IP at every hop, but each hop is still an
+  # attacker-chosen outbound request, so we pin this explicitly rather than
+  # trusting the library default. We keep generous headroom (legitimate chains
+  # such as http->https, apex->www, and trailing-slash redirects are usually
+  # short, but some real sites chain a few more) so tightening never causes a
+  # mysterious fetch failure; the cap only stops an absurd redirect loop.
+  MAX_REDIRECTS = 8
+
+  # The only URL schemes we will ever request. Passed to ssrf_filter
+  # explicitly so our policy does not silently change if a library default
+  # changes underneath us.
+  ALLOWED_SCHEMES = %w[http https].freeze
+
+  # Hard cap on the number of distinct external URLs a single Evidence instance
+  # (one project analysis) will fetch. This is deliberately far above what any
+  # real analysis needs (today detectives fetch only the homepage and repo
+  # URLs) so it never interferes with legitimate current or future data
+  # gathering; its sole job is to stop an *absurd* storm, making it provably
+  # impossible to turn one analysis into an unbounded outbound-request
+  # amplifier no matter what any detective does. Combined with MAX_REDIRECTS
+  # this bounds total outbound HTTP requests per analysis at
+  # MAX_FETCHES * (MAX_REDIRECTS + 1).
+  MAX_FETCHES = 100
+
   # Get contents of given URL and return it (cached).
   # Returns a hash with :meta (headers) and :body (content) if successful.
   #
@@ -75,25 +114,48 @@ class Evidence
   def get(url)
     return if url.blank?
 
-    unless @cached_data.key?(url)
-      # Security: Ignore dubious URLs (SSRF protection & possible attack).
-      # They *should* already have been rejected earlier when we did input
-      # validation, but we re-validate this here to *ensure* we ignore them.
-      # It's a quick check, so there's no real downside to
-      # re-performing the check here as well as during
-      # input validation earlier, and that way we *ensure* we ignore
-      # dubious URLs like `https://127.0.0.1`.
-      if SecurityUtils.dubious_url?(url)
-        Rails.logger.warn "Ignoring dubious URL for evidence: #{url}"
-        @cached_data[url] = nil
-      else
-        fetch_url_with_timeout(url)
-      end
-    end
+    fetch_if_needed(url) unless @cached_data.key?(url)
     @cached_data[url]
   end
 
   private
+
+  # Decide whether to fetch `url` over the network and do so, subject to our
+  # two entry guards (dubious-URL rejection and the per-instance fetch budget).
+  # Every path here records a result in @cached_data so `get` can return it.
+  # @param url [String] The (uncached) URL to consider fetching.
+  # @return [void]
+  def fetch_if_needed(url)
+    # Security: Ignore dubious URLs (SSRF protection & possible attack).
+    # They *should* already have been rejected earlier during input
+    # validation, but re-checking here is cheap and *ensures* we never fetch
+    # something like `https://127.0.0.1` regardless of how we were called.
+    if SecurityUtils.dubious_url?(url)
+      reject_fetch(url, 'Ignoring dubious URL for evidence')
+    elsif @fetch_count >= MAX_FETCHES
+      # Provable amplification bound: refuse once this instance has already
+      # fetched MAX_FETCHES distinct URLs.
+      reject_fetch(url, "Evidence fetch budget (#{MAX_FETCHES}) exhausted")
+    else
+      # Count only real network attempts: cached URLs short-circuit in `get`,
+      # and dubious/over-budget URLs never reach here.
+      @fetch_count += 1
+      fetch_url_with_timeout(url)
+    end
+  end
+
+  # Record a refusal to fetch `url`: log why and cache nil so a repeat get of
+  # the same URL is a no-op rather than a fresh refusal (and never a re-fetch).
+  # The URL is logged as-is, like the rest of this class; repo/homepage URLs
+  # are validated upstream (UrlValidator forbids control characters), so there
+  # is nothing to escape for log safety.
+  # @param url [String] The rejected URL.
+  # @param reason [String] Human-readable reason for the refusal.
+  # @return [void]
+  def reject_fetch(url, reason)
+    Rails.logger.warn "#{reason}: #{url}"
+    @cached_data[url] = nil
+  end
 
   # Fetch data from the URL with a global timeout.
   #
@@ -162,6 +224,8 @@ class Evidence
     options = {
       open_timeout: 5,
       read_timeout: 5,
+      max_redirects: MAX_REDIRECTS,
+      scheme_whitelist: ALLOWED_SCHEMES,
       headers: { 'User-Agent' => USER_AGENT }
     }
     options[:resolver] = @resolver if @resolver
