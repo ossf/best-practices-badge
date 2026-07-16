@@ -56,14 +56,29 @@ class SubdirFileContentsDetective < Detective
     nil
   end
 
+  # Maximum size (bytes) of a repo file we will decode and scan for content
+  # matches. Matches the cap used by the JSON and security-insights detectives
+  # so a malicious repo cannot make us decode and scan an oversized file.
+  # GitHub's contents API already inlines the (base64) content in the metadata
+  # response, so we enforce the cap without an extra request.
+  MAX_FILE_SIZE = 50_000
+
   # Fetch and decode the content of a single file entry.
-  # Returns nil when get_info returns 404 ([] or nil) or the entry has no content.
+  # Returns nil when get_info returns 404 ([] or nil), the entry has no
+  # content, or the file exceeds MAX_FILE_SIZE (untrusted repo data).
   def fetch_file_content(repo_files, fso)
     file_entry = repo_files.get_info(fso['path'])
     return if file_entry.blank? || file_entry.is_a?(Array)
     return if file_entry['content'].blank?
+    # Skip oversized files using GitHub's reported size before decoding.
+    return if file_entry['size'].to_i > MAX_FILE_SIZE
 
-    Base64.decode64(file_entry['content'])
+    content = Base64.decode64(file_entry['content'])
+    # Defense in depth: re-check the actual decoded size in case the reported
+    # size was missing or understated.
+    return if content.bytesize > MAX_FILE_SIZE
+
+    content
   end
 
   def match_file_content(repo_files, folder, patterns, description)
