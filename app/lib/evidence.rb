@@ -172,6 +172,13 @@ class Evidence
   # store_body fetch), this performs its own store_body fetch, so callers can
   # use get_body on its own.
   #
+  # NOTE: get_body has no production caller yet. It is implemented (and tested)
+  # now on purpose. Reading evidence bodies from external sites is expected
+  # near-term behavior, and the risky part is the untrusted-decompression path;
+  # we want that safe path (SafeInflate, output caps, graceful failure) built
+  # and proven before a feature depends on it, rather than bolted on under
+  # pressure later. See the decompression policy test and SafeInflate.
+  #
   # @param url [String] The URL to fetch data from.
   # @return [String, nil] the decoded body (binary), or nil if the URL is
   #   invalid, the fetch failed, or the body could not be decoded.
