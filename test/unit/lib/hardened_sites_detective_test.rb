@@ -38,7 +38,6 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
     headers = { 'x-frame-options' => 'DENY' }
     missing = @detective.missing_frame_options(headers)
 
-    # Line 64: tests the empty array return
     assert_empty missing
   end
 
@@ -81,7 +80,7 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
   test 'problems_in_url returns empty array when all headers present' do
     url = 'https://secure.example.com/'
 
-    # Mock the evidence.get to return all required headers
+    # Stub the fetch cache so get_headers returns all required headers.
     @evidence.instance_variable_set(:@cached_data, {
                                       url => {
                                         meta: {
@@ -89,24 +88,24 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
                                           'strict-transport-security' => 'max-age=31536000',
                                           'x-content-type-options' => 'nosniff'
                                         },
-                                        body: ''
+                                        body_raw: nil, encoding: nil
                                       }
                                     })
 
     problems = @detective.problems_in_url(@evidence, url)
 
-    # Line 91: tests returning empty problems array
     assert_empty problems
   end
 
   test 'problems_in_url reports missing headers with URL' do
     url = 'https://insecure.example.com/'
 
-    # Mock evidence.get to return headers without security headers
+    # Stub the fetch cache so get_headers returns headers without the
+    # required security headers.
     @evidence.instance_variable_set(:@cached_data, {
                                       url => {
                                         meta: {},
-                                        body: ''
+                                        body_raw: nil, encoding: nil
                                       }
                                     })
 
@@ -122,8 +121,8 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
     url2 = 'https://site2.example.com/'
 
     @evidence.instance_variable_set(:@cached_data, {
-                                      url1 => { meta: {}, body: '' },
-      url2 => { meta: {}, body: '' }
+                                      url1 => { meta: {}, body_raw: nil, encoding: nil },
+      url2 => { meta: {}, body_raw: nil, encoding: nil }
                                     })
 
     problems = @detective.problems_in_urls(@evidence, [url1, url2])
@@ -142,7 +141,7 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
                                           'strict-transport-security' => 'max-age=31536000',
                                           'x-content-type-options' => 'nosniff'
                                         },
-                                        body: ''
+                                        body_raw: nil, encoding: nil
                                       },
       repo_url => {
         meta: {
@@ -150,7 +149,7 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
           'strict-transport-security' => 'max-age=31536000',
           'x-content-type-options' => 'nosniff'
         },
-        body: ''
+        body_raw: nil, encoding: nil
       }
                                     })
 
@@ -159,7 +158,6 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
       { homepage_url: homepage_url, repo_url: repo_url }
     )
 
-    # Line 117: tests the MET return path
     assert_equal CriterionStatus::MET, result[:hardened_site_status][:value]
     assert_equal 3, result[:hardened_site_status][:confidence]
   end
@@ -169,8 +167,8 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
     repo_url = 'https://github.com/example/repo'
 
     @evidence.instance_variable_set(:@cached_data, {
-                                      homepage_url => { meta: {}, body: '' },
-      repo_url => { meta: {}, body: '' }
+                                      homepage_url => { meta: {}, body_raw: nil, encoding: nil },
+      repo_url => { meta: {}, body_raw: nil, encoding: nil }
                                     })
 
     result = @detective.analyze(
