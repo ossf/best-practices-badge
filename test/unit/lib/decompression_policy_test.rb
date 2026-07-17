@@ -9,14 +9,19 @@ require 'test_helper'
 # Enforces our anti-"decompression bomb" invariant by construction rather than
 # by comment, so it stays true as detectives are added or changed:
 #
-#   1. Every path that fetches untrusted external data sets Accept-Encoding
-#      *explicitly*, which keeps Net::HTTP's decode_content off so the stack
-#      never transparently inflates a response. Evidence advertises gzip (it
-#      decodes on demand via SafeInflate, saving network/storage); the GitHub
-#      path advertises identity (Octokit parses the body immediately). The value
-#      differs; the "we set it ourselves, so nothing auto-inflates" does not.
-#   2. SafeInflate is the ONLY place under app/lib that touches Zlib, so the
-#      single sanctioned (output-capped) decompressor cannot be bypassed.
+#   1. The Evidence path fetches fully untrusted, attacker-chosen URLs. It sets
+#      Accept-Encoding *explicitly* (gzip), which keeps Net::HTTP's
+#      decode_content off, and it decodes on demand through SafeInflate - so an
+#      untrusted server can never transparently inflate a response on us.
+#   2. The GitHub path (GithubContentAccess) deliberately does NOT pin
+#      Accept-Encoding: transport compression is applied by
+#      GitHub-the-organization, the same trusted party whose reported file size
+#      this path already relies on, so we let the stack inflate gzip and save
+#      bandwidth. (Repo file *content* is untrusted, but it is only read as
+#      opaque bytes here, never expanded as an archive.)
+#   3. SafeInflate is the ONLY place under app/lib that touches Zlib, so the
+#      single sanctioned (output-capped) decompressor cannot be bypassed for
+#      any untrusted data we do decompress ourselves.
 class DecompressionPolicyTest < ActiveSupport::TestCase
   test 'Evidence advertises gzip and only gzip (matches SafeInflate)' do
     # gzip, not deflate: SafeInflate handles only gzip framing, so what we
@@ -24,9 +29,15 @@ class DecompressionPolicyTest < ActiveSupport::TestCase
     assert_equal 'gzip', Evidence::REQUEST_HEADERS['Accept-Encoding']
   end
 
-  test 'GithubContentAccess requests identity encoding on content fetches' do
-    assert_equal 'identity',
-                 GithubContentAccess::IDENTITY_ENCODING['Accept-Encoding']
+  test 'GithubContentAccess does not pin Accept-Encoding (trusts transport)' do
+    # By construction: the GitHub path must not reintroduce a forced
+    # Accept-Encoding. Transport compression there is GitHub-the-org's, a
+    # trusted party (see the class's TRUST BOUNDARY note), so pinning identity
+    # would only cost bandwidth for no security gain.
+    source = Rails.root.join('app/lib/github_content_access.rb').read
+    assert_no_match(/Accept-Encoding/i, source,
+                    'GithubContentAccess should trust GitHub transport ' \
+                    'compression and not set Accept-Encoding')
   end
 
   test 'no app/lib code decompresses except SafeInflate' do

@@ -23,15 +23,22 @@ class GithubContentAccess
 
   EMPTY = [].freeze
 
-  # Anti-"decompression bomb" defense, matching Evidence's outbound fetch
-  # policy. Octokit's Faraday stack has no compression middleware, so if we say
-  # nothing Net::HTTP auto-adds Accept-Encoding and *transparently inflates*
-  # the GitHub response (the entire inflated body lands in memory before we can
-  # check its size). By requesting identity we leave decode_content off, so an
-  # attacker-authored repo file can never be inflated on us; the size caps
-  # below then bound the raw bytes. Sent on every request this class makes,
-  # since every one of them reads untrusted repository data.
-  IDENTITY_ENCODING = { 'Accept-Encoding' => 'identity' }.freeze
+  # TRUST BOUNDARY (why we accept transport compression here):
+  # We deliberately do NOT force identity encoding on this path. HTTP
+  # Content-Encoding is applied by GitHub-the-organization, the party that
+  # terminates the TLS connection and serves the response - and that party is
+  # exactly who this path already trusts (see get_content's SECURITY NOTE). If
+  # they were to gzip-bomb the transport, that is GitHub attacking us, which is
+  # outside our threat model and no worse than the raw-oversized-response case
+  # we already accept. So we let Net::HTTP request and transparently inflate
+  # gzip, saving network bandwidth, and rely on the size caps below to bound
+  # what we keep.
+  #
+  # The distinction that matters: the repo file *content* we read is authored
+  # by untrusted GitHub users, but it is only ever treated as opaque bytes/text
+  # here - we never recursively expand it as an archive. Any future feature
+  # that unpacks an attacker-authored .zip/.tar.gz MUST route through the
+  # bounded SafeInflate decompressor instead of trusting it like transport.
 
   # Given a filename, reply with information about it.
   # - For files (type='file') this is a hash of data
@@ -49,9 +56,7 @@ class GithubContentAccess
   #   (possibly empty) scan from an inaccessible repo.
   def get_info(filename, not_found_result: EMPTY)
     @octokit_client = @octokit_client_factory.call if @octokit_client.nil?
-    @octokit_client.contents(
-      @fullname, path: filename, headers: IDENTITY_ENCODING
-    )
+    @octokit_client.contents(@fullname, path: filename)
   rescue Octokit::NotFound
     not_found_result
   end
@@ -82,10 +87,12 @@ class GithubContentAccess
   # only solution is HTTP streaming with size limits at a lower level than
   # the Octokit gem provides.
   #
-  # We do close the *decompression* amplification vector: we request identity
-  # encoding (see IDENTITY_ENCODING) so a small compressed response can never
-  # be transparently inflated into gigabytes on us. What remains is only a raw
-  # oversized response, bounded by trusting GitHub's reported size over HTTPS.
+  # We intentionally allow GitHub to gzip the transport (see the TRUST BOUNDARY
+  # note above): the compression is applied by GitHub-the-organization, the
+  # same party whose reported size we already trust here, so a gzip bomb on the
+  # transport is no more in-scope than a raw oversized response. Both are
+  # bounded only by trusting GitHub over HTTPS; the size caps bound what we
+  # actually retain.
   # rubocop:disable Metrics/MethodLength
   def get_content(filename, max_size: 100_000)
     # First, get metadata to check size BEFORE fetching content
@@ -108,8 +115,7 @@ class GithubContentAccess
     content = @octokit_client.contents(
       @fullname,
       path: filename,
-      accept: 'application/vnd.github.raw',
-      headers: IDENTITY_ENCODING
+      accept: 'application/vnd.github.raw'
     )
 
     # Defense in depth: Verify actual size matches GitHub's claim
