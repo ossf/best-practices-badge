@@ -30,25 +30,24 @@ class EvidenceTest < ActiveSupport::TestCase
 
     # Verify integration: ensure it can still fetch data with the new default
     VCR.use_cassette('evidence_get_success') do
-      result = @evidence.get(url)
+      result = @evidence.get_headers(url)
       assert_not_nil result
     end
   end
 
-  test 'get caches successful URL fetch' do
+  test 'get_headers caches successful URL fetch' do
     url = 'https://raw.githubusercontent.com/ossf/' \
           'best-practices-badge/main/README.md'
 
     VCR.use_cassette('evidence_get_success') do
-      result = @evidence.get(url)
+      result = @evidence.get_headers(url)
 
-      # get returns headers only; the body is deferred to get_body.
+      # get_headers returns the headers hash directly.
       assert_not_nil result
-      assert result.key?(:meta)
-      assert_not result.key?(:body)
+      assert_kind_of Hash, result
 
       # Verify it's cached (second call returns same object)
-      result2 = @evidence.get(url)
+      result2 = @evidence.get_headers(url)
       assert_same result, result2
     end
   end
@@ -56,13 +55,13 @@ class EvidenceTest < ActiveSupport::TestCase
   test 'get handles URL fetch errors gracefully' do
     url = 'https://example.invalid/nonexistent'
 
-    result = @evidence.get(url)
+    result = @evidence.get_headers(url)
 
     # Should return nil on error
     assert_nil result
 
     # Second call should also return nil (cached)
-    result2 = @evidence.get(url)
+    result2 = @evidence.get_headers(url)
     assert_nil result2
   end
 
@@ -70,11 +69,11 @@ class EvidenceTest < ActiveSupport::TestCase
     url = 'http://127.0.0.1'
 
     # Should return nil for dubious URL
-    result = @evidence.get(url)
+    result = @evidence.get_headers(url)
     assert_nil result
 
     # Should be cached as nil
-    result2 = @evidence.get(url)
+    result2 = @evidence.get_headers(url)
     assert_nil result2
   end
 
@@ -105,7 +104,7 @@ class EvidenceTest < ActiveSupport::TestCase
 
     evidence_with_mock = Evidence.new(@project, resolver: mock_resolver)
 
-    result = evidence_with_mock.get(url)
+    result = evidence_with_mock.get_headers(url)
     assert_nil result
   end
 
@@ -122,11 +121,8 @@ class EvidenceTest < ActiveSupport::TestCase
       headers: { 'Content-Type' => 'text/plain' }
     )
 
-    result = evidence_insecure.get(url)
+    result = evidence_insecure.get_headers(url)
     assert_not_nil result
-    # In open-uri, meta returns a hash-like object.
-    # Our get_insecure uses file.meta directly.
-    assert_not_nil result[:meta]
     # The body is fetched separately, only on demand.
     assert_equal 'Insecure content', evidence_insecure.get_body(url)
   end
@@ -136,7 +132,7 @@ class EvidenceTest < ActiveSupport::TestCase
     evidence_insecure = Evidence.new(@project, allow_private_ips: true)
 
     # URI.open will raise an error for nonexistent hosts
-    result = evidence_insecure.get(url)
+    result = evidence_insecure.get_headers(url)
     assert_nil result
   end
 
@@ -153,11 +149,11 @@ class EvidenceTest < ActiveSupport::TestCase
       headers: huge_headers
     )
 
-    result = evidence_insecure.get(url)
+    result = evidence_insecure.get_headers(url)
     assert_not_nil result
-    total_size = result[:meta].sum { |k, v| k.bytesize + v.bytesize }
+    total_size = result.sum { |k, v| k.bytesize + v.bytesize }
     assert total_size <= Evidence::MAX_HEADER_SIZE
-    assert_not_empty result[:meta]
+    assert_not_empty result
   end
 
   test 'get respects MAX_TOTAL_TIME' do
@@ -168,7 +164,7 @@ class EvidenceTest < ActiveSupport::TestCase
     @evidence = Evidence.new(@project, resolver: mock_resolver)
 
     Timeout.stub :timeout, ->(_sec) { raise Timeout::Error } do
-      result = @evidence.get(url)
+      result = @evidence.get_headers(url)
       assert_nil result
     end
   end
@@ -189,12 +185,12 @@ class EvidenceTest < ActiveSupport::TestCase
       headers: huge_headers
     )
 
-    result = @evidence.get(url)
+    result = @evidence.get_headers(url)
     assert_not_nil result
-    total_size = result[:meta].sum { |k, v| k.bytesize + v.bytesize }
+    total_size = result.sum { |k, v| k.bytesize + v.bytesize }
     assert total_size <= Evidence::MAX_HEADER_SIZE
     # Verify we still got some headers
-    assert_not_empty result[:meta]
+    assert_not_empty result
   end
 
   test 'get sets User-Agent header' do
@@ -207,7 +203,7 @@ class EvidenceTest < ActiveSupport::TestCase
       headers: { 'User-Agent' => USER_AGENT }
     ).to_return(status: 200, body: 'ok')
 
-    result = @evidence.get(url)
+    result = @evidence.get_headers(url)
     assert_not_nil result
   end
 
@@ -222,11 +218,10 @@ class EvidenceTest < ActiveSupport::TestCase
       headers: { 'Content-Type' => 'text/plain' }
     )
 
-    result = @evidence.get(url)
+    result = @evidence.get_headers(url)
     assert_not_nil result
     assert result.frozen?
-    assert result[:meta].frozen?
-    assert result[:meta]['content-type'].frozen?
+    assert result['content-type'].frozen?
     assert @evidence.get_body(url).frozen?
   end
 
@@ -240,18 +235,17 @@ class EvidenceTest < ActiveSupport::TestCase
       headers: { 'Content-Type' => 'text/plain' }
     )
 
-    result = evidence_insecure.get(url)
+    result = evidence_insecure.get_headers(url)
     assert_not_nil result
     assert result.frozen?
-    assert result[:meta].frozen?
-    assert result[:meta]['Content-Type'].frozen?
+    assert result['Content-Type'].frozen?
     assert evidence_insecure.get_body(url).frozen?
   end
 
-  # The whole point of get/get_body: a headers-only get must not pull the body
-  # into memory. We assert both that get's result carries no body and that the
-  # body cache stays empty until get_body is called.
-  test 'get returns headers only; body extraction is deferred to get_body' do
+  # The whole point of get_headers/get_body: a default get_headers must not pull
+  # the body into memory. We assert both that no raw body was stashed and that
+  # the decoded-body cache stays empty until get_body is called.
+  test 'get_headers defers body extraction until get_body' do
     url = 'http://split.example.com/'
     mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
     evidence = Evidence.new(@project, resolver: mock_resolver)
@@ -260,16 +254,47 @@ class EvidenceTest < ActiveSupport::TestCase
       headers: { 'Content-Type' => 'text/plain' }
     )
 
-    meta_result = evidence.get(url)
-    assert meta_result.key?(:meta)
-    assert_not meta_result.key?(:body)
-    assert_empty evidence.instance_variable_get(:@cached_bodies)
+    headers = evidence.get_headers(url)
+    assert_not_nil headers
+    # No raw body stashed by a default get_headers, and nothing decoded yet.
+    assert_nil evidence.instance_variable_get(:@cached_data)[url][:body_raw]
+    assert_empty evidence.instance_variable_get(:@decoded_bodies)
 
     assert_equal 'the body', evidence.get_body(url)
   end
 
-  # If the peer ignores our identity request and sends gzip, get_body must
-  # inflate it (through SafeInflate) so the caller still gets usable content.
+  # store_body: true stashes the body in the same request, so a following
+  # get_body needs no second fetch (the point of the flag).
+  test 'get_headers store_body true lets get_body reuse one request' do
+    url = 'http://combined.example.com/'
+    mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
+    evidence = Evidence.new(@project, resolver: mock_resolver)
+    stub_request(:get, url).to_return(status: 200, body: 'shared body')
+
+    evidence.get_headers(url, store_body: true)
+    assert_equal 'shared body', evidence.get_body(url)
+    # Exactly one network request served both headers and body.
+    assert_equal 1, evidence.instance_variable_get(:@fetch_count)
+  end
+
+  # A failed body upgrade must not wipe headers we already fetched successfully.
+  test 'a failed body fetch preserves previously good headers' do
+    url = 'http://flaky.example.com/'
+    mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
+    evidence = Evidence.new(@project, resolver: mock_resolver)
+    stub_request(:get, url)
+      .to_return(
+        status: 200, body: 'ok', headers: { 'Content-Type' => 'text/plain' }
+      ).then.to_raise(SocketError)
+
+    assert_not_nil evidence.get_headers(url) # first request caches headers
+    assert_nil evidence.get_body(url)        # body upgrade (2nd request) fails
+    # The good headers survived the failed body upgrade.
+    assert_not_nil evidence.get_headers(url)
+  end
+
+  # We accept gzip (see REQUEST_HEADERS) but never auto-inflate; get_body
+  # inflates the stashed gzip body through SafeInflate on demand.
   test 'get_body inflates a gzip-encoded body' do
     url = 'http://gz.example.com/'
     mock_resolver = ->(_h) { [IPAddr.new('1.1.1.1')] }
@@ -318,11 +343,11 @@ class EvidenceTest < ActiveSupport::TestCase
     evidence.instance_variable_set(:@fetch_count, Evidence::MAX_FETCHES - 1)
 
     # The fetch that reaches the budget still succeeds.
-    assert_not_nil evidence.get('http://last.example.com/')
+    assert_not_nil evidence.get_headers('http://last.example.com/')
     # The next distinct URL exceeds the budget: refused (nil) and cached,
     # without ever hitting the network.
-    assert_nil evidence.get('http://over.example.com/')
-    assert_nil evidence.get('http://over.example.com/') # cached, still nil
+    assert_nil evidence.get_headers('http://over.example.com/')
+    assert_nil evidence.get_headers('http://over.example.com/') # cached, still nil
     assert_not_requested :get, 'http://over.example.com/'
   end
 
@@ -335,7 +360,7 @@ class EvidenceTest < ActiveSupport::TestCase
       .to_return(status: 200, body: 'ok')
 
     (Evidence::MAX_FETCHES * 2).times do
-      assert_not_nil evidence.get('http://repeat.example.com/')
+      assert_not_nil evidence.get_headers('http://repeat.example.com/')
     end
     assert_equal 1, evidence.instance_variable_get(:@fetch_count)
   end
@@ -362,18 +387,17 @@ class EvidenceTest < ActiveSupport::TestCase
       end
 
     SsrfFilter.stub :get, fake_get do
-      @evidence.get('http://opts.example.com/')
+      @evidence.get_headers('http://opts.example.com/')
     end
 
     assert_equal Evidence::MAX_REDIRECTS, captured[:max_redirects]
     assert_equal Evidence::ALLOWED_SCHEMES, captured[:scheme_whitelist]
   end
 
-  # Security (anti "zip bomb"): we request identity encoding so Net::HTTP never
-  # turns on transparent gzip/deflate inflation. Without this a small response
-  # could inflate to gigabytes in memory; with it MAXREAD bounds the stored
-  # bytes in every case.
-  test 'get_secure requests identity content-encoding' do
+  # Security (anti "zip bomb"): we advertise gzip (and only gzip) but set the
+  # header ourselves, which keeps Net::HTTP's decode_content off so nothing is
+  # auto-inflated. get_body later inflates on demand via SafeInflate (capped).
+  test 'get_secure advertises gzip content-encoding' do
     captured = nil
     fake_get =
       lambda do |_url, options, &_block|
@@ -382,10 +406,10 @@ class EvidenceTest < ActiveSupport::TestCase
       end
 
     SsrfFilter.stub :get, fake_get do
-      @evidence.get('http://enc.example.com/')
+      @evidence.get_headers('http://enc.example.com/')
     end
 
-    assert_equal 'identity', captured[:headers]['Accept-Encoding']
+    assert_equal 'gzip', captured[:headers]['Accept-Encoding']
   end
 
   # A gzip body that would inflate beyond MAXREAD is refused by get_body: the

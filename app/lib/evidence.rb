@@ -49,13 +49,15 @@ class Evidence
     allow_private_ips: ENV['ALLOW_PRIVATE_IPS'] == 'true'
   )
     @project = project # ActiveRecord. Detectives should NOT change this.
-    # Two independent caches keyed by URL: response headers (get) and decoded
-    # bodies (get_body). A body is fetched only when get_body is called, so a
-    # headers-only consumer never buffers the body. A nil in either cache
-    # records a tried-and-failed fetch, so we neither retry nor re-enter the
-    # network, and a failed body fetch never invalidates good headers.
+    # @cached_data: per-URL fetch bundle { meta:, body_raw:, encoding: } (or nil
+    # for a tried-and-failed fetch), keyed by URL. body_raw is the raw, possibly
+    # still-compressed body, present only when a fetch was asked to store it
+    # (get_headers store_body: true, or get_body); it is nil for a headers-only
+    # fetch, so a headers-only consumer never buffers a body.
+    # @decoded_bodies: memoized decoded body per URL, so get_body decompresses
+    # at most once. A nil in either records a settled result we never retry.
     @cached_data = {}
-    @cached_bodies = {}
+    @decoded_bodies = {}
     @resolver = resolver
     # Defense in depth: the insecure path (get_insecure uses open-uri with NO
     # SSRF filtering) is a test/development convenience only. Force it off on
@@ -111,88 +113,119 @@ class Evidence
   # MAX_FETCHES * (MAX_REDIRECTS + 1).
   MAX_FETCHES = 100
 
-  # Request identity (no compression) so the HTTP stack never *transparently*
-  # inflates an attacker-supplied response. This is the first layer of our
-  # anti-"decompression bomb" defense and it is applied on every fetch path:
-  # here, and on the GitHub content path (see GithubContentAccess), so the
-  # whole system is uniform and easy to reason about.
+  # We accept gzip (and only gzip) but never let the HTTP stack *transparently*
+  # inflate an attacker-supplied response. Accepting compression saves network
+  # (smaller transfer, less egress from the sites we probe) and storage (a
+  # stashed body is held in its compressed form); the anti-"decompression bomb"
+  # safety comes from controlling decompression ourselves, not from refusing
+  # compression.
   #
-  # Net::HTTP only turns on transparent gzip/deflate inflation when *it*
-  # auto-adds the Accept-Encoding header; by setting it ourselves we leave
-  # decode_content off, so no inflation happens regardless of what the peer
-  # sends. Both outcomes are bounded:
-  #   - A peer that honours identity sends uncompressed bytes, so MAXREAD
-  #     bounds the actual content directly.
-  #   - A peer that ignores it and sends gzip anyway has its body stored as-is
-  #     (still compressed) and never inflated, so a small response can never
-  #     expand into gigabytes in memory. MAXREAD bounds the *stored* bytes in
-  #     every case.
+  # The mechanism: Net::HTTP only turns on transparent gzip inflation when *it*
+  # auto-adds the Accept-Encoding header. By setting the header ourselves we
+  # leave decode_content off, so no matter what the peer sends we receive the
+  # bytes as-is (verified: any explicit Accept-Encoding keeps decode_content
+  # false). Consequences, all bounded:
+  #   - A peer that sends gzip gives us compressed bytes; MAXREAD bounds the
+  #     *stored/transferred* bytes, and get_body inflates them only on demand
+  #     through SafeInflate, which caps the *decompressed* output at MAXREAD so
+  #     a bomb is refused, never expanded into memory.
+  #   - A peer that can't compress sends identity; decode_body returns it raw.
   #
-  # get reads only headers; the body is pulled into memory solely by get_body,
-  # the moment a caller needs it. If the peer ignored identity and sent gzip,
-  # get_body inflates through SafeInflate (output-capped), so we never hand
-  # attacker data to an auto-decoding HTTP client or an unbounded inflate.
-  # Frozen so we allocate it once, not per request.
+  # We advertise only gzip because SafeInflate handles only gzip framing, so
+  # what we accept always matches what we can safely decode. The GitHub content
+  # path (GithubContentAccess) still requests identity: Octokit parses the body
+  # immediately, so there is nothing to defer and no place to insert a bounded
+  # decode. Frozen so we allocate it once, not per request.
   REQUEST_HEADERS = {
     'User-Agent' => USER_AGENT,
-    'Accept-Encoding' => 'identity'
+    'Accept-Encoding' => 'gzip'
   }.freeze
 
   # Fetch `url` and return its response metadata (HTTP headers), cached.
   #
-  # This reads only the response *headers*. It deliberately does NOT pull the
-  # body into memory; call get_body when the body is actually needed, so a
-  # headers-only consumer (the common case, e.g. HardenedSitesDetective) never
-  # buffers up to MAXREAD bytes it will not use.
+  # By default this reads only the response *headers* and does NOT pull the body
+  # into memory, so a headers-only consumer (the common case, e.g.
+  # HardenedSitesDetective) never buffers bytes it will not use.
+  #
+  # Pass store_body: true when you know you will also want the body, so this one
+  # request stashes the raw body too and a following get_body needs no second
+  # request. This flag is also how tests exercise the body/SafeInflate path.
   #
   # @param url [String] The URL to fetch data from.
-  # @return [Hash, nil] { meta: {headers} }, or nil if the URL is invalid or
-  #   the fetch failed.
-  def get(url)
+  # @param store_body [Boolean] Also read and stash the raw body.
+  # @return [Hash, nil] the frozen headers hash, or nil if the URL is invalid
+  #   or the fetch failed.
+  def get_headers(url, store_body: false)
     return if url.blank?
 
-    fetch_into(@cached_data, url, want_body: false)
+    bundle = fetch_bundle(url, store_body: store_body)
+    bundle && bundle[:meta]
   end
 
   # Fetch `url` and return its (decoded) response body, cached.
   #
-  # The body is pulled from the network and decompressed only here, the moment
-  # a caller asks for it. We request identity encoding, so the body is normally
-  # plaintext; if the peer ignored that and sent gzip, it is inflated through
-  # SafeInflate (output-capped at MAXREAD) so a decompression bomb cannot
-  # exhaust memory. get and get_body fetch independently; no consumer needs
-  # both today, so we do not complicate the caches to share one round trip.
+  # The body is decompressed only here, the moment a caller asks for it, and the
+  # decoded result is memoized. We accept gzip (see REQUEST_HEADERS) but never
+  # let the stack auto-inflate; if the peer sent gzip, the stored raw body is
+  # inflated through SafeInflate (output-capped at MAXREAD) so a decompression
+  # bomb cannot exhaust memory. If the body was not already stashed (no prior
+  # store_body fetch), this performs its own store_body fetch, so callers can
+  # use get_body on its own.
   #
   # @param url [String] The URL to fetch data from.
-  # @return [String, nil] the response body (binary), or nil if the URL is
-  #   invalid or the fetch failed.
+  # @return [String, nil] the decoded body (binary), or nil if the URL is
+  #   invalid, the fetch failed, or the body could not be decoded.
   def get_body(url)
     return if url.blank?
+    return @decoded_bodies[url] if @decoded_bodies.key?(url)
 
-    fetch_into(@cached_bodies, url, want_body: true)
+    @decoded_bodies[url] = decode_fetched_body(url)
   end
 
   private
 
-  # Return the cached value for `url` in `cache`, fetching it once if absent.
-  # A failed fetch caches nil, so we neither retry nor re-enter the network for
-  # a URL already tried. Header and body fetches use separate caches, so a
-  # failed body fetch never invalidates good headers (or vice versa).
-  # @return [Object, nil] the cached fetch result.
-  def fetch_into(cache, url, want_body:)
-    unless cache.key?(url)
-      cache[url] = guarded_fetch(url, want_body: want_body)
+  # Fetch (if needed) and decode `url`'s body, returning nil when it is missing
+  # or cannot be safely decoded. SafeInflate raises on an oversized ("bomb") or
+  # malformed gzip stream; we treat that as an unusable body (nil) rather than
+  # letting it escape, so a hostile response degrades gracefully.
+  # @return [String, nil] the decoded body, or nil.
+  def decode_fetched_body(url)
+    bundle = fetch_bundle(url, store_body: true)
+    raw = bundle && bundle[:body_raw]
+    return unless raw
+
+    decode_body(raw, bundle[:encoding])
+  rescue SafeInflate::Error => e
+    Rails.logger.warn "Undecodable evidence body for #{url}: #{e.class}"
+    nil
+  end
+
+  # Fetch `url` and cache its bundle { meta:, body_raw:, encoding: }, reusing a
+  # cached bundle when it already carries what we need. We fetch when the URL is
+  # uncached, or when we now need the body (store_body) but the cached bundle
+  # was fetched without one. A tried-and-failed fetch (cached nil) is never
+  # retried, and a failed body upgrade never overwrites previously good headers.
+  # @return [Hash, nil] the cached bundle, or nil.
+  def fetch_bundle(url, store_body:)
+    cached = @cached_data[url]
+    if @cached_data.key?(url)
+      return cached if cached.nil? # tried and failed: never retry
+      return cached unless store_body && cached[:body_raw].nil? # have enough
     end
-    cache[url]
+    fetched = guarded_fetch(url, store_body: store_body)
+    # Cache a fresh success; also cache a first-time failure (cached is nil so
+    # !cached is true). A failed body upgrade (cached headers exist) is NOT
+    # cached, so the good headers survive.
+    @cached_data[url] = fetched if fetched || !cached
+    fetched || cached
   end
 
   # Fetch `url` over the network subject to our two entry guards (dubious-URL
-  # rejection and the per-instance fetch budget), returning the fetch result
-  # (a { meta: } hash, a body String, or nil). Both guards return nil, which
-  # fetch_into caches. The URL is logged as-is; repo/homepage URLs are
+  # rejection and the per-instance fetch budget), returning the fetch bundle or
+  # nil. Both guards return nil. The URL is logged as-is; repo/homepage URLs are
   # validated upstream (UrlValidator forbids control characters).
-  # @return [Object, nil] the fetch result, or nil if refused or failed.
-  def guarded_fetch(url, want_body:)
+  # @return [Hash, nil] the fetch bundle, or nil if refused or failed.
+  def guarded_fetch(url, store_body:)
     # Security: Ignore dubious URLs (SSRF protection & possible attack). They
     # *should* already have been rejected during input validation, but
     # re-checking here is cheap and *ensures* we never fetch something like
@@ -209,31 +242,30 @@ class Evidence
       nil
     else
       # Count only real network attempts: cached URLs short-circuit in
-      # fetch_into, and dubious/over-budget URLs never reach here.
+      # fetch_bundle, and dubious/over-budget URLs never reach here.
       @fetch_count += 1
-      fetch_url_with_timeout(url, want_body: want_body)
+      fetch_url_with_timeout(url, store_body: store_body)
     end
   end
 
   # Fetch data from the URL with a global timeout.
   #
   # @param url [String] The URL to fetch data from.
-  # @param want_body [Boolean] Whether to read/decode the body (get_body) or
-  #   only the headers (get).
-  # @return [Object, nil] the fetch result, or nil on error.
-  def fetch_url_with_timeout(url, want_body:)
+  # @param store_body [Boolean] Whether to also read and stash the raw body.
+  # @return [Hash, nil] the fetch bundle, or nil on error.
+  def fetch_url_with_timeout(url, store_body:)
     Timeout.timeout(MAX_TOTAL_TIME) do
       if @allow_private_ips
-        get_insecure(url, want_body: want_body)
+        get_insecure(url, store_body: store_body)
       else
-        get_secure(url, want_body: want_body)
+        get_secure(url, store_body: store_body)
       end
     end
   rescue StandardError => e
     handle_fetch_error(url, e)
   end
 
-  # Log a fetch error and return nil (fetch_into caches it).
+  # Log a fetch error and return nil (fetch_bundle caches it).
   #
   # @param url [String] The URL that failed.
   # @param error [StandardError] The error that occurred.
@@ -249,17 +281,21 @@ class Evidence
     nil
   end
 
-  # Build the cached value from a successful response: headers only, or the
-  # decoded body, per the caller's request. Only here, on a body request, do we
-  # pull the body into memory (and decompress it if the peer compressed it).
+  # Build the bundle { meta:, body_raw:, encoding: } from a successful response.
+  # The raw body is pulled into memory only when store_body is true; body_raw
+  # stays nil otherwise, so a headers-only fetch buffers nothing. The body is
+  # kept raw (still compressed if the peer sent gzip) and decoded lazily by
+  # get_body; encoding records how, captured from this same response.
   #
   # @param res [Net::HTTPResponse] The successful response object.
-  # @param want_body [Boolean] Whether the caller asked for the body.
-  # @return [Hash, String] a frozen { meta: } hash, or the frozen body.
-  def build_result(res, want_body)
-    return { meta: extract_meta(res) }.freeze unless want_body
-
-    decode_body(read_raw_body(res), res['content-encoding'])
+  # @param store_body [Boolean] Whether to read and stash the raw body.
+  # @return [Hash] the frozen bundle.
+  def build_result(res, store_body)
+    {
+      meta: extract_meta(res),
+      body_raw: store_body ? read_raw_body(res).freeze : nil,
+      encoding: res['content-encoding']
+    }.freeze
   end
 
   # Read the response body into memory, never exceeding MAXREAD bytes. This is
@@ -279,11 +315,11 @@ class Evidence
     body.byteslice(0, MAXREAD)
   end
 
-  # Return the usable body. We requested identity, so the normal case is
-  # plaintext and we just freeze it. A peer that ignored identity and sent
-  # gzip is inflated through SafeInflate, which caps output at MAXREAD so a
-  # compressed bomb cannot exhaust memory. Any other Content-Encoding is left
-  # as raw bytes (we do not attempt to decode it).
+  # Return the usable body from the raw (possibly compressed) bytes. A gzip
+  # body is inflated through SafeInflate, which caps output at MAXREAD so a
+  # compressed bomb cannot exhaust memory (a body that would decode past MAXREAD
+  # is refused, surfacing as nil in get_body). A peer that could not compress
+  # sent identity, so any other/absent Content-Encoding is returned raw.
   #
   # @param raw [String] The raw body bytes.
   # @param encoding [String, nil] The response Content-Encoding, if any.
@@ -310,7 +346,7 @@ class Evidence
   # @param url [String] The URL to fetch data from.
   # @return [void]
   # rubocop:disable Metrics/MethodLength
-  def get_secure(url, want_body:)
+  def get_secure(url, store_body:)
     # Use ssrf_filter to ensure GET requests are not performed if the
     # domain dynamically resolves (possibly via redirects) to a
     # reserved IP address (either IPv4 or IPv6) such as 127.0.0.1.
@@ -325,7 +361,7 @@ class Evidence
     result = nil
     SsrfFilter.get(url, options) do |res|
       # ssrf_filter yields every hop; only the final success carries evidence.
-      result = build_result(res, want_body) if res.is_a?(Net::HTTPSuccess)
+      result = build_result(res, store_body) if res.is_a?(Net::HTTPSuccess)
     end
     result
   rescue SsrfFilter::Error => e
@@ -336,13 +372,15 @@ class Evidence
 
   # Perform an insecure GET request (allows private IPs) using open-uri.
   # This is only used if ALLOW_PRIVATE_IPS is set (never on real production).
-  # We still request identity encoding so open-uri does not transparently
-  # decompress a response; see REQUEST_HEADERS for the anti-zip-bomb rationale.
+  # Unlike the secure path, this one requests identity: open-uri has its own
+  # transparent-decompression behavior, and this dev/test-only path is not worth
+  # the network saving, so we keep it simple and never receive gzip here.
   #
   # @param url [String] The URL to fetch data from.
-  # @return [void]
+  # @param store_body [Boolean] Whether to also read and stash the raw body.
+  # @return [Hash, nil] the fetch bundle, or nil on error.
   # rubocop:disable Metrics/MethodLength
-  def get_insecure(url, want_body:)
+  def get_insecure(url, store_body:)
     require 'open-uri'
     result = nil
     URI.parse(url).open(
@@ -352,13 +390,12 @@ class Evidence
       open_timeout: 5,
       read_timeout: 5
     ) do |file|
-      result =
-        if want_body
-          raw = file.read(MAXREAD) || (+'').force_encoding('BINARY')
-          decode_body(raw, file.meta['content-encoding'])
-        else
-          { meta: extract_open_uri_meta(file) }.freeze
-        end
+      raw = store_body ? (file.read(MAXREAD) || +'').b : nil
+      result = {
+        meta: extract_open_uri_meta(file),
+        body_raw: raw&.freeze,
+        encoding: file.meta['content-encoding']
+      }.freeze
     end
     result
   rescue StandardError => e

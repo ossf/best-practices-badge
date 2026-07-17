@@ -9,13 +9,19 @@ require 'test_helper'
 # Enforces our anti-"decompression bomb" invariant by construction rather than
 # by comment, so it stays true as detectives are added or changed:
 #
-#   1. Every path that fetches untrusted external data requests identity
-#      encoding, so the HTTP stack never transparently inflates a response.
+#   1. Every path that fetches untrusted external data sets Accept-Encoding
+#      *explicitly*, which keeps Net::HTTP's decode_content off so the stack
+#      never transparently inflates a response. Evidence advertises gzip (it
+#      decodes on demand via SafeInflate, saving network/storage); the GitHub
+#      path advertises identity (Octokit parses the body immediately). The value
+#      differs; the "we set it ourselves, so nothing auto-inflates" does not.
 #   2. SafeInflate is the ONLY place under app/lib that touches Zlib, so the
 #      single sanctioned (output-capped) decompressor cannot be bypassed.
 class DecompressionPolicyTest < ActiveSupport::TestCase
-  test 'Evidence requests identity encoding on outbound fetches' do
-    assert_equal 'identity', Evidence::REQUEST_HEADERS['Accept-Encoding']
+  test 'Evidence advertises gzip and only gzip (matches SafeInflate)' do
+    # gzip, not deflate: SafeInflate handles only gzip framing, so what we
+    # accept always matches what we can safely decode.
+    assert_equal 'gzip', Evidence::REQUEST_HEADERS['Accept-Encoding']
   end
 
   test 'GithubContentAccess requests identity encoding on content fetches' do

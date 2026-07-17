@@ -31,8 +31,16 @@ require 'stringio'
 # rescue). Add it explicitly if a real need appears, rather than carrying a
 # worse memory profile for a case that essentially never occurs.
 module SafeInflate
+  # Base class for all SafeInflate failures, so callers can rescue one type and
+  # never need to reference Zlib themselves.
+  class Error < StandardError; end
+
   # Raised when the decompressed stream would exceed the caller's max_bytes.
-  class TooLarge < StandardError; end
+  class TooLarge < Error; end
+
+  # Raised when the input is not a valid gzip stream (bad framing, truncated, or
+  # a non-gzip encoding such as raw deflate).
+  class InvalidData < Error; end
 
   # Inflate a gzip stream, producing at most `max_bytes` of output.
   #
@@ -41,8 +49,7 @@ module SafeInflate
   # @param max_bytes [Integer] hard cap on decompressed output size.
   # @return [String] the decompressed content (binary encoding).
   # @raise [SafeInflate::TooLarge] if the output would exceed max_bytes.
-  # @raise [Zlib::Error] if `data` is not a valid gzip stream (callers that
-  #   fetch untrusted data typically rescue StandardError).
+  # @raise [SafeInflate::InvalidData] if `data` is not a valid gzip stream.
   def self.gunzip(data, max_bytes:)
     raise ArgumentError, 'max_bytes must be positive' unless max_bytes.positive?
 
@@ -54,6 +61,9 @@ module SafeInflate
       if out.bytesize > max_bytes
 
     out
+  rescue Zlib::Error => e
+    # Present a SafeInflate error so callers rescue one hierarchy, not Zlib.
+    raise InvalidData, "not a valid gzip stream: #{e.message}"
   ensure
     reader&.close
   end

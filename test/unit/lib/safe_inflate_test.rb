@@ -56,8 +56,8 @@ class SafeInflateTest < ActiveSupport::TestCase
     assert_raises(ArgumentError) { SafeInflate.gunzip(gz, max_bytes: -1) }
   end
 
-  test 'raises Zlib::Error on data that is not a gzip stream' do
-    assert_raises(Zlib::Error) do
+  test 'raises InvalidData on data that is not a gzip stream' do
+    assert_raises(SafeInflate::InvalidData) do
       SafeInflate.gunzip('this is not compressed', max_bytes: 1_000)
     end
   end
@@ -65,7 +65,7 @@ class SafeInflateTest < ActiveSupport::TestCase
   test 'raw deflate (non-gzip framing) is not accepted' do
     # We intentionally support only gzip framing; a raw zlib/deflate stream
     # must be rejected rather than silently decoded.
-    assert_raises(Zlib::Error) do
+    assert_raises(SafeInflate::InvalidData) do
       SafeInflate.gunzip(Zlib::Deflate.deflate('some text'), max_bytes: 1_000)
     end
   end

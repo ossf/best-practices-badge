@@ -58,11 +58,11 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
     assert_equal ['x-frame-options'], missing
   end
 
-  test 'get_headers returns lowercase keys' do
+  test 'response_headers returns lowercase keys' do
     url = 'https://www.bestpractices.dev/'
 
     VCR.use_cassette('hardened_sites_headers') do
-      headers = @detective.get_headers(@evidence, url)
+      headers = @detective.response_headers(@evidence, url)
 
       # All keys should be lowercase
       headers.each_key do |key|
@@ -71,9 +71,9 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
     end
   end
 
-  test 'get_headers handles failed requests' do
+  test 'response_headers handles failed requests' do
     url = 'https://invalid.example.com/'
-    headers = @detective.get_headers(@evidence, url)
+    headers = @detective.response_headers(@evidence, url)
 
     assert_equal({}, headers)
   end
