@@ -847,6 +847,19 @@ task update_all_higher_level_badge_percentages: :environment do
   Project.update_all_badge_percentages(Criteria.keys - ['0'])
 end
 
+# Recalculate ONLY the baseline badge percentages for all projects, and queue
+# badge-loss notifications for owners who fall below a baseline level.
+# This is the deferred, non-transactional replacement for migration
+# 20260607150000 (see that migration's comment): the OSPS baseline was bumped
+# from v2025.10.10 to v2026.02.19 (#2726), adding criteria, so projects that
+# earned a baseline badge under the old version no longer qualify. Run this
+# only after those owners have been warned and given a grace period.
+# Scoped to the baseline levels so it does not disturb the metal badges.
+desc 'Recalculate baseline badge percentages and notify baseline losses'
+task recalc_baseline_and_notify_losses: :environment do
+  Project.update_all_badge_percentages(Sections::BASELINE_LEVEL_NAMES)
+end
+
 desc 'Backfill baseline_tiered_percentage for all projects'
 task backfill_baseline_tiered_percentage: :environment do
   puts 'Backfilling baseline_tiered_percentage for all projects...'
