@@ -5,19 +5,20 @@ name: CodeQL
 
 # Static analysis of our source with GitHub CodeQL (advanced setup).
 #
-# WHY THIS EXISTS, given we already run Brakeman:
-#   * Brakeman (.github/workflows/brakeman.yml) remains our AUTHORITATIVE
-#     Rails security gate. CodeQL does not replace it.
-#   * CodeQL adds a second, independent analyzer (different engine, different
-#     query set, covering JavaScript and the workflows themselves, not just
-#     Rails), i.e. defense in depth.
-#   * OpenSSF Scorecard's SAST check only credits a fixed allowlist of tools
-#     (CodeQL, Sonar, Snyk, ...). It does NOT recognize Brakeman, so a
-#     detected CodeQL workflow is what makes Scorecard see the static
-#     analysis we already perform. See docs/improve-scorecard.md.
+# We also run the "Brakeman" SAST tool
+# (.github/workflows/brakeman.yml). However:
+#
+# * CodeQL adds a second, independent analyzer (different engine, different
+#   query set, covering JavaScript and the workflows themselves, not just
+#   Rails), i.e. defense in depth. We want to have *many* ways to detect
+#   vulnerabilities to increase the likelihood of their detection.
+# * OpenSSF Scorecard's SAST check only credits a fixed allowlist of tools
+#   (CodeQL, Sonar, Snyk, ...). It does NOT recognize Brakeman, so a
+#   detected CodeQL workflow is what makes Scorecard see the static
+#   analysis we already perform. See docs/improve-scorecard.md.
 #
 # This is an ADVANCED setup (a committed workflow), deliberately chosen over
-# GitHub's "default setup": default setup silently stopped scanning when the
+# GitHub's "default setup". Default setup silently stopped scanning when the
 # repo moved from the coreinfrastructure org to ossf (its last scan predated
 # a month of merges). A committed workflow survives org moves and, if it ever
 # breaks, the missing check is visible on the pull request instead of failing
@@ -29,11 +30,11 @@ name: CodeQL
 # CodeQL queries and newly-disclosed patterns are run against code that has
 # not otherwise changed.
 #
-# We gate ONLY main -- deliberately, and for the same reason brakeman.yml
+# We gate ONLY main, deliberately, and for the same reason brakeman.yml
 # does: CodeQL is a purely static analyzer, and the staging and production
 # branches are only ever advanced from main. Code cannot reach a deployment
 # branch without first passing through main, so scanning main is sufficient
-# and avoids redundant re-scans of identical code.
+# and this approach avoids redundant re-scans of identical code.
 on:
   push:
     branches: [ main ]
