@@ -102,19 +102,23 @@ jobs:
       # identity, signs the SBOM, and records the signature in the public
       # Rekor transparency log. A human never handles a key.
       #
-      # Outputs, uploaded as release assets in the next step:
-      #   <sbom>.sig  -- detached signature; the ".sig" suffix is what
-      #                  Scorecard's Signed-Releases check recognizes.
-      #   <sbom>.pem  -- the Fulcio-issued signing certificate, needed to
-      #                  verify the signature.
-      # See docs/improve-scorecard.md for how to verify a released signature.
+      # Output, uploaded as a release asset in the next step:
+      #   <sbom>.sigstore.json -- a self-contained Sigstore bundle holding
+      #     the signature, the signing certificate, and the transparency-log
+      #     proof. The ".sigstore.json" suffix is one of those Scorecard's
+      #     Signed-Releases check recognizes as a signed artifact.
+      #
+      # We pass --bundle (a single self-contained file) rather than the older
+      # --output-signature / --output-certificate flags: recent cosign
+      # defaults to its "new bundle format", under which those flags are
+      # deprecated and IGNORED -- leaving the bundle path empty and failing
+      # the step. See docs/improve-scorecard.md for how to verify a bundle.
       - name: Sign the SBOM (cosign keyless)
         env:
           SBOM: ${{ steps.vars.outputs.sbom_filename }}
         run: |
           cosign sign-blob --yes \
-            --output-signature "${SBOM}.sig" \
-            --output-certificate "${SBOM}.pem" \
+            --bundle "${SBOM}.sigstore.json" \
             "${SBOM}"
 
       # Create a GitHub Release and attach the SBOM as a release asset.
@@ -152,5 +156,4 @@ jobs:
             --title "SBOM ${{ github.ref_name }} ${{ steps.vars.outputs.date }} (${{ steps.vars.outputs.sha_short }})" \
             --notes "Auto-generated SBOM for commit ${{ github.sha }} on branch ${{ github.ref_name }}" \
             "${{ steps.vars.outputs.sbom_filename }}" \
-            "${{ steps.vars.outputs.sbom_filename }}.sig" \
-            "${{ steps.vars.outputs.sbom_filename }}.pem"
+            "${{ steps.vars.outputs.sbom_filename }}.sigstore.json"

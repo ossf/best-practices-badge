@@ -217,14 +217,21 @@ SBOM with **cosign keyless (Sigstore)** signing, fully automatically in CI:
 - Add `id-token: write` to the job so cosign can mint a short-lived GitHub
   OIDC token; no private key is stored and no human acts.
 - Install cosign via the pinned first-party `sigstore/cosign-installer`
-  action, then `cosign sign-blob --yes` the SBOM. cosign exchanges the OIDC
-  token at Fulcio for an ephemeral certificate bound to this workflow's
-  identity, signs, and logs the signature in the public Rekor transparency
-  log.
-- Upload `<sbom>.sig` (detached signature — the suffix Scorecard matches)
-  and `<sbom>.pem` (the Fulcio signing certificate) as release assets,
+  action, then `cosign sign-blob --yes --bundle <sbom>.sigstore.json` the
+  SBOM. cosign exchanges the OIDC token at Fulcio for an ephemeral
+  certificate bound to this workflow's identity, signs, and logs the
+  signature in the public Rekor transparency log.
+- Upload `<sbom>.sigstore.json` — a single self-contained Sigstore bundle
+  (signature + signing certificate + transparency-log proof) whose
+  `.sigstore.json` suffix Scorecard recognizes — as a release asset
   alongside the SBOM, via the existing `gh release create` step. (`gh` is
   preinstalled on the runner; no new dependency, and none needed locally.)
+
+  We use `--bundle`, not the older `--output-signature` /
+  `--output-certificate` flags: recent cosign defaults to its "new bundle
+  format", under which those flags are deprecated and ignored, which leaves
+  the bundle path empty and fails the signing step (the mistake in the first
+  cut of this workflow).
 
 This moves Signed-Releases from 0 to **8** once the last five releases
 carry signatures. Reaching **10** additionally requires SLSA provenance
@@ -235,8 +242,7 @@ follow-up.
 
 ```sh
 cosign verify-blob \
-  --signature <sbom>.sig \
-  --certificate <sbom>.pem \
+  --bundle <sbom>.sigstore.json \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp \
     '^https://github.com/ossf/best-practices-badge/\.github/workflows/sbom\.yml@' \
