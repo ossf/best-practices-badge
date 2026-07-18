@@ -25,3 +25,7 @@ socio-economic
 # This is the name (and part of a URL) of a company
 Synopsys
 synopsys
+
+# intoto - literal filename of in-toto attestations (*.intoto.jsonl),
+# the format used for SLSA provenance; not a typo of "into"
+intoto
