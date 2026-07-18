@@ -117,11 +117,23 @@ runs on some commits, not Brakeman.
 
 - *Our end (planned first).* Add an explicit CodeQL workflow
   (`.github/workflows/codeql.yml`) running on push and pull_request to
-  `main` for the `ruby` and `javascript` languages. Scorecard rewards a
-  detected CodeQL workflow. This runs alongside — does not replace —
-  Brakeman, which remains our authoritative gate. Ruby is an interpreted
-  language, so the workflow uses CodeQL `build-mode: none` (no autobuild
-  step needed).
+  `main`. Scorecard rewards a detected CodeQL workflow. This runs
+  alongside — does not replace — Brakeman, which remains our authoritative
+  gate. All analyzed languages here are interpreted, so the workflow uses
+  CodeQL `build-mode: none` (no autobuild step needed).
+
+  *Implemented* (`.github/workflows/codeql.yml`): languages `ruby`,
+  `javascript-typescript`, and `actions` (the last scans our own workflow
+  files, complementing our workflow hardening); triggers are push + PR to
+  `main` only plus a weekly schedule — scoped to `main` for the same
+  reason as `brakeman.yml` (a static analyzer only needs to gate `main`,
+  since staging/production are only ever advanced from it); actions are
+  SHA-pinned (reusing the `github/codeql-action` release already pinned in
+  `scorecard.yml`) with harden-runner, `persist-credentials: false`, and
+  branch-name validation, matching the other workflows; permissions are the
+  least-privilege `security-events: write` + `contents: read`. The default
+  query suite is used initially, with `security-extended` noted inline as a
+  future opt-in once the baseline is clean.
 - *Scorecard side.* Propose adding Brakeman to Scorecard's recognized
   SAST-tool list so the many Rails projects using Brakeman are not
   penalized. (See the Scorecard-improvement list below.)
