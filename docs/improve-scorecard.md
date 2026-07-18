@@ -201,24 +201,53 @@ workflow error.
 
 `.github/workflows/sbom.yml` already creates GitHub Releases on every push
 to `staging` and `production` (the `sbom-<branch>-<date>-<sha>` tags),
-each carrying an SPDX SBOM asset. Scorecard scores the last five releases:
-roughly +8 for a cryptographic signature and +2 for SLSA provenance on
-each. Our release assets currently carry neither.
+each carrying an SPDX SBOM asset — but no signature or provenance, hence
+the 0.
 
-**Caveat / decision to record.** These releases are SBOM-archival
-snapshots, not distributed product artifacts — the application is deployed
-to Heroku, not shipped as a package. Signing them is still worthwhile
-(it proves the SBOM's provenance and satisfies the check), but we should
-decide deliberately that this is the artifact we mean to sign.
+Scorecard recognizes a release as *signed* if any asset name ends in one
+of `.asc`, `.minisig`, `.sig`, `.sign`, `.sigstore`, or `.sigstore.json`
+(probe `releasesAreSigned`), and awards **8** per signed release, or **10**
+if the release also has SLSA provenance (an `*.intoto.jsonl` asset,
+probe `releasesHaveProvenance`); the check averages this over the last five
+releases.
 
-**Fix (our end).** Extend `sbom.yml` to sign the SBOM with cosign keyless
-(Sigstore) signing — `cosign sign-blob` producing a `.sig` + certificate
-or a bundle — and optionally attach SLSA provenance (`.intoto.jsonl`),
-uploading the signatures as release assets. Because the releases already
-exist, this is a contained edit and should move Signed-Releases from 0
-toward 8–10. Keep using the `gh` CLI / first-party tooling for the release
-step (see the existing rationale comment in `sbom.yml` about the
-Token-Permissions ceiling).
+**Implemented** (`sbom.yml`). We extend the existing SBOM job to sign the
+SBOM with **cosign keyless (Sigstore)** signing, fully automatically in CI:
+
+- Add `id-token: write` to the job so cosign can mint a short-lived GitHub
+  OIDC token; no private key is stored and no human acts.
+- Install cosign via the pinned first-party `sigstore/cosign-installer`
+  action, then `cosign sign-blob --yes` the SBOM. cosign exchanges the OIDC
+  token at Fulcio for an ephemeral certificate bound to this workflow's
+  identity, signs, and logs the signature in the public Rekor transparency
+  log.
+- Upload `<sbom>.sig` (detached signature — the suffix Scorecard matches)
+  and `<sbom>.pem` (the Fulcio signing certificate) as release assets,
+  alongside the SBOM, via the existing `gh release create` step. (`gh` is
+  preinstalled on the runner; no new dependency, and none needed locally.)
+
+This moves Signed-Releases from 0 to **8** once the last five releases
+carry signatures. Reaching **10** additionally requires SLSA provenance
+(`*.intoto.jsonl`), e.g. via the SLSA GitHub generator — deferred as a
+follow-up.
+
+**Verifying a released signature** (any consumer, no secrets needed):
+
+```sh
+cosign verify-blob \
+  --signature <sbom>.sig \
+  --certificate <sbom>.pem \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp \
+    '^https://github.com/ossf/best-practices-badge/\.github/workflows/sbom\.yml@' \
+  <sbom>
+```
+
+**Caveat (recorded).** These releases are SBOM-archival snapshots, not
+distributed product artifacts — the app is deployed to Heroku, not shipped
+as a package. Signing the SBOM is still worthwhile: it proves the SBOM's
+provenance and satisfies the check. We accept the SBOM as the artifact we
+sign.
 
 ### Branch-Protection = 3 and Code-Review = 0
 

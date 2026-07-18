@@ -3,8 +3,14 @@
 
 name: Generate SBOM
 
-# Generate an SPDX SBOM on every push to staging or production and store it
-# as a GitHub Release asset for long-term compliance auditing.
+# Generate an SPDX SBOM on every push to staging or production, sign it with
+# cosign "keyless" (Sigstore) signing, and store the SBOM together with its
+# signature as GitHub Release assets. The latter steps counter
+# supply chain attacks by enabling cryptographic signature verification.
+# Signing is fully automatic in CI (OIDC-based: no
+# stored keys, no human action) and also lets OpenSSF Scorecard's
+# Signed-Releases check see that our releases are signed.
+# These improve our OpenSSF Scorecard score.
 
 on:
   push:
@@ -23,12 +29,24 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Required to create GitHub Releases and upload assets
+      id-token: write  # Mint the short-lived GitHub OIDC token that cosign
+                       # exchanges for a keyless (Sigstore/Fulcio) signing
+                       # certificate. Required for signing (this job only).
 
     steps:
       # Harden the runner to log egress
       # (consistent with main.yml / scorecard.yml).
-      # anchore/sbom-action downloads Syft at runtime;
-      # that network access is logged here.
+      # anchore/sbom-action downloads Syft at runtime, and the signing step
+      # below reaches Sigstore; all that network access is logged here.
+      #
+      # egress-policy is "audit" (log only), so nothing is blocked today. If
+      # it is ever tightened to "block", the allowlist must include cosign's
+      # keyless-signing egress, or the Sign step will fail:
+      # * fulcio.sigstore.dev: issues the signing certificate
+      # * rekor.sigstore.dev: transparency log entry
+      # * tuf-repo-cdn.sigstore.dev: Sigstore TUF trust root
+      # * token.actions.githubusercontent.com: GitHub OIDC token
+      #
       - uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
@@ -59,8 +77,8 @@ jobs:
           echo "release_tag=sbom-${BRANCH}-${DATE}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
 
       # Generate the SBOM from the checked-out source tree.
-      # Syft parses Gemfile.lock, package-lock.json, etc. directly —
-      # no 'bundle install' needed for a source-based SBOM.
+      # Syft parses Gemfile.lock, package-lock.json, etc. directly, so
+      # no 'bundle install' is needed for a source-based SBOM.
       # upload-artifact and upload-release-assets are disabled because
       # we control the release tag ourselves in the next step.
       - name: Generate SBOM with Syft
@@ -70,6 +88,34 @@ jobs:
           output-file: ${{ steps.vars.outputs.sbom_filename }}
           upload-artifact: false
           upload-release-assets: false
+
+      # Install cosign. Pinned to a specific commit (v4.1.2); this is
+      # Sigstore's own first-party installer action. cosign fetches its
+      # binary at runtime, so the harden-runner egress log above records it.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      # Sign the SBOM with cosign KEYLESS (Sigstore) signing. This is fully
+      # automatic in CI, with no stored private key. cosign obtains a
+      # short-lived GitHub OIDC token (via id-token: write above), exchanges
+      # it with Fulcio for an ephemeral certificate bound to this workflow's
+      # identity, signs the SBOM, and records the signature in the public
+      # Rekor transparency log. A human never handles a key.
+      #
+      # Outputs, uploaded as release assets in the next step:
+      #   <sbom>.sig  -- detached signature; the ".sig" suffix is what
+      #                  Scorecard's Signed-Releases check recognizes.
+      #   <sbom>.pem  -- the Fulcio-issued signing certificate, needed to
+      #                  verify the signature.
+      # See docs/improve-scorecard.md for how to verify a released signature.
+      - name: Sign the SBOM (cosign keyless)
+        env:
+          SBOM: ${{ steps.vars.outputs.sbom_filename }}
+        run: |
+          cosign sign-blob --yes \
+            --output-signature "${SBOM}.sig" \
+            --output-certificate "${SBOM}.pem" \
+            "${SBOM}"
 
       # Create a GitHub Release and attach the SBOM as a release asset.
       # Release tags use the form: sbom-<branch>-<YYYYMMDD>-<8-hex-SHA>
@@ -105,4 +151,6 @@ jobs:
           gh release create "${{ steps.vars.outputs.release_tag }}" \
             --title "SBOM ${{ github.ref_name }} ${{ steps.vars.outputs.date }} (${{ steps.vars.outputs.sha_short }})" \
             --notes "Auto-generated SBOM for commit ${{ github.sha }} on branch ${{ github.ref_name }}" \
-            "${{ steps.vars.outputs.sbom_filename }}"
+            "${{ steps.vars.outputs.sbom_filename }}" \
+            "${{ steps.vars.outputs.sbom_filename }}.sig" \
+            "${{ steps.vars.outputs.sbom_filename }}.pem"
