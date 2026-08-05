@@ -800,7 +800,6 @@ jobs:
             # is not a deploy. Descriptions read "Deploy 09446ffe", and
             # this JSON is pretty-printed, so allow the space after the
             # colon; see the baseline check below for that lesson.
-            HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
             live="$(curl -sfS --max-time 30 \
               "https://api.heroku.com/apps/${HEROKU_APP}/releases" \
               -H 'Accept: application/vnd.heroku+json; version=3' \
@@ -1311,14 +1310,28 @@ jobs:
             # disagree, the application is live on an operating system
             # the suite never ran on, which is the one thing this whole
             # mechanism exists to prevent.
-            live_stack="$(script/heroku_app_field stack.name \
-              "$HEROKU_APP" || true)"
-            if [ "$live_stack" != "$tested_stack" ]; then
-              echo "ERROR: ${HEROKU_APP} runs '${live_stack}' but the"
-              echo "tests ran on '${tested_stack}'."
-              exit 1
-            fi
-            echo "${HEROKU_APP} runs ${live_stack}, as tested."
+            #
+            # Retried rather than judged on one read. "stack" follows the
+            # release rather than leading it, so on the very deploy that
+            # moves the stack it may briefly still report the old one.
+            # Failing immediately would be a false alarm at exactly the
+            # moment this check matters most.
+            for i in $(seq 1 6); do
+              live_stack="$(script/heroku_app_field stack.name \
+                "$HEROKU_APP" || true)"
+              if [ "$live_stack" = "$tested_stack" ]; then
+                echo "${HEROKU_APP} runs ${live_stack}, as tested."
+                exit 0
+              fi
+              echo "Attempt ${i}: reads '${live_stack}', waiting for" \
+                   "'${tested_stack}'."
+              sleep 5
+            done
+            echo "ERROR: ${HEROKU_APP} runs '${live_stack}' but the"
+            echo "tests ran on '${tested_stack}'."
+            echo 'The application is live on an operating system the'
+            echo 'suite never ran on. Check "heroku stack".'
+            exit 1
       - run:
           name: Smoke test the live site
           command: |
@@ -1370,17 +1383,32 @@ jobs:
             # sets action_on_unpermitted_parameters to raise.
             echo "Smoke testing https://${host}/projects/1.json"
             for i in $(seq 1 12); do
-              buster="build${CIRCLE_BUILD_NUM}-try${i}-${RANDOM}"
+              # Four independent sources of variation, because this
+              # line has to keep working when something about it stops
+              # being true. CIRCLE_BUILD_NUM is empty off CircleCI; the
+              # attempt number repeats between runs; $RANDOM is not
+              # available in every shell. The clock changes every
+              # second, and attempts are five seconds apart.
+              buster="build${CIRCLE_BUILD_NUM:-none}-try${i}"
+              buster="${buster}-$(date +%s)-${RANDOM}"
               url="https://${host}/projects/1.json?useless_parameter=${buster}"
-              body="$(curl -sfL --max-time 20 "$url" || true)"
-              if printf '%s' "$body" | grep -q '"id": *1'; then
+              body="$(curl -sfL --max-time 20 -D /tmp/smoke-headers \
+                "$url" || true)"
+              # Require the digit to END: '"id": *1' alone also
+              # matches "id":10, so a response about some other project
+              # would pass. Zero or more spaces after the colon because
+              # the answer may be compact or pretty-printed.
+              if printf '%s' "$body" | grep -q '"id": *1[,}]'; then
                 echo "Site answered with project 1 after ${i} attempts."
                 # Printed, not asserted. A MISS proves the answer came
                 # from the application; a HIT would mean the CDN served
                 # a query string it had somehow seen before, which is
                 # worth seeing but is no reason to fail a good deploy.
-                curl -sIL --max-time 20 "$url" \
-                  | grep -iE '^(x-cache|age):' || true
+                # From THIS request's headers, not a second one:
+                # asking again for the same URL would report a hit on
+                # the cache entry the request above had just created,
+                # which is a diagnostic that lies in the ordinary case.
+                grep -iE '^(x-cache|age):' /tmp/smoke-headers || true
                 exit 0
               fi
               echo "Attempt ${i}: no usable answer yet; dynos may still" \

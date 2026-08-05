@@ -1955,10 +1955,38 @@ remaining attempt, turning a state that would have recovered into a
 guaranteed failure. The value carries the build and attempt number so it
 can be found in a log, plus `$RANDOM` so two runs cannot collide.
 
-`X-Cache` and `Age` are **printed rather than asserted**. A MISS proves
-the answer came from the application; a HIT would mean the CDN served a
-query string it had somehow seen before, which is worth seeing but is no
-reason to fail a good deploy.
+The value also carries `date +%s`, so it varies without depending on
+`CIRCLE_BUILD_NUM` or `$RANDOM`. Four sources of variation, because the
+line has to keep working when one of its assumptions stops being true:
+the build number is empty off CircleCI, the attempt number repeats
+between runs, `$RANDOM` is not in every shell, and the clock moves
+whatever else happens.
+
+`X-Cache` and `Age` are **printed rather than asserted**, from the
+headers of the request that just succeeded. Reading them from a second
+request to the same URL, which is how this was first written, would
+report a hit on the cache entry the first request had just created: a
+diagnostic that lies in the ordinary case. A MISS proves the answer came
+from the application; a HIT would be worth seeing but is no reason to
+fail a good deploy.
+
+### Reviewed before it could run
+
+This fires rarely and changes a lot when it does, so the diff was read
+back rather than trusted. Four things came out of that reading:
+
+* **`'"id": *1'` also matches `"id":10`.** A response about some other
+  project would have passed. It now requires the digit to end,
+  `'"id": *1[,}]'`, and there are tests for a compact body, a
+  pretty-printed body, and a body about project 10.
+* **The `X-Cache` diagnostic issued a second request**, as above.
+* **The stack confirmation judged on a single read.** `stack` follows
+  the release rather than leading it, so on the very deploy that moves
+  the stack it may briefly still report the old one. Failing at once
+  would be a false alarm at exactly the moment the check matters most;
+  it now retries for thirty seconds.
+* **`HEROKU_APP` was assigned twice** in the maintenance decision, a
+  leftover from inserting the stack check above the migration check.
 
 **The hostname comes from the application**, via
 `heroku config:get PUBLIC_HOSTNAME`, so staging and production each
