@@ -712,13 +712,30 @@ jobs:
             # are lettered "a", manual ones "b", so match a letter
             # followed by digits rather than assuming the letter.
             #
-            # Column 5 is the first word of the Status column, because
-            # "Created at" always occupies exactly three fields (date,
-            # time, offset).
+            # awk's default field splitting handles any run of spaces
+            # or tabs, so the exact column widths do not matter.
             echo "Restoring ${SOURCE_APP}'s latest backup over ${TARGET_APP}"
             backup_id="$(heroku pg:backups --app "$SOURCE_APP" \
-              | awk '$1 ~ /^[a-z][0-9]+$/ && $5 == "Completed" \
-                     { print $1; exit }' || true)"
+              | awk '
+                  # Track which section we are in. The command prints
+                  # Backups, then Restores, then Copies, and restore
+                  # and copy rows look just like backup rows: c3221 is
+                  # a copy, r002 a restore, both "Completed". Without
+                  # this, an empty or all-running Backups section would
+                  # fall through and hand a copy identifier to a
+                  # restore. Wrong, and silently so.
+                  /^[[:space:]]*===/ { in_backups = ($0 ~ /Backups/); next }
+                  !in_backups { next }
+                  # Match the status as a whole word anywhere on the
+                  # line rather than by column number, so a change to
+                  # the "Created at" format cannot shift it out from
+                  # under us. Heroku says "Finished" in its published
+                  # example and "Completed" in the output we see, so
+                  # accept both.
+                  $1 ~ /^[a-z][0-9]+$/ &&
+                    $0 ~ /(^|[[:space:]])(Completed|Finished)([[:space:]]|$)/ {
+                      print $1; exit
+                    }' || true)"
             if ! printf '%s' "$backup_id" | grep -qE '^[a-z][0-9]+$'; then
               echo "ERROR: found no completed backup for ${SOURCE_APP}."
               echo 'Refusing to restore. Check "heroku pg:backups".'

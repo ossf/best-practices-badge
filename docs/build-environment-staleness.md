@@ -1663,22 +1663,52 @@ assumptions would have been wrong:
   one that failed, appears at the top of the list and would have been
   chosen. The parse insists on `Completed`.
 
-`heroku pg:backups` has no `--json`, so this is a table parse, which is
-worth being honest about: it depends on a human-readable format that
-Heroku could change. It is written to fail closed if that happens, and
-tested against the real listing plus five synthetic ones:
+### The parse has to be forgiving, and one thing it was not
+
+`heroku pg:backups` has no `--json`, so this is a table parse. Asked how
+tolerant it is of formatting, and checking properly turned up a real
+defect rather than a style point.
+
+**The command prints three sections, not one.** Backups, then Restores,
+then Copies. Copy rows look exactly like backup rows: `c3221` matches
+the same identifier shape and carries the same `Completed` status. The
+first version simply took the first match in the whole output, which
+happened to be right only because Backups is printed first. **An empty
+or all-running Backups section would have fallen through and handed a
+*copy* identifier to a restore.** Wrong, silently, and precisely the
+failure that made a table parse worth worrying about.
+
+The parse now tracks which section it is in and considers nothing
+outside Backups.
+
+**Heroku's own documentation disagrees with Heroku's own output.** The
+published example shows backups with status `Finished`; the CLI we run
+prints `Completed`, which is the word the example reserves for restores.
+Both are accepted.
+
+On formatting specifically, it is tolerant by construction. awk's
+default field splitting treats any run of spaces or tabs as one
+separator, so column widths do not matter, and the status is matched as
+a whole word anywhere on the line rather than by column number, so a
+change to the "Created at" format cannot shift it out from under us.
+
+Tested against the real listing and seven synthetic ones:
 
 | Listing | Result |
 | ------- | ------ |
-| the real one | `a3822`, the newest completed |
+| the real one, three sections | `a3822` |
+| Backups empty, Copies present | **refuses**, does not take `c3221` |
+| only a Restores section | refuses |
+| documentation style, `Finished`, single spaces | `b011` |
+| tab separated | `a899`, skipping a Running row |
 | a Running backup on top | skips it, `a3822` |
 | a Failed backup on top | skips it, `a3822` |
-| no backups at all | refuses, exit 1 |
 | an API error instead of a table | refuses, exit 1 |
-| only a Running backup | refuses, exit 1 |
 
-Column 5 is the first word of Status because "Created at" always takes
-exactly three fields: date, time, and offset.
+What it still cannot survive is Heroku renaming the sections or the
+status words again. It fails closed when that happens, which is the
+most that can be promised of a parse with no machine-readable
+alternative.
 
 **Four independent exact-match checks guard the restore**, because it
 overwrites a database:
