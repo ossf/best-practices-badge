@@ -33,6 +33,21 @@
 
   labels: ['dependencies'],
 
+  // ONE PULL REQUEST PER DEPENDENCY, which is Renovate's default and is
+  // relied on here rather than configured. Nothing sets "groupName", and
+  // there is no "extends", so no preset quietly groups things either. So
+  // a stack upgrade arrives on its own, to be judged on its own, even if
+  // PostgreSQL and Chrome happen to have updates the same week. The two
+  // heroku/heroku pins are one dependency and do share a pull request,
+  // which is what we want: they must move together.
+  //
+  // The default hourly limit is 2, which would be wrong here. This runs
+  // weekly, from a workflow that starts, does its work and exits, so a
+  // limit of 2 means two proposals a week and the rest waiting for the
+  // next run: a stack upgrade could sit behind routine bumps for weeks
+  // without anything saying so. Zero means no limit.
+  prHourlyLimit: 0,
+
   // No schedule here on purpose. How often Renovate runs is decided by
   // the cron in .github/workflows/renovate.yml, so there is one place to
   // change the cadence rather than two that can disagree.
@@ -40,21 +55,39 @@
   packageRules: [
     {
       description: [
-        'heroku/heroku must keep the tag production runs. Digest updates',
-        'only: those are Heroku rebuilding the same stack, which is what',
-        'we want to follow. A tag update would be 24-build to 26-build,',
-        'moving CI to a different Ubuntu from the one production builds',
-        'on, which is the whole problem findings 2 and 4 were about.',
-        'Both applications are on heroku-24, confirmed 2026-08-05 with',
-        '"heroku stack --app ...". Changing that is plan step 10: test',
-        'environment first, deliberately, not as a dependency bump.',
-        'Note this image is pinned TWICE, in the ruby-postgres and',
-        'ruby-only executors, and the two must always move together.',
+        'heroku/heroku is the stack, and the stack is deliberately one',
+        'decision rather than two. The tag in .circleci/config.yml is',
+        'the single source of truth: CI derives the stack from',
+        'CNB_STACK_ID inside that image, carries it to the deploy job',
+        'through the workspace, and the deploy job sets the Heroku',
+        "applications' stack to match. So accepting a pull request that",
+        'moves 24-build to 26-build runs the whole suite on heroku-26,',
+        'and, if it passes and reaches staging, moves staging onto',
+        'heroku-26. Production follows by the same route.',
+        '',
+        'That is why this proposal is WANTED rather than suppressed, and',
+        'why it deserves more thought than a routine bump: it is plan',
+        'step 10 arriving as a pull request.',
+        '',
+        'Note the image is pinned TWICE, in the ruby-postgres and',
+        'ruby-only executors, and both must move together or the static',
+        'job and the test job stop checking the same environment.',
       ],
       matchDatasources: ['docker'],
       matchPackageNames: ['heroku/heroku'],
-      matchUpdateTypes: ['major', 'minor', 'patch'],
-      enabled: false,
+      labels: ['dependencies', 'stack-upgrade'],
+      prBodyNotes: [
+        '> **This changes the operating system everything runs on.**',
+        '>',
+        '> Merging it moves the test environment to the new stack. When',
+        '> it reaches `staging`, the deploy job sets that application to',
+        '> the same stack and rebuilds; `production` follows when it is',
+        '> advanced. Maintenance mode is taken automatically for a stack',
+        '> change.',
+        '>',
+        '> Rolling back means reverting this pull request and letting a',
+        '> full deploy move the stack back.',
+      ],
     },
   ],
 }

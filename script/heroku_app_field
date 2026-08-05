@@ -1,0 +1,67 @@
+#!/bin/sh
+# Print one field of a Heroku application's JSON, from the Platform API.
+#
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+#
+# Usage:  script/heroku_app_field <dotted.field> <app-name>
+# Example: script/heroku_app_field stack.name production-bestpractices
+#
+# Reads HEROKU_API_KEY from the environment. Prints the value and exits
+# 0, or prints nothing to stdout, a reason to stderr, and exits 1.
+# Callers should use "|| true" and then test for an empty result, so a
+# missing answer is handled deliberately rather than aborting the shell.
+#
+# WHY A SCRIPT RATHER THAN SHELL IN .circleci/config.yml. Three reasons.
+# Each CircleCI step is a fresh shell, so a function defined in one step
+# is gone by the next, and this is needed in three of them. Shell inside
+# that YAML gets no shellcheck and cannot be run locally. And a doubled
+# less-than sign anywhere in that file breaks CircleCI's parser, which
+# rules out the here-document this would naturally be written with.
+#
+# WHY NODE RATHER THAN grep. The application JSON has several "name"
+# fields: the app, its region, its owner, its stack, and its build_stack.
+# A regular expression that finds "the name that looks like a stack"
+# cannot tell "stack" from "build_stack", and those two deliberately
+# DIFFER between a stack:set and the rebuild that follows it, which is
+# exactly the moment this is used. node is guaranteed here: the deploy
+# job runs on cimg/node.
+set -eu
+
+field="${1:?usage: heroku_app_field <dotted.field> <app-name>}"
+app="${2:?usage: heroku_app_field <dotted.field> <app-name>}"
+: "${HEROKU_API_KEY:?HEROKU_API_KEY is not set}"
+
+body="$(
+  curl -sfS --max-time 30 \
+    -H 'Accept: application/vnd.heroku+json; version=3' \
+    -H "Authorization: Bearer ${HEROKU_API_KEY}" \
+    "https://api.heroku.com/apps/${app}"
+)" || {
+  echo "heroku_app_field: could not reach the API for ${app}" >&2
+  exit 1
+}
+
+printf '%s' "$body" | node -e '
+  let raw = "";
+  process.stdin.on("data", (d) => { raw += d; });
+  process.stdin.on("end", () => {
+    let value;
+    try {
+      value = process.argv[1]
+        .split(".")
+        .reduce((o, k) => (o === null || o === undefined ? o : o[k]),
+                JSON.parse(raw));
+    } catch (e) {
+      process.stderr.write("heroku_app_field: unparsable JSON\n");
+      process.exit(1);
+    }
+    if (typeof value !== "string" || value === "") {
+      process.stderr.write("heroku_app_field: no string at " +
+                           process.argv[1] + "\n");
+      process.exit(1);
+    }
+    process.stdout.write(value);
+  });
+' "$field"

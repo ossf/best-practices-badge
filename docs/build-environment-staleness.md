@@ -1845,6 +1845,142 @@ skipping quietly. A weekly red run is a reminder to finish the setup; a
 weekly green run that did nothing is how a dependency updater goes
 unnoticed for a year.
 
+## The stack is one decision, proposed as a pull request
+
+Decided and built 2026-08-05. Upgrading the stack used to be plan step
+10, a manual exercise to be done "test environment first". It is now a
+pull request, and accepting it does the whole thing.
+
+**The executor image tag is the single source of truth.** Change
+`heroku/heroku:24-build` to `26-build` in `.circleci/config.yml` and:
+
+1. the tests run on heroku-26, because that is the image they run in;
+2. the deploy job sets the application's stack to heroku-26 before
+   pushing, so the slug is built and run there;
+3. staging gets it when `main` is merged to `staging`, production when
+   `staging` is merged to `production`.
+
+**Nothing repeats the stack name**, which is what makes that true rather
+than hopeful. Heroku's images set `CNB_STACK_ID`, so the build job asks
+the running container what it is:
+
+```text
+$ docker run --rm heroku/heroku:24-build env | grep -i stack
+CNB_STACK_ID=heroku-24
+```
+
+That value drives the Ruby download URL, which is per stack, and is
+written to the workspace for the deploy job. So "the base we tested on"
+and "the base we deploy onto" are the same string carried forward, not
+two things that agree. The `STACK=heroku-24` line this replaces sat one
+line below a comment claiming the stack was "named once, here".
+
+### What the deploy job does with it
+
+* **Maintenance mode is taken for a stack change.** It touches no data,
+  so the migration argument does not apply, but it rebuilds the
+  application on a different operating system, and going quiet for that
+  is the safer default. Stack changes are rare, so it costs nothing.
+* **`stack:set` runs before the push**, because it changes only what the
+  *next* build uses.
+* **`build_stack` and `stack` are different fields and both matter.**
+  The first is what the next build will use, the second what the dynos
+  run now. They differ exactly between a `stack:set` and the rebuild
+  that follows, which is precisely this moment. Comparing the wrong one
+  would set the stack again on every deploy, or miss that it moved.
+* **After the release, `stack.name` must equal the tested stack**, or
+  the job fails: the application would be live on an operating system
+  the suite never ran on, which is the one thing this exists to prevent.
+
+### Parsing that JSON with node, not grep
+
+`script/heroku_app_field` reads one dotted field from the application's
+JSON. It exists because the obvious `grep` cannot work here: the app
+object has several `"name"` fields, for the app, its region, its owner,
+its stack and its build stack, and a pattern that finds "the name that
+looks like a stack" cannot tell `stack` from `build_stack`. `node` is
+guaranteed, the deploy job running on `cimg/node`.
+
+It is a script rather than shell in the YAML for three reasons: each
+CircleCI step is a fresh shell and this is needed in three of them;
+shell inside that file gets no `shellcheck` and cannot be run locally;
+and a doubled less-than sign anywhere in that file breaks CircleCI's
+parser, which rules out the here-document this would otherwise be.
+
+### The stack name is checked loosely, on purpose
+
+Both places that validate a stack name accept `heroku-` followed by
+anything, not `heroku-` followed by two digits. The names we know are
+`heroku-22`, `heroku-24` and `heroku-26`, and it is tempting to encode
+that. But a validator that knows today's shape is a validator that
+rejects the correct answer the day the shape changes, and it would do so
+inside a deploy. Tested with `heroku-28`, `heroku-30` and `heroku-next`,
+all accepted, while `nonsense` and a bare `heroku-` are still refused.
+
+Verified against a fixture where the two deliberately differ:
+
+```text
+stack.name        -> heroku-24
+build_stack.name  -> heroku-26
+```
+
+### The smoke test, and what it is not
+
+After maintenance mode lifts, the job asks the site for one real page:
+`https://<app>.herokuapp.com/projects/1.json`, retrying for a minute.
+
+**Straight at the application, not the CDN hostname.** Fastly could
+serve a cached copy and make a dead origin look alive, which is exactly
+the failure a smoke test exists to catch. Direct access works because
+the Fastly-IP-required block in `config/initializers/fastly.rb` is
+commented out.
+
+**`/projects/1.json`, not `/robots.txt`**, because it routes, queries
+the database and serialises a real record, so it exercises the whole web
+path instead of proving something is listening.
+
+**It is detection, not prevention**, and cannot be otherwise:
+maintenance mode answers 503 to everything, and a one-off dyno serves no
+HTTP. Prevention is the release phase, which already runs
+`rails db:migrate` on the run image and so proves every gem loads on the
+new stack before the release goes live. This is the layer after that.
+
+It runs on **every** deploy, not only on stack changes, because a check
+that fires once every few years is a check nobody knows is broken.
+
+### Tested by stubbing Heroku
+
+Both new steps and the changed decision step were extracted from
+`.circleci/config.yml` and run under the deploy job's shell with `curl`
+and `heroku` stubbed. Eleven checks: a stack change forcing maintenance
+mode on, an unknown tested stack doing the same, `stack:set` running
+when the stacks differ and not when they agree, refusals for `nonsense`
+and a bare `heroku-`, acceptance of three stack names that do not exist
+yet, the post-release confirmation passing and failing, and the smoke
+test both answering and exhausting its retries. Fourteen in all, and
+eleven more cover the migration half.
+
+### Renovate's part
+
+The `heroku/heroku` rule is the opposite of what it was an hour earlier.
+The proposal is *wanted*: it is how a stack upgrade arrives. It carries
+a `stack-upgrade` label and a note in the pull request body saying what
+merging it will do, because "bump an image digest" and "move the
+operating system under production" should not look alike.
+
+**One pull request per dependency** is Renovate's default and is relied
+on rather than configured: nothing sets `groupName` and there is no
+`extends`, so a stack upgrade arrives alone even in a week when
+PostgreSQL and Chrome also have updates. The two `heroku/heroku` pins
+are one dependency and correctly share a pull request, since they must
+move together.
+
+`prHourlyLimit` is set to zero, against a default of 2. This runs weekly
+from a workflow that starts, works and exits, so a limit of two would
+mean two proposals a week with the rest silently waiting for the next
+run: a stack upgrade could sit behind routine bumps for weeks with
+nothing saying so.
+
 ## Proposing Ruby upgrades Heroku can build
 
 Decided 2026-08-04, after finding that Renovate cannot be made safe for
@@ -2892,8 +3028,12 @@ one wants to look is the question that settles it.
    `circleci` and permissioned as above. See
    [Renovate, for the CircleCI images](#renovate-for-the-circleci-images).
    It does nothing until a `RENOVATE_TOKEN` secret exists, and says so.
-10. **Then upgrade production to Heroku-26**, test environment first, so
-    the stack move is exercised somewhere before it reaches production.
+10. **Upgrade to Heroku-26 by accepting a pull request.** No longer a
+    manual exercise: changing the executor image tag moves the tests,
+    and the deploy job moves the applications to match, staging first by
+    the ordinary branch flow. See [The stack is one
+    decision](#the-stack-is-one-decision-proposed-as-a-pull-request).
+    Both applications were on heroku-24 as of 2026-08-05.
 
 Independent of the above, and in no particular order with it:
 
