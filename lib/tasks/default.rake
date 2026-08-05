@@ -20,65 +20,75 @@
 require 'English'
 require 'json'
 
-# NOTE: Our default runs test:optimized, not just test.
-# We want to make sure things work using *all* our tests.
-# test:optimized runs regular tests (parallelized) then system tests (serial).
-# We do the whitespace check early, so it will fail early.
-# AI assistants just can't help but add whitespace at the end of lines.
-# Everything else in the default list is settled by the commit: the same
-# tree gives the same answer for ever. These are not. bundle_audit reads
-# an advisory database and percent_gems_up_to_date reads rubygems.org,
-# both of which move underneath an unchanged commit, so a gem set that
-# was clean when it merged can be vulnerable by the time it deploys.
-# That is exactly the moment we want to be told.
+# The work "rake default" does, split three ways, because CI runs the
+# halves as separate jobs at the same time and a developer runs all of
+# it with one word. Every list below is built from these constants, so
+# "rake default" cannot come to mean something different from what CI
+# runs; see docs/build-environment-staleness.md.
 #
-# So these run on EVERY build, deploy builds included, while the
-# code-determined checks do not; see :deploy_checks below and
-# docs/build-environment-staleness.md. 'bundle' is here because the
-# tests cannot run without it, not because it is a check.
-TIME_VARYING_CHECKS = %w[
+# Getting Ruby and the gems in place. Not checks, but nothing else
+# works without them.
+PREFLIGHT = %w[
+  rbenv_rvm_setup
   bundle
-  bundle_audit
-  percent_gems_up_to_date
 ].freeze
 
+# STATIC: settled by the commit. The same tree gives the same answer for
+# ever, so these need to run once per commit and no more. That is what
+# lets them move to their own parallel job, and what lets staging and
+# production skip them: those branches are reached only by
+# fast-forwarding main, which has already run every one of them.
+#
+# whitespace_check leads deliberately, and "rake default" also names it
+# ahead of everything so it fails early. AI assistants just can't help
+# but add whitespace at the end of lines.
+STATIC_CHECKS = %w[
+  whitespace_check
+  ruby_syntax
+  generate_criteria_doc
+  rubocop
+  markdownlint
+  rails_best_practices
+  license_okay
+  yaml_syntax_check
+  circleci_config_check
+  html_from_markdown
+  eslint
+  report_code_statistics
+].freeze
+
+# DYNAMIC: not settled by the commit. bundle_audit reads an advisory
+# database and percent_gems_up_to_date reads rubygems.org, both of which
+# move underneath an unchanged commit, so a gem set that was clean when
+# it merged can be vulnerable by the time it deploys. That is exactly
+# the moment we want to be told, so these run on every build, deploys
+# included.
+#
+# The tests belong here for the same reason rather than by analogy: a
+# green suite is not a property of the commit alone. Re-running it is
+# how flapping is noticed, and it is the last thing standing between a
+# deploy and production.
+#
+# test:optimized runs the regular tests (parallelized) and then the
+# system tests (serial).
+DYNAMIC_CHECKS = %w[
+  bundle_audit
+  percent_gems_up_to_date
+  test:optimized
+].freeze
+
+# Everything, which is what a developer wants from one word, and what
+# runs on a machine with no CI to split the work across. Defined from
+# the two halves so it cannot drift from what CI actually runs.
 task(:default).clear.enhance(
-  %w[
-    rbenv_rvm_setup
-    notice
-    whitespace_check
-    ruby_syntax
-  ] + TIME_VARYING_CHECKS + %w[
-    generate_criteria_doc
-    rubocop
-    markdownlint
-    rails_best_practices
-    license_okay
-    yaml_syntax_check
-    circleci_config_check
-    html_from_markdown
-    eslint
-    report_code_statistics
-    test:optimized
-  ]
+  %w[notice whitespace_check] + %w[static_checks dynamic_checks]
 )
 
-# What CI runs on the staging and production branches, where the
-# code-determined checks above would only re-establish what main
-# already established: those branches are reached by fast-forward from
-# main, and branch protection is what makes that true rather than
-# merely customary.
-#
-# Tests still run, because a passing suite is not a property of the
-# commit alone: it is how flapping is noticed, and it is the last thing
-# standing between a deploy and production.
-#
-# Defined from the same constant the default list splices in, so the
-# two cannot drift apart.
-desc 'Checks that must run on every build, deploys included'
-task(:deploy_checks).clear.enhance(
-  %w[rbenv_rvm_setup] + TIME_VARYING_CHECKS + %w[test:optimized]
-)
+desc 'Checks settled by the commit; CI runs these in a parallel job'
+task(:static_checks).clear.enhance(PREFLIGHT + STATIC_CHECKS)
+
+desc 'Tests, and checks whose answer changes without the code changing'
+task(:dynamic_checks).clear.enhance(PREFLIGHT + DYNAMIC_CHECKS)
 # Temporarily removed fasterer
 # Waiting for Ruby 2.4 support: https://github.com/seattlerb/ruby_parser/issues/239
 # Temporarily removed railroader because of local install problems;

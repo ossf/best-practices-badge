@@ -134,6 +134,31 @@ executors:
           SE_START_XVFB: "false"
           SE_START_VNC: "false"
 
+  # The static checks need Ruby and nothing else. Checked, not assumed:
+  # every one of them passes with PGHOST pointed at a dead port, so no
+  # database is involved, and none of them opens a browser.
+  #
+  # Hence its own executor rather than reusing ruby-postgres: that would
+  # start and pay for a PostgreSQL container and a 2.12GB Chrome
+  # container that this job never speaks to.
+  #
+  # The image below is deliberately the same as the primary image above,
+  # and the two must move together. Renovate proposes an upgrade for
+  # each occurrence, so they arrive in one pull request; take both or
+  # neither. If they ever disagree, the static job and the test job are
+  # no longer checking the same environment, which is the whole point of
+  # sharing the prepare_ruby command.
+  ruby-only:
+    docker:
+      - image: heroku/heroku:24-build@sha256:a6e743f508a2f37f90ddd551587c3a0776529219ae427296db8836fa9a680275
+        environment:
+          RAILS_ENV: test
+          RACK_ENV: test
+          # Same reason as above: this image leaves LANG unset, which
+          # gives a US-ASCII default external encoding, and prepare_ruby
+          # asserts UTF-8 rather than letting it corrupt text later.
+          LANG: C.UTF-8
+
   deploy-only:
     docker:
       # The deploy job needs git, node, npm, wget, and openssl, and
@@ -151,7 +176,211 @@ executors:
       # requires node >=20.
       - image: cimg/node:24.19.0@sha256:8966565f07189a67d64d6808a2b127f31dafae566508e3547f55640e1070bfad
 
+commands:
+  prepare_ruby:
+    description: >
+      Everything both jobs need before they can run any Ruby: the
+      cache identity, the restore, Ruby and Node in $HOME, the
+      toolchain check, and the bundle. Defined once because the
+      static job and the test job must agree about the environment
+      exactly; two copies of this would drift, and the drift would
+      show up as one job passing and the other failing on the same
+      commit.
+    steps:
+      # Work out what makes a cache compatible, and let the key say so.
+      #
+      # CircleCI stores cache paths as ABSOLUTE paths, so a cache saved
+      # under one $HOME cannot be written under another. When this job
+      # moved from an image whose user was "circleci" to one whose user is
+      # "heroku", nothing in the key noticed: the restore matched, then
+      # produced 23,404 "permission denied" lines, wasted 27 seconds and
+      # restored nothing.
+      #
+      # So the key carries the three things that decide compatibility, read
+      # from the running container rather than written down by hand: who we
+      # are, where home is, and which OS this is. A stack upgrade therefore
+      # changes the key by itself, which is why no version number appears
+      # anywhere below.
+      #
+      # Why hash a file instead of putting these in the key directly? A
+      # cache key can only interpolate CircleCI's own templates, and
+      # {{ .Environment.X }} is restricted to variables CircleCI exports or
+      # a context supplies, "not any arbitrary environment variable".
+      # {{ checksum }} on a file is the only way to get a runtime value
+      # into a key. The step prints the file so the log stays readable.
+      - run:
+          name: Work out what makes a cache compatible
+          command: |
+            set -euo pipefail
+            . /etc/os-release
+            { id -un; echo "$HOME"; echo "${ID}-${VERSION_ID}"; } \
+              > /tmp/cache-env-id
+            echo 'Cache environment identity:'
+            sed 's/^/  /' /tmp/cache-env-id
+      # Restore BEFORE installing anything, because the cache now carries
+      # ~/ruby, which holds both the interpreter and every installed gem
+      # (Gem.dir is $HOME/ruby/lib/ruby/gems/X). A hit therefore skips the
+      # Ruby download AND most of "bundle install".
+      #
+      # arch comes before the checksums so the looser fallbacks below
+      # cannot cross architectures.
+      - restore_cache:
+          keys:
+          # Exact: this environment, this Ruby, these gems, this branch.
+          - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}-{{ .Branch }}
+          # Same Ruby and gems from any branch. This is what stops every
+          # new branch from starting cold, which it previously did: the old
+          # key ended in {{ .Branch }} with no fallback at all.
+          - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}-
+          # Same Ruby, any gems: the interpreter is still right and
+          # "bundle install" reconciles the difference, which is far
+          # cheaper than building the world.
+          - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-
+      - run:
+          name: Install Ruby and Node into $HOME
+          command: |
+            set -euo pipefail
+            # Both versions come from the files that already govern them,
+            # so there is no third place to forget to update. The stack
+            # name is named once, here.
+            STACK=heroku-24
+            RUBY_VERSION="$(tr -d '[:space:]' < .ruby-version)"
+            NODE_VERSION="$(sed -n 's/.*"node": *"\([^"]*\)".*/\1/p' \
+                            package.json | head -1)"
+            test -n "$RUBY_VERSION"; test -n "$NODE_VERSION"
+
+            # Heroku's own prebuilt Ruby, so the interpreter matches
+            # production and this is a download rather than a compile.
+            # Note the arch segment: S3 answers 403, not 404, when listing
+            # is denied, so a missing object and a forbidden one look
+            # identical and only a 200 means anything.
+            # Skip if the cache already brought it, gems and all. Verify by
+            # running it rather than trusting the directory's existence, so
+            # a truncated or half-restored cache falls back to a download
+            # instead of failing later in a confusing way.
+            if "$HOME/ruby/bin/ruby" -v >/dev/null 2>&1; then
+              echo "Ruby restored from cache: $("$HOME/ruby/bin/ruby" -v)"
+            else
+              echo "Installing Ruby ${RUBY_VERSION} for ${STACK}"
+              rm -rf "$HOME/ruby"
+              curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
+                "https://heroku-buildpack-ruby.s3.us-east-1.amazonaws.com/${STACK}/amd64/ruby-${RUBY_VERSION}.tgz" \
+                | tar xz -C "$HOME" --one-top-level=ruby
+            fi
+
+            # Guard against the cache and .ruby-version disagreeing. The
+            # key includes .ruby-version so this should be impossible;
+            # if it ever happens, say so rather than test the wrong Ruby.
+            got="$("$HOME/ruby/bin/ruby" -e 'print RUBY_VERSION')"
+            if [ "$got" != "$RUBY_VERSION" ]; then
+              echo "ERROR: .ruby-version says ${RUBY_VERSION}, but the Ruby"
+              echo "in \$HOME is ${got}. Refusing to test the wrong one."
+              exit 1
+            fi
+
+            # Node at the version package.json pins, so CI minifies
+            # JavaScript with the interpreter production minifies with.
+            # Verified against nodejs.org's own SHASUMS256.txt: integrity,
+            # not provenance, since both come from the same host, but it
+            # catches a truncated or corrupted download.
+            echo "Installing Node ${NODE_VERSION}"
+            nb="https://nodejs.org/download/release/v${NODE_VERSION}"
+            nt="node-v${NODE_VERSION}-linux-x64.tar.gz"
+            curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
+              "${nb}/${nt}" -o "/tmp/${nt}"
+            curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
+              "${nb}/SHASUMS256.txt" -o /tmp/SHASUMS256.txt
+            (cd /tmp && grep " ${nt}\$" SHASUMS256.txt | sha256sum -c -)
+            mkdir -p "$HOME/node"
+            tar xz -C "$HOME/node" --strip-components=1 -f "/tmp/${nt}"
+            rm -f "/tmp/${nt}" /tmp/SHASUMS256.txt
+
+            echo 'export PATH="$HOME/ruby/bin:$HOME/node/bin:$PATH"' \
+              >> "$BASH_ENV"
+      - run:
+          name: Confirm the toolchain, and that it can read UTF-8
+          command: |
+            set -euo pipefail
+            ruby -v
+            node --version
+            echo "CPUs visible: $(nproc)"
+            if [ -r /sys/fs/cgroup/memory.max ]; then
+              echo "memory limit (cgroup v2): $(cat /sys/fs/cgroup/memory.max)"
+            elif [ -r /sys/fs/cgroup/memory/memory.stat ]; then
+              grep hierarchical_memory_limit /sys/fs/cgroup/memory/memory.stat
+            fi
+            # Fail here, with a sentence, rather than in a test that
+            # mangles an accented character three steps later.
+            ruby -e 'raise "default_external is #{Encoding.default_external}" \
+                     unless Encoding.default_external == Encoding::UTF_8'
+      # Implement OSPS-BR-01.02: Validate branch name before use in pipeline
+      # Protect against malicious branch names that could cause cache poisoning
+      # or command injection attacks. Branch names are used in cache keys below.
+      - run:
+          name: Validate branch name
+          command: script/validate_branch_name "$CIRCLE_BRANCH"
+      - run:
+          name: Update bundler to match Gemfile.lock
+          # No sudo: this image has none, and does not need it, because
+          # Ruby lives in $HOME and so its gem directory is already ours.
+          #
+          # --force, not "yes |". Heroku's Ruby tarball ships its own
+          # "bundle" binstub, which belongs to no gem, so RubyGems refuses
+          # with "bundle from bundler conflicts with .../bin/bundle". That
+          # is an error, not a prompt, so piping "yes" cannot answer it;
+          # --force skips the overwrite check. The same is true of any gem
+          # whose binstub collides with the tarball's, "rake" included.
+          command: |
+            set -euo pipefail
+            want="$(tail -1 Gemfile.lock | tr -d '[:space:]')"
+            echo "Gemfile.lock was bundled with ${want}"
+            gem install bundler --no-document --force -v "${want}"
+      - run:
+          name: Bundler Version
+          command: bundle --version
+      - run:
+          name: Install Bundle
+          # Note: --path=vendor/bundle removed, we don't need it.
+          command: >
+            bundle check ||
+            bundle install --jobs=4 --retry=3
+
 jobs:
+  # The checks that are settled by the commit, run beside the tests
+  # rather than in front of them. They took roughly 200 seconds of the
+  # single job they used to share with the suite, and they need nothing
+  # the suite needs: no database, no browser, no test results.
+  #
+  # This job does not exist on the staging and production branches; the
+  # workflow filter at the bottom of this file leaves it out entirely,
+  # because those branches are reached only by fast-forwarding main,
+  # which has already run every check in it. That filter, and not a
+  # conditional inside a step, is what makes "we do not re-check
+  # deploys" true.
+  #
+  # It shares the dependency cache with "build": the keys come from the
+  # same prepare_ruby command, so whichever job runs first warms it for
+  # the other on the next pipeline. Only "build" writes the cache, so
+  # the two never race to save the same key.
+  static:
+    executor: ruby-only
+    working_directory: ~/ossf/best-practices-badge
+    resource_class: medium
+    shell: /bin/bash --login
+    steps:
+      - checkout
+      - prepare_ruby
+      # No database is used, but Rails still wants the file to exist
+      # when it boots. One copy is cheaper than finding out.
+      - run:
+          name: Configure database
+          command: |
+            cd config/
+            cp {database.ci,database}.yml
+      - run:
+          name: Run the checks settled by the commit (rake static_checks)
+          command: CI=true bundle exec rake static_checks
+
   build:
     executor: ruby-postgres
     working_directory: ~/ossf/best-practices-badge
@@ -163,132 +392,7 @@ jobs:
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
     steps:
     - checkout
-    # Work out what makes a cache compatible, and let the key say so.
-    #
-    # CircleCI stores cache paths as ABSOLUTE paths, so a cache saved
-    # under one $HOME cannot be written under another. When this job
-    # moved from an image whose user was "circleci" to one whose user is
-    # "heroku", nothing in the key noticed: the restore matched, then
-    # produced 23,404 "permission denied" lines, wasted 27 seconds and
-    # restored nothing.
-    #
-    # So the key carries the three things that decide compatibility, read
-    # from the running container rather than written down by hand: who we
-    # are, where home is, and which OS this is. A stack upgrade therefore
-    # changes the key by itself, which is why no version number appears
-    # anywhere below.
-    #
-    # Why hash a file instead of putting these in the key directly? A
-    # cache key can only interpolate CircleCI's own templates, and
-    # {{ .Environment.X }} is restricted to variables CircleCI exports or
-    # a context supplies, "not any arbitrary environment variable".
-    # {{ checksum }} on a file is the only way to get a runtime value
-    # into a key. The step prints the file so the log stays readable.
-    - run:
-        name: Work out what makes a cache compatible
-        command: |
-          set -euo pipefail
-          . /etc/os-release
-          { id -un; echo "$HOME"; echo "${ID}-${VERSION_ID}"; } \
-            > /tmp/cache-env-id
-          echo 'Cache environment identity:'
-          sed 's/^/  /' /tmp/cache-env-id
-    # Restore BEFORE installing anything, because the cache now carries
-    # ~/ruby, which holds both the interpreter and every installed gem
-    # (Gem.dir is $HOME/ruby/lib/ruby/gems/X). A hit therefore skips the
-    # Ruby download AND most of "bundle install".
-    #
-    # arch comes before the checksums so the looser fallbacks below
-    # cannot cross architectures.
-    - restore_cache:
-        keys:
-        # Exact: this environment, this Ruby, these gems, this branch.
-        - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}-{{ .Branch }}
-        # Same Ruby and gems from any branch. This is what stops every
-        # new branch from starting cold, which it previously did: the old
-        # key ended in {{ .Branch }} with no fallback at all.
-        - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}-
-        # Same Ruby, any gems: the interpreter is still right and
-        # "bundle install" reconciles the difference, which is far
-        # cheaper than building the world.
-        - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-
-    - run:
-        name: Install Ruby and Node into $HOME
-        command: |
-          set -euo pipefail
-          # Both versions come from the files that already govern them,
-          # so there is no third place to forget to update. The stack
-          # name is named once, here.
-          STACK=heroku-24
-          RUBY_VERSION="$(tr -d '[:space:]' < .ruby-version)"
-          NODE_VERSION="$(sed -n 's/.*"node": *"\([^"]*\)".*/\1/p' \
-                          package.json | head -1)"
-          test -n "$RUBY_VERSION"; test -n "$NODE_VERSION"
-
-          # Heroku's own prebuilt Ruby, so the interpreter matches
-          # production and this is a download rather than a compile.
-          # Note the arch segment: S3 answers 403, not 404, when listing
-          # is denied, so a missing object and a forbidden one look
-          # identical and only a 200 means anything.
-          # Skip if the cache already brought it, gems and all. Verify by
-          # running it rather than trusting the directory's existence, so
-          # a truncated or half-restored cache falls back to a download
-          # instead of failing later in a confusing way.
-          if "$HOME/ruby/bin/ruby" -v >/dev/null 2>&1; then
-            echo "Ruby restored from cache: $("$HOME/ruby/bin/ruby" -v)"
-          else
-            echo "Installing Ruby ${RUBY_VERSION} for ${STACK}"
-            rm -rf "$HOME/ruby"
-            curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
-              "https://heroku-buildpack-ruby.s3.us-east-1.amazonaws.com/${STACK}/amd64/ruby-${RUBY_VERSION}.tgz" \
-              | tar xz -C "$HOME" --one-top-level=ruby
-          fi
-
-          # Guard against the cache and .ruby-version disagreeing. The
-          # key includes .ruby-version so this should be impossible;
-          # if it ever happens, say so rather than test the wrong Ruby.
-          got="$("$HOME/ruby/bin/ruby" -e 'print RUBY_VERSION')"
-          if [ "$got" != "$RUBY_VERSION" ]; then
-            echo "ERROR: .ruby-version says ${RUBY_VERSION}, but the Ruby"
-            echo "in \$HOME is ${got}. Refusing to test the wrong one."
-            exit 1
-          fi
-
-          # Node at the version package.json pins, so CI minifies
-          # JavaScript with the interpreter production minifies with.
-          # Verified against nodejs.org's own SHASUMS256.txt: integrity,
-          # not provenance, since both come from the same host, but it
-          # catches a truncated or corrupted download.
-          echo "Installing Node ${NODE_VERSION}"
-          nb="https://nodejs.org/download/release/v${NODE_VERSION}"
-          nt="node-v${NODE_VERSION}-linux-x64.tar.gz"
-          curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
-            "${nb}/${nt}" -o "/tmp/${nt}"
-          curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
-            "${nb}/SHASUMS256.txt" -o /tmp/SHASUMS256.txt
-          (cd /tmp && grep " ${nt}\$" SHASUMS256.txt | sha256sum -c -)
-          mkdir -p "$HOME/node"
-          tar xz -C "$HOME/node" --strip-components=1 -f "/tmp/${nt}"
-          rm -f "/tmp/${nt}" /tmp/SHASUMS256.txt
-
-          echo 'export PATH="$HOME/ruby/bin:$HOME/node/bin:$PATH"' \
-            >> "$BASH_ENV"
-    - run:
-        name: Confirm the toolchain, and that it can read UTF-8
-        command: |
-          set -euo pipefail
-          ruby -v
-          node --version
-          echo "CPUs visible: $(nproc)"
-          if [ -r /sys/fs/cgroup/memory.max ]; then
-            echo "memory limit (cgroup v2): $(cat /sys/fs/cgroup/memory.max)"
-          elif [ -r /sys/fs/cgroup/memory/memory.stat ]; then
-            grep hierarchical_memory_limit /sys/fs/cgroup/memory/memory.stat
-          fi
-          # Fail here, with a sentence, rather than in a test that
-          # mangles an accented character three steps later.
-          ruby -e 'raise "default_external is #{Encoding.default_external}" \
-                   unless Encoding.default_external == Encoding::UTF_8'
+    - prepare_ruby
     # Refresh apt package lists before any apt-based installs.
     # Ubuntu mirrors occasionally return 404 for stale package versions
     # that have been replaced by a newer release; apt-get update fetches
@@ -342,12 +446,6 @@ jobs:
           done
           echo 'ERROR: Selenium grid never became ready'
           exit 1
-    # Implement OSPS-BR-01.02: Validate branch name before use in pipeline
-    # Protect against malicious branch names that could cause cache poisoning
-    # or command injection attacks. Branch names are used in cache keys below.
-    - run:
-        name: Validate branch name
-        command: script/validate_branch_name "$CIRCLE_BRANCH"
     - run: pwd
     - run: ls -l
     # There is deliberately no Chrome and no JVM in this image. The
@@ -369,31 +467,6 @@ jobs:
     # Restore the dependency cache
     # This would show what we restored
     # - run: find ~/.rubygems || true
-    - run:
-        name: Update bundler to match Gemfile.lock
-        # No sudo: this image has none, and does not need it, because
-        # Ruby lives in $HOME and so its gem directory is already ours.
-        #
-        # --force, not "yes |". Heroku's Ruby tarball ships its own
-        # "bundle" binstub, which belongs to no gem, so RubyGems refuses
-        # with "bundle from bundler conflicts with .../bin/bundle". That
-        # is an error, not a prompt, so piping "yes" cannot answer it;
-        # --force skips the overwrite check. The same is true of any gem
-        # whose binstub collides with the tarball's, "rake" included.
-        command: |
-          set -euo pipefail
-          want="$(tail -1 Gemfile.lock | tr -d '[:space:]')"
-          echo "Gemfile.lock was bundled with ${want}"
-          gem install bundler --no-document --force -v "${want}"
-    - run:
-        name: Bundler Version
-        command: bundle --version
-    - run:
-        name: Install Bundle
-        # Note: --path=vendor/bundle removed, we don't need it.
-        command: >
-          bundle check ||
-          bundle install --jobs=4 --retry=3
     # Here's how we could show more:
     # - run: find ~/.rubygems || true
     # - run: find ~/.bundle || true
@@ -431,29 +504,19 @@ jobs:
         name: Check for whitespace issues.
         command: '[[ ! -s "$(git rev-parse --git-dir)/shallow" ]] || git fetch --unshallow'
     - run:
-        name: Run checks and tests (rake default, or deploy_checks)
-        command: |
-          # On staging and production, run only the checks whose answer
-          # can change without the code changing, plus the whole test
-          # suite. Everything else in "rake default" is settled by the
-          # commit, and these branches are reached only by
-          # fast-forwarding main, which has already run them. Branch
-          # protection on staging and production is what makes that a
-          # fact rather than a habit.
-          #
-          # The tests still run here, every time. A passing suite is not
-          # a property of the commit alone: re-running it is how
-          # flapping gets noticed, and it is the last thing between a
-          # deploy and production.
-          #
-          # Exact matches only, and any other branch gets the full set,
-          # so a new branch is never accidentally checked less.
-          case "$CIRCLE_BRANCH" in
-            staging|production) rake_task=deploy_checks ;;
-            *)                  rake_task=default ;;
-          esac
-          echo "Branch '${CIRCLE_BRANCH}': running 'rake ${rake_task}'"
-          CI=true bundle exec rake "$rake_task"
+        name: Run the tests and the time-varying checks (rake dynamic_checks)
+        # The same task on every branch, which is a simplification worth
+        # noticing. This used to choose between "rake default" and a
+        # shorter list by branch name, because the code-determined
+        # checks had to run here on pull requests and had to not run
+        # here on deploys. They now run in the "static" job instead, so
+        # this job has one job on every branch and there is nothing to
+        # decide.
+        #
+        # What is left is what a re-run can genuinely tell us: the
+        # tests, and the two checks whose answer moves while the code
+        # stands still. See lib/tasks/default.rake.
+        command: CI=true bundle exec rake dynamic_checks
     # Save test results
     - store_test_results:
         path: /tmp/circleci-test-results
@@ -1042,7 +1105,31 @@ workflows:
   version: 2
   build-deploy:
     jobs:
+      # "build" and "static" have no "requires", so CircleCI starts them
+      # at the same time. That is the entire point: they are independent
+      # work, and the wall clock is now the longer of the two rather
+      # than their sum.
       - build
+      - static:
+          # Not on the deploy branches. Everything this job runs is
+          # settled by the commit, and staging and production are
+          # reached only by fast-forwarding main, which has already run
+          # all of it. Leaving the job out of the workflow entirely is
+          # better than a conditional inside it: there is no step to
+          # misread, and the absent job is visible in the pipeline.
+          #
+          # "ignore" rather than "only" so a new branch is checked more
+          # rather than less. CircleCI treats a plain string as an exact
+          # branch name; a regular expression would have to be written
+          # between slashes.
+          filters:
+            branches:
+              ignore:
+                - staging
+                - production
+      # Deploying requires the tests, and deliberately not "static":
+      # that job does not exist on these two branches, and a job cannot
+      # require one that was filtered out of the workflow.
       - deploy:
           context: bestpractices-heroku-deploy
           requires:

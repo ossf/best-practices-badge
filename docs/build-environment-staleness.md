@@ -2269,7 +2269,9 @@ an estimate when a real number is a build away.
    [One scan, not two](#one-scan-not-two).
 3. **DONE: C, the branch conditional.** See
    [What the deploy branches skip](#what-the-deploy-branches-skip).
-4. **A, split the job**, which extends C's benefit to pull requests.
+4. **DONE: A, split the job**, which extends C's benefit to pull
+   requests. See [Two jobs, not
+   one](#two-jobs-not-one-which-deletes-the-conditional).
 5. **Measure again**, and only then consider F, G and H.
 
 Steps 1 to 3 are plausibly 250 to 300 seconds off a deploy build
@@ -2307,33 +2309,18 @@ and `/tmp/circleci-artifacts` were both empty and neither complained.
 Done 2026-08-05, implementing the code-determined and time-varying
 distinction rather than merely describing it.
 
-`lib/tasks/default.rake` now names the short list, and `rake default`
-splices it in, so the two cannot drift:
-
-```ruby
-TIME_VARYING_CHECKS = %w[bundle bundle_audit percent_gems_up_to_date]
-```
-
-`rake deploy_checks` is that list plus `test:optimized`, and the
-`build` job picks between them:
-
-```text
-case "$CIRCLE_BRANCH" in
-  staging|production) rake_task=deploy_checks ;;
-  *)                  rake_task=default ;;
-esac
-```
-
-| Task | Prerequisites |
-| ---- | ------------- |
-| `default` | 17, unchanged apart from the licence report |
-| `deploy_checks` | 5 |
-
-**Exact matches, and any other branch gets everything**, so the failure
-mode is a branch checked too much rather than too little. Tested
-against ten branch names, including `Staging`, `staging2`,
+`lib/tasks/default.rake` names the short list, and `rake default`
+splices it in, so the two cannot drift. The `build` job chose between
+them by exact branch name, any other branch getting everything, so that
+the failure mode was a branch checked too much rather than too little.
+Tested against ten branch names, including `Staging`, `staging2`,
 `my-staging`, `staging-bestpractices`, `production2` and the empty
-string: only `staging` and `production` take the short list.
+string.
+
+**That conditional is now gone**, and the task it selected has been
+renamed; see [Two jobs, not
+one](#two-jobs-not-one-which-deletes-the-conditional). The policy it
+implemented survives, expressed somewhere better.
 
 **The tests always run.** That is the point of the split rather than an
 exception to it: a green suite is not a property of the commit alone,
@@ -2356,6 +2343,89 @@ Minitest::Assertion: CI must set SELENIUM_REMOTE_URL
 That is the guard from the Chrome work working exactly as intended: it
 refuses to let CI silently drive a local browser. Locally, either
 leave `CI` unset or point `SELENIUM_REMOTE_URL` at a container.
+
+### Two jobs, not one, which deletes the conditional
+
+Done 2026-08-05, and it is option A from the table above. The checks
+settled by the commit now run in their own CircleCI job, `static`,
+beside `build` rather than in front of it. Neither requires the other,
+so CircleCI starts both at once and the wall clock is the longer of the
+two instead of their sum.
+
+Measured on a four-core machine:
+
+| Task | Wall time |
+| ---- | --------- |
+| `rake static_checks` | 50s |
+| `rake dynamic_checks` | 199s |
+| the two in sequence, as `rake default` | 249s |
+| the two at once, as CI now runs them | 199s |
+
+CI's numbers will be larger and the ratio different, since two
+processors change the tests more than they change a linter. The shape
+is what matters: the checks stop being on the critical path.
+
+**Three task lists, built from three constants**, so `rake default`
+cannot come to mean something different from what CI runs:
+
+```ruby
+task(:default).clear.enhance(
+  %w[notice whitespace_check] + %w[static_checks dynamic_checks]
+)
+task(:static_checks).clear.enhance(PREFLIGHT + STATIC_CHECKS)
+task(:dynamic_checks).clear.enhance(PREFLIGHT + DYNAMIC_CHECKS)
+```
+
+A developer still types `rake` and gets everything, in the order that
+fails fastest. `deploy_checks` is renamed `dynamic_checks`, because it
+now runs on every branch and a name that says "deploy" would have been
+actively misleading. Its partner is `static_checks`, and the pair is
+the standard distinction: static analysis against dynamic analysis,
+which is what a test suite is.
+
+**The branch conditional is deleted, not moved.** The `build` job runs
+`rake dynamic_checks` on every branch, with nothing to decide. What
+keeps the checks off the deploy branches is now a workflow filter:
+
+```yaml
+- static:
+    filters:
+      branches:
+        ignore: [staging, production]
+```
+
+That is better than a `case` inside a step for a reason worth stating.
+A filtered-out job is **visible as absent** in the pipeline, where a
+step that decided to do nothing is visible only to somebody reading the
+log. `ignore` rather than `only`, so a new branch is checked more
+rather than less.
+
+`deploy` requires `build` and deliberately not `static`: on those two
+branches `static` does not exist, and a job cannot require one the
+workflow filtered away.
+
+**Its own executor, `ruby-only`.** Reusing `ruby-postgres` would start
+a PostgreSQL container and a 2.12 GB Chrome container for a job that
+speaks to neither. That the static checks need no database was checked
+rather than assumed: all ten pass with `PGHOST` pointed at a dead port.
+The `config/database.yml` copy is kept anyway, because Rails wants the
+file to exist at boot and one `cp` is cheaper than establishing whether
+it does.
+
+**The setup is shared, not copied.** The eight steps both jobs need,
+cache identity through `bundle install`, moved into a `prepare_ruby`
+command. Two copies would drift, and the drift would appear as one job
+passing and the other failing on the same commit. Verified after the
+extraction that all eight steps are byte-identical to what `build` ran
+before, and that `build` lost nothing but the old rake step.
+
+They share the cache too, since the keys come from that same command.
+Only `build` writes it, so the two never race to save one key.
+
+**One consequence to act on outside this repository:** `static` is a
+new status check, `ci/circleci: static`. Branch protection will not
+require it until somebody adds it, and a check that is not required is
+a check that can go red without stopping a merge.
 
 ### Rebuilding this on GitHub, later
 
@@ -2471,13 +2541,19 @@ Making the build faster, in the order decided under
     success it emits 205 bytes, not the report. See
     [One scan, not two](#one-scan-not-two).
 16. **DONE 2026-08-05: code-determined checks skipped on `staging` and
-    `production`.** `rake deploy_checks` is the time-varying checks
-    plus the whole test suite, and the `build` job picks it by exact
-    branch name. See
+    `production`.** First as a branch conditional in the `build` job,
+    then, in step 17, as a workflow filter that leaves the whole job
+    out. See
     [What the deploy branches skip](#what-the-deploy-branches-skip).
-17. **Split `build` into parallel `static` and `test` jobs**, which
-    extends step 16 to pull requests. The static job needs neither
-    PostgreSQL nor Chrome.
+17. **DONE 2026-08-05: split into parallel `static` and `build` jobs.**
+    The checks settled by the commit run beside the tests rather than
+    in front of them, on their own executor with no PostgreSQL and no
+    Chrome. The branch conditional from step 16 is deleted in favour of
+    a workflow filter. See [Two jobs, not
+    one](#two-jobs-not-one-which-deletes-the-conditional).
+
+    Outside this repository: add `ci/circleci: static` to the required
+    status checks, or it can go red without stopping a merge.
 18. **Measure in CI, then decide** about parallel system tests, a larger
     resource class, and splitting the suite across containers. None of
     those should be bought on an estimate.
@@ -2575,7 +2651,14 @@ cause.
   gate and produce the browsable page.
 * Ten of those checks are settled by the commit; only `bundle_audit`
   and `percent_gems_up_to_date` can change answer without the code
-  changing.
+  changing. `rake static_checks` and `rake dynamic_checks` are those
+  two halves, and `rake default` is defined as both, so it cannot come
+  to mean something different from what CI runs.
+* **None of the static checks needs a database.** All ten pass with
+  `PGHOST` pointed at a dead port, which is what lets them run on an
+  executor with no PostgreSQL and no browser.
+* A CircleCI `commands:` block is how two jobs share steps. Job-level
+  YAML anchors are not a supported substitute; a command is.
 * There is no test image. The `build` job runs on Heroku's stack image
   and installs Ruby and Node into `$HOME` in about fourteen seconds.
 * DockerHub pulls through CircleCI are not rate limited, by arrangement
