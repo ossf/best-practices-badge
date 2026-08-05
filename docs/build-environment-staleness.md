@@ -1422,6 +1422,56 @@ So the Rakefile now requires `config/boot` first, before anything else.
 It is cheap, resolving the lock file and fixing the load path without
 loading any Rails, and it is what keeps plain `rake` working.
 
+### Why `rake -T` was still slow, and the fix that helps everything
+
+`rake -T` has to boot Rails, since listing the tasks means listing
+Rails' own. But it was taking six seconds, and the breakdown said the
+boot was nearly all of it:
+
+| Phase | Time |
+| ----- | ---- |
+| `config/boot`, which is `bundler/setup` | 0.28s |
+| `require 'rake'` | 0.05s |
+| loading our three `.rake` files | 0.16s |
+| **`require config/application`** | **4.70s** |
+| `Rails.application.load_tasks` | 0.42s |
+
+Inside that, `rails/all` is only 0.36 seconds, because Bootsnap is doing
+its job. **`Bundler.require` was 2.05 seconds**, and timing each gem
+found where:
+
+```text
+rubocop 0.86s   rubocop-rails 0.30s   pry-byebug 0.17s
+bullet 0.10s    license_finder 0.09s  rails_best_practices 0.04s
+```
+
+**The linters were being loaded into the application.** Every one of
+them runs as a separate process, `bundle exec rubocop` and the rest, and
+nothing in `app/`, `lib/`, `config/` or `test/` requires any of them.
+They now carry `require: false`.
+
+Worth noticing how it was lost. The Gemfile line read:
+
+```ruby
+gem 'rubocop', '1.81.7' # '~> 1.80', require: false # Style checker
+```
+
+The `require: false` is *in the comment*: someone pinned an exact
+version and commented out the old constraint, taking the option with it.
+`rubocop-performance` beside it still had it, which is what made the
+omission visible once the timings pointed here.
+
+Measured, both directions:
+
+| Command | Before | After |
+| ------- | ------ | ----- |
+| `rake -T` | 6.04s | **3.69s** |
+| `rails runner 'puts 1'` | 10.80s | **8.38s** |
+
+That second row is the point: it is not a rake improvement, it is on
+every development and test boot, including `rails console`, `rails
+server` and the test suite.
+
 ### The marker, and why silence is not allowed
 
 The rule is one sentence: **a task needs Rails unless every task

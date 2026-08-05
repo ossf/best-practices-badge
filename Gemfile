@@ -144,14 +144,21 @@ group :development, :test do
   gem 'dotenv', '~> 3.0' # Load env vars from .env files into Rails ENV
   gem 'eslintrb' # Linter for JavaScript code.
   gem 'json', '~> 2.16' # Process JSON format
-  gem 'license_finder', '~> 7.0' # Verify that all sw licenses are acceptable
+  # require: false for the linters below: every one is run as a separate
+  # process ("bundle exec rubocop", "bundle exec license_finder", ...),
+  # so loading the library into the application buys nothing and costs
+  # about 1.3 seconds on EVERY development and test boot. Measured:
+  # rubocop 0.86s, rubocop-rails 0.30s, license_finder 0.09s,
+  # rails_best_practices 0.04s. RuboCop's extensions are loaded by
+  # .rubocop.yml's "plugins:" inside that separate process.
+  gem 'license_finder', '~> 7.0', require: false # Acceptable sw licenses
   gem 'mdl', '0.13.0' # Markdownlint - linter for markdown format
   # Removed pronto gems - comprehensive linting now handled by rake default
-  gem 'rails_best_practices', '~> 1.23' # Rails code quality analyzer
+  gem 'rails_best_practices', '~> 1.23', require: false # Code quality
   # gem 'railroader', '4.3.8' # Security static analyzer. OSS fork of Brakeman
-  gem 'rubocop', '1.81.7' # '~> 1.80', require: false # Style checker
+  gem 'rubocop', '1.81.7', require: false # Style checker
   gem 'rubocop-performance', '~> 1.20', require: false # Performance cops
-  gem 'rubocop-rails', '2.33.4' # '~> 2.28', require: false # Rails-specific cops
+  gem 'rubocop-rails', '2.33.4', require: false # Rails-specific cops
   gem 'ruby-graphviz', '1.2.5' # This is used for bundle viz
   gem 'spring', '~> 4.1' # Preloader to speed development+test
   # Do NOT upgrade to vcr 6.*, as that is not OSS:
