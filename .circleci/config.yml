@@ -693,24 +693,44 @@ jobs:
             # The most recent EXISTING backup, deliberately: capturing a
             # fresh one would put load on production for no real gain, so
             # staging can come up with data up to a day old.
-            # "pg:backups:url" hands back a SIGNED, publicly fetchable
-            # URL for production's dump. This project's CircleCI logs
-            # can be read by anyone, so that URL must never reach them:
-            # whoever has it can download the production database for as
-            # long as the signature lasts. The emails inside are
-            # encrypted, but nothing else is.
+            # Restore by backup IDENTIFIER, never by signed URL.
             #
-            # CircleCI shows this command as written, not expanded, so
-            # the substitution below is not itself a leak. The risk is
-            # the CLI echoing the URL back at us, which we have not
-            # confirmed either way, so redact rather than assume.
+            # "pg:backups:url" hands back a signed, publicly fetchable
+            # link to production's dump, and this project's CircleCI
+            # logs can be read by anyone. Anybody who saw that link
+            # could download the production database until the
+            # signature expired. The emails inside are encrypted;
+            # nothing else is. Heroku's documented cross-application
+            # form takes an identifier instead, so no secret exists at
+            # all:
+            #   https://devcenter.heroku.com/articles/heroku-postgres-backups
             #
-            # The filter keeps the host and path, which are useful for
-            # debugging, and removes the query string, which is where
-            # the signature lives. Without it the URL will not fetch.
+            # Pick the newest COMPLETED backup rather than simply the
+            # newest. A backup that is still running, or that failed,
+            # appears at the top of this list and would otherwise be
+            # chosen. Identifiers are not all "b123": scheduled backups
+            # are lettered "a", manual ones "b", so match a letter
+            # followed by digits rather than assuming the letter.
+            #
+            # Column 5 is the first word of the Status column, because
+            # "Created at" always occupies exactly three fields (date,
+            # time, offset).
             echo "Restoring ${SOURCE_APP}'s latest backup over ${TARGET_APP}"
-            backup_url="$(heroku pg:backups:url --app "$SOURCE_APP")"
-            heroku pg:backups:restore "$backup_url" \
+            backup_id="$(heroku pg:backups --app "$SOURCE_APP" \
+              | awk '$1 ~ /^[a-z][0-9]+$/ && $5 == "Completed" \
+                     { print $1; exit }' || true)"
+            if ! printf '%s' "$backup_id" | grep -qE '^[a-z][0-9]+$'; then
+              echo "ERROR: found no completed backup for ${SOURCE_APP}."
+              echo 'Refusing to restore. Check "heroku pg:backups".'
+              exit 1
+            fi
+            echo "Using backup ${backup_id}"
+
+            # The redaction stays even though we pass no URL: the CLI
+            # may resolve the identifier to one internally and print it.
+            # It keeps host and path, which help when debugging, and
+            # drops the query string, where the signature lives.
+            heroku pg:backups:restore "${SOURCE_APP}::${backup_id}" \
               DATABASE_URL --app "$TARGET_APP" --confirm "$TARGET_APP" 2>&1 \
               | sed -E 's#(https?://[^ ]*)\?[^ ]*#\1?[signature redacted]#g'
             echo 'Restore complete; migrations run in the release phase.'

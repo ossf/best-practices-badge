@@ -1631,37 +1631,54 @@ band, and its migration is now blocking: it was detached only because
 CI migrated again straight afterwards, and a migration whose outcome
 nobody reports is not worth running.
 
-### The backup URL must not reach the log
+### No signed URL, because there is nothing to leak
 
-Raised 2026-08-05, and it is a real exposure rather than a theoretical
+Raised 2026-08-05, and it was a real exposure rather than a theoretical
 one: **this project's CircleCI logs can be read by anyone**, and
-`pg:backups:url` returns a *signed, publicly fetchable* URL for
-production's dump. Whoever holds it can download the production
-database until the signature expires. The emails inside are encrypted;
+`pg:backups:url` returns a *signed, publicly fetchable* link to
+production's dump. Whoever held it could download the production
+database until the signature expired. The emails inside are encrypted;
 nothing else is.
 
-CircleCI shows a step's command as written rather than expanded, so the
-command substitution is not itself a leak. The risk is the CLI echoing
-the URL back, which could not be confirmed either way from its source,
-so the step redacts rather than assumes. The filter keeps the host and
-path, which help when debugging, and removes the query string, where
-the signature lives. Verified against a realistic signed URL, and
-verified that a failing restore still fails through the pipe.
-
-**There is a better fix, and it should replace this.** Heroku documents
-a cross-application restore that needs no URL at all:
+The first fix redacted the URL from the log. The better one, taken
+instead, is Heroku's documented cross-application restore, which takes
+an **identifier** so no secret is ever created:
 
 ```text
-heroku pg:backups:restore example-app::b101 DATABASE_URL \
-  --app example-staging-app
+heroku pg:backups:restore production-bestpractices::a3822 \
+  DATABASE_URL --app staging-bestpractices --confirm staging-bestpractices
 ```
 
-With a backup *identifier* there is no secret to leak, redact, or
-expire. It was not done here for one reason: nothing gives the latest
-backup identifier reliably. `heroku pg:backups` has no `--json`, so it
-would mean parsing a table whose format could not be checked from here,
-and a bad parse restores the wrong backup silently. Getting one look at
-that command's real output is all it needs.
+The redaction stays anyway, because the CLI may resolve that identifier
+to a URL internally and print it. It keeps the host and path, useful
+when debugging, and drops the query string, where the signature lives.
+
+**Finding the identifier needed the real output, not a guess.** Two
+assumptions would have been wrong:
+
+* Identifiers are not all `b123`. Scheduled backups are lettered `a`
+  and manual ones `b`, so the newest was `a3822`, and a pattern of
+  `^b[0-9]+$` would have matched nothing.
+* The newest backup is not necessarily usable. One still running, or
+  one that failed, appears at the top of the list and would have been
+  chosen. The parse insists on `Completed`.
+
+`heroku pg:backups` has no `--json`, so this is a table parse, which is
+worth being honest about: it depends on a human-readable format that
+Heroku could change. It is written to fail closed if that happens, and
+tested against the real listing plus five synthetic ones:
+
+| Listing | Result |
+| ------- | ------ |
+| the real one | `a3822`, the newest completed |
+| a Running backup on top | skips it, `a3822` |
+| a Failed backup on top | skips it, `a3822` |
+| no backups at all | refuses, exit 1 |
+| an API error instead of a table | refuses, exit 1 |
+| only a Running backup | refuses, exit 1 |
+
+Column 5 is the first word of Status because "Created at" always takes
+exactly three fields: date, time, and offset.
 
 **Four independent exact-match checks guard the restore**, because it
 overwrites a database:
