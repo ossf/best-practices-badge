@@ -1631,6 +1631,38 @@ band, and its migration is now blocking: it was detached only because
 CI migrated again straight afterwards, and a migration whose outcome
 nobody reports is not worth running.
 
+### The backup URL must not reach the log
+
+Raised 2026-08-05, and it is a real exposure rather than a theoretical
+one: **this project's CircleCI logs can be read by anyone**, and
+`pg:backups:url` returns a *signed, publicly fetchable* URL for
+production's dump. Whoever holds it can download the production
+database until the signature expires. The emails inside are encrypted;
+nothing else is.
+
+CircleCI shows a step's command as written rather than expanded, so the
+command substitution is not itself a leak. The risk is the CLI echoing
+the URL back, which could not be confirmed either way from its source,
+so the step redacts rather than assumes. The filter keeps the host and
+path, which help when debugging, and removes the query string, where
+the signature lives. Verified against a realistic signed URL, and
+verified that a failing restore still fails through the pipe.
+
+**There is a better fix, and it should replace this.** Heroku documents
+a cross-application restore that needs no URL at all:
+
+```text
+heroku pg:backups:restore example-app::b101 DATABASE_URL \
+  --app example-staging-app
+```
+
+With a backup *identifier* there is no secret to leak, redact, or
+expire. It was not done here for one reason: nothing gives the latest
+backup identifier reliably. `heroku pg:backups` has no `--json`, so it
+would mean parsing a table whose format could not be checked from here,
+and a bad parse restores the wrong backup silently. Getting one look at
+that command's real output is all it needs.
+
 **Four independent exact-match checks guard the restore**, because it
 overwrites a database:
 

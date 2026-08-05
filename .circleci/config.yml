@@ -634,7 +634,7 @@ jobs:
             # Give production site a few seconds to complete ongoing work.
             [ "$HEROKU_APP" != 'production-bestpractices' ] || sleep 10
       - run:
-          name: Refresh staging's database from production
+          name: Restore production's latest backup over staging
           command: |
             # Staging is meant to be production-like, so it gets a copy
             # of production's data before the new code lands on it. This
@@ -693,10 +693,26 @@ jobs:
             # The most recent EXISTING backup, deliberately: capturing a
             # fresh one would put load on production for no real gain, so
             # staging can come up with data up to a day old.
+            # "pg:backups:url" hands back a SIGNED, publicly fetchable
+            # URL for production's dump. This project's CircleCI logs
+            # can be read by anyone, so that URL must never reach them:
+            # whoever has it can download the production database for as
+            # long as the signature lasts. The emails inside are
+            # encrypted, but nothing else is.
+            #
+            # CircleCI shows this command as written, not expanded, so
+            # the substitution below is not itself a leak. The risk is
+            # the CLI echoing the URL back at us, which we have not
+            # confirmed either way, so redact rather than assume.
+            #
+            # The filter keeps the host and path, which are useful for
+            # debugging, and removes the query string, which is where
+            # the signature lives. Without it the URL will not fetch.
             echo "Restoring ${SOURCE_APP}'s latest backup over ${TARGET_APP}"
-            heroku pg:backups:restore \
-              "$(heroku pg:backups:url --app "$SOURCE_APP")" \
-              DATABASE_URL --app "$TARGET_APP" --confirm "$TARGET_APP"
+            backup_url="$(heroku pg:backups:url --app "$SOURCE_APP")"
+            heroku pg:backups:restore "$backup_url" \
+              DATABASE_URL --app "$TARGET_APP" --confirm "$TARGET_APP" 2>&1 \
+              | sed -E 's#(https?://[^ ]*)\?[^ ]*#\1?[signature redacted]#g'
             echo 'Restore complete; migrations run in the release phase.'
       - run:
           name: Deploy to Heroku
