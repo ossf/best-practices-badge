@@ -39,7 +39,7 @@ Finding 5 is closed once a production deploy confirms the log reports
 24.19.0 and no longer warns that the Node version "is not pinned and
 can change over time".
 
-**Decided, not yet built:** steps 6 to 12 of
+**Decided, not yet built:** steps 4 to 13 of
 [The plan](#the-plan).
 
 **Steps 3 to 5 are done** on branch `build_env_image`: there is no test
@@ -1793,7 +1793,26 @@ Independent of the above, and in no particular order with it:
 
 11. **Move the staging database refresh into the CircleCI deploy job**,
     which takes Heroku out of the deploy tasks altogether.
-12. **Stop booting Rails for every rake task**, then make the deploys a
+12. **Break a migration on staging on purpose**, and confirm the
+    release is blocked and CI goes red. Deliberately later: it should
+    test the deploy job's *final* shape, so it belongs after step 11
+    rather than before, and there is no sense proving a mechanism twice
+    while it is still moving.
+
+    The happy path is proven; release v845 went out through the release
+    phase and maintenance mode cleared itself. What is unproven is the
+    claim the whole design rests on: that a failed migration stops the
+    release rather than shipping code against an unmigrated database.
+    It is documented by Heroku and simulated here, and the guard has
+    refused a real deploy for a real reason, but nobody has watched
+    this particular failure happen.
+
+    What to expect: the release reaches `failed`, the previous release
+    keeps serving, the deploy job exits 1, and **maintenance mode stays
+    on deliberately**, so clearing it is part of cleaning up. A migration
+    that raises on purpose is enough; revert it once the behaviour is
+    confirmed.
+13. **Stop booting Rails for every rake task**, then make the deploys a
     `workflow_dispatch` button. See [Deploying without a development
     environment](#deploying-without-a-development-environment).
 
