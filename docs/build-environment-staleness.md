@@ -39,7 +39,7 @@ Finding 5 is closed once a production deploy confirms the log reports
 24.19.0 and no longer warns that the Node version "is not pinned and
 can change over time".
 
-**Decided, not yet built:** steps 4 to 13 of
+**Decided, not yet built:** steps 4 to 10, 12 and 13 of
 [The plan](#the-plan).
 
 **Steps 3 to 5 are done** on branch `build_env_image`: there is no test
@@ -1612,7 +1612,54 @@ shadowed name cannot silently skip the application it needed.
 
 ### Move the database refresh into the deploy job
 
-Decided 2026-08-05, and it does more than tidy up.
+Decided and **done** 2026-08-05, and it does more than tidy up.
+
+The refresh is its own step in the deploy job, between entering
+maintenance mode and pushing, so the deploy job now reads:
+
+```text
+set up access, maintenance:on
+refresh staging's database      <- staging only
+push, capture the release baseline
+wait for the release, maintenance:off
+```
+
+`rake deploy_staging` is now the same five git commands as
+`deploy_production`, needing no Heroku credential and no interactive
+login. `production_to_staging` survives for refreshing staging out of
+band, and its migration is now blocking: it was detached only because
+CI migrated again straight afterwards, and a migration whose outcome
+nobody reports is not worth running.
+
+**Four independent exact-match checks guard the restore**, because it
+overwrites a database:
+
+1. The workflow filter admits only the branch names `staging` and
+   `production`. CircleCI treats a plain string as a branch name; a
+   regular expression would have to be written between slashes and
+   match the entire string.
+2. The job re-checks that with a `case` allowlist.
+3. The step itself tests `CIRCLE_BRANCH` for equality with `staging`.
+4. Both application names are literals; nothing is derived from the
+   branch, so no branch name can redirect the restore or choose its
+   source. The step also refuses if the target is not
+   `staging-bestpractices`, which is the check that would matter if
+   someone later replaced those literals with variables.
+
+Underneath all four: reaching any of it needs the right to push to this
+repository's `staging` branch, which is what branch protection is for.
+
+Tested against the real step code. Only the exact string `staging`
+triggers a restore; `staging2`, `my-staging`, `staging/foo`, `Staging`,
+`STAGING`, `staging-bestpractices`, leading or trailing spaces, and the
+glob patterns `sta*` and `*` all do not.
+
+**A bug caught by that testing, worth recording.** The first attempt
+put the restore in the same step as the push, so its early exit on
+non-staging branches skipped `git push` entirely: production would have
+deployed nothing. Splitting them into separate steps fixed it, and the
+test that catches it is simply asserting that `production` still
+pushes.
 
 `production_to_staging` exists in the `Rakefile` only because that is
 where someone happened to put it. It is work done *to* staging as part
@@ -1791,8 +1838,9 @@ Node; see [The image](#the-image).
 
 Independent of the above, and in no particular order with it:
 
-11. **Move the staging database refresh into the CircleCI deploy job**,
-    which takes Heroku out of the deploy tasks altogether.
+11. **DONE 2026-08-05: move the staging database refresh into the
+    CircleCI deploy job**, which takes Heroku out of deploying
+    altogether. `rake deploy_staging` is now pure git.
 12. **Break a migration on staging on purpose**, and confirm the
     release is blocked and CI goes red. Deliberately later: it should
     test the deploy job's *final* shape, so it belongs after step 11

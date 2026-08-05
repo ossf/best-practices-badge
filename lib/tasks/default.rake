@@ -386,8 +386,14 @@ task :bundle_viz do
   sh 'bundle viz --version --requirements --format svg'
 end
 
+# Deploying is now purely a matter of advancing a branch.  The database
+# refresh used to happen here, which is why this task needed the Heroku
+# CLI and an interactive login on the developer's machine; it now runs
+# in the CircleCI deploy job on HEROKU_API_KEY, which never needs a
+# browser, and under maintenance mode rather than against a live site.
+# See .circleci/config.yml and docs/build-environment-staleness.md.
 desc 'Deploy current origin/main to staging'
-task deploy_staging: :production_to_staging do
+task :deploy_staging do
   sh 'git checkout staging && git pull && git merge --ff-only origin/main && git push && git checkout main'
 end
 
@@ -497,12 +503,22 @@ end
 # unnecessarily.  If you want the current active database, you can
 # force a backup with:
 # heroku pg:backups:capture --app production-bestpractices
-desc 'Copy production database backup to staging, overwriting staging database'
+# NOTE: deploying to staging no longer calls this.  The CircleCI deploy
+# job does the same refresh itself, under maintenance mode, whenever the
+# branch is exactly "staging".  This task remains for refreshing staging
+# out of band, without a deploy.
+#
+# The migration here is blocking, not "run:detached".  It used to be
+# detached because CI migrated again straight afterwards, so nobody
+# needed this one's result; run on its own, a migration whose outcome is
+# never reported is not worth running.
+desc 'Copy production database backup to staging (not part of deploying)'
 task :production_to_staging do
   sh 'heroku pg:backups:restore $(heroku pg:backups:url ' \
      '--app production-bestpractices) DATABASE_URL ' \
      '--app staging-bestpractices --confirm staging-bestpractices'
-  sh 'heroku run:detached bundle exec rake db:migrate --app staging-bestpractices'
+  sh 'heroku run --app staging-bestpractices -- ' \
+     'bundle exec rake db:migrate'
 end
 
 # require 'rails/testtask.rb'

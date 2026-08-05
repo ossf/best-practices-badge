@@ -617,7 +617,7 @@ jobs:
           paths:
             - ~/heroku-cli
       - run:
-          name: Deploy to Heroku
+          name: Set up Heroku access and enter maintenance mode
           command: |
             export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
             # Set file .netrc so "git push heroku ..." will work later.
@@ -633,6 +633,76 @@ jobs:
             heroku maintenance:on --app "$HEROKU_APP"
             # Give production site a few seconds to complete ongoing work.
             [ "$HEROKU_APP" != 'production-bestpractices' ] || sleep 10
+      - run:
+          name: Refresh staging's database from production
+          command: |
+            # Staging is meant to be production-like, so it gets a copy
+            # of production's data before the new code lands on it. This
+            # used to run from a developer's laptop, inside "rake
+            # deploy_staging", which meant it needed the Heroku CLI and
+            # an interactive login there. Here it runs on HEROKU_API_KEY,
+            # which never needs a browser.
+            #
+            # It also now runs UNDER maintenance mode. On a laptop it ran
+            # against a live staging site.
+            #
+            # FOUR separate things must all agree before this runs, and
+            # each is an exact match, never a pattern or a prefix:
+            #
+            #   1. The workflow filter below admits only the exact branch
+            #      names "staging" and "production". CircleCI treats a
+            #      plain string as a branch name; a regular expression
+            #      would have to be written between slashes and match the
+            #      entire string.
+            #   2. The job's allowlist re-checks that with a case
+            #      statement, so the filter is not the only thing
+            #      standing between us and a deploy.
+            #   3. This step tests CIRCLE_BRANCH for exact equality with
+            #      "staging" and does nothing otherwise. A branch called
+            #      "staging2" or "my-staging" does not match.
+            #   4. Both application names are literals below. Nothing is
+            #      derived from the branch name, so no branch name can
+            #      redirect the restore or choose its source.
+            #
+            # And underneath all of that: reaching any of it requires the
+            # right to push to this repository's "staging" branch, which
+            # is what branch protection is for. Someone who cannot push
+            # there cannot start this, whatever they call their branch.
+            if [ "$CIRCLE_BRANCH" != 'staging' ]; then
+              echo "Branch is '${CIRCLE_BRANCH}', not exactly 'staging'."
+              echo 'Not refreshing any database.'
+              exit 0
+            fi
+
+            SOURCE_APP='production-bestpractices'
+            TARGET_APP='staging-bestpractices'
+
+            # Refuse rather than trust the two literals above. This is
+            # the check that would matter if someone later "simplified"
+            # them into variables derived from the branch.
+            if [ "$TARGET_APP" = "$SOURCE_APP" ]; then
+              echo 'ERROR: refusing to restore an app over itself.'
+              exit 1
+            fi
+            if [ "$TARGET_APP" != 'staging-bestpractices' ]; then
+              echo "ERROR: refusing to overwrite '${TARGET_APP}'."
+              echo 'Only staging-bestpractices may be overwritten here.'
+              exit 1
+            fi
+
+            # The most recent EXISTING backup, deliberately: capturing a
+            # fresh one would put load on production for no real gain, so
+            # staging can come up with data up to a day old.
+            echo "Restoring ${SOURCE_APP}'s latest backup over ${TARGET_APP}"
+            heroku pg:backups:restore \
+              "$(heroku pg:backups:url --app "$SOURCE_APP")" \
+              DATABASE_URL --app "$TARGET_APP" --confirm "$TARGET_APP"
+            echo 'Restore complete; migrations run in the release phase.'
+      - run:
+          name: Deploy to Heroku
+          command: |
+            # Each step is a fresh shell, so re-derive this here.
+            export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
             # Record the newest release version BEFORE pushing. The
             # wait step below must not mistake the release that is
             # already live for the one this deploy creates.
