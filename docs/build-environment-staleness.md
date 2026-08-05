@@ -433,7 +433,7 @@ driven_by :selenium, using: driver || :headless_chrome,
           screen_size: [1400, 1400], options: SELENIUM_OPTIONS do |option|
 ```
 
-**`browser: :remote` is load-bearing, not cosmetic.**
+**`browser: :remote` does real work, and is not decoration.**
 `Driver#initialize` reads
 `@browser.preload unless @options[:browser] == :remote`, and `preload`
 is what resolves a *local* chromedriver through Selenium Manager. Pass
@@ -809,8 +809,8 @@ nothing in the executor exists only for testing.
 
 ### How it got there, because the route matters
 
-**Moving Chrome out first is what made this possible**, and that was
-load-bearing rather than incidental. While the test environment had to
+**Moving Chrome out first is what made this possible**, and it was
+necessary rather than incidental. While the test environment had to
 carry a browser, it had to add Google's apt repository, which is
 finding 1 walking back in with us owning the key rotation. Only once
 Chrome lived in its own pinned container did "just use the stack image"
