@@ -1,0 +1,60 @@
+// Renovate configuration. Renovate proposes upgrades as pull requests, in
+// the same way Dependabot does; see .github/dependabot.yml.
+//
+// Copyright the Linux Foundation and the OpenSSF Best Practices badge
+// contributors
+// SPDX-License-Identifier: MIT
+//
+// WHY BOTH TOOLS. They cover different ground and must not overlap.
+// Dependabot handles the Gemfile, npm and GitHub Actions workflows. It
+// cannot read .circleci/config.yml at all: dependabot-core carries one
+// directory per ecosystem, 43 of them, and there is no "circleci" among
+// them. Its "docker" ecosystem reads Dockerfiles, not CI configurations.
+// Renovate does have a circleci manager, and that is the only reason it
+// is here.
+//
+// So this file scopes Renovate to exactly that. At its defaults it would
+// also read the Gemfile, .ruby-version and Dockerfiles, where it would
+// compete with Dependabot and pre-empt the Ruby design recorded in
+// docs/build-environment-staleness.md.
+//
+// This is written as JSON5 rather than JSON so the reasoning can sit
+// beside the rules instead of in a file nobody opens.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+
+  // The whole point, and the whole scope.
+  enabledManagers: ['circleci'],
+
+  // A single issue listing everything Renovate can see, including
+  // anything it has decided not to propose. Without it, "no pull
+  // request" and "nothing to update" look identical.
+  dependencyDashboard: true,
+
+  labels: ['dependencies'],
+
+  // No schedule here on purpose. How often Renovate runs is decided by
+  // the cron in .github/workflows/renovate.yml, so there is one place to
+  // change the cadence rather than two that can disagree.
+
+  packageRules: [
+    {
+      description: [
+        'heroku/heroku must keep the tag production runs. Digest updates',
+        'only: those are Heroku rebuilding the same stack, which is what',
+        'we want to follow. A tag update would be 24-build to 26-build,',
+        'moving CI to a different Ubuntu from the one production builds',
+        'on, which is the whole problem findings 2 and 4 were about.',
+        'Both applications are on heroku-24, confirmed 2026-08-05 with',
+        '"heroku stack --app ...". Changing that is plan step 10: test',
+        'environment first, deliberately, not as a dependency bump.',
+        'Note this image is pinned TWICE, in the ruby-postgres and',
+        'ruby-only executors, and the two must always move together.',
+      ],
+      matchDatasources: ['docker'],
+      matchPackageNames: ['heroku/heroku'],
+      matchUpdateTypes: ['major', 'minor', 'patch'],
+      enabled: false,
+    },
+  ],
+}

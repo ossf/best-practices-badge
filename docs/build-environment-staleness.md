@@ -1759,6 +1759,92 @@ else's, so:
   with the two permissions above. CircleCI is unaffected either way,
   since it triggers from its own integration.
 
+## Renovate, for the CircleCI images
+
+Added 2026-08-05, plan step 9. Two files: `.github/renovate.json5` and
+`.github/workflows/renovate.yml`.
+
+**Scoped to one manager**, `circleci`, which is the entire reason
+Renovate is here. Dependabot already covers the `Gemfile`, npm and the
+GitHub Actions workflows, and cannot read `.circleci/config.yml` at all.
+At its defaults Renovate would also read the `Gemfile`, `.ruby-version`
+and Dockerfiles, competing with Dependabot and pre-empting the Ruby
+design below.
+
+**Self-hosted**, as a scheduled workflow, rather than the hosted GitHub
+App: updating our own CI configuration is no reason to give a third
+party write access to this repository.
+
+The five image pins it will see:
+
+```text
+heroku/heroku:24-build          (twice: ruby-postgres and ruby-only)
+cimg/postgres:16.4
+selenium/standalone-chrome:150.0.7871.124
+cimg/node:24.19.0
+```
+
+### The one rule that needed writing
+
+`heroku/heroku` gets **digest updates only**. Digest changes are Heroku
+rebuilding the same stack, which is exactly what we want to follow. A
+tag change would be `24-build` to `26-build`, moving CI to a different
+Ubuntu from the one production builds on, which is the problem findings
+2 and 4 existed to solve. Confirmed 2026-08-05 with
+`heroku stack --app ...` that both applications are on **heroku-24**, so
+the pin is currently correct; changing it is plan step 10, taken
+deliberately and in the test environment first.
+
+Note it is pinned **twice**, once per executor, and the two must always
+move together or the static job and the test job stop checking the same
+environment.
+
+### A trap the validator caught
+
+The workflow first passed `configurationFile: .github/renovate.json5` to
+the action. That input sets Renovate's **global** configuration, which
+is a different layer: it configures the runner, not this repository's
+update rules. `renovate-config-validator` says so if you read it
+carefully, reporting
+
+```text
+INFO: Validating .github/renovate.json5 as global config
+```
+
+when handed the path, against a plain `Validating .github/renovate.json5`
+when it discovers the file itself. Renovate finds that path unaided, it
+being one of the standard repository config locations, so the input is
+gone.
+
+Worth knowing the validator exists at all:
+
+```sh
+npx --yes --package renovate renovate-config-validator
+```
+
+Run with no arguments it discovers the file and validates it as a
+repository config, which is the check that means something.
+
+### Before it can work
+
+**Create a `RENOVATE_TOKEN` secret**, and do not make it the default
+`GITHUB_TOKEN`. GitHub raises no workflow runs for events created by
+that token, so a Renovate pull request opened with it would start none
+of `brakeman`, `codeql`, `codespell` or `main`, and would be checked
+*less* than a pull request from a stranger. CircleCI is unaffected,
+triggering from its own integration.
+
+A GitHub App installation token or a fine-grained personal access token,
+granting exactly `contents: write` and `pull-requests: write`. Never
+`workflows: write`: scoped to `circleci`, Renovate has no business under
+`.github/workflows`, and withholding it means it cannot alter our GitHub
+Actions.
+
+**The workflow fails loudly until that secret exists**, rather than
+skipping quietly. A weekly red run is a reminder to finish the setup; a
+weekly green run that did nothing is how a dependency updater goes
+unnoticed for a year.
+
 ## Proposing Ruby upgrades Heroku can build
 
 Decided 2026-08-04, after finding that Renovate cannot be made safe for
@@ -2802,8 +2888,10 @@ one wants to look is the question that settles it.
    one-line change to `.ruby-version` and nothing else.
 8. **Add `propose_ruby_upgrade`**, sharing the probe from step 6, so
    nobody has to remember to look.
-9. **Add Renovate**, self-hosted, scoped to `circleci` and permissioned
-   as above.
+9. **DONE 2026-08-05: added Renovate**, self-hosted, scoped to
+   `circleci` and permissioned as above. See
+   [Renovate, for the CircleCI images](#renovate-for-the-circleci-images).
+   It does nothing until a `RENOVATE_TOKEN` secret exists, and says so.
 10. **Then upgrade production to Heroku-26**, test environment first, so
     the stack move is exercised somewhere before it reaches production.
 
