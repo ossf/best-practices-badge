@@ -704,7 +704,77 @@ jobs:
           paths:
             - ~/heroku-cli
       - run:
-          name: Set up Heroku access and enter maintenance mode
+          name: Decide whether this deploy needs maintenance mode
+          command: |
+            # Maintenance mode stops users meeting a database that is
+            # being migrated underneath them. It costs about two minutes
+            # of downtime, nearly all of it waiting for Heroku to build
+            # the slug, during which the old release serves normally and
+            # nothing touches the database. Heroku offers no hook
+            # between the build and the release phase, so the window
+            # cannot be narrowed; it can only be skipped, per deploy,
+            # when this deploy migrates nothing. Most do not.
+            #
+            # ANSWER FIRST, THEN LOOK FOR REASONS TO KEEP IT. The file
+            # says "yes" before a single check runs, so a crash, a
+            # timeout, a kill or an unreadable API all leave the deploy
+            # taking the window. It becomes "no" only at the very end,
+            # once every check below has had its say. A needless
+            # maintenance window costs a slower deploy; a missing one
+            # costs users a half-migrated database.
+            echo 'yes' > /tmp/needs-maintenance
+
+            keep() { echo "Maintenance mode: YES, $1"; exit 0; }
+
+            # Staging replaces its whole database from production's
+            # backup in the next step.
+            [ "$CIRCLE_BRANCH" != 'staging' ] ||
+              keep 'staging restores its database below.'
+
+            # Which commit is live? Ask for several releases, because
+            # changing a config var also makes one and its description
+            # is not a deploy. Descriptions read "Deploy 09446ffe", and
+            # this JSON is pretty-printed, so allow the space after the
+            # colon; see the baseline check below for that lesson.
+            HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
+            live="$(curl -sfS --max-time 30 \
+              "https://api.heroku.com/apps/${HEROKU_APP}/releases" \
+              -H 'Accept: application/vnd.heroku+json; version=3' \
+              -H "Authorization: Bearer ${HEROKU_API_KEY}" \
+              -H 'Range: version ..; order=desc,max=25;' \
+              | grep -oE '"description": *"Deploy [0-9a-f]{7,40}' \
+              | sed -n 1p | grep -oE '[0-9a-f]{7,40}$' || true)"
+            [ -n "$live" ] || keep 'could not read the deployed commit.'
+            echo "Currently deployed commit: ${live}"
+
+            # A shallow clone means the live commit is absent, not
+            # wrong. Only deepen if it is actually missing: unshallowing
+            # this repository is not cheap enough to do every deploy.
+            if ! git cat-file -e "${live}^{commit}" 2>/dev/null; then
+              [ ! -s "$(git rev-parse --git-dir)/shallow" ] ||
+                git fetch --unshallow || true
+            fi
+            git cat-file -e "${live}^{commit}" 2>/dev/null ||
+              keep "commit ${live} is not in this clone."
+
+            # db/schema.rb as well as db/migrate is belt and braces:
+            # only a migration can migrate, so this can only err toward
+            # downtime, which is the safe way to be wrong.
+            changed="$(git diff --name-only "$live" HEAD \
+              -- db/migrate/ db/schema.rb || true)"
+            [ -z "$changed" ] || {
+              echo 'Maintenance mode: YES, this deploy changes:'
+              printf '%s\n' "$changed" | sed 's/^/  /'
+              exit 0
+            }
+
+            # Nothing above objected, so this deploy migrates nothing.
+            echo 'no' > /tmp/needs-maintenance
+            echo "Maintenance mode: NO. Nothing under db/migrate or"
+            echo "db/schema.rb has changed since ${live}, so this"
+            echo 'deploy migrates nothing and users need not notice.'
+      - run:
+          name: Set up Heroku access, and maintenance mode if needed
           command: |
             export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
             # Set file .netrc so "git push heroku ..." will work later.
@@ -716,10 +786,19 @@ jobs:
             echo "Set git remote heroku for $HEROKU_APP"
             heroku git:remote -a "$HEROKU_APP"
             git remote get-url heroku
-            echo "Switching to maintenance mode in $HEROKU_APP"
-            heroku maintenance:on --app "$HEROKU_APP"
-            # Give production site a few seconds to complete ongoing work.
-            [ "$HEROKU_APP" != 'production-bestpractices' ] || sleep 10
+            # Default to yes if the file is somehow missing, which is
+            # the behaviour this job had before the check existed.
+            if [ "$(cat /tmp/needs-maintenance 2>/dev/null || echo yes)" \
+                 = 'yes' ]; then
+              echo "Switching to maintenance mode in $HEROKU_APP"
+              heroku maintenance:on --app "$HEROKU_APP"
+              # Give production site a few seconds to complete ongoing work.
+              [ "$HEROKU_APP" != 'production-bestpractices' ] || sleep 10
+            else
+              echo "Not entering maintenance mode: $HEROKU_APP keeps"
+              echo 'serving throughout, because this deploy migrates'
+              echo 'nothing. See the previous step for the reasoning.'
+            fi
       - run:
           name: Restore production's latest backup over staging
           command: |
@@ -1095,7 +1174,17 @@ jobs:
                 heroku run --app "$HEROKU_APP" -- rake update_all_badge_percentages
                 rm -f '.recalculate'
             fi
-            heroku maintenance:off --app "$HEROKU_APP"
+            # Only leave maintenance mode if this job entered it. Turning
+            # it off unconditionally would clear a maintenance window
+            # somebody else had put up by hand, and would report success
+            # for having done so. Default to yes if the file is missing,
+            # because the worse failure here is a site left dark.
+            if [ "$(cat /tmp/needs-maintenance 2>/dev/null || echo yes)" \
+                 = 'yes' ]; then
+              heroku maintenance:off --app "$HEROKU_APP"
+            else
+              echo 'Maintenance mode was never entered; leaving it alone.'
+            fi
           no_output_timeout: 20m
       # Not reliable enough:
       # - run:

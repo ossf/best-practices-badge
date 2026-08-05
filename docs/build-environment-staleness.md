@@ -1283,6 +1283,106 @@ a separate change; this one is only the release phase.
 Maintenance mode is also left ON when a release fails, deliberately, so
 that a failure is looked at rather than cleared automatically.
 
+## Maintenance mode only when it is earned
+
+Done 2026-08-05, after reading a production deploy log and asking why
+the site was dark while Heroku compiled assets.
+
+Measured, from production job 9665:
+
+| Step | Time |
+| ---- | ---- |
+| set up access, `maintenance:on` | 13.2s (10 of it the deliberate production sleep) |
+| **push, which blocks through the slug build** | **115.1s** |
+| wait for release, `maintenance:off` | 1.1s |
+
+So about 129 seconds of downtime, of which **115 is Heroku building the
+slug**: bundle install, `assets:precompile`, the lot. Throughout it the
+old release is serving normally and nothing touches the database. That
+part of the window protects nobody from anything.
+
+**It cannot be narrowed by phase.** Migrations run in the release
+phase, which Heroku starts itself at the end of the build, and there is
+no hook between "build finished" and "release command runs". Maintenance
+is on for the whole push or not at all.
+
+**So the choice moves from per phase to per deploy.** The job asks the
+Platform API which commit is live, reading `description` from the
+release list, and compares:
+
+```text
+git diff --name-only <live-sha> HEAD -- db/migrate/ db/schema.rb
+```
+
+Nothing changed means this deploy migrates nothing, so it takes no
+maintenance window at all. Most deploys are that kind; the production
+deploy that prompted this had no migration and would have had zero
+downtime.
+
+**The answer is written first, then the checks look for reasons to
+keep it.** The step's first statement is:
+
+```sh
+echo 'yes' > /tmp/needs-maintenance
+```
+
+Each check that finds a reason prints it and stops. Only when every one
+has had its say, and none objected, does the file become `no`. So a
+crash, a timeout, a kill, an unreadable API or a step that never ran all
+leave the deploy taking the window.
+
+That ordering is the whole safety argument, and the first version got it
+wrong: it wrote the answer at each exit point, so anything that stopped
+the step part-way left *no* answer at all. A needless maintenance window
+costs a slower deploy; a missing one costs users a half-migrated
+database, so the two are not equally bad and the default must not be
+decided by where the code happens to stop.
+
+Reasons that keep the window: `staging` always, because the restore
+replaces its whole database; the API call failing; no `Deploy` release
+in the list; an unparsable description; the live commit missing from a
+shallow clone; and any change under `db/migrate/` or `db/schema.rb`.
+
+`db/schema.rb` is checked as well as `db/migrate/`, which is belt and
+braces: only a migration can migrate. It errs toward downtime, which is
+the safe way to be wrong.
+
+**The `off` is gated too.** Turning maintenance off unconditionally
+would clear a window somebody had raised by hand, and report success
+for having done so.
+
+Tested by extracting the step from `.circleci/config.yml` and running it
+under the deploy job's shell with `curl` stubbed, against real commits
+from this repository rather than invented ones. Eleven checks: staging,
+a deploy with no migration, a deploy with one, no `Deploy` release in
+the list, an empty list, a live commit absent from the clone, and an
+API failure; that the log names the live commit and lists the migration
+files it found; and, for the ordering above, **that killing the step
+part-way through still leaves `yes`**.
+
+### What this does not fix
+
+The 115 seconds is still spent, just not in the dark, and a deploy that
+*does* migrate still takes the full window. Removing that needs the slug
+to exist before the deploy starts, which is Heroku pipeline promotion:
+production would run the artifact staging already built and ran, rather
+than rebuilding from source and trusting the build to be deterministic.
+
+Two of the three feasibility questions are answered:
+
+* **Nothing environment-specific is baked into the slug.**
+  `config.action_controller.asset_host` reads `ENV['PUBLIC_HOSTNAME']`
+  at boot, not at compile time, and the one ERB-compiled asset,
+  `app/assets/javascripts/criteria.js.erb`, reads no `ENV` at all.
+* **`RAILS_ENV` on staging is `production`**, so staging compiles the
+  assets production wants.
+* **No Heroku pipeline exists yet**; `heroku pipelines` lists none. So
+  promotion needs one created and both applications added.
+
+It would also need a check that staging's current release is the same
+commit as the `production` branch's HEAD, since promotion deploys
+whatever slug staging holds rather than what the branch says.
+
 ## Keeping pins current
 
 The organising principle, decided 2026-08-04: **the pull request list is
@@ -2569,6 +2669,13 @@ Making the build faster, in the order decided under
     that expires. See [Recording how current the
     gems are](#recording-how-current-the-gems-are); how far back one
     wants to look is the open question.
+20. **DONE 2026-08-05: maintenance mode only when a deploy migrates.**
+    Most deploys change nothing under `db/migrate`, and those now take
+    no downtime at all. See [Maintenance mode only when it is
+    earned](#maintenance-mode-only-when-it-is-earned). Still wanted:
+    Heroku pipeline promotion, so that a deploy which *does* migrate
+    waits seconds rather than two minutes, and production runs the
+    artifact staging already ran rather than rebuilding it.
 
 Prerequisite: [a pin must carry its own
 tag](#prerequisite-a-pin-must-carry-its-own-tag) is done, ahead of
@@ -2613,6 +2720,18 @@ cause.
 * `pg:backups:restore` completes with the dyno still running under
   maintenance mode; no `ps:scale web=0` is needed. Confirmed on staging
   2026-08-05.
+* A deploy's maintenance window is ~129s, of which ~115s is Heroku
+  building the slug, during which the old release serves and the
+  database is untouched. There is **no hook between build and release
+  phase**, so the window cannot be narrowed by phase, only skipped per
+  deploy.
+* Heroku release objects carry `description` like `Deploy 09446ffe`,
+  which is how to learn what commit is live. Config-var changes also
+  create releases, so ask for several and take the newest `Deploy` one.
+* Nothing environment-specific is compiled into our slug: `asset_host`
+  comes from `ENV['PUBLIC_HOSTNAME']` at boot, and no asset reads
+  `ENV` at compile time. `RAILS_ENV` on staging is `production`. Both
+  facts matter only for pipeline promotion, which has no pipeline yet.
 * **A doubled less-than sign anywhere in `.circleci/config.yml` breaks
   the whole file**, comments inside a `command:` included, because
   CircleCI reads that pair as the start of a parameter expression. So
