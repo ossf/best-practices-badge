@@ -25,26 +25,59 @@ require 'json'
 # test:optimized runs regular tests (parallelized) then system tests (serial).
 # We do the whitespace check early, so it will fail early.
 # AI assistants just can't help but add whitespace at the end of lines.
-task(:default).clear.enhance %w[
-  rbenv_rvm_setup
-  notice
-  whitespace_check
-  ruby_syntax
+# Everything else in the default list is settled by the commit: the same
+# tree gives the same answer for ever. These are not. bundle_audit reads
+# an advisory database and percent_gems_up_to_date reads rubygems.org,
+# both of which move underneath an unchanged commit, so a gem set that
+# was clean when it merged can be vulnerable by the time it deploys.
+# That is exactly the moment we want to be told.
+#
+# So these run on EVERY build, deploy builds included, while the
+# code-determined checks do not; see :deploy_checks below and
+# docs/build-environment-staleness.md. 'bundle' is here because the
+# tests cannot run without it, not because it is a check.
+TIME_VARYING_CHECKS = %w[
   bundle
   bundle_audit
-  generate_criteria_doc
-  rubocop
-  markdownlint
-  rails_best_practices
-  license_okay
-  license_finder_report.html
-  yaml_syntax_check
-  html_from_markdown
-  eslint
-  report_code_statistics
   percent_gems_up_to_date
-  test:optimized
-]
+].freeze
+
+task(:default).clear.enhance(
+  %w[
+    rbenv_rvm_setup
+    notice
+    whitespace_check
+    ruby_syntax
+  ] + TIME_VARYING_CHECKS + %w[
+    generate_criteria_doc
+    rubocop
+    markdownlint
+    rails_best_practices
+    license_okay
+    yaml_syntax_check
+    html_from_markdown
+    eslint
+    report_code_statistics
+    test:optimized
+  ]
+)
+
+# What CI runs on the staging and production branches, where the
+# code-determined checks above would only re-establish what main
+# already established: those branches are reached by fast-forward from
+# main, and branch protection is what makes that true rather than
+# merely customary.
+#
+# Tests still run, because a passing suite is not a property of the
+# commit alone: it is how flapping is noticed, and it is the last thing
+# standing between a deploy and production.
+#
+# Defined from the same constant the default list splices in, so the
+# two cannot drift apart.
+desc 'Checks that must run on every build, deploys included'
+task(:deploy_checks).clear.enhance(
+  %w[rbenv_rvm_setup] + TIME_VARYING_CHECKS + %w[test:optimized]
+)
 # Temporarily removed fasterer
 # Waiting for Ruby 2.4 support: https://github.com/seattlerb/ruby_parser/issues/239
 # Temporarily removed railroader because of local install problems;
@@ -304,7 +337,18 @@ file 'license_okay' => ['Gemfile.lock', 'docs/dependency_decisions.yml'] do
   sh 'bundle exec license_finder --decisions_file docs/dependency_decisions.yml && touch license_okay'
 end
 
-desc 'Create license report'
+# NOT in the default list, deliberately. This renders the same scan
+# 'license_okay' has just done, as a browsable page, and license_finder
+# offers no way to get both from one pass: "action_items --format html"
+# gates correctly but emits 205 bytes saying everything is approved,
+# not the 340 KB report. So having both in 'rake default' meant
+# scanning every gem twice, about 40 seconds, for one scan's worth of
+# information.
+#
+# 'license_okay' is the check and it still runs everywhere. This is the
+# convenience, one command away when someone wants to read it:
+#     rake license_finder_report.html
+desc 'Create browsable license report (not part of "rake default")'
 file 'license_finder_report.html' => [
   'Gemfile.lock',
   'docs/dependency_decisions.yml'
