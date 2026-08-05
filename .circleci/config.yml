@@ -739,7 +739,7 @@ jobs:
             # awk's default field splitting handles any run of spaces
             # or tabs, so the exact column widths do not matter.
             echo "Restoring ${SOURCE_APP}'s latest backup over ${TARGET_APP}"
-            backup_id="$(heroku pg:backups --app "$SOURCE_APP" \
+            backup_row="$(heroku pg:backups --app "$SOURCE_APP" \
               | awk '
                   # Track which section we are in. The command prints
                   # Backups, then Restores, then Copies, and restore
@@ -758,14 +758,85 @@ jobs:
                   # accept both.
                   $1 ~ /^[a-z][0-9]+$/ &&
                     $0 ~ /(^|[[:space:]])(Completed|Finished)([[:space:]]|$)/ {
-                      print $1; exit
+                      print; exit
                     }' || true)"
+            # Two awk calls, and NOT bash's "read x y z" fed by a
+            # here-string, however much tidier one read would look.
+            #
+            # A here-string starts with a DOUBLED LESS-THAN sign, and
+            # CircleCI reads that pair as the opening of one of its own
+            # parameter expressions. It then scans for the closing
+            # doubled greater-than that never comes and rejects the
+            # WHOLE config file: "Expressions must be less than 2048
+            # characters", reported against the top of this step, which
+            # is nowhere near the actual character. Here-documents open
+            # the same way and are the same trap.
+            #
+            # Nothing else in this file uses that pair, including in
+            # comments, because a comment inside a command block is
+            # still part of the string CircleCI parses. Keep it so.
+            backup_id="$(printf '%s\n' "$backup_row" | awk '{print $1}')"
             if ! printf '%s' "$backup_id" | grep -qE '^[a-z][0-9]+$'; then
               echo "ERROR: found no completed backup for ${SOURCE_APP}."
               echo 'Refusing to restore. Check "heroku pg:backups".'
               exit 1
             fi
-            echo "Using backup ${backup_id}"
+
+            # Report how old the backup is, because "newest completed"
+            # says nothing about recent. We deliberately restore the
+            # latest EXISTING backup rather than capturing a fresh one,
+            # so if production's scheduled backups ever stop, this step
+            # would keep succeeding while quietly restoring older and
+            # older data. Nothing else would notice: the restore itself
+            # succeeds, and staging then looks merely out of date.
+            #
+            # Unlike the status, "Created at" cannot be matched as a
+            # whole word, so it has to be taken by column position.
+            # Validate its shape rather than trusting it: a changed
+            # layout then says it could not read the date instead of
+            # printing whatever happened to sit in those fields.
+            created_at="$(printf '%s\n' "$backup_row" |
+              awk '{print $2, $3, $4}')"
+            age_days=''
+            if printf '%s' "$created_at" | grep -qE \
+              '^[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2} [-+][0-9]{4}$'
+            then
+              # Guarded anyway: under "-e" an unparsable date would
+              # otherwise abort the deploy over a diagnostic.
+              created_epoch="$(date -d "$created_at" +%s 2>/dev/null \
+                || true)"
+              if [ -n "$created_epoch" ]; then
+                age_days=$(( ($(date +%s) - created_epoch) / 86400 ))
+              fi
+            else
+              created_at=''
+            fi
+
+            if [ -n "$age_days" ]; then
+              units='days'
+              if [ "$age_days" -eq 1 ]; then units='day'; fi
+              echo "Using backup ${backup_id}, created ${created_at}" \
+                   "(${age_days} ${units} old)"
+            elif [ -n "$created_at" ]; then
+              echo "Using backup ${backup_id}, created ${created_at}"
+            else
+              echo "Using backup ${backup_id}; could not read its date"
+              echo "  row: ${backup_row}"
+            fi
+
+            # Scheduled backups run daily, so more than a couple of days
+            # means the schedule has stopped. Report it loudly rather
+            # than refusing: a stale copy of production is still a more
+            # useful staging database than whatever is there now, and a
+            # deploy is a bad moment to discover a backup problem by
+            # being blocked. Two days, not one, so that ordinary drift
+            # in when the schedule runs is not reported as a fault.
+            if [ -n "$age_days" ] && [ "$age_days" -gt 2 ]; then
+              echo "WARNING: that backup is ${age_days} days old."
+              echo 'WARNING: check that production still backs up daily:'
+              echo "WARNING:   heroku pg:backups:schedules" \
+                   "--app ${SOURCE_APP}"
+            fi
 
             # The redaction stays even though we pass no URL: the CLI
             # may resolve the identifier to one internally and print it.

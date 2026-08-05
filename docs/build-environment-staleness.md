@@ -1808,11 +1808,14 @@ Three consequences to accept deliberately, none of them objections:
    re-running it is safe; afterwards it wipes staging and restores
    production. Reasonable for staging, but it changes what a familiar
    button does, so say so where people will read it.
-3. **Verify that `pg:backups:restore` survives the running dyno.**
-   Maintenance mode stops web traffic but the dyno keeps running, and
-   solid_queue runs inside Puma, so connections stay open. Check whether
-   the restore terminates them or fails; do not preemptively add a
-   `ps:scale web=0` that may not be needed.
+3. **`pg:backups:restore` survives the running dyno. Confirmed
+   2026-08-05**, on the first real staging deploy through this step.
+   The worry was reasonable: maintenance mode stops web traffic but the
+   dyno keeps running, and solid_queue runs inside Puma, so connections
+   stay open. It restored anyway, reporting `Restoring... done` and
+   exiting zero, and the deploy went on to a successful release. So no
+   `ps:scale web=0` is needed, which is why it was worth not adding one
+   preemptively.
 
 **Hardcode both application names in the restore step.** The
 surrounding job derives `HEROKU_APP` from `$CIRCLE_BRANCH`, but the
@@ -1824,6 +1827,152 @@ only one.
 Checked, not assumed: `heroku pg:backups` runs with no plugins
 installed on CLI 11.8.1, the version the `deploy` job pins, so the
 `deploy-only` executor needs nothing added.
+
+### Newest completed is not the same as recent
+
+Added 2026-08-05, prompted by reading the first real deploy's log. It
+said `Using backup a3822` and finished, and nothing in it could tell
+you whether that backup was four hours old or four weeks old.
+
+That gap matters because of a choice made deliberately above: we
+restore production's latest *existing* backup rather than capturing a
+fresh one, so as not to put load on production. If production's
+scheduled backups ever stopped, this step would keep succeeding while
+restoring older and older data. Nothing would report it. The restore
+genuinely succeeds; staging merely looks out of date, which is
+indistinguishable from any of the ordinary reasons staging looks out of
+date.
+
+So the step now reports the age:
+
+```text
+Using backup a3822, created 2026-08-05 09:00:11 +0000 (0 days old)
+```
+
+and past two days says so plainly:
+
+```text
+WARNING: that backup is 9 days old.
+WARNING: check that production still backs up daily:
+WARNING:   heroku pg:backups:schedules --app production-bestpractices
+```
+
+**It warns rather than refusing**, which is a judgement and not an
+oversight. A stale copy of production is still a better staging
+database than whatever is on staging already, and the middle of a
+deploy is a bad moment to be blocked by a backup problem that is not
+this deploy's fault. Two days rather than one, so that ordinary drift
+in when the schedule runs is not reported as a fault.
+
+**"Created at" must be read by column, and that is the weak part.** The
+status is matched as a whole word anywhere on the line precisely so a
+layout change cannot shift it out from under us. A date gets no such
+protection, being a date wherever it sits. So its shape is validated
+instead, and a row that does not match says what it could not do rather
+than printing whatever happened to sit in those fields:
+
+```text
+Using backup a3822; could not read its date
+  row: a3822 Completed 2026-08-05 09:04:33 +0000  ...
+```
+
+The restore then proceeds. A diagnostic that cannot be produced is not
+a reason to refuse a deploy.
+
+### The shell you may write here is not the shell you know
+
+Found the hard way 2026-08-05: this change was first written with
+bash's here-string, `read backup_id c_date c_time c_zone` fed from the
+row, which is tidier than calling `awk` twice. CircleCI rejected the
+entire configuration:
+
+```text
+Error calling workflow: 'build-deploy'
+Error calling job: 'deploy'
+Expressions must be less than 2048 characters.
+```
+
+**A here-string opens with a doubled less-than sign, and that pair is
+how CircleCI opens its own parameter expressions.** It read the pair as
+the start of an expression, scanned forward for the closing doubled
+greater-than that never came, and gave up after 2048 characters.
+Here-documents open the same way and are the same trap.
+
+Three things make this worth recording rather than merely fixing.
+
+* **The error points nowhere near the cause.** It is reported against
+  the first line of the step, which was a comment, so the message
+  invites you to shorten a long command. Length was never the problem:
+  four other commands in the file are longer than 2048 characters and
+  always have been, including one of 7585.
+* **Comments are not exempt.** The first fix carried a comment
+  explaining the trap, spelling the pair out literally, which would
+  have reintroduced it. A comment inside a `command:` block is part of
+  the string CircleCI parses, not an aside to a human.
+* **Nothing local caught it.** `rake yaml_syntax_check` passes, because
+  the file is valid YAML; the fault is in CircleCI's own expression
+  layer, above YAML. The `circleci` CLI would catch it with
+  `circleci config validate`, and is not installed here.
+
+So `rake circleci_config_check` now catches it, in `rake default`
+beside the YAML check. It is a grep rather than a second tool to
+install and keep current, which for one character pair is the right
+size of answer.
+
+**It permits a genuine expression.** `<< parameters.foo >>` and
+`<< pipeline.number >>` pass, so the parameterized executor this
+document considered and set aside remains available; everything else
+fails with the file, the line number, and the line.
+
+Tested by breaking what it guards, which is the only way to know a
+guard works:
+
+| Case | Result |
+| ---- | ------ |
+| the here-string that caused this, restored | caught, exit 1 |
+| a here-document, in a comment | caught, exit 1 |
+| `<< parameters.image >>`, `<< pipeline.number >>` | passes |
+
+Note the second row. The trap is not "do not use here-strings"; it is
+that **CircleCI parses the whole command string**, comments included,
+and does not know the shell would have ignored part of it.
+
+### Testing the shipped code, not a copy of it
+
+The eight listings the parse was first tested against were run against
+a *copy* of the step's shell. This change was tested differently: a
+harness extracts the step's `command` from `.circleci/config.yml` with
+Psych and runs **that** under `/bin/bash -eo pipefail`, which is the
+shell the deploy job actually gets, with `heroku` stubbed to print a
+fixture and to record the arguments it is handed.
+
+The distinction has earned its keep twice already in this document.
+The remote browser passed while driving local Chrome, and the release
+parse passed against fixtures whose shape had been assumed rather than
+observed. Both times the tests were exercising something that was not
+the shipped code.
+
+33 checks pass: the original eight listings, behaving exactly as
+before; that the restore still receives
+`production-bestpractices::a3822` and `--app staging-bestpractices`;
+that nine branch names including `staging2`, `Staging`,
+`staging-bestpractices` and `"staging "` with a trailing space still
+restore nothing; and the new reporting, including the two negative
+checks that matter, that a fresh listing emits no warning and that an
+unreadable date invents no age. `shellcheck` on the extracted step is
+clean, which is the only static analysis this shell can get while it
+lives inside YAML.
+
+Fixture timestamps are computed relative to the clock rather than
+written down, since the step reads the real clock and a hardcoded date
+would quietly change meaning every day.
+
+**The harness is not committed**, because there is nowhere for it to
+live yet: `test/` is hermetic Minitest, and this needs a real
+`.circleci/config.yml` and a stubbed CLI. Recorded here so that the
+next person knows the method rather than rediscovering it. Putting it
+in `script/`, and eventually in `rake default`, is the obvious next
+step and is not taken here.
 
 ### Then the deploy can be a button
 
@@ -2377,6 +2526,18 @@ cause.
   Heroku.
 * `heroku pg:backups` and `pg:backups:restore` are core CLI commands,
   needing no plugin install, on CLI 11.8.1.
+* `pg:backups:restore` completes with the dyno still running under
+  maintenance mode; no `ps:scale web=0` is needed. Confirmed on staging
+  2026-08-05.
+* **A doubled less-than sign anywhere in `.circleci/config.yml` breaks
+  the whole file**, comments inside a `command:` included, because
+  CircleCI reads that pair as the start of a parameter expression. So
+  no bash here-strings and no here-documents. The error names an
+  expression length limit and points at the top of the step, which is
+  not where the character is.
+* CircleCI's 2048-character limit applies to *expressions*, not to
+  commands. Several commands in that file exceed it, the longest at
+  7585 characters, and always have.
 * A CircleCI job's executor image must come from a registry. Its cache
   cannot supply one, because `restore_cache` is a step and steps run
   inside the executor that is already running.

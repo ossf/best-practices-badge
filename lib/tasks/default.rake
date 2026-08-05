@@ -55,6 +55,7 @@ task(:default).clear.enhance(
     rails_best_practices
     license_okay
     yaml_syntax_check
+    circleci_config_check
     html_from_markdown
     eslint
     report_code_statistics
@@ -420,6 +421,58 @@ task :yaml_syntax_check do
     puts 'YAML syntax check failed:'
     puts output
     exit exit_status
+  end
+end
+
+# CircleCI parses ".circleci/config.yml" at a layer ABOVE YAML, where a
+# doubled less-than sign opens one of its own parameter expressions. It
+# scans forward for the matching doubled greater-than and, not finding
+# one, rejects the entire file with "Expressions must be less than 2048
+# characters" reported against the top of the enclosing step.
+#
+# Two shell constructs open with exactly that pair, here-strings and
+# here-documents, and both are natural things to write in a "command:"
+# block. Neither survives. Comments inside a command block do not
+# survive either, because CircleCI parses the whole string and does not
+# know that the shell would have ignored part of it.
+#
+# None of this is visible to "rake yaml_syntax_check": the file is
+# perfectly good YAML. The "circleci" CLI would catch it with
+# "circleci config validate", but that is another tool to install and
+# keep current, and this is a grep.
+#
+# A genuine CircleCI expression is still allowed, so that a
+# parameterized executor remains available: see
+# docs/build-environment-staleness.md.
+desc 'Check .circleci/config.yml for shell syntax CircleCI misreads'
+task :circleci_config_check do
+  path = '.circleci/config.yml'
+  puts "Checking #{path} for CircleCI expression traps..."
+  raise StandardError, "Missing #{path}" unless File.exist?(path)
+
+  # The only legitimate use of the pair: opening a reference to a
+  # CircleCI parameter or pipeline value.
+  allowed = /\A<<\s*(parameters|pipeline)\./
+  offenders =
+    File.readlines(path).each_with_index.filter_map do |line, index|
+      found = line.enum_for(:scan, /<</).map { Regexp.last_match.begin(0) }
+      next if found.empty? || found.all? { |at| line[at..].match?(allowed) }
+
+      [index + 1, line.strip]
+    end
+
+  if offenders.empty?
+    puts 'CircleCI config check completed successfully.'
+  else
+    puts 'ERROR: a doubled less-than sign in .circleci/config.yml.'
+    puts 'CircleCI reads it as the start of a parameter expression and'
+    puts 'rejects the whole file. Shell here-strings and here-documents'
+    puts 'open with it; so rewrite them (awk, or a pipe), and describe'
+    puts 'the characters in comments rather than spelling them out.'
+    offenders.each do |line_number, text|
+      puts "  #{path}:#{line_number}: #{text}"
+    end
+    exit 1
   end
 end
 
