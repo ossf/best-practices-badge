@@ -48,6 +48,25 @@
   // without anything saying so. Zero means no limit.
   prHourlyLimit: 0,
 
+  // A REJECTED PROPOSAL STAYS REJECTED. Close a pull request without
+  // merging and Renovate will not open it again for that same version.
+  // A NEWER version is a new question and does get asked: close the
+  // 1.9.9 proposal and 1.9.10 may still arrive. "auto" is the default,
+  // and is written out because relying on a default for behaviour this
+  // visible means a future change to it would surprise us quietly.
+  //
+  // While a pull request is OPEN, Renovate updates that same branch
+  // rather than opening a second one; branch names are derived from the
+  // dependency, so duplicates cannot pile up.
+  //
+  // The consequence to know: closing a proposal removes it from the
+  // pull request list, which is where this project keeps the decisions
+  // waiting for a human. The dependency dashboard above is what stops
+  // that being a silent forget. It lists what Renovate could propose
+  // and is not proposing, including anything closed, with a checkbox to
+  // ask again.
+  recreateWhen: 'auto',
+
   // No schedule here on purpose. How often Renovate runs is decided by
   // the cron in .github/workflows/renovate.yml, so there is one place to
   // change the cadence rather than two that can disagree.

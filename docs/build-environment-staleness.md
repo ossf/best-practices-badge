@@ -1975,6 +1975,27 @@ PostgreSQL and Chrome also have updates. The two `heroku/heroku` pins
 are one dependency and correctly share a pull request, since they must
 move together.
 
+**A rejected proposal stays rejected.** `recreateWhen` is `auto`: close
+a pull request without merging and Renovate will not open it again for
+that same version, while a *newer* version is a new question and does
+get asked. Close the 1.9.9 proposal and 1.9.10 may still arrive. That is
+the default, written out anyway, because relying on a default for
+behaviour this visible means a future change to it would surprise us
+quietly. While a pull request is open, Renovate updates that same branch
+rather than opening a second: branch names derive from the dependency,
+so duplicates cannot pile up.
+
+The consequence worth knowing: closing a proposal removes it from the
+pull request list, which is where this project keeps "the decisions
+waiting for a human". The dependency dashboard is what stops that being
+a silent forget. It lists what Renovate could propose and is not
+proposing, closed items included, with a checkbox to ask again.
+
+**The validator earns its keep on claims like these.** It rejects
+invented option names, checked by feeding it `recreateWhenX` and
+watching it fail, so a successful validation is evidence that an option
+exists and not merely that the file parses.
+
 `prHourlyLimit` is set to zero, against a default of 2. This runs weekly
 from a workflow that starts, works and exits, so a limit of two would
 mean two proposals a week with the rest silently waiting for the next
