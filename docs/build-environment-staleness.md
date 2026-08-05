@@ -1176,6 +1176,49 @@ ignored *and* ordering were ascending, the oldest release comes first,
 never exceeds the baseline, and the job times out and fails: wrong, but
 safely wrong, never a false success.
 
+### The first real deploy caught what testing had not
+
+Staging's deploy failed 2026-08-05 at the baseline check:
+
+```text
+ERROR: could not read the current release version.
+Refusing to deploy: the check after the push could
+not then tell a new release from the live one.
+```
+
+**The Heroku API pretty-prints its JSON.** Every response arrives as
+`"version": 845`, with a space, not `"version":845`. The pattern
+required no space, so it never matched. Worse, `[0-9]*` matches *zero*
+digits, so `grep` "succeeded" against `"version":` while capturing
+nothing, which is why the failure looked like an empty response rather
+than a parse error.
+
+Every local test used compact JSON, because I wrote the fixtures from
+the shape I assumed rather than from a real response. The schema
+document I had already downloaded was pretty-printed the whole time and
+would have shown me, had I looked at it as evidence instead of as a
+lookup table.
+
+Three things changed:
+
+* `" *"` in both patterns, and `[0-9][0-9]*` instead of `[0-9]*` so a
+  match cannot be empty.
+* The fixtures now cover **both** formats, and both are tested.
+* On failure the step **prints what it received**, truncated to 200
+  bytes with anything resembling an address masked, since release
+  objects carry the deploying user. Verified that the real address does
+  not appear in the output.
+
+The guard itself behaved correctly: it refused to deploy rather than
+guessing, and left maintenance mode on. That is the design working. It
+simply could not say *why*, which is now fixed.
+
+A separate cosmetic fix: the CLI's own update check spawns `heroku`
+from `PATH`, so invoking it by absolute path logged
+`[ENOENT] Error: spawn heroku ENOENT`. Harmless, but it reads as a real
+failure in a deploy log. The step now puts the CLI on `PATH` for itself,
+not only for later steps.
+
 Tested with canned API responses, eight paths:
 
 ```text

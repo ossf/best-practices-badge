@@ -563,8 +563,13 @@ jobs:
           name: Install Heroku CLI tools (to easily control maintenance mode)
           command: |
             set -uo pipefail
-            # Always export the path, hit or miss.
+            # Export for later steps, and also set it here: the CLI's
+            # own update check spawns "heroku" from PATH, so running it
+            # by absolute path logs "[ENOENT] Error: spawn heroku
+            # ENOENT". Harmless, but it looks like a real failure in a
+            # deploy log, which is the last place to put noise.
             echo 'export PATH="$HOME/heroku-cli/bin:$PATH"' >> "$BASH_ENV"
+            export PATH="$HOME/heroku-cli/bin:$PATH"
             # Skip everything below if the cache already delivered a
             # working CLI at the version we asked for. Check by running
             # it, not by testing for the directory, so a half-restored
@@ -640,18 +645,27 @@ jobs:
             # fail the pipeline on a successful match. sed reads its
             # whole input, so it cannot.
             #
-            # NOT "grep -m1": that caps matching LINES, and this JSON is
-            # one line, so -o would still emit every match on it.
+            # NOT "grep -m1": that caps matching LINES, and -o would
+            # still emit every match on whichever lines it allows.
+            #
+            # The " *" is load-bearing: the Heroku API pretty-prints,
+            # so this arrives as '"version": 845', not '"version":845'.
+            # A pattern without it silently matched nothing and failed
+            # this step on a real deploy. [0-9][0-9]* rather than
+            # [0-9]* for the same reason: the star form matches ZERO
+            # digits, so it "succeeds" while capturing nothing.
             #
             # "|| true" because grep exits 1 on no match, which under
             # this job's -eo pipefail would abort with no message.
             HEROKU_API='https://api.heroku.com'
-            prev="$(curl -sfS --max-time 30 \
+            baseline_body="$(curl -sfS --max-time 30 \
               "${HEROKU_API}/apps/${HEROKU_APP}/releases" \
               -H 'Accept: application/vnd.heroku+json; version=3' \
               -H "Authorization: Bearer ${HEROKU_API_KEY}" \
-              -H 'Range: version ..; order=desc,max=1;' \
-              | grep -o '"version":[0-9]*' | sed -n 1p | cut -d: -f2 || true)"
+              -H 'Range: version ..; order=desc,max=1;' || true)"
+            prev="$(printf '%s' "$baseline_body" \
+              | grep -o '"version": *[0-9][0-9]*' | sed -n 1p \
+              | grep -o '[0-9][0-9]*' || true)"
             # Do NOT fall back to 0 here. Zero would make the release
             # that is already live look newer than the baseline, so the
             # check after the push would accept it and report success
@@ -661,6 +675,14 @@ jobs:
               echo 'ERROR: could not read the current release version.'
               echo 'Refusing to deploy: the check after the push could'
               echo 'not then tell a new release from the live one.'
+              # Say what came back, so this is diagnosable from the log
+              # rather than by guessing. Truncated, and with anything
+              # resembling an address masked, because release objects
+              # carry the deploying user.
+              echo '--- first 200 bytes of the response ---'
+              printf '%s' "$baseline_body" | head -c 200 \
+                | sed 's/[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]*/[redacted]/g'
+              echo
               exit 1
             fi
             echo "$prev" > /tmp/pre-deploy-release-version
@@ -738,9 +760,10 @@ jobs:
               # -eo pipefail, so a body without these fields would
               # otherwise abort the step silently instead of retrying.
               version="$(printf '%s' "$body" \
-                | grep -o '"version":[0-9]*' | sed -n 1p | cut -d: -f2 || true)"
+                | grep -o '"version": *[0-9][0-9]*' | sed -n 1p \
+              | grep -o '[0-9][0-9]*' || true)"
               status="$(printf '%s' "$body" \
-                | grep -o '"status":"[^"]*"' | sed -n 1p | cut -d'"' -f4 || true)"
+                | grep -o '"status": *"[^"]*"' | sed -n 1p | cut -d'"' -f4 || true)"
               # Insist on a bare integer: this also catches a
               # multi-line value, which is what a body holding more
               # than one release would produce, rather than letting it
