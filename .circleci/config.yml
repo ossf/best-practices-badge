@@ -431,8 +431,29 @@ jobs:
         name: Check for whitespace issues.
         command: '[[ ! -s "$(git rev-parse --git-dir)/shallow" ]] || git fetch --unshallow'
     - run:
-        name: Run comprehensive checks and tests (rake default)
-        command: CI=true bundle exec rake
+        name: Run checks and tests (rake default, or deploy_checks)
+        command: |
+          # On staging and production, run only the checks whose answer
+          # can change without the code changing, plus the whole test
+          # suite. Everything else in "rake default" is settled by the
+          # commit, and these branches are reached only by
+          # fast-forwarding main, which has already run them. Branch
+          # protection on staging and production is what makes that a
+          # fact rather than a habit.
+          #
+          # The tests still run here, every time. A passing suite is not
+          # a property of the commit alone: re-running it is how
+          # flapping gets noticed, and it is the last thing between a
+          # deploy and production.
+          #
+          # Exact matches only, and any other branch gets the full set,
+          # so a new branch is never accidentally checked less.
+          case "$CIRCLE_BRANCH" in
+            staging|production) rake_task=deploy_checks ;;
+            *)                  rake_task=default ;;
+          esac
+          echo "Branch '${CIRCLE_BRANCH}': running 'rake ${rake_task}'"
+          CI=true bundle exec rake "$rake_task"
     # Save test results
     - store_test_results:
         path: /tmp/circleci-test-results
@@ -441,8 +462,11 @@ jobs:
         path: /tmp/circleci-artifacts
     - store_artifacts:
         path: coverage
-    - store_artifacts:
-        path: license_finder_report.html
+    # license_finder_report.html is deliberately absent. Rendering it
+    # re-scans every gem, which doubled the cost of the licence check
+    # for a browsable copy of what 'license_okay' had just decided. The
+    # check still runs; the report is "rake license_finder_report.html"
+    # when someone wants to read it. See lib/tasks/default.rake.
     - store_artifacts:
         path: log/test.log
     - store_artifacts:

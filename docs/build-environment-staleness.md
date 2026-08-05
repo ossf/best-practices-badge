@@ -2116,13 +2116,10 @@ an estimate when a real number is a build away.
    [the threshold](#setting-parallel_workers-also-switches-the-threshold-off).
    Rails already picks the quota-aware number; any future tuning goes
    through `parallelize(workers:)`, not the environment.
-2. **D, stop scanning licences twice.** `license_okay` scans to decide
-   whether the licences are acceptable, then `license_finder_report.html`
-   scans again to render the same information as HTML. Pure duplication,
-   removable with no change of policy.
-3. **C, the branch conditional.** Code-determined checks stop running on
-   `staging` and `production`. Small, and it composes with A rather
-   than being replaced by it.
+2. **DONE: D, stop scanning licences twice.** See
+   [One scan, not two](#one-scan-not-two).
+3. **DONE: C, the branch conditional.** See
+   [What the deploy branches skip](#what-the-deploy-branches-skip).
 4. **A, split the job**, which extends C's benefit to pull requests.
 5. **Measure again**, and only then consider F, G and H.
 
@@ -2130,6 +2127,86 @@ Steps 1 to 3 are plausibly 250 to 300 seconds off a deploy build
 without spending another credit. Steps 2 and 3 are wanted soon
 specifically because a faster build makes every other change in this
 document cheaper to test.
+
+### One scan, not two
+
+Done 2026-08-05. `rake default` used to run `license_finder` twice over
+the same gems: `license_okay` to decide whether the licences are
+acceptable, and `license_finder_report.html` to render the same
+information as a browsable page. Between 21 and 38 seconds each,
+depending on how the npm scanner feels.
+
+**One command cannot do both**, which was checked rather than assumed.
+`action_items` is the gating command and it does accept `--format
+html`, which looks like the answer. On success it emits **205 bytes**
+saying everything is approved, against the report's 340 KB. It reports
+the action items, and when there are none there is nothing to report.
+
+So the report leaves `rake default` and stays a task:
+`rake license_finder_report.html`. The **check still runs everywhere**;
+what stopped running on every build is the second scan of the same
+gems for a copy of an answer we already had.
+
+The CircleCI `store_artifacts` entry for it went too. Worth knowing for
+anything similar: **`store_artifacts` does not fail on a path that does
+not exist.** Confirmed from a real build, where all seven upload steps
+reported success and only six artifact paths existed; `tmp/capybara`
+and `/tmp/circleci-artifacts` were both empty and neither complained.
+
+### What the deploy branches skip
+
+Done 2026-08-05, implementing the code-determined and time-varying
+distinction rather than merely describing it.
+
+`lib/tasks/default.rake` now names the short list, and `rake default`
+splices it in, so the two cannot drift:
+
+```ruby
+TIME_VARYING_CHECKS = %w[bundle bundle_audit percent_gems_up_to_date]
+```
+
+`rake deploy_checks` is that list plus `test:optimized`, and the
+`build` job picks between them:
+
+```text
+case "$CIRCLE_BRANCH" in
+  staging|production) rake_task=deploy_checks ;;
+  *)                  rake_task=default ;;
+esac
+```
+
+| Task | Prerequisites |
+| ---- | ------------- |
+| `default` | 17, unchanged apart from the licence report |
+| `deploy_checks` | 5 |
+
+**Exact matches, and any other branch gets everything**, so the failure
+mode is a branch checked too much rather than too little. Tested
+against ten branch names, including `Staging`, `staging2`,
+`my-staging`, `staging-bestpractices`, `production2` and the empty
+string: only `staging` and `production` take the short list.
+
+**The tests always run.** That is the point of the split rather than an
+exception to it: a green suite is not a property of the commit alone,
+it is how flapping is noticed, and it is the last thing standing
+between a deploy and production.
+
+Verified by running the whole of `rake default` end to end, 469
+seconds on a four-core machine, with every check passing and the test
+counts unchanged: 1232 tests and 12609 assertions, then 23 system
+tests, still `Running 23 tests in a single process (parallelization
+threshold is 50)`.
+
+One false alarm worth recording, because the next person will hit it.
+Running `CI=true bundle exec rake` locally fails one system test:
+
+```text
+Minitest::Assertion: CI must set SELENIUM_REMOTE_URL
+```
+
+That is the guard from the Chrome work working exactly as intended: it
+refuses to let CI silently drive a local browser. Locally, either
+leave `CI` unset or point `SELENIUM_REMOTE_URL` at a container.
 
 ### Rebuilding this on GitHub, later
 
@@ -2239,15 +2316,16 @@ Making the build faster, in the order decided under
     13% on two processors, but it has to go through
     `parallelize(workers:)` in `test/test_helper.rb`, and it needs its
     own measurement on more than one machine shape.
-15. **Stop scanning licences twice.** `license_okay` and
-    `license_finder_report.html` each run a full `license_finder` scan
-    over the same gems, 42.6 seconds between them, for one scan's worth
-    of information.
-16. **Skip code-determined checks on `staging` and `production`.** They
-    are settled by the commit, which reached those branches only by
-    being fast-forwarded from `main`. `bundle_audit` and
-    `percent_gems_up_to_date` are excluded from this, because their
-    answers change under an unchanged commit.
+15. **DONE 2026-08-05: stopped scanning licences twice.** The report
+    left `rake default` and stayed a task; the check still runs
+    everywhere. `action_items --format html` cannot replace it: on
+    success it emits 205 bytes, not the report. See
+    [One scan, not two](#one-scan-not-two).
+16. **DONE 2026-08-05: code-determined checks skipped on `staging` and
+    `production`.** `rake deploy_checks` is the time-varying checks
+    plus the whole test suite, and the `build` job picks it by exact
+    branch name. See
+    [What the deploy branches skip](#what-the-deploy-branches-skip).
 17. **Split `build` into parallel `static` and `test` jobs**, which
     extends step 16 to pull requests. The static job needs neither
     PostgreSQL nor Chrome.
@@ -2324,7 +2402,16 @@ cause.
   many workers, not at exactly that many, because much of it waits on
   PostgreSQL. Measured: 85.5s at 2, 74.8s at 4, 89.0s at 8.
 * `rake default`'s checks cost about 105 seconds on four cores, of
-  which `license_finder` is 42.6 and `html_from_markdown` is 21.
+  which `license_finder` was 42.6 (now halved: the report left the
+  default chain) and `html_from_markdown` is 21. A whole `rake default`
+  including both test suites is 469 seconds there.
+* **`store_artifacts` does not fail on a missing path.** Confirmed from
+  a real build: seven upload steps all succeeded with six artifact
+  paths present. So a check that sometimes produces no artifact needs
+  no conditional around the upload.
+* `license_finder action_items --format html` gates correctly but emits
+  205 bytes on success, not a report, so one invocation cannot both
+  gate and produce the browsable page.
 * Ten of those checks are settled by the commit; only `bundle_audit`
   and `percent_gems_up_to_date` can change answer without the code
   changing.
