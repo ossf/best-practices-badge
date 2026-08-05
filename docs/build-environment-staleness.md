@@ -25,10 +25,19 @@ staging 2026-08-04):
   because 10.17.0 declared `engines: node 20.x` and Node 20 is end of
   life.
 
-**In progress** (branch `build_env_staleness`): step 1 of
-[the plan](#the-plan), pinning Node. The repository side is done; the
-buildpack still has to be added to the two Heroku applications, in the
-order given under [Pinning Node](#pinning-node-for-the-production-build).
+**Step 1 is complete**, 2026-08-05. `package.json` pins Node, and
+`heroku/nodejs` is configured ahead of `heroku/ruby` on **both**
+applications:
+
+```text
+1. buildpack-mimalloc
+2. heroku/nodejs
+3. heroku/ruby
+```
+
+Finding 5 is closed once a production deploy confirms the log reports
+24.19.0 and no longer warns that the Node version "is not pinned and
+can change over time".
 
 **Decided, not yet built:** steps 6 to 12 of
 [The plan](#the-plan).
@@ -1707,14 +1716,21 @@ There is no `package-lock.json`, because there is nothing to lock. The
 buildpack reads `package-lock.json` only to choose between `npm ci` and
 `npm install`, and takes the latter without complaint.
 
-**The application half, not done.** `heroku/nodejs` must be configured
-on both applications, between the mimalloc buildpack and `heroku/ruby`:
+**The application half, done 2026-08-05** on staging and then
+production. `heroku/nodejs` must sit between the mimalloc buildpack and
+`heroku/ruby`:
 
 ```text
 heroku buildpacks:add --index 2 heroku/nodejs --app staging-bestpractices
 ```
 
-Until then this pin does nothing. `heroku/ruby` does not read
+Check before adding, since the command is easy to run twice:
+
+```text
+heroku buildpacks --app production-bestpractices
+```
+
+Without that buildpack the pin does nothing. `heroku/ruby` does not read
 `engines.node`; it installs a Node of its own whenever it sees `execjs`
 in `Gemfile.lock`, which it does.
 
@@ -1733,11 +1749,11 @@ Node; see [The image](#the-image).
 
 ## The plan
 
-1. **Pin Node for the production build** (finding 5). Independent,
-   cheap, and the only finding that can break a deploy. Add the
-   `heroku/nodejs` buildpack ahead of `heroku/ruby` and pin the version.
-   See [Pinning Node](#pinning-node-for-the-production-build); the
-   repository half is done.
+1. **DONE 2026-08-05: pin Node for the production build** (finding 5).
+   `package.json` pins the version, and `heroku/nodejs` sits ahead of
+   `heroku/ruby` on both applications. See
+   [Pinning Node](#pinning-node-for-the-production-build). The last
+   confirmation is a production deploy log reporting 24.19.0.
 2. **DONE 2026-08-05: checked `heroku/heroku:24-build`** for `libpq`,
    its headers and a C toolchain. All present; see [The image](#the-image).
 3. **DONE 2026-08-05: run the `build` job on `heroku/heroku:24-build`
