@@ -1891,12 +1891,33 @@ Three things make this worth recording rather than merely fixing.
   explaining the trap, spelling the pair out literally, which would
   have reintroduced it. A comment inside a `command:` block is part of
   the string CircleCI parses, not an aside to a human.
-* **Nothing local catches it.** `rake yaml_syntax_check` passes,
-  because the file is valid YAML; the fault is in CircleCI's own
-  expression layer, above YAML. The `circleci` CLI would catch it with
-  `circleci config validate`, and is not installed here. Failing that,
-  the cheap guard is a check that this file contains that character
-  pair nowhere at all, which is true today and easy to keep true.
+* **Nothing local caught it.** `rake yaml_syntax_check` passes, because
+  the file is valid YAML; the fault is in CircleCI's own expression
+  layer, above YAML. The `circleci` CLI would catch it with
+  `circleci config validate`, and is not installed here.
+
+So `rake circleci_config_check` now catches it, in `rake default`
+beside the YAML check. It is a grep rather than a second tool to
+install and keep current, which for one character pair is the right
+size of answer.
+
+**It permits a genuine expression.** `<< parameters.foo >>` and
+`<< pipeline.number >>` pass, so the parameterized executor this
+document considered and set aside remains available; everything else
+fails with the file, the line number, and the line.
+
+Tested by breaking what it guards, which is the only way to know a
+guard works:
+
+| Case | Result |
+| ---- | ------ |
+| the here-string that caused this, restored | caught, exit 1 |
+| a here-document, in a comment | caught, exit 1 |
+| `<< parameters.image >>`, `<< pipeline.number >>` | passes |
+
+Note the second row. The trap is not "do not use here-strings"; it is
+that **CircleCI parses the whole command string**, comments included,
+and does not know the shell would have ignored part of it.
 
 ### Testing the shipped code, not a copy of it
 
