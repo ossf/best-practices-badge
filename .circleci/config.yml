@@ -161,6 +161,28 @@ jobs:
     environment:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+      # How many processes run the tests. Without this, test_helper.rb
+      # asks for :number_of_processors, which is Etc.nprocessors, which
+      # reads the CPU AFFINITY MASK and so reports this container's
+      # host: 36. Our actual allowance under resource_class medium is
+      # the cgroup CPU QUOTA, which is 2. So CI was forking 36 Rails
+      # workers, each with its own test database, for two processors
+      # inside 4 GiB with no swap. See "Where the build's time goes" in
+      # docs/build-environment-staleness.md.
+      #
+      # 4, not 2, because the suite is partly waiting on PostgreSQL
+      # rather than computing. Measured on two processors: 85.5s with 2
+      # workers, 74.8s with 4, 89.0s with 8. The optimum is near twice
+      # the allowance, and it degrades quickly past that.
+      #
+      # TODO: derive this rather than hardcode it. The right number is
+      # about twice the CPU quota, and the quota is readable from
+      # cgroup v2 "cpu.max" (or v1 "cpu.cfs_quota_us"), which is what
+      # container-aware runtimes read and what Etc.nprocessors does not.
+      # A helper that reads the quota and falls back to Etc.nprocessors
+      # would fit every platform we run on, including a developer
+      # laptop, and would make this line unnecessary.
+      PARALLEL_WORKERS: 4
     steps:
     - checkout
     # Work out what makes a cache compatible, and let the key say so.
