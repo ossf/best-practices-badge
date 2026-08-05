@@ -1929,11 +1929,30 @@ build_stack.name  -> heroku-26
 After maintenance mode lifts, the job asks the site for one real page:
 `https://<app>.herokuapp.com/projects/1.json`, retrying for a minute.
 
-**Straight at the application, not the CDN hostname.** Fastly could
-serve a cached copy and make a dead origin look alive, which is exactly
-the failure a smoke test exists to catch. Direct access works because
-the Fastly-IP-required block in `config/initializers/fastly.rb` is
-commented out.
+**Through the CDN, because there is no way round it and there should not
+be.** The first version of this went straight at
+`https://<app>.herokuapp.com/`, on the reasoning that bypassing Fastly
+stops a cached copy making a dead origin look alive. That reasoning was
+right and the premise was wrong: `verify_origin_shielding` in
+`ApplicationController` answers **403** to any request whose last
+`X-Forwarded-For` hop is not a trusted Fastly edge. Direct origin access
+is forbidden by design, which is cloud-piercing protection working, and
+a smoke test is no reason to want a hole in it. I had checked the
+commented-out block in `config/initializers/fastly.rb` and concluded the
+protection was off; the live mechanism is in the controller.
+
+So it asks Fastly, with a query string unique to the build, for
+something the cache cannot already hold. If Fastly is configured to
+ignore query strings the answer may still be cached, so `X-Cache` and
+`Age` are **printed rather than asserted**: a cached 200 is weaker
+evidence, and failing a good deploy over a cache hit would be worse than
+the weakness.
+
+**The hostname comes from the application**, via
+`heroku config:get PUBLIC_HOSTNAME`, so staging and production each
+answer for themselves and nothing has to be kept in step. One variable
+by name, deliberately: a bare `heroku config` would print every secret
+the application holds into a log anyone can read.
 
 **`/projects/1.json`, not `/robots.txt`**, because it routes, queries
 the database and serialises a real record, so it exercises the whole web

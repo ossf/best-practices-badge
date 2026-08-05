@@ -1331,31 +1331,41 @@ jobs:
             # the release reaching the dyno formation. What it never did
             # is start Puma. So this asks for one real page.
             #
-            # Straight at the Heroku application, NOT at the CDN
-            # hostname. Fastly could serve a cached copy and make a dead
-            # origin look alive, which is precisely the failure a smoke
-            # test exists to catch. Direct access works because the
-            # Fastly-IP-required block in config/initializers/fastly.rb
-            # is commented out.
+            # THROUGH THE CDN, because there is no way round it and
+            # there should not be. ApplicationController's
+            # verify_origin_shielding answers 403 to any request whose
+            # last X-Forwarded-For hop is not a trusted Fastly edge, so
+            # https://<app>.herokuapp.com/... is forbidden by design.
+            # That is cloud-piercing protection working; a smoke test is
+            # no reason to want a hole in it.
             #
-            # /projects/1.json, not /robots.txt: it routes, queries the
-            # database and serialises a real record, so it exercises the
-            # whole web path rather than proving something is listening.
-            # It is the same URL "rake load_self_json" already relies on.
-            #
-            # This runs after the release is live, so it is DETECTION,
-            # not prevention, and it cannot be otherwise: maintenance
-            # mode answers 503 to everything, and a one-off dyno serves
-            # no HTTP. Prevention is the release phase; this is the layer
-            # after it. It runs on every deploy rather than only on stack
-            # changes, because a check that fires once every few years is
-            # a check nobody knows is broken.
-            url="https://${HEROKU_APP}.herokuapp.com/projects/1.json"
+            # The hostname comes from the application itself rather than
+            # being written here, so staging and production each answer
+            # for themselves and nothing has to be kept in step.
+            # config:get names ONE variable: plain "heroku config"
+            # would print every secret the application holds into a log
+            # anyone can read.
+            host="$(heroku config:get PUBLIC_HOSTNAME --app "$HEROKU_APP")"
+            if [ -z "$host" ]; then
+              echo "ERROR: ${HEROKU_APP} has no PUBLIC_HOSTNAME set, so"
+              echo 'there is no address to smoke test. Refusing to guess.'
+              exit 1
+            fi
+
+            # A unique query string per build, to ask Fastly for
+            # something it cannot already have cached. If Fastly is
+            # configured to ignore query strings this will be served
+            # from cache anyway, so the X-Cache header is printed rather
+            # than asserted: a cached 200 is weaker evidence, but
+            # failing a good deploy over a cache hit would be worse.
+            url="https://${host}/projects/1.json?smoke=${CIRCLE_BUILD_NUM}"
             echo "Smoke testing ${url}"
             for i in $(seq 1 12); do
-              body="$(curl -sf --max-time 20 "$url" || true)"
+              body="$(curl -sfL --max-time 20 "$url" || true)"
               if printf '%s' "$body" | grep -q '"id": *1'; then
                 echo "Site answered with project 1 after ${i} attempts."
+                curl -sIL --max-time 20 "$url" \
+                  | grep -iE '^(x-cache|age):' || true
                 exit 0
               fi
               echo "Attempt ${i}: no usable answer yet; dynos may still" \
