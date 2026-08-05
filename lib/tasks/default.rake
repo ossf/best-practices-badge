@@ -338,6 +338,12 @@ task markdownlint: :no_rails do
   sh 'find . -name "*.md" ! -name ",*" ! -path "./tmp/*" ! -path "./temp/*" ! -path "*/.*" -print0 | xargs -0 bundle exec mdl'
 end
 
+# The tool is called mdl, so let "rake mdl" work too. No body, so it
+# needs no ":no_rails" of its own: the Rakefile decides a bodiless task
+# from what it depends on, and markdownlint says ":no_rails" already.
+desc 'Alias for markdownlint'
+task mdl: :markdownlint
+
 # Apply JSCS to look for issues in JavaScript files.
 # To use, must install jscs; the easy way is to use npm, and at
 # the top directory of this project run "npm install jscs".
