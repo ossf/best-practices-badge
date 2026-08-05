@@ -19,6 +19,15 @@
 #   WARN: Clearing out unresolved specs. Try 'gem cleanup <gem>'
 # It's basically spurious. Run `gem cleanup stringio` and move on.
 
+# Important: we use `require: false` for many gems, including
+# various linters, as is typical. Every one of them is run as a separate
+# process ("bundle exec rubocop", "bundle exec license_finder", ...),
+# so *always* loading the library into the application buys nothing and
+# would cost about 1.3 seconds on EVERY rake task start. Measured:
+# rubocop 0.86s, rubocop-rails 0.30s, license_finder 0.09s,
+# rails_best_practices 0.04s. RuboCop's extensions are loaded by
+# .rubocop.yml's "plugins:" inside that separate process.
+
 source 'https://rubygems.org'
 
 # Use current ruby version (as stated in .ruby-version file)
@@ -144,13 +153,6 @@ group :development, :test do
   gem 'dotenv', '~> 3.0' # Load env vars from .env files into Rails ENV
   gem 'eslintrb' # Linter for JavaScript code.
   gem 'json', '~> 2.16' # Process JSON format
-  # require: false for the linters below: every one is run as a separate
-  # process ("bundle exec rubocop", "bundle exec license_finder", ...),
-  # so loading the library into the application buys nothing and costs
-  # about 1.3 seconds on EVERY development and test boot. Measured:
-  # rubocop 0.86s, rubocop-rails 0.30s, license_finder 0.09s,
-  # rails_best_practices 0.04s. RuboCop's extensions are loaded by
-  # .rubocop.yml's "plugins:" inside that separate process.
   gem 'license_finder', '~> 7.0', require: false # Acceptable sw licenses
   gem 'mdl', '0.13.0' # Markdownlint - linter for markdown format
   # Removed pronto gems - comprehensive linting now handled by rake default
