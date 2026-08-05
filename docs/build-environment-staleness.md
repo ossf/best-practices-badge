@@ -1472,6 +1472,40 @@ That second row is the point: it is not a rake improvement, it is on
 every development and test boot, including `rails console`, `rails
 server` and the test suite.
 
+### Bootsnap was switched off in the case that matters
+
+Found 2026-08-05, chasing the last of `rake -T`. `config/boot.rb` read:
+
+```ruby
+if ENV['RAILS_ENV'] == 'development'
+  require 'bootsnap'
+```
+
+**An unset `RAILS_ENV` is not the string `development`**, so that test
+was false for plain `rake`, `rails console`, `rails server` and
+`rails runner`, which is to say for nearly everything anyone does by
+hand. Rails itself treats unset as development: `Rails.env` is
+`ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'`. So Bootsnap, a
+gem in the Gemfile precisely to make development boots fast, was being
+skipped in development.
+
+Measured, with the variable unset both times:
+
+| Command | Before | After |
+| ------- | ------ | ----- |
+| `rake -T` | 3.89s | **2.29s** |
+| `rails runner 'puts 1'` | 8.38s | **3.23s** |
+| `rails console` | | 4.61s |
+
+`rails runner` is now under a third of the 10.80s it took at the start
+of this work. `RAILS_ENV=test` and `RAILS_ENV=production` are unchanged,
+as they should be: neither uses Bootsnap.
+
+The require is now wrapped in a `rescue LoadError`, because `bootsnap`
+is in the development bundle group and a bundle installed without that
+group has no gem to load. It is a cache, not a dependency; refusing to
+boot over a missing accelerator would be worse than booting slowly.
+
 ### The marker, and why silence is not allowed
 
 The rule is one sentence: **a task needs Rails unless every task
