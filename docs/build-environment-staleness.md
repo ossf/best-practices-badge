@@ -2352,18 +2352,26 @@ beside `build` rather than in front of it. Neither requires the other,
 so CircleCI starts both at once and the wall clock is the longer of the
 two instead of their sum.
 
-Measured on a four-core machine:
+**Measured in CI**, which is the number that counts, comparing the
+first pipeline on the split against `main` immediately before it:
 
-| Task | Wall time |
-| ---- | --------- |
-| `rake static_checks` | 50s |
-| `rake dynamic_checks` | 199s |
-| the two in sequence, as `rake default` | 249s |
-| the two at once, as CI now runs them | 199s |
+| Pipeline | Job | Time |
+| -------- | --- | ---- |
+| `main`, everything in one job | `build` | 262.1s |
+| split | `build` | 204.9s |
+| split | `static` | 90.4s |
+| | **wall clock** | **204.9s** |
 
-CI's numbers will be larger and the ratio different, since two
-processors change the tests more than they change a linter. The shape
-is what matters: the checks stop being on the critical path.
+**57 seconds off the wall clock, about 22%.** And an honest second
+number beside it: 204.9 + 90.4 is 295.3, so the *total* compute went
+**up** by about 33 seconds. That is the second job paying its own
+checkout, Ruby install and bundle, and it is the trade being made
+deliberately. Wall clock is what a person waits for; the extra 33
+seconds is machine time that was always going to be spent on something.
+
+On a four-core development machine, where the two run in sequence:
+`rake static_checks` 50s, `rake dynamic_checks` 199s, `rake default`
+249s.
 
 **Three task lists, built from three constants**, so `rake default`
 cannot come to mean something different from what CI runs:
