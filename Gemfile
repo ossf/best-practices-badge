@@ -162,7 +162,36 @@ group :development, :test do
   gem 'rubocop-performance', '~> 1.20', require: false # Performance cops
   gem 'rubocop-rails', '2.33.4', require: false # Rails-specific cops
   gem 'ruby-graphviz', '1.2.5' # This is used for bundle viz
-  gem 'spring', '~> 4.1' # Preloader to speed development+test
+  # Spring, a preloader that keeps the application resident so repeated
+  # commands start instantly. Commented out 2026-08-05 rather than
+  # deleted, because reinstating it is this one line plus two in the
+  # binstubs. Three reasons, in order of weight:
+  #
+  # * It is EASILY AND QUIETLY DISABLED, and was. Spring only intercepts
+  #   commands through bin/ binstubs, and commit fa8b3645 regenerated
+  #   those in August 2025, dropping the "load .../spring" line from
+  #   bin/rails and bin/rake as a side effect. Nobody noticed for months,
+  #   because nothing fails when a preloader silently stops preloading:
+  #   things are merely slower. A dependency whose absence is invisible
+  #   is a poor dependency to carry.
+  # * It needs SPECIAL COMMANDS to do anything. It hooks binstubs, so it
+  #   helps "bin/rake" and "bin/rails", while AGENTS.md tells developers
+  #   to type plain "rake" and "rails", which go through the rbenv shims
+  #   to the gem executables and never reach bin/. As used here it would
+  #   have to change how everyone types every command.
+  # * It HELPS LESS THAN IT DID. When boots were 8 to 11 seconds it was
+  #   worth real inconvenience. Turning Bootsnap on for development and
+  #   keeping the linters out of the application brought "rails console"
+  #   to 4.6s, "rake -T" to 2.3s, and rake tasks that need no Rails to
+  #   0.6s. What is left for a preloader to win is much smaller, and the
+  #   price is a resident daemon holding a cached copy of the app that
+  #   must be restarted when configuration changes.
+  #
+  # Rails itself agrees: Spring is no longer in the Gemfile that
+  # "rails new" generates, as of Rails 7.
+  #
+  # bin/spring and config/spring.rb are deliberately left in place.
+  # gem 'spring', '~> 4.1' # Preloader to speed development+test
   # Do NOT upgrade to vcr 6.*, as that is not OSS:
   gem 'vcr', '< 5.1' # Record network responses for later test reuse
   gem 'yaml-lint', '~> 0.1.2' # Check YAML file syntax
