@@ -1383,6 +1383,125 @@ It would also need a check that staging's current release is the same
 commit as the `production` branch's HEAD, since promotion deploys
 whatever slug staging holds rather than what the branch says.
 
+## Rake without Rails
+
+Done 2026-08-05, plan step 13. `rake -T` cost 4.7 seconds and could not
+run at all without the full bundle installed at the right Ruby, because
+`Rakefile:7` required `config/application` unconditionally: `rails/all`
+plus `Bundler.require` of every gem, test-only ones included. Nothing
+about deploying needed that; deploying is five git commands.
+
+Now the Rakefile loads this project's own task files itself, which costs
+milliseconds, and boots Rails only if the task actually needs it.
+
+| Command | Before | After |
+| ------- | ------ | ----- |
+| `rake deploy_production` | ~7s | **0.82s** |
+| `rake static_checks` | 5.95s | **0.99s** |
+| `rake whitespace_check` | 8.34s | **2.73s** |
+| `rake -T`, `rake db:version`, `rake` | ~6s | unchanged, they boot |
+
+The static CI job no longer starts Rails at all. Those figures are for
+plain `rake`, without `bundle exec`, which is how this project's
+development environment expects to be used.
+
+**One thing that had to be kept, and was briefly lost.**
+`config/application` used to pull in `config/boot`, and `config/boot` is
+what runs `bundler/setup`. With `config/application` no longer required
+unconditionally, our task files were loading first and activating gems
+of their own, eslintrb among them, through plain RubyGems, which takes
+the newest installed version rather than the one `Gemfile.lock` names.
+Bundler then refused when the application finally loaded:
+
+```text
+Gem::LoadError: You have already activated multi_json 1.21.0,
+but your Gemfile requires multi_json 1.20.1
+```
+
+So the Rakefile now requires `config/boot` first, before anything else.
+It is cheap, resolving the lock file and fixing the load path without
+loading any Rails, and it is what keeps plain `rake` working.
+
+### The marker, and why silence is not allowed
+
+The rule is one sentence: **a task needs Rails unless every task
+reachable from it is marked `:no_rails`.** Anything unfamiliar counts as
+needing it, so tasks defined by Rails and by gems keep working
+untouched: we have never heard of `db:migrate`, so we boot.
+
+`:environment` was already the convention here, on 41 tasks. The new
+half is `:no_rails`, an empty task used as a prerequisite, and the point
+of it is that **omission becomes detectable**. A task that declares
+neither is not "probably fine", it is a task nobody has classified, and
+`rake` now refuses to run until somebody does, naming it. It also
+refuses when a task claims `:no_rails` and its body mentions `Rails` or
+a model.
+
+Both failure directions were tested by breaking them:
+
+| Injected | Result |
+| -------- | ------ |
+| a task with no marker | refuses, names the task |
+| a task marked `:no_rails` whose body uses `Rails.root` | refuses, names the task |
+| a correctly marked task | accepted |
+
+**Two exemptions, both forced rather than chosen.** A `file` task cannot
+carry the marker: `Rake::Task#timestamp` returns `Time.now`, so a plain
+task as a file task's prerequisite makes it out of date on every run,
+and `rake license_okay` would rescan every gem for ever. A task with no
+body has nothing to touch Rails with; the walk decides it from its
+prerequisites, and marking one would be a claim about its closure that
+could quietly stop being true.
+
+### Four things found by doing it
+
+**Rails loads `lib/tasks/**/*.rake` as a plain engine path**, in
+`Rails::Engine#run_tasks_blocks`, which is why an engine can ship tasks.
+There is no magic in it. Worth knowing: `:environment` is defined
+**after** our files load, so the 41 tasks already depending on it were
+already depending on a task that did not exist yet. Rake resolves
+prerequisites at invoke time, so moving our files earlier changed
+nothing in kind.
+
+**Three references to Rails at file scope**, which is what actually
+blocked this and which a first pass missed by only looking above the
+first task definition. One chose which `eslint` task to define and
+became an `ENV` lookup, since `Rails.env` is
+`ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'` anyway. The other
+two enhance tasks belonging to Rails and to the translation.io gem, so
+they cannot run before those exist. They now register through
+`after_rails_tasks`, which the Rakefile runs immediately after
+`load_tasks`. Guarding them with `task_defined?` would have been worse:
+the enhancement would have stopped happening silently.
+
+**`Rake.application` is swapped in and out**, by `Rake.with_application`,
+so a list of task names captured under one application means nothing
+under the next: looking one up raises "Don't know how to build task".
+The audit therefore runs immediately after loading, in the same
+application, rather than later. That also means it runs on every
+invocation instead of only on the ones that boot.
+
+**`Task#enhance` does not convert its arguments** the way the `task` DSL
+does. `enhance([:no_rails])` stores a Symbol, `task foo: :no_rails`
+stores a String, and only the second matches. This mattered for
+`eslint`, whose task is built by the eslintrb gem, so there is no
+definition line of ours to annotate.
+
+### What it deleted, and what it fixed by accident
+
+The `ci` task is gone. Nothing referenced it, not `.circleci/config.yml`,
+not the workflows, not the documentation, and it still listed
+`license_finder_report.html`, which left `rake default` earlier that day.
+A second list of what CI runs, which CI does not run, is a claim that
+quietly stops being true.
+
+And the constant-redefinition warnings recorded in `,rakefile_warnings.md`
+are gone, without being aimed at. They happened because `load_tasks`
+globbed `lib/tasks` a second time in the test process. Now
+`config.paths['lib/tasks'].glob` names a pattern that matches nothing,
+because the Rakefile owns that loading, so `default.rake` is loaded
+exactly once per process.
+
 ## Keeping pins current
 
 The organising principle, decided 2026-08-04: **the pull request list is

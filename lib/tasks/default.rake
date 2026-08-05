@@ -20,6 +20,42 @@
 require 'English'
 require 'json'
 
+# ---------------------------------------------------------------------
+# EVERY TASK WITH A BODY MUST SAY WHETHER IT NEEDS RAILS.
+#
+#   task foo: :environment do ... end   # uses models, Rails.root, ...
+#   task foo: :no_rails    do ... end   # shells out, lints, moves files
+#
+# The Rakefile loads this file WITHOUT booting Rails, and boots only if
+# the task you asked for needs it. That is worth six seconds on every
+# invocation, and it is why "rake deploy_production" runs on a machine
+# with no development environment at all.
+#
+# Saying nothing is not an option: "rake" refuses to run until the
+# question is answered, naming the task. It also refuses if a task
+# claims ":no_rails" and its body mentions Rails or a model. Both checks
+# live in the Rakefile.
+#
+# Three things to know when adding one:
+#
+# * A "file" task cannot take the marker. Rake::Task#timestamp returns
+#   Time.now, so a plain task as a file task's prerequisite would make it
+#   out of date on every run. They are exempt, and so are tasks with no
+#   body at all, which are pure prerequisite lists.
+#
+# * If your body INVOKES another task rather than depending on it, say
+#   Rake::Task['db:migrate'].invoke, the marker cannot see it. Declare
+#   ":environment" yourself in that case.
+#
+# * If your code must run after Rails and its gems have defined THEIR
+#   tasks, because it enhances one of them, wrap it in
+#   "after_rails_tasks do ... end". At file scope it would run too early,
+#   and Rake::Task['whatever'] would raise.
+#
+# See the Rakefile for the mechanism and
+# docs/build-environment-staleness.md for why.
+# ---------------------------------------------------------------------
+
 # The work "rake default" does, split three ways, because CI runs the
 # halves as separate jobs at the same time and a developer runs all of
 # it with one word. Every list below is built from these constants, so
@@ -94,27 +130,18 @@ task(:dynamic_checks).clear.enhance(PREFLIGHT + DYNAMIC_CHECKS)
 # Temporarily removed railroader because of local install problems;
 # it's still run by the CI for every pull request
 
-# Run Continuous Integration (CI) check processes.
-# This is a shorter list; many checks are run by a separate "pronto" task.
-# Temporarily includes "railroader", we hope to move that to pronto.
-# Removed bundle_doctor due to CircleCI failures
-# Temporarily removed fasterer
-task(:ci).clear.enhance %w[
-  rbenv_rvm_setup
-  ruby_syntax
-  bundle_audit
-  markdownlint
-  license_okay
-  license_finder_report.html
-  whitespace_check
-  yaml_syntax_check
-  report_code_statistics
-  railroader
-]
+# There used to be a "ci" task here, a second shorter list of checks.
+# Nothing referenced it: not .circleci/config.yml, not the GitHub
+# workflows, not the documentation. It still named
+# license_finder_report.html, which left "rake default" some time ago,
+# and railroader, which is not in the default list either. A second list
+# of what CI runs, which CI does not run, is a claim that quietly stops
+# being true. What CI runs is "rake static_checks" and
+# "rake dynamic_checks", both defined above.
 
 # Simple smoke test to avoid development environment misconfiguration
 desc 'Ensure that rbenv or rvm are set up in PATH'
-task :rbenv_rvm_setup do
+task rbenv_rvm_setup: :no_rails do
   # Skip this check in CI environments where Ruby is managed differently
   next if ENV['CI']
 
@@ -126,7 +153,7 @@ end
 
 # Do a quick check of Ruby syntax, takes only ~2 sec in most cases
 desc 'Check for ruby syntax problems on **.rb files modified last 7 days'
-task :ruby_syntax do
+task ruby_syntax: :no_rails do
   # Exclude temporary files beginning with comma and files under temp/.
   # The `ruby -c` command only checks one file, so re-invoke for each file.
   # Do checks in parallel to speed results.
@@ -136,13 +163,13 @@ task :ruby_syntax do
 end
 
 desc 'Run Rubocop'
-task :rubocop do
+task rubocop: :no_rails do
   # The default configuration is in .rubocop.yml
   sh 'bundle exec rubocop'
 end
 
 desc 'Run rails_best_practices with options'
-task :rails_best_practices do
+task rails_best_practices: :no_rails do
   # The config file (config/rails_best_practices.yml) controls which checks
   # are enabled/disabled. File-exclusion and mode flags must be passed on
   # the command line — the YAML 'exclude:' key is silently ignored by the gem.
@@ -153,7 +180,7 @@ task :rails_best_practices do
 end
 
 desc 'Setup railroader if needed'
-task 'railroader/bin/railroader' do
+task 'railroader/bin/railroader' => :no_rails do
   # "gem install" doesn't honor Gemfile.lock, so use git clone + bundle install
   sh 'mkdir -p railroader'
   sh 'cd railroader; ' \
@@ -163,7 +190,7 @@ task 'railroader/bin/railroader' do
 end
 
 desc 'Run railroader'
-task railroader: %w[railroader/bin/railroader] do
+task railroader: ['railroader/bin/railroader', :no_rails] do
   # TEMPORARY: DISABLE
   # Disable pager, so that "rake" can keep running without halting.
   # sh 'bundle exec railroader --quiet --no-pager'
@@ -173,19 +200,19 @@ task railroader: %w[railroader/bin/railroader] do
 end
 
 desc 'Run bundle if needed'
-task :bundle do
+task bundle: :no_rails do
   sh 'bundle check || bundle install'
 end
 
 # NOTE: We've had some trouble with bundle doctor, so it might
 # not be run by default.
 desc 'Run bundle doctor - check for some Ruby gem configuration problems'
-task :bundle_doctor do
+task bundle_doctor: :no_rails do
   sh 'bundle doctor'
 end
 
 desc 'Report code statistics'
-task :report_code_statistics do
+task report_code_statistics: :no_rails do
   verbose(false) do
     sh 'script/report_code_statistics'
   end
@@ -201,7 +228,7 @@ end
 
 # rubocop:disable Metrics/BlockLength
 desc 'Run bundle-audit - check for known vulnerabilities in dependencies'
-task :bundle_audit do
+task bundle_audit: :no_rails do
   # rubocop:disable Metrics/MethodLength
   def bundle_audit_update_successful?
     max_retries = 4
@@ -260,7 +287,7 @@ end
 # a lot of output that is normally useless. The developer can always run
 # "bundle outdated" if that's important.
 desc 'Report percentage of gems that are up-to-date if network available'
-task :percent_gems_up_to_date do
+task percent_gems_up_to_date: :no_rails do
   if network_available?
     begin
       bundle_list_output = `bundle list 2>/dev/null`
@@ -305,7 +332,7 @@ end
 # NOTE: If you don't want mdl to be run on a markdown file, rename it to
 # end in ".markdown" instead.  (E.g., for markdown fragments.)
 desc 'Run markdownlint (mdl) - check for markdown problems on **.md files'
-task :markdownlint do
+task markdownlint: :no_rails do
   # The default configuration is in .mdlrc + style config/markdown_style.rb
   # Exclude temporary files beginning with comma
   sh 'find . -name "*.md" ! -name ",*" ! -path "./tmp/*" ! -path "./temp/*" ! -path "*/.*" -print0 | xargs -0 bundle exec mdl'
@@ -323,7 +350,7 @@ end
 # We don't scan 'app/assets/javascripts/application.js';
 # it is primarily auto-generated code + special directives.
 desc 'Run jscs - JavaScript style checker'
-task :jscs do
+task jscs: :no_rails do
   jscs_exe = 'node_modules/.bin/jscs'
   jscs_options = '--preset=node-style-guide -m 9999'
   jscs_files = 'app/assets/javascripts/project-form.js'
@@ -331,7 +358,7 @@ task :jscs do
 end
 
 desc 'Load current self.json'
-task :load_self_json do
+task load_self_json: :no_rails do
   require 'json'
   require 'open-uri'
   url = 'https://staging.bestpractices.dev/projects/1.json'
@@ -368,7 +395,7 @@ file 'license_finder_report.html' => [
 end
 
 desc 'Notice about proposal requirements (for AI)'
-task :notice do
+task notice: :no_rails do
   puts 'NOTE: Change proposals are *required* to pass "rake default" including'
   puts 'all linters and tests, and *must* have 100% test statement coverage.'
   puts
@@ -378,7 +405,7 @@ end
 YAML_WS_EXCEPTIONS ||= ':!test/vcr_cassettes/*.yml'
 
 desc 'Check for trailing whitespace in all text files.'
-task :whitespace_check do
+task whitespace_check: :no_rails do
   puts 'Checking for trailing whitespace...'
 
   # Find all files, exclude directories we don't want, exclude comma-prefixed
@@ -413,7 +440,7 @@ task :whitespace_check do
 end
 
 desc 'Check YAML syntax (except project.yml, which is not straight YAML)'
-task :yaml_syntax_check do
+task yaml_syntax_check: :no_rails do
   # Don't check "project.yml" - it's not a straight YAML file, but instead
   # it's processed by ERB (even though the filename doesn't admit it).
   puts 'Checking YAML syntax...'
@@ -455,7 +482,7 @@ end
 # parameterized executor remains available: see
 # docs/build-environment-staleness.md.
 desc 'Check .circleci/config.yml for shell syntax CircleCI misreads'
-task :circleci_config_check do
+task circleci_config_check: :no_rails do
   path = '.circleci/config.yml'
   puts "Checking #{path} for CircleCI expression traps..."
   raise StandardError, "Missing #{path}" unless File.exist?(path)
@@ -489,7 +516,7 @@ end
 # The following are invoked as needed.
 
 desc 'Create visualization of gem dependencies (requires graphviz)'
-task :bundle_viz do
+task bundle_viz: :no_rails do
   sh 'bundle viz --version --requirements --format svg'
 end
 
@@ -500,12 +527,12 @@ end
 # browser, and under maintenance mode rather than against a live site.
 # See .circleci/config.yml and docs/build-environment-staleness.md.
 desc 'Deploy current origin/main to staging'
-task :deploy_staging do
+task deploy_staging: :no_rails do
   sh 'git checkout staging && git pull && git merge --ff-only origin/main && git push && git checkout main'
 end
 
 desc 'Deploy current origin/staging to production'
-task :deploy_production do
+task deploy_production: :no_rails do
   sh 'git checkout production && git pull && git merge --ff-only origin/staging && git push && git checkout main'
 end
 
@@ -528,11 +555,11 @@ file 'docs/criteria.md' =>
 end
 
 # Name task so we don't have to use the filename
-task generate_criteria_doc: 'docs/criteria.md' do
+task generate_criteria_doc: ['docs/criteria.md', :no_rails] do
 end
 
 desc 'Use fasterer to report Ruby constructs that perform poorly'
-task :fasterer do
+task fasterer: :no_rails do
   sh 'fasterer'
 end
 
@@ -553,7 +580,7 @@ namespace :fastly do
   # Unfortunately we *cannot* do a soft purge, "Fastly-Soft-Purge: 1"
   # on a purge-all, per the Fastly documentation.
   desc 'Purge ALL of Fastly cache (takes about 5s)'
-  task :purge_all do
+  task purge_all: :no_rails do
     puts 'Starting purge ALL of Fastly cache (typically takes about 5s)'
     # The following is needed to load fastly_rails without bringing in the
     # entire Rails environment (which we don't need).
@@ -564,7 +591,7 @@ namespace :fastly do
   end
 
   desc 'Test Fastly Caching'
-  task :test, [:site_name] do |_t, args|
+  task :test, [:site_name] => :no_rails do |_t, args|
     args.with_defaults site_name: 'https://staging.bestpractices.dev/projects/1/badge'
     puts 'Starting test of Fastly caching'
     verbose(false) do
@@ -574,7 +601,7 @@ namespace :fastly do
 end
 
 desc 'Drop development database'
-task :drop_database do
+task drop_database: :no_rails do
   puts 'Dropping database development'
   # Command from http://stackoverflow.com/a/13245265/1935918
   sh "echo 'SELECT pg_terminate_backend(pg_stat_activity.pid) FROM " \
@@ -584,7 +611,7 @@ task :drop_database do
 end
 
 desc 'Copy database from production into development (requires access privs)'
-task :pull_production do
+task pull_production: :no_rails do
   puts 'Getting production database'
   Rake::Task['drop_database'].reenable
   Rake::Task['drop_database'].invoke
@@ -595,7 +622,7 @@ end
 
 # Don't use this one unless you need to
 desc 'Copy active production database into development (if normal one fails)'
-task :pull_production_alternative do
+task pull_production_alternative: :no_rails do
   puts 'Getting production database (alternative)'
   sh 'heroku pg:backups:capture --app production-bestpractices && ' \
      'curl -o db/latest.dump `heroku pg:backups:url ' \
@@ -620,7 +647,7 @@ end
 # needed this one's result; run on its own, a migration whose outcome is
 # never reported is not worth running.
 desc 'Copy production database backup to staging (not part of deploying)'
-task :production_to_staging do
+task production_to_staging: :no_rails do
   sh 'heroku pg:backups:restore $(heroku pg:backups:url ' \
      '--app production-bestpractices) DATABASE_URL ' \
      '--app staging-bestpractices --confirm staging-bestpractices'
@@ -633,14 +660,21 @@ end
 #   t.pattern = 'test/features/**/*_test.rb'
 # end
 
-task 'test:features' => 'test:prepare' do
+task 'test:features' => ['test:prepare', :no_rails] do
   $LOAD_PATH << 'test'
   Minitest.rake_run(['test/features'])
 end
 
 # This gem isn't available in production
 # Use string comparison, because Rubocop doesn't know about fake_production
-if Rails.env.production? || Rails.env == 'fake_production'
+#
+# Read the environment from ENV rather than from Rails.env, because this
+# runs at FILE SCOPE: it decides which task to define, so it executes
+# when the Rakefile loads this file, which is before Rails exists. That
+# is not a loss of fidelity; Rails.env is itself
+# ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'.
+rails_env = ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
+if %w[production fake_production].include?(rails_env)
   task :eslint do
     puts 'Skipping eslint checking in production (libraries not available).'
   end
@@ -654,17 +688,33 @@ else
     t.options = :eslintrc
   end
 end
+# Marked here rather than at the definition, because the definition
+# belongs to the eslintrb gem: it builds the task for us, so there is no
+# "task :eslint" line of ours to annotate. Linting JavaScript needs no
+# Rails either way.
+#
+# This does not race the definition, which is the obvious worry.
+# Eslintrb::EslintTask.new defines the task inside new: it yields self so
+# the block can configure it, then calls define. So :eslint exists by the
+# time we get here, from whichever branch above ran. Verified in both
+# RAILS_ENV values, and the audit in the Rakefile would refuse to run at
+# all if this line ever stopped taking effect.
+#
+# Note the string. Rake's task DSL converts prerequisites to strings, but
+# Task#enhance stores whatever it is given, so :no_rails as a symbol
+# would not match and the audit would report this task as unanswered.
+Rake::Task[:eslint].enhance(['no_rails'])
 
 desc 'Run in fake_production mode'
 # This tests the asset pipeline
-task :fake_production do
+task fake_production: :no_rails do
   sh 'RAILS_ENV=fake_production bundle exec rake assets:precompile'
   sh 'RAILS_ENV=fake_production bundle check || bundle install'
   sh 'RAILS_ENV=fake_production rails server -p 4000'
 end
 
 desc 'precompile assets'
-task :precompile do
+task precompile: :no_rails do
   sh 'rm -rf tmp/cache/* public/assets/*'
   sh 'bundle exec rake assets:precompile'
 end
@@ -739,7 +789,7 @@ def normalize_yaml(path)
 end
 
 desc "Ensure you're on the main branch"
-task :ensure_main do
+task ensure_main: :no_rails do
   raise StandardError, 'Must be on main branch to proceed' unless
     `git rev-parse --abbrev-ref HEAD` == "main\n"
 
@@ -747,24 +797,24 @@ task :ensure_main do
 end
 
 desc 'Reformat en.yml'
-task :reformat_en do
+task reformat_en: :environment do
   normalize_yaml Rails.root.join('config', 'locales', 'en.yml')
 end
 
 desc 'Fix locale text'
-task :fix_localizations do
+task fix_localizations: :environment do
   normalize_yaml Rails.root.join('config', 'locales', 'translation.*.yml')
 end
 
 desc 'Save English translation file as .ORIG file'
-task :backup_en do
+task backup_en: :environment do
   FileUtils.cp Rails.root.join('config', 'locales', 'en.yml'),
                Rails.root.join('config', 'locales', 'en.yml.ORIG'),
                preserve: true # this is the equivalent of cp -p
 end
 
 desc 'Restore English translation file from .ORIG file'
-task :restore_en do
+task restore_en: :environment do
   FileUtils.mv Rails.root.join('config', 'locales', 'en.yml.ORIG'),
                Rails.root.join('config', 'locales', 'en.yml')
 end
@@ -777,12 +827,21 @@ end
 # - https://github.com/yaml/libyaml/issues/46
 # We save and restore the en version around the sync to resolve.
 # The task only runs in development, since the gem is only loaded then.
-if Rails.env.development?
-  Rake::Task['translation:sync'].enhance %w[ensure_main backup_en] do
-    at_exit do
-      Rake::Task['restore_en'].invoke
-      Rake::Task['fix_localizations'].invoke
-      puts "Now run: git commit -sam 'rake translation:sync'"
+#
+# This enhances a task the translation.io GEM defines, so it can only run
+# once that gem's tasks exist, which is after Rails boots. Registered
+# through after_rails_tasks (see the Rakefile) rather than run here: at
+# file scope "Rake::Task['translation:sync']" would raise, and guarding
+# it with task_defined? would be worse, because the enhancement would
+# silently stop happening rather than failing.
+after_rails_tasks do
+  if Rails.env.development?
+    Rake::Task['translation:sync'].enhance %w[ensure_main backup_en] do
+      at_exit do
+        Rake::Task['restore_en'].invoke
+        Rake::Task['fix_localizations'].invoke
+        puts "Now run: git commit -sam 'rake translation:sync'"
+      end
     end
   end
 end
@@ -884,7 +943,7 @@ end
 # it easy to separately determine the database to apply the command to.
 # Note that this depends on non-standard PostgreSQL extensions.
 desc 'Convert file "project.json" into SQL insertion command in "project.sql".'
-task :create_project_insertion_command do
+task create_project_insertion_command: :no_rails do
   puts 'Reading file project.json (this uses PostgreSQL extensions)'
   file_contents = File.read('project.json')
   data_hash = JSON.parse(file_contents)
@@ -1024,7 +1083,11 @@ task rekey: :environment do
   end
 end
 
-Rake::Task['test:run'].enhance ['test:features']
+# "test:run" belongs to Rails, so this can only run once Rails has
+# defined it. See the Rakefile for after_rails_tasks.
+after_rails_tasks do
+  Rake::Task['test:run'].enhance ['test:features']
+end
 
 # Ensure assets are precompiled before running any test task.
 # Outside CI: auto-recompiles if stale (avoids hours of debugging cache bugs).
@@ -1056,7 +1119,7 @@ end
 # SimpleCov merges results from previous runs, which can be misleading
 # if there's "old" information present.
 desc 'Clear all previous test coverage results'
-task 'test:clear' do
+task 'test:clear' => :environment do
   puts 'test:clear - Clearing all previous test coverage results.'
 
   # Remove the entire directory to ensure a 100% fresh start
@@ -1071,7 +1134,7 @@ end
 # SimpleCov automatically merges coverage from all parallel workers.
 # Clears coverage first to avoid merging stale results from previous runs.
 desc 'Run ALL tests: regular tests parallelized, system tests serial'
-task 'test:optimized' => 'test:ensure_assets' do
+task 'test:optimized' => ['test:ensure_assets', :no_rails] do
   puts 'To see test names, set env var SLOW=true' if ENV['SLOW'].to_s.empty?
 
   require 'simplecov'
@@ -1095,7 +1158,7 @@ task 'test:optimized' => 'test:ensure_assets' do
 end
 
 desc 'Report coverage gaps from SimpleCov results'
-task 'test:coverage_gaps' do
+task 'test:coverage_gaps' => :environment do
   require 'simplecov'
 
   puts 'Merging results from all runs...'
@@ -1348,7 +1411,7 @@ end
 # to learn of each other's email addresses.
 # We do *NOT* try to localize, for speed.
 desc 'Send a mass email (e.g., a required GDPR notification)'
-task :mass_email do
+task mass_email: :environment do
   subject = ENV.fetch('MASS_EMAIL_SUBJECT', nil)
   body = ENV.fetch('MASS_EMAIL_BODY', nil)
   where_condition = ENV['MASS_EMAIL_WHERE'] || 'true'
@@ -1363,7 +1426,7 @@ end
 # Run this task periodically if we want to test the
 # install-badge-dev-environment script
 desc 'check that install-badge-dev-environment works'
-task :test_dev_install do
+task test_dev_install: :no_rails do
   puts 'Updating test-dev-install branch'
   sh <<-TEST_BRANCH_SHELL
     git checkout test-dev-install
@@ -1381,7 +1444,7 @@ end
 # CORS tests) can interfere with the usual test setups, so again, they
 # aren't worth running in the "normal" automated tests run on each commit.
 desc 'Run slow tests (e.g., CORS middleware stack location)'
-task :slow_tests do
+task slow_tests: :no_rails do
   # Test CORS library middleware stack location check in environments.
   # Because of the way it works, Rack::Cors *must* be first in the Rack
   # middleware stack, as documented here: https://github.com/cyu/rack-cors
@@ -1562,7 +1625,7 @@ task update_bad_password_db: :environment do
 end
 
 desc 'Update SVG badge images from shields.io'
-task :update_badge_images do
+task update_badge_images: :no_rails do
   # require 'Paleta'
   sh 'curl -o app/assets/images/badge_static_passing.svg ' \
      'https://img.shields.io/badge/openssf_best_practices-passing-4c1'
@@ -1727,6 +1790,6 @@ task markdown_optimizations: :environment do
 end
 
 desc 'Print hello as simple smoke test.'
-task :hello do
+task hello: :no_rails do
   puts 'Hello'
 end

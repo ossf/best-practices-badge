@@ -41,6 +41,17 @@ module BadgeApp
 
     # Add lib/ to autoload paths so modules there are automatically loaded
     config.autoload_paths << Rails.root.join('lib')
+
+    # Do NOT let Rails load lib/tasks/*.rake. The Rakefile loads them
+    # itself, before deciding whether this application is needed at all,
+    # so letting Rails load them again would give every task two bodies:
+    # Rake appends actions rather than replacing them, and
+    # "rake deploy_production" would deploy twice.
+    #
+    # The glob must be truthy but match nothing. Setting it to nil or ""
+    # makes Rails::Paths hand the DIRECTORY to Kernel#load instead, which
+    # fails. So this names what is going on, and matches no file.
+    config.paths['lib/tasks'].glob = 'loaded-by-the-Rakefile-instead'
   end
 end
 
