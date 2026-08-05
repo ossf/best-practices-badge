@@ -1861,6 +1861,43 @@ Using backup a3822; could not read its date
 The restore then proceeds. A diagnostic that cannot be produced is not
 a reason to refuse a deploy.
 
+### The shell you may write here is not the shell you know
+
+Found the hard way 2026-08-05: this change was first written with
+bash's here-string, `read backup_id c_date c_time c_zone` fed from the
+row, which is tidier than calling `awk` twice. CircleCI rejected the
+entire configuration:
+
+```text
+Error calling workflow: 'build-deploy'
+Error calling job: 'deploy'
+Expressions must be less than 2048 characters.
+```
+
+**A here-string opens with a doubled less-than sign, and that pair is
+how CircleCI opens its own parameter expressions.** It read the pair as
+the start of an expression, scanned forward for the closing doubled
+greater-than that never came, and gave up after 2048 characters.
+Here-documents open the same way and are the same trap.
+
+Three things make this worth recording rather than merely fixing.
+
+* **The error points nowhere near the cause.** It is reported against
+  the first line of the step, which was a comment, so the message
+  invites you to shorten a long command. Length was never the problem:
+  four other commands in the file are longer than 2048 characters and
+  always have been, including one of 7585.
+* **Comments are not exempt.** The first fix carried a comment
+  explaining the trap, spelling the pair out literally, which would
+  have reintroduced it. A comment inside a `command:` block is part of
+  the string CircleCI parses, not an aside to a human.
+* **Nothing local catches it.** `rake yaml_syntax_check` passes,
+  because the file is valid YAML; the fault is in CircleCI's own
+  expression layer, above YAML. The `circleci` CLI would catch it with
+  `circleci config validate`, and is not installed here. Failing that,
+  the cheap guard is a check that this file contains that character
+  pair nowhere at all, which is true today and easy to keep true.
+
 ### Testing the shipped code, not a copy of it
 
 The eight listings the parse was first tested against were run against
@@ -2077,6 +2114,15 @@ cause.
 * `pg:backups:restore` completes with the dyno still running under
   maintenance mode; no `ps:scale web=0` is needed. Confirmed on staging
   2026-08-05.
+* **A doubled less-than sign anywhere in `.circleci/config.yml` breaks
+  the whole file**, comments inside a `command:` included, because
+  CircleCI reads that pair as the start of a parameter expression. So
+  no bash here-strings and no here-documents. The error names an
+  expression length limit and points at the top of the step, which is
+  not where the character is.
+* CircleCI's 2048-character limit applies to *expressions*, not to
+  commands. Several commands in that file exceed it, the longest at
+  7585 characters, and always have.
 * A CircleCI job's executor image must come from a registry. Its cache
   cannot supply one, because `restore_cache` is a step and steps run
   inside the executor that is already running.
