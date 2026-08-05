@@ -1082,8 +1082,20 @@ with a note to set them temporarily rather than permanently.
 
 ## Migrations move to a release phase
 
-Done 2026-08-05, on its own so it can be watched on staging before
-anything else in the deploy job moves.
+Done 2026-08-05, on its own so it could be watched on staging before
+anything else in the deploy job moved.
+
+**Verified on staging**, release v845, `Deploy 09446ffe`. Maintenance
+mode came back off by itself, and the release history shows something
+worth noticing: the earlier deploy, which failed at the baseline check,
+created **no release at all**. It refused before pushing, so there is
+nothing orphaned between v844 and v845. A failure that leaves no trace
+is the point of checking before the push rather than after it.
+
+Still unproven: the failure path, that a broken migration blocks the
+release and turns CI red. Everything about it is documented and
+simulated, and the guard has now refused a real deploy for a real
+reason, but nobody has yet watched a migration fail on purpose.
 
 `Procfile` now carries `release: bundle exec rails db:migrate`. Heroku
 runs that in a one-off dyno after a successful build and **before any
