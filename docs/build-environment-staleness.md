@@ -1941,12 +1941,24 @@ a smoke test is no reason to want a hole in it. I had checked the
 commented-out block in `config/initializers/fastly.rb` and concluded the
 protection was off; the live mechanism is in the controller.
 
-So it asks Fastly, with a query string unique to the build, for
-something the cache cannot already hold. If Fastly is configured to
-ignore query strings the answer may still be cached, so `X-Cache` and
-`Age` are **printed rather than asserted**: a cached 200 is weaker
-evidence, and failing a good deploy over a cache hit would be worse than
-the weakness.
+So it asks Fastly for something the cache cannot already hold, using an
+inert query parameter the CDN varies on:
+
+```text
+/projects/1.json?useless_parameter=build1234-try3-27561
+```
+
+**Different on every attempt, not merely every build.** That distinction
+is the whole point. With one URL for the twelve retries, a 502 from a
+dyno still starting could itself be cached and then re-served to every
+remaining attempt, turning a state that would have recovered into a
+guaranteed failure. The value carries the build and attempt number so it
+can be found in a log, plus `$RANDOM` so two runs cannot collide.
+
+`X-Cache` and `Age` are **printed rather than asserted**. A MISS proves
+the answer came from the application; a HIT would mean the CDN served a
+query string it had somehow seen before, which is worth seeing but is no
+reason to fail a good deploy.
 
 **The hostname comes from the application**, via
 `heroku config:get PUBLIC_HOSTNAME`, so staging and production each

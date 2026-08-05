@@ -1352,18 +1352,33 @@ jobs:
               exit 1
             fi
 
-            # A unique query string per build, to ask Fastly for
-            # something it cannot already have cached. If Fastly is
-            # configured to ignore query strings this will be served
-            # from cache anyway, so the X-Cache header is printed rather
-            # than asserted: a cached 200 is weaker evidence, but
-            # failing a good deploy over a cache hit would be worse.
-            url="https://${host}/projects/1.json?smoke=${CIRCLE_BUILD_NUM}"
-            echo "Smoke testing ${url}"
+            # An inert query parameter, different on EVERY ATTEMPT, so
+            # each request asks Fastly for an object it cannot already
+            # hold. The CDN varies on the query string, so this reaches
+            # the origin.
+            #
+            # Per attempt rather than per build, which matters: with one
+            # URL for the whole loop, an early 502 from a dyno still
+            # starting could itself be cached and then re-served to
+            # every retry, turning a passing state into a guaranteed
+            # failure. The value carries the build and attempt number so
+            # it can be found in the logs, plus $RANDOM so two runs
+            # cannot collide.
+            #
+            # The parameter is unused by the application. /projects/:id
+            # ignores query parameters it does not know; nothing here
+            # sets action_on_unpermitted_parameters to raise.
+            echo "Smoke testing https://${host}/projects/1.json"
             for i in $(seq 1 12); do
+              buster="build${CIRCLE_BUILD_NUM}-try${i}-${RANDOM}"
+              url="https://${host}/projects/1.json?useless_parameter=${buster}"
               body="$(curl -sfL --max-time 20 "$url" || true)"
               if printf '%s' "$body" | grep -q '"id": *1'; then
                 echo "Site answered with project 1 after ${i} attempts."
+                # Printed, not asserted. A MISS proves the answer came
+                # from the application; a HIT would mean the CDN served
+                # a query string it had somehow seen before, which is
+                # worth seeing but is no reason to fail a good deploy.
                 curl -sIL --max-time 20 "$url" \
                   | grep -iE '^(x-cache|age):' || true
                 exit 0
