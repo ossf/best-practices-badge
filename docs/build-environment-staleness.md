@@ -1907,15 +1907,40 @@ shell inside that file gets no `shellcheck` and cannot be run locally;
 and a doubled less-than sign anywhere in that file breaks CircleCI's
 parser, which rules out the here-document this would otherwise be.
 
-### The stack name is checked loosely, on purpose
+### One definition of a stack name, in one file
 
-Both places that validate a stack name accept `heroku-` followed by
-anything, not `heroku-` followed by two digits. The names we know are
-`heroku-22`, `heroku-24` and `heroku-26`, and it is tempting to encode
-that. But a validator that knows today's shape is a validator that
-rejects the correct answer the day the shape changes, and it would do so
-inside a deploy. Tested with `heroku-28`, `heroku-30` and `heroku-next`,
-all accepted, while `nonsense` and a bare `heroku-` are still refused.
+`script/valid_stack_name` owns the answer to "is this a stack name",
+and the three places that need it call it. It was written inline twice
+first, which is how a rule comes to disagree with itself: two copies in
+different jobs on different executor images, with nothing to make them
+change together.
+
+It accepts `heroku-` followed by anything, deliberately not `heroku-`
+followed by two digits. The names we know are `heroku-22`, `heroku-24`
+and `heroku-26`, and encoding that shape buys a check that rejects the
+correct answer the day the shape changes, inside a deploy. Tested with
+`heroku-28`, `heroku-30` and `heroku-next`, all accepted, while
+`nonsense`, a bare `heroku-`, a bare `heroku` and an empty string are
+refused.
+
+The three callers, and why each is a caller rather than a duplicate:
+
+| Where | Why it checks |
+| ----- | ------------- |
+| `prepare_ruby` | the Ruby tarball URL is per stack, and a wrong name gives a puzzling 403 |
+| the record step | checked where it is WRITTEN, not only where it is read |
+| the set-stack step | the value is about to be handed to `heroku stack:set` against production |
+
+The record step's check closes a gap: it used to rely on `prepare_ruby`
+having validated the value earlier in the same job, which is an ordering
+nothing enforced. Move that step above `prepare_ruby` and an empty file
+would have been written in silence.
+
+There is a test for the property that matters, which is that these are
+one rule and not three: replace `script/valid_stack_name` with something
+that rejects everything, and the deploy step refuses. A shared
+definition nothing proves is shared is just three copies with extra
+steps.
 
 Verified against a fixture where the two deliberately differ:
 

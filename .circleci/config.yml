@@ -252,18 +252,14 @@ commands:
             # deploy job is handed this same value; see the workspace
             # below and "Set the Heroku stack" in the deploy job.
             STACK="${CNB_STACK_ID:-}"
-            # Anything "heroku-" plus something. Deliberately not
-            # "heroku-" plus two digits: heroku-22, -24 and -26 are
-            # today's names, and pinning the shape of a future name is
-            # how a check starts rejecting the correct answer.
-            case "$STACK" in
-              heroku-?*) ;;
-              *)
-                echo "ERROR: CNB_STACK_ID is '${STACK}', not a stack name."
-                echo 'The primary image should be a heroku/heroku stack'
-                echo 'image, which sets that variable. Refusing to guess.'
-                exit 1 ;;
-            esac
+            # What counts as a stack name is defined in ONE place, and
+            # this is not it: see script/valid_stack_name. Two copies of
+            # a rule are a rule that disagrees with itself eventually.
+            script/valid_stack_name "$STACK" || {
+              echo 'The primary image should be a heroku/heroku stack'
+              echo 'image, which sets CNB_STACK_ID. Refusing to guess.'
+              exit 1
+            }
             echo "Stack, from the image itself: ${STACK}"
             RUBY_VERSION="$(tr -d '[:space:]' < .ruby-version)"
             NODE_VERSION="$(sed -n 's/.*"node": *"\([^"]*\)".*/\1/p' \
@@ -531,6 +527,11 @@ jobs:
         name: Record the stack these tests run on
         command: |
           set -euo pipefail
+          # Checked at the point of WRITING, not only where it is read.
+          # prepare_ruby has already validated this in the same job, but
+          # that is an ordering nothing enforces: move this step above
+          # it and an empty file would be written in silence.
+          script/valid_stack_name "${CNB_STACK_ID:-}" || exit 1
           mkdir -p /tmp/workspace
           printf '%s' "$CNB_STACK_ID" > /tmp/workspace/tested-stack
           echo "Tested on: $(cat /tmp/workspace/tested-stack)"
@@ -879,17 +880,17 @@ jobs:
             # the NEXT build uses, so it must be set while there is still
             # a push to come.
             tested_stack="$(cat /tmp/workspace/tested-stack)"
-            # "heroku-" plus something, matching the build job. Not a
-            # fixed number of digits: the names we know are heroku-22,
-            # -24 and -26, but guessing the shape of the next one only
-            # buys a check that rejects the right answer later.
-            case "$tested_stack" in
-              heroku-?*) ;;
-              *)
-                echo "ERROR: tested stack is '${tested_stack}'."
-                echo 'Refusing to deploy: that is not a stack name.'
-                exit 1 ;;
-            esac
+            # Same definition as the build job uses, because it is the
+            # same file rather than a second copy of the rule. Checked
+            # here as well because this value is about to be handed to
+            # "heroku stack:set" against production, and an argument
+            # that reconfigures production is worth checking wherever it
+            # arrives from.
+            script/valid_stack_name "$tested_stack" || {
+              echo 'Refusing to deploy: the tested stack, carried from'
+              echo 'the build job, is not a stack name.'
+              exit 1
+            }
 
             # build_stack, not stack: the first is what the next build
             # will use, the second what the dynos run now. They differ
