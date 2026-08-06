@@ -1768,7 +1768,7 @@ Added 2026-08-05, plan step 9. Two files: `.github/renovate.json5` and
 Renovate is here. Dependabot already covers the `Gemfile`, npm and the
 GitHub Actions workflows, and cannot read `.circleci/config.yml` at all.
 At its defaults Renovate would also read the `Gemfile`, `.ruby-version`
-and Dockerfiles, competing with Dependabot and pre-empting the Ruby
+and Dockerfiles, competing with Dependabot and preempting the Ruby
 design below.
 
 **Self-hosted**, as a scheduled workflow, rather than the hosted GitHub
