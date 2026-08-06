@@ -88,6 +88,7 @@ STATIC_CHECKS = %w[
   license_okay
   yaml_syntax_check
   circleci_config_check
+  codeql_version_check
   html_from_markdown
   eslint
   report_code_statistics
@@ -514,6 +515,59 @@ task circleci_config_check: :no_rails do
     puts 'the characters in comments rather than spelling them out.'
     offenders.each do |line_number, text|
       puts "  #{path}:#{line_number}: #{text}"
+    end
+    exit 1
+  end
+end
+
+# The CodeQL action's "init" step writes the version of itself into the
+# config file it leaves in the work area, and the "analyze" step reloads
+# that file and compares the two. A difference is fatal, reported as
+# "Loaded a configuration file for version X, but running version Y", and
+# there is no fallback: every language in the matrix fails.
+#
+# Nothing in a workflow file expresses that constraint, and the two steps
+# are pinned by commit SHA on separate lines, which is precisely the shape
+# an automated dependency bump edits one line of. Dependabot did, three
+# times, because it keys actions by full path and so sees "init" and
+# "analyze" as unrelated dependencies. .github/dependabot.yml now groups
+# them, and this is the check that notices if they ever come apart
+# regardless: a hand edit, a bad merge, or a future tool with the same
+# blind spot.
+#
+# Only init and analyze are constrained. upload-sarif reads no config
+# from init and is deliberately not checked here, so scorecard.yml stays
+# free to move on its own schedule.
+desc 'Check github/codeql-action init and analyze are pinned alike'
+task codeql_version_check: :no_rails do
+  path = '.github/workflows/codeql.yml'
+  puts "Checking #{path} pins CodeQL init and analyze alike..."
+  raise StandardError, "Missing #{path}" unless File.exist?(path)
+
+  # Capture the SHA and the trailing "# vX.Y.Z" comment for each step, so
+  # a mismatch can be reported in the terms the file is written in.
+  pattern = %r{codeql-action/(init|analyze)@(\S+)\s*(?:\#\s*(\S+))?}
+  pins =
+    File.read(path).scan(pattern).to_h do |step, sha, tag|
+      [step, [sha, tag]]
+    end
+
+  missing = %w[init analyze] - pins.keys
+  if missing.any?
+    raise StandardError,
+          "No CodeQL #{missing.join(' or ')} step in #{path}"
+  end
+
+  if pins['init'].first == pins['analyze'].first
+    puts "CodeQL version check completed successfully (#{pins['init'].last})."
+  else
+    puts 'ERROR: CodeQL init and analyze are pinned to different releases.'
+    puts 'The analyze step reloads the config file init wrote and rejects'
+    puts 'any version difference, so every language in the matrix fails.'
+    puts 'Move both lines to the same commit SHA of github/codeql-action.'
+    %w[init analyze].each do |step|
+      sha, tag = pins[step]
+      puts "  #{step}: #{sha} #{tag}"
     end
     exit 1
   end

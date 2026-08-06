@@ -94,11 +94,22 @@ jobs:
       - name: Validate branch name
         run: script/validate_branch_name "$GITHUB_REF_NAME"
 
-      # Pinned to the same github/codeql-action release already used (and kept
-      # up to date by Dependabot) in scorecard.yml; init and analyze live in
-      # that same repository and release, so they share one commit SHA.
+      # INIT AND ANALYZE MUST BE THE SAME RELEASE, and not merely as a
+      # tidiness preference: init writes its own version into the config
+      # file it leaves behind, analyze reloads that file and compares, and
+      # any difference is a hard error ("Loaded a configuration file for
+      # version X, but running version Y") with no fallback. A one-line
+      # bump to either step alone therefore fails every language in the
+      # matrix. Dependabot treats each subdirectory of github/codeql-action
+      # as a separate dependency and would propose exactly that one-line
+      # bump, so .github/dependabot.yml groups them into a single pull
+      # request, and "rake codeql_version_check" fails the build if the
+      # pins ever drift apart anyway. upload-sarif in scorecard.yml is in
+      # the group too: it does not read init's config and so is not part of
+      # the constraint, but moving the whole action at once is one less
+      # thing to reason about.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
+        uses: github/codeql-action/init@d1ba80a13dd99fba24a470575428917156a28b43 # v4.37.5
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -108,6 +119,6 @@ jobs:
           # manageable; revisit once the baseline is clean.
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
+        uses: github/codeql-action/analyze@d1ba80a13dd99fba24a470575428917156a28b43 # v4.37.5
         with:
           category: "/language:${{ matrix.language }}"

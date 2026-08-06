@@ -36,3 +36,24 @@ updates:
     schedule:
       # Every weekday
       interval: "daily"
+    # ONE PULL REQUEST FOR ALL OF github/codeql-action. Dependabot keys
+    # actions by their full path, so "github/codeql-action/init",
+    # ".../analyze" and ".../upload-sarif" look like three unrelated
+    # dependencies to it and each got its own pull request. They are not
+    # unrelated: they ship from one repository in one release, and init
+    # and analyze *must* run the same version, because init records its
+    # version in the config file that analyze reloads and analyze treats
+    # any mismatch as a fatal error. So a pull request bumping one of
+    # them alone cannot pass CodeQL, and three such pull requests can
+    # only go green by being merged together, which is not something the
+    # pull request list can express. Grouping them makes the proposal
+    # match the unit that actually moves. See .github/workflows/codeql.yml
+    # and "rake codeql_version_check", which fails the build if the pins
+    # ever drift apart despite this.
+    #
+    # Everything else stays ungrouped, and so still arrives as one pull
+    # request per action, to be judged on its own.
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
