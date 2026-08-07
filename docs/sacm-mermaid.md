@@ -274,7 +274,7 @@ When displayed, the name (aka full name) will be bolded, following
 the example of
 [Selviandro et al.], followed by a line break &lt;br/&gt;, followed
 by the description of the node.
-As a special case, ArtifactRefence (e.g., for evidence) will have
+As a special case, ArtifactReference (e.g., for evidence) will have
 a non-breaking space and an unbolded northeast arrow (↗) after the full name
 just before this line break; this attempts to emulate its appearance
 in SACM and remind readers that we're referencing external materials.
@@ -861,7 +861,7 @@ connection exists between one or more +source ArgumentAssets and a single
 rendered as:
 
 * +source edge(s) without arrowheads
-* entity encoding the assertionDeclartion
+* entity encoding the assertionDeclaration
   (by default a filled dot meaning "asserted")
 * a single +target edge
 
@@ -875,9 +875,9 @@ false, else it's a undirected dashed line.
 For mermaid that is `---` for an undirected solid line, and
 `-.-` for an undirected dashed line.
 
-#### entity encoding assertionDeclation
+#### entity encoding assertionDeclaration
 
-The entity depends on assertionDeclation of the relationship;
+The entity depends on assertionDeclaration of the relationship;
 here is the annex C notation and our mermaid representation:
 
 * asserted (default): Solid dot for non-abstract,

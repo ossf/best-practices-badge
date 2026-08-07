@@ -99,7 +99,7 @@ post 'unsubscribe' => 'unsubscribe#create'
 - Stops using and stops displaying `project.disabled_reminders`.
   It does not *remove* the data, in case we need that data in the future.
 - Safe default values. If a user has *any* project with disabled_reminders,
-  then the user's `norification_emails` will be false (else true).
+  then the user's `notification_emails` will be false (else true).
 
 ### Email Integration: `ReportMailer`
 

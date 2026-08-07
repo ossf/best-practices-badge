@@ -160,7 +160,7 @@ Help them do the right thing.
 
 However, some users are actors who act in bad faith.
 They'll try to create bogus project badge entries, typically to increase
-search engine optimiation (SEO). Our site marks project badge entry data
+search engine optimization (SEO). Our site marks project badge entry data
 so that badge entries never improve SEO, but bad faith actors may not care.
 Some are happy to scam their customers *and* hurt the public, as long
 as they receive money for their malicious activities.

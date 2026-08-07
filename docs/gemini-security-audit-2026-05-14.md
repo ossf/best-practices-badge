@@ -193,7 +193,7 @@ condition is false' do
 end
 ~~~~
 
-Thiw will modify markdown_processor.rb as follows:
+This will modify markdown_processor.rb as follows:
 
 ~~~~
       185
