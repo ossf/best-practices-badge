@@ -30,6 +30,25 @@ However, documentation is often unnoticed and too much can obscure what's import
 - `rake test:optimized` - Run all tests (unit and system). Takes a long time.
 - `rails test test/integration/project_list_test.rb` - Run specified test file
 - `rails test test/features/can_access_home_test.rb:4` - Run a test at line 4 of the specified test file.
+- `rake precompile` - Rebuild `public/assets`. Run this after changing
+  anything under `app/assets`, *before* running `rails test` directly.
+
+After an asset changes, a middleware refuses requests until the compiled
+assets are rebuilt, so tests fail with:
+
+```text
+RuntimeError: Stale precompiled assets detected! Run: rake assets:precompile
+```
+
+That error is easy to misread. It surfaces on the first request a test
+makes, so the backtrace points at whatever issued that request, usually
+`log_in_as` in `test/test_helper.rb`, and it looks like an unrelated
+authentication failure in tests you did not touch. Note that editing a file
+is enough to trigger it: the check compares timestamps, not contents, so
+even a comment-only change to a `.js` file will do it.
+
+`rake test:optimized` precompiles first and never hits this. Only a direct
+`rails test` does.
 
 To see test names, set environment variable SLOW=true e.g.,
 `SLOW=true rake test:optimized`.
