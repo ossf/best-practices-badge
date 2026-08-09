@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Copyright the Linux Foundation and the CII Best Practices badge contributors
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
 # Report Dependabot ignore entries whose REVIEW-BY date has passed.
@@ -53,7 +53,15 @@ File.readlines(CONFIG).each do |line|
 end
 
 undated = entries.select { |_name, date| date.nil? }
+
+# The zone-aware form is right inside the application and wrong here: this
+# runs as plain Ruby, with no framework loaded and so no zone to ask. The
+# notifier workflow runs it without even a bundle install. A review date is
+# a calendar boundary a year out, so no answer turns on which side of
+# midnight UTC we happen to be.
+# rubocop:disable Rails/Date
 expired = entries.select { |_name, date| date && date < Date.today }
+# rubocop:enable Rails/Date
 
 undated.map(&:first).each do |name|
   warn "#{name}: no REVIEW-BY date. Add one above the entry in #{CONFIG}."
