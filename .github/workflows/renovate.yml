@@ -1,4 +1,8 @@
 ---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
 name: Renovate
 
 # Run Renovate ourselves, on a schedule, rather than installing the hosted
@@ -6,15 +10,16 @@ name: Renovate
 # third party write access to this repository. See
 # docs/build-environment-staleness.md for the due diligence.
 #
-# What it proposes is scoped by .github/renovate.json5 to the images
-# pinned in .circleci/config.yml, which is the one ecosystem Dependabot
-# cannot read.
+# What it proposes is scoped by .github/renovate.json5 to two things
+# Dependabot cannot do: the images pinned in .circleci/config.yml, an
+# ecosystem it has no manager for, and the Ruby version, which it has
+# declined to update since 2018.
 
 # Limit permissions per OpenSSF Scorecard best practices.
 # Since we set "permissions", anything unset has access "none".
 #
-# Renovate does NOT use this token. It authenticates with RENOVATE_TOKEN
-# below, which must be a separate credential; see the check step for why.
+# Renovate does NOT use this token. It authenticates with a short-lived
+# token minted from our own GitHub App; see the mint step for why.
 permissions:
   contents: read
 
@@ -34,7 +39,7 @@ jobs:
     steps:
       # Use harden-runner https://github.com/step-security/harden-runner
       # presented at OpenSSF Best Practices WG 2022-03-15
-      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
         with:
           egress-policy: audit
 
@@ -48,33 +53,29 @@ jobs:
       - name: Validate branch name
         run: script/validate_branch_name "$GITHUB_REF_NAME"
 
-      - name: Require a token that is not GITHUB_TOKEN
-        # Fail with a sentence rather than letting Renovate start and do
-        # nothing, or worse, succeed while opening pull requests nobody
-        # checks. GitHub raises no workflow runs for events created by the
-        # default GITHUB_TOKEN, so a Renovate pull request opened with it
-        # would start NONE of brakeman, codeql, codespell or main, and
-        # would be checked LESS than a pull request from a stranger.
-        # CircleCI is unaffected either way, triggering from its own
-        # integration.
-        #
-        # RENOVATE_TOKEN must therefore be a GitHub App installation token
-        # or a fine-grained personal access token, granting exactly
-        # "contents: write" and "pull-requests: write" on this repository.
-        # Never "workflows: write": scoped to the circleci manager,
-        # Renovate has no business under .github/workflows, and
-        # withholding it means it cannot alter our GitHub Actions.
-        env:
-          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
-        run: |
-          if [ -z "$RENOVATE_TOKEN" ]; then
-            echo 'ERROR: the RENOVATE_TOKEN secret is not set.'
-            echo 'Renovate needs a credential that is NOT the default'
-            echo 'GITHUB_TOKEN, or its pull requests start none of our'
-            echo 'GitHub Actions checks. See the comment in this file.'
-            exit 1
-          fi
-          echo 'RENOVATE_TOKEN is set.'
+      # Guard, mint and the failure explanation all live in the
+      # composite action, because heroku_ruby_versions.yml needs the
+      # same four things and two copies of a credential dance drift.
+      # The permissions asked for are NOT shared: each caller names only
+      # what it needs, so this token cannot touch anything Renovate has
+      # no business with. See .github/actions/mint-app-token/action.yml.
+      - name: Mint a short-lived token from the App
+        id: app_token
+        uses: ./.github/actions/mint-app-token
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          # A pull request is a branch plus a commit, and GitHub files
+          # both of those under contents; there is no narrower pair.
+          permission-contents: write
+          permission-pull-requests: write
+          # The dependency dashboard is an issue, and so are Renovate's
+          # config-error reports.
+          permission-issues: write
+          # Whether CI passed on a pull request it already opened, so it
+          # knows to leave that alone or refresh it.
+          permission-checks: read
+          permission-statuses: read
 
       - name: Renovate
         # Pin to commit SHA to prevent supply chain attacks via tag mutation.
@@ -92,8 +93,20 @@ jobs:
           # visible in renovate-config-validator, which reports
           # "Validating ... as global config" when handed the path
           # explicitly, and just "Validating ..." when it discovers it.
-          token: ${{ secrets.RENOVATE_TOKEN }}
+          token: ${{ steps.app_token.outputs.token }}
         env:
           # Only this repository, whatever the token can otherwise reach.
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           LOG_LEVEL: info
+
+          # WHO THE COMMITS COME FROM, stated rather than detected.
+          # Renovate normally learns this by asking GitHub who the token
+          # belongs to, which it cannot do here: an App installation
+          # token has no user behind it, and /user answers "Resource not
+          # accessible by integration". Recent Renovate can work the
+          # identity out for App tokens, but the failure mode if it
+          # cannot is an unclear error at startup, and saying it outright
+          # removes the question. The string itself comes from the
+          # composite action, so the numeric id in it has one home.
+          RENOVATE_USERNAME: 'openssf-badge-renovate[bot]'
+          RENOVATE_GIT_AUTHOR: ${{ steps.app_token.outputs.git-author }}

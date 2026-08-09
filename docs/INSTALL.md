@@ -239,9 +239,177 @@ changes.
 This is designed to be easily deployed simply by doing a `git push`
 to an appropriate destination.
 
-We currently run a `rake deploy_staging` command that does a `git push`
-to deploy to a staging site, and later `rake deploy_production` to push
-to the production site.
+Deploying to either tier needs no Ruby, no bundle and no rbenv, just
+`git` and the right to push. The `rake` tasks below are thin wrappers
+around the same commands, so use whichever you have to hand.
+
+If you have no clone, get one. Clone the canonical repository rather
+than a fork, since deploying pushes to its branches:
+
+~~~~sh
+git clone https://github.com/ossf/best-practices-badge.git
+cd best-practices-badge
+~~~~
+
+### Deploying to staging
+
+Deploying copies one branch into the next: `main` into `staging`, and
+later `staging` into `production`. CircleCI notices the push, runs the
+suite again, and deploys that branch to its tier.
+
+With a development environment, deploying to staging is the whole of it:
+
+~~~~sh
+rake deploy_staging
+~~~~
+
+That copies `main` **as it exists on GitHub** into `staging`, so an
+unpushed commit of your own cannot reach staging.
+
+It also brings your **local** `staging` branch up to date, which is the
+point of doing it this way: `git log staging` and `git diff staging` tell
+the truth afterwards. Nothing else moves, your working tree is left
+alone, and a dirty tree is fine. The one restriction is that **you
+cannot be on `staging`** when you run it: git refuses to fetch into a
+checked-out branch. That is a fair trade, since `staging` is a branch to
+read rather than work on, and the refusal tells you something odd is
+going on.
+
+**It need not wait for main's checks to finish.** Staging is a test
+tier, and CircleCI runs the suite again on the staging branch, so
+starting a staging deploy while main is still being checked simply runs
+two suites at once.
+
+**After it deploys, it tells you about your own `main`, if there is anything to
+say.** Behind GitHub, the usual case, it gives you the one command to
+catch up. Ahead of GitHub, which is what happens when you start work
+without branching first, it warns, lists the commits that exist only on
+your machine, and gives you the two commands that move them onto a
+branch and put `main` back. Either way the deploy has already happened,
+so nothing there can delay it.
+
+**Do not deploy by merging a pull request.** GitHub has no fast-forward
+merge, and the merge commit it makes instead would break every later
+deploy.
+
+### Deploying to staging without a development environment
+
+These two commands deploy to staging, and are exactly what
+`rake deploy_staging` runs to deploy to staging:
+
+~~~~sh
+git fetch origin main:staging +main:refs/remotes/origin/main &&
+  git push origin staging
+~~~~
+
+Read that as "bring origin's `main` down as my `staging`, then push my
+`staging` up", which is what it does. It creates your local `staging` if
+you have none, and works from any branch except `staging` itself.
+
+It also refreshes `origin/main`, which is what keeps `git status` honest:
+an explicit `main:staging` overrides the clone's configured refspec, so
+without that second refspec no remote-tracking ref would be updated and
+`git status` on `main` would stop telling you how far behind you are.
+That half writes to a remote-tracking ref rather than to your `main`, so
+it works even while you are standing on `main`.
+
+Every part earns its place:
+
+* **`&&`, not two commands.** If your local `staging` has diverged, the
+  fetch is rejected as a non-fast-forward and the divergent commit stays
+  put. An unguarded push would then send that commit to the deploy
+  branch. The `&&` is what prevents it.
+* **No `--force`, on either command.** Git refuses a fetch that is not a
+  fast-forward of your local branch, and refuses a push that is not one
+  on GitHub's side. Adding `--force` to either would defeat the point.
+* **The leading `+` on the second refspec only.** A remote-tracking ref
+  is a mirror of GitHub, where a forced update is normal; `main:staging`
+  stays unforced so a divergence stops the deploy.
+
+The push reports what moved, as `old..new staging -> staging`.
+
+### Deploying to staging with gh, without a checkout
+
+With [gh](https://cli.github.com/), GitHub's own command-line tool, you
+don't need a clone:
+
+~~~~sh
+main_sha=$(gh api repos/ossf/best-practices-badge/git/ref/heads/main \
+  --jq .object.sha) &&
+  gh api --method PATCH \
+    repos/ossf/best-practices-badge/git/refs/heads/staging -f sha="$main_sha"
+~~~~
+
+`--jq` is built into `gh`, so the separate `jq` program is not needed;
+it picks the commit id out of the reply so the second call can use it.
+Leaving out `force` is the safety, as with `--force` above: GitHub
+rejects an update that is not a fast-forward. Do not add it.
+
+For why deploying works this way, see
+[deploying in detail](./implementation.md#deploying-in-detail).
+
+### Deploying to production
+
+Deploying to production has the same shape as staging, one branch further
+along, with one difference.
+In our normal setup, **production waits for evidence from staging.**
+A staging deploy may start before main's checks finish, because CircleCI
+tests the tree again on the staging branch. Production has no such excuse,
+so check that `staging` passed everything first.
+
+With a development environment:
+
+~~~~sh
+rake deploy_production
+~~~~
+
+That runs the check below, refuses to deploy if anything on `staging` is
+not green, and otherwise behaves like `rake deploy_staging` one branch
+along: it brings your local `production` up to date and cannot be run
+while `production` is checked out.
+
+### Deploying to production without a development environment
+
+First ask GitHub whether `staging` passed. This needs no account, no
+token and no `jq`:
+
+~~~~sh
+api=https://api.github.com/repos/ossf/best-practices-badge/commits/staging
+curl -sSf "$api/status" "$api/check-runs?per_page=100" |
+  grep -E '"(state|status|conclusion)":' | grep -vE '"(success|completed)"'
+~~~~
+
+**No output means everything passed.** Any output means something is not
+green, so open the `staging` commit on GitHub and look before going
+further. Both URLs are needed: they report different things, and asking
+only the first would once have called a commit green whose CodeQL
+analyses had failed.
+
+Then copy `staging` into `production`:
+
+~~~~sh
+git fetch origin staging:production \
+    +staging:refs/remotes/origin/staging &&
+  git push origin production
+~~~~
+
+The same notes apply as for staging: the `&&` guards against pushing a
+diverged local `production`, no `--force` except on the tracking ref,
+your local `production` is brought up to date, `origin/staging` is
+refreshed so `git status` stays accurate there too, and you cannot be
+standing on `production` when you run it.
+
+### Deploying to production with gh, without a checkout
+
+~~~~sh
+staging_sha=$(gh api repos/ossf/best-practices-badge/git/ref/heads/staging \
+  --jq .object.sha) &&
+  gh api --method PATCH \
+    repos/ossf/best-practices-badge/git/refs/heads/production \
+    -f sha="$staging_sha"
+~~~~
+
+Check `staging` status first; these `gh` commands will not do that for you.
 
 ## See also
 

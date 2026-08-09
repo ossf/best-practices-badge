@@ -167,7 +167,7 @@ if File.exist?(ok_file) && File.exist?(not_ok_file)
   if ok_non_matches.any?
     puts
     puts 'Most common missed opportunities (top 10):'
-    frequency = ok_non_matches.each_with_object(Hash.new(0)) { |line, counts| counts[line] += 1 }
+    frequency = ok_non_matches.tally
     frequency.sort_by { |_line, count| -count }
              .first(40).each do |line, count|
       display = line.length > 70 ? "#{line[0, 70]}..." : line

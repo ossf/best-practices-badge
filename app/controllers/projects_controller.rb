@@ -208,8 +208,7 @@ class ProjectsController < ApplicationController
     id user_id name description homepage_url repo_url
     created_at updated_at lock_version
     tiered_percentage badge_percentage_0 badge_percentage_1 badge_percentage_2
-  ].map { |f| quoted_sql_fieldname(f.to_s) }
-                           .join(',').freeze
+  ].map { |f| quoted_sql_fieldname(f.to_s) }.join(',').freeze
 
   # Memory optimization: Pre-computed field lists for selective Project loading
   # IMPORTANT: These lists control which fields are loaded from the database.

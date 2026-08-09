@@ -10,21 +10,82 @@
 // cannot read .circleci/config.yml at all: dependabot-core carries one
 // directory per ecosystem, 43 of them, and there is no "circleci" among
 // them. Its "docker" ecosystem reads Dockerfiles, not CI configurations.
-// Renovate does have a circleci manager, and that is the only reason it
-// is here.
+// Nor does Dependabot update Ruby itself: its issue 2254 asks for
+// exactly that and has been open since 2018.
 //
-// So this file scopes Renovate to exactly that. At its defaults it would
-// also read the Gemfile, .ruby-version and Dockerfiles, where it would
-// compete with Dependabot and pre-empt the Ruby design recorded in
-// docs/build-environment-staleness.md.
+// Renovate covers both gaps, and this file scopes it to those two and
+// nothing else: the CircleCI images, and .ruby-version together with
+// the Ruby line in Gemfile.lock. At its defaults it would also read the
+// Gemfile and the Dockerfiles, where it would compete with Dependabot.
 //
 // This is written as JSON5 rather than JSON so the reasoning can sit
 // beside the rules instead of in a file nobody opens.
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
 
-  // The whole point, and the whole scope.
-  enabledManagers: ['circleci'],
+  // The scope. "circleci" is the manager Dependabot lacks;
+  // "custom.regex" is the one below that keeps .ruby-version moving.
+  // Naming them explicitly is what keeps Renovate off the Gemfile and
+  // the Dockerfiles, where it would compete with Dependabot.
+  enabledManagers: ['circleci', 'custom.regex'],
+
+  // RUBY, FROM WHAT HEROKU HAS RATHER THAN WHAT RUBY RELEASED.
+  //
+  // Renovate's own ruby-version datasource knows what Ruby RELEASED;
+  // what matters is what Heroku BUILT for our stack, which lags it. A
+  // proposal for a Ruby Heroku lacks is red on arrival and sits there
+  // teaching people to disregard red.
+  //
+  // No machine-readable list of that exists: the devcenter names
+  // versions in prose without saying which stack each is for, and
+  // heroku/buildpacks-ruby has no inventory file. So
+  // .github/workflows/heroku_ruby_versions.yml probes weekly, as
+  // Heroku's own buildpack does, and commits the answer.
+  //
+  // "file://" is read with readLocalFile, relative to the repository
+  // CLONE, which is why the file is committed rather than written into
+  // a runner's workspace. Format "plain" is one release per line, what
+  // script/heroku_ruby_versions prints.
+  customDatasources: {
+    'heroku-ruby': {
+      defaultRegistryUrlTemplate: 'file://.github/heroku-ruby-versions.txt',
+      format: 'plain',
+    },
+  },
+
+  // TWO FILES, ONE DECISION. Heroku installs the Ruby named in
+  // Gemfile.lock, not .ruby-version, so changing only the latter passes
+  // every test here and installs the old interpreter on deploy.
+  // Matching both from one manager moves them in one pull request;
+  // rake ruby_version_matches_lock fails the build if they diverge.
+  //
+  // THE LOCK'S MATCH STOPS BEFORE BUNDLER'S "p0". Capturing "3.4.1p0"
+  // whole would replace the patchlevel too, but Gem::Version reads a
+  // letter as a PRERELEASE marker, so Renovate would skip that
+  // occurrence under ignoreUnstable. Digits only leaves "ruby
+  // 3.4.10p0": version right, patchlevel stale until the next bundle
+  // install rewrites it. Nothing reads the patchlevel to choose an
+  // interpreter, and inventing a number we cannot know without running
+  // the new Ruby would be worse than an obviously stale one.
+  customManagers: [
+    {
+      customType: 'regex',
+      managerFilePatterns: ['/^\\.ruby-version$/', '/^Gemfile\\.lock$/'],
+      matchStrings: [
+        '^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s*$',
+        '^\\s+ruby (?<currentValue>\\d+\\.\\d+\\.\\d+)',
+      ],
+      depNameTemplate: 'ruby',
+      datasourceTemplate: 'custom.heroku-ruby',
+      versioningTemplate: 'ruby',
+    },
+  ],
+
+  // ONE PULL REQUEST PER LINE: the gems above us can take weeks to be
+  // ready for a new minor or major, and the routine patch bump should
+  // not wait behind that argument. Renovate does this natively.
+  separateMinorPatch: true,
+  separateMultipleMajor: true,
 
   // A single issue listing everything Renovate can see, including
   // anything it has decided not to propose. Without it, "no pull
@@ -66,6 +127,24 @@
   // and is not proposing, including anything closed, with a checkbox to
   // ask again.
   recreateWhen: 'auto',
+
+  // A PROPOSAL IS REBUILT WHEN main MOVES UNDER IT. A pull request that
+  // sits for weeks, which is what a stack upgrade does while the
+  // libraries above it catch up, otherwise keeps showing green checks
+  // earned against a main that no longer exists. The default,
+  // "conflicted", rebases only when git cannot merge: two changes can
+  // be perfectly mergeable and never tested together, and
+  // .ruby-version and the stack tag are that pair.
+  //
+  // THE COST IS BOUNDED BY THE CRON, not by how busy main is, because
+  // we self-host: six weeks open means six rebuilds, not one per push.
+  // The hosted App reacting to webhooks would bill differently.
+  //
+  // Deliberately NOT "require branches to be up to date before
+  // merging", which would impose the same ceremony on every human pull
+  // request; main, staging and production each re-run the full suite
+  // anyway. This keeps the PROPOSAL honest rather than policing all.
+  rebaseWhen: 'behind-base-branch',
 
   // No schedule here on purpose. How often Renovate runs is decided by
   // the cron in .github/workflows/renovate.yml, so there is one place to

@@ -1,4 +1,8 @@
 ---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
 name: Codespell
 
 # Limit permissions per OpenSSF Scorecard best practices.

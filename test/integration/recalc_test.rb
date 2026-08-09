@@ -383,10 +383,11 @@ class RecalcTest < ActionDispatch::IntegrationTest
     project = projects(:one)
     project.update_column(:unreported_badge_warning, 1)
     project.update_column(:unreported_baseline_badge_warning, 1)
-    sent = Project.send(
-      :send_notifications, Project.where(id: project.id), 1,
-      Project::NOTIFICATION_SERIES[:warning]
-    ) { |_project, _user, _level, _suffix| :sent }
+    sent =
+      Project.send(
+        :send_notifications, Project.where(id: project.id), 1,
+        Project::NOTIFICATION_SERIES[:warning]
+      ) { |_project, _user, _level, _suffix| :sent }
     assert_equal 1, sent
     fresh = Project.find(project.id)
     assert_equal 0, fresh.unreported_badge_warning
@@ -456,10 +457,11 @@ class RecalcTest < ActionDispatch::IntegrationTest
     Project::NOTIFICATION_OUTCOMES.each do |outcome|
       project.update_column(:unreported_badge_warning, 1)
       project.update_column(:warning_send_attempts, 0)
-      sent = Project.send(
-        :send_notifications, Project.where(id: project.id), 1,
-        Project::NOTIFICATION_SERIES[:warning]
-      ) { |_project, _user, _level, _suffix| outcome }
+      sent =
+        Project.send(
+          :send_notifications, Project.where(id: project.id), 1,
+          Project::NOTIFICATION_SERIES[:warning]
+        ) { |_project, _user, _level, _suffix| outcome }
       assert_equal (outcome == :sent ? 1 : 0), sent, "counted #{outcome}"
       assert_equal flag_after[outcome],
                    Project.find(project.id).unreported_badge_warning,
@@ -711,10 +713,11 @@ class RecalcTest < ActionDispatch::IntegrationTest
     end
     log =
       captured_log do
-        sent = Project.send(
-          :send_notifications, Project.where(id: ids).reorder(:id), 1,
-          Project::NOTIFICATION_SERIES[:warning]
-        ) { |_project, _user, _level, _suffix| :sent }
+        sent =
+          Project.send(
+            :send_notifications, Project.where(id: ids).reorder(:id), 1,
+            Project::NOTIFICATION_SERIES[:warning]
+          ) { |_project, _user, _level, _suffix| :sent }
         assert_equal 1, sent
       end
     assert_equal 0, Project.find(ids.first).unreported_badge_warning

@@ -378,6 +378,10 @@ we removed the `main` tier to save money.
 If you have write authorization to the GitHub repository,
 the commands `rake deploy_staging` and `rake deploy_production`
 will update the staging and production branches (respectively).
+Those commands are only a few `git` commands each, so you can advance
+the branches without a development environment, with plain `git` or
+with `gh` and no checkout at all; see
+[deployment instructions](./INSTALL.md#deployment-instructions).
 Those updates will trigger tests by CircleCI as usual (via webhooks).
 If those tests pass, CirccleIC will then deploy that updated branch to
 its respective tier.

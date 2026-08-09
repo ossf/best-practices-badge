@@ -1232,15 +1232,39 @@ jobs:
                 -H "Authorization: Bearer ${HEROKU_API_KEY}" \
                 -H 'Range: version ..; order=desc,max=1;')" || {
                   echo "Release query failed; retrying."; sleep 15; continue; }
-              # See the note in the Deploy step on "sed -n 1p" versus
-              # head and -m1, and on "|| true": this job runs under
-              # -eo pipefail, so a body without these fields would
-              # otherwise abort the step silently instead of retrying.
-              version="$(printf '%s' "$body" \
-                | grep -o '"version": *[0-9][0-9]*' | sed -n 1p \
-              | grep -o '[0-9][0-9]*' || true)"
-              status="$(printf '%s' "$body" \
-                | grep -o '"status": *"[^"]*"' | sed -n 1p | cut -d'"' -f4 || true)"
+              # PARSED WITH node, NOT grep, so that only the TOP-LEVEL
+              # fields of the newest release can be read. A grep for
+              # '"status"' takes the first match anywhere in the body,
+              # including inside a nested object, and Heroku's release
+              # object could gain one: today "app" is {id, name}, so
+              # there is nothing to trip over, but a schema addition
+              # would have this job reporting a nested value as the
+              # release status. Verified against a body carrying
+              # "app": {"status": "nonsense"}: grep returned "nonsense",
+              # node returned the real status.
+              #
+              # node is already required here; this job prints "node -v"
+              # and installs the Heroku CLI with npm, so a missing node
+              # breaks the job long before this line.
+              #
+              # readFileSync(0) reads stdin synchronously, which keeps
+              # this to two lines instead of node's async stream dance.
+              # An unparseable body makes node exit non-zero, so "|| true"
+              # still yields the empty string the guards below expect:
+              # this job runs under -eo pipefail, and without it a body
+              # without these fields would abort the step silently
+              # instead of retrying. An unknown status is passed straight
+              # through, so it still reaches the "unexpected release
+              # status" arm immediately rather than waiting out the loop.
+              release_field() {
+                printf '%s' "$body" | node -e '
+                  const r = JSON.parse(require("fs").readFileSync(0, "utf8"))
+                  process.stdout.write(String((r[0] || {})[process.argv[1]]
+                                              ?? ""))
+                ' "$1" 2>/dev/null || true
+              }
+              version="$(release_field version)"
+              status="$(release_field status)"
               # Insist on a bare integer: this also catches a
               # multi-line value, which is what a body holding more
               # than one release would produce, rather than letting it

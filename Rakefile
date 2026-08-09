@@ -115,7 +115,8 @@ end
 # environment", which would otherwise be read as a task using Rails.
 def rake_body_lines(lines)
   closing = /\A\s{#{lines.first[/\A\s*/].size}}end\b/
-  lines.each_with_index.take_while { |text, i| i.zero? || text !~ closing }
+  lines.each_with_index
+       .take_while { |text, i| i.zero? || text !~ closing }
        .map(&:first)
 end
 

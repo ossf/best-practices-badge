@@ -225,6 +225,19 @@ Security is *VERY* important in this application.
 - **Git Workflow**: Feature branches with pull request review
 - **Commit Signing**: DCO sign-off required (`git commit --signoff`)
 - **Branch Protection**: Main branch requires review and CI passage
+- **AI Assistance**: When an AI coding assistant helped produce a commit,
+  record it with an `Assisted-by:` trailer, using the Linux kernel's
+  `AGENT_NAME:MODEL_VERSION` format. `MODEL_VERSION` is the identifier the
+  vendor publishes, copied verbatim: use `claude-opus-5`, not
+  `Claude Opus 5` or `claude-5-opus`. Give each agent its own line. Do not use
+  `Co-authored-by:` for an AI; that implies authorship, and copyright
+  requires human creative activity. Only a human adds `Signed-off-by:`,
+  which certifies the DCO and is a claim an AI cannot make.
+
+  ```text
+  Signed-off-by: Jane Developer <jane@example.com>
+  Assisted-by: Claude:claude-opus-5
+  ```
 
 ## Environment Variables
 

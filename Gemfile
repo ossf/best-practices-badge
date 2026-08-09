@@ -5,10 +5,38 @@
 # Any one gem is listed no more than once (to prevent referring to
 # different version numbers in different environments).
 
-# Updating Rails-related gems requires simultaneously updating them.
-# You may need to update all of their versions below. Then run this:
+# KEEP IN SYNC WITH .github/dependabot.yml, which proposes our gem updates
+# on a schedule. Two kinds of decision recorded here are mirrored there,
+# and changing one without the other silently loses its effect:
+#
+# * A gem pinned to an exact version below, or capped with "<", is one
+#   whose upgrades we time by hand rather than take routinely. Those gems
+#   are named in that file's "gems-minor" exclude-patterns, so a minor
+#   bump arrives as its own pull request rather than inside the weekly
+#   batch of low-risk updates.
+#
+# * A cap that records a KNOWN DEFECT rather than a version we simply have
+#   not reached yet is ALSO listed there under "ignore". The two say
+#   different things: a cap here means "do not resolve to that version",
+#   while the ignore means "do not propose it at all". That distinction
+#   matters because Dependabot is configured to raise our ceilings when a
+#   newer version needs the room, so a cap alone is not a durable block.
+#
+# So when you add, remove, or loosen a pin or a cap below, open that file.
+
+# The Rails release train moves as one. Its gems pin each other with "=",
+# not "~>", so railties 8.1.3.1 requires exactly activesupport 8.1.3.1 and
+# actionpack 8.1.3.1; updating one alone cannot resolve. Update all of their
+# versions below together, then run this:
 # bundle update actionmailer actionpack actionview activejob activemodel \
-#        activerecord activesupport railties rails-i18n rails
+#        activerecord activesupport railties rails
+#
+# rails-i18n is NOT part of that set, though it used to be listed here. It
+# requires "railties >= 8.0.0, < 9", so any Rails 8.x satisfies it and it
+# can move on its own schedule. The exception is a MAJOR upgrade: going to
+# Rails 9 needs the rails-i18n constraint below widened in the same commit,
+# because rails-i18n 8.x refuses railties 9. Nothing proposes that pair
+# automatically, so it is a hand edit when the time comes.
 
 # NOTE: When updating you may see a spurious message like this:
 #   WARN: Unresolved or ambiguous specs during Gem::Specification.reset:
@@ -83,6 +111,8 @@ gem 'mail', '~> 2.7' # Ruby mail handler
 # Every GitHub API response body then gets passed to Kernel.load as a Ruby file
 # path, causing LoadError due to corrupted JSON deserialization.
 # Fix: Limit update until sawyer or multi_json releases a compatible fix.
+# Also listed under "ignore" in .github/dependabot.yml, so it is not even
+# proposed; lift both together once sawyer or multi_json fixes this.
 gem 'multi_json', '< 1.21.0'
 gem 'octokit', '~> 7' # GitHub's official Ruby API
 gem 'omniauth-github', '~> 2.0' # Authentication to GitHub (get project info)
@@ -158,7 +188,7 @@ group :development, :test do
   # Removed pronto gems - comprehensive linting now handled by rake default
   gem 'rails_best_practices', '~> 1.23', require: false # Code quality
   # gem 'railroader', '4.3.8' # Security static analyzer. OSS fork of Brakeman
-  gem 'rubocop', '1.81.7', require: false # Style checker
+  gem 'rubocop', '1.88.2', require: false # Style checker
   gem 'rubocop-performance', '~> 1.20', require: false # Performance cops
   gem 'rubocop-rails', '2.33.4', require: false # Rails-specific cops
   gem 'ruby-graphviz', '1.2.5' # This is used for bundle viz
@@ -204,6 +234,8 @@ group :fake_production, :development, :test do
 end
 
 group :development do
+  # Also listed under "ignore" in .github/dependabot.yml, so it is not even
+  # proposed; lift both together when 1.24.x stops breaking VCR tests.
   gem 'bootsnap', '< 1.24.0' # Speed up boot via caches; 1.24.x breaks VCR tests
   gem 'memory_profiler', '~> 1.1.0' # Memory profiling to debug memory leaks
   # gem 'fasterer', '0.3.2' # Provide speed recommendations - run 'fasterer'

@@ -381,9 +381,15 @@ the time-consuming process of recalculating all projects.)
 **If your migration will change some percentage calculations**,
 the tier it runs on needs current production data first, or projects
 will get spurious warnings about losing badges.
-You don't have to remember to do this: `rake deploy_staging` depends on
-`rake production_to_staging`, which restores the latest production
-backup into staging before the deploy.
+You don't have to remember to do this: CircleCI's deploy job restores
+production's latest backup into staging, under maintenance mode,
+whenever the branch being deployed is exactly `staging`. That happens
+however the `staging` branch was advanced, so it does not depend on
+using `rake deploy_staging`; see
+[deployment instructions](./INSTALL.md#deployment-instructions) for the
+ways to advance it, including ones needing no development environment.
+`rake production_to_staging` still exists for refreshing staging out of
+band, without a deploy.
 
 Once you've created the migration file, check it first by running
 "rake rubocop".  This will warn you of some potential issues, and
@@ -1148,6 +1154,132 @@ ALL_DETECTIVES =
 We use the ZAP web application scanner to find potential
 vulnerabilities.
 This lets us fulfill the "dynamic analysis" criterion.
+
+## Deploying in detail
+
+The commands are in
+[INSTALL.md](./INSTALL.md#deploying-to-staging-without-a-development-environment).
+This is why they are what they are.
+
+**Deploying is copying one branch into the next, and nothing else.**
+`main` goes into `staging`, and later `staging` goes into `production`.
+CircleCI watches those branches, runs the suite again, and deploys the
+branch to its tier. No deploy command holds a Heroku credential; the
+credential lives in CircleCI, which is the only thing that needs it.
+
+**That is why no development environment is needed.** `rake
+deploy_staging` is two `git` commands. What made deploying appear to
+need a development environment was never the task: it is that `rake`
+loads `config/boot`, and therefore Bundler, whatever task you ask for.
+Running the `git` commands directly skips that.
+
+**The copy must be a fast-forward.** `staging` has to stay a commit that
+also exists on `main`, because that is what lets the next deploy copy
+`main` in cleanly, and what makes the deployed tree identical to a tree
+that passed on `main`. Nothing enforces this by policy: it is enforced
+by not passing `--force` to `git push`, and by not passing `force` over
+the API, both of which make the far end refuse an update that is not a
+fast-forward.
+
+**Why it fetches into the deploy branch** rather than checking out
+`staging` and merging, which is what it used to do. `git fetch origin
+main:staging` needs no checkout, so it works from any branch, leaves the
+working tree alone and tolerates a dirty one. The checkout-and-merge
+form assumed you were on `main`, moved you if you were not, carried
+uncommitted changes across two branch switches, and failed outright in a
+`--single-branch` or `--depth` clone where `git switch staging` answers
+"invalid reference".
+
+**The fetch source is origin's branch, not your clone's.** That is the
+property that keeps unreviewed work out of production:
+`git push origin main:staging` would have deployed your local `main`,
+unpushed commits and all, and it is four characters shorter than the
+right thing.
+
+**Fetching into the branch is why your local copy stays honest.** Local
+`staging` is created if absent and fast-forwarded if present, so
+`git log staging` describes what is deployed rather than wherever the
+branch sat when you last looked. In a full clone the push updates
+`origin/staging` as well; in a `--single-branch` clone it does not,
+because that clone's configured refspec never mapped it.
+
+**The second refspec exists because the first one silences the usual
+one.** Giving `git fetch` an explicit `src:dst` overrides the clone's
+configured `+refs/heads/*:refs/remotes/origin/*`, so no remote-tracking
+ref is touched at all. Left there, `origin/main` would go stale while
+deploys kept succeeding, and `git status` on `main` would stop reporting
+how far behind you were: the deploy would be quietly costing you the
+normal way of noticing drift. `+main:refs/remotes/origin/main` puts that
+back. It writes to a tracking ref rather than to `refs/heads/main`, so
+it works while `main` is checked out, and it is forced because a tracking
+ref is a mirror of the remote, unlike `main:staging`, which must stay
+unforced so a divergence stops the deploy.
+
+**The price is that you cannot be standing on the branch you deploy.**
+Git refuses to fetch into a checked-out branch, stopping with "refusing
+to fetch into branch". `staging` and `production` are branches to read
+rather than work on, so this costs nothing in practice, and the refusal
+is a useful signal when it does fire.
+
+**The `&&` carries more weight than it looks.** A rejected fetch, which
+is what a diverged local `staging` produces, exits 1 and leaves the
+divergent commit in place. An unguarded push would then send exactly
+that commit to the deploy branch. Not passing `--force` is the other
+half: the fetch must be a fast-forward of your local branch and the push
+must be one on GitHub's side.
+
+**Never deploy by merging a pull request.** GitHub can merge only by
+creating a merge commit, squashing, or rebasing; it has no fast-forward
+merge. Each of those leaves a commit on `staging` that is not on `main`,
+so the two diverge and every later deploy is refused as a
+non-fast-forward. One convenient pull request breaks deploying from then
+on, and the repair is manual.
+
+**A staging deploy reports on your local `main` afterwards**, and only
+when there is something to report. Being behind is ordinary and gets the
+cure without a number, since how far behind you are does not change what
+to do. Being *ahead* is not ordinary: it means commits exist on your
+machine and nowhere else, unreviewed, untested and undeployed, which is
+what happens when work starts without a branch. That case names the
+commits and offers `git branch SAVED-WORK main` followed by
+`git switch main && git reset --keep origin/main`. `--keep` rather than
+`--hard` because it refuses rather than discards when uncommitted
+changes are in the way. Both comparisons use `origin/main`, which the
+fetch has just refreshed, so they cost nothing and need no network, and
+the report runs after the push so it can neither delay nor fail a
+deploy.
+
+**Staging deploys need not wait for main's checks, production deploys
+must.** Staging is a test tier, and CircleCI runs the suite again on the
+staging branch, so starting a staging deploy while main is still being
+checked simply runs two suites at once. Production gets no such excuse,
+so `rake deploy_production` asks GitHub whether `staging` passed and
+refuses otherwise.
+
+**That question needs two endpoints, and neither is redundant.**
+`ci/circleci: static` is reported as a commit STATUS and never appears
+among the check runs, while CodeQL, brakeman and codespell are check
+RUNS and never appear among the statuses. Asking only for statuses once
+reported a commit as green whose three CodeQL analyses had failed, which
+is how we know to ask for both.
+
+**The grep pair is inverted on purpose.** It reports anything that is
+not `success` or `completed`, rather than hunting for known bad words,
+so a conclusion GitHub invents later stops a deploy instead of slipping
+past. A `null` conclusion, meaning a check still running, stops it too.
+`curl -sSf` and its `|| exit 1` matter for the same reason: curl exits
+22 when `-f` meets an error, and without that check an empty reply would
+read as an empty list of problems, which is to say as success.
+
+**Deploying refreshes staging's database.** CircleCI's deploy job
+restores production's latest backup into staging, under maintenance
+mode, whenever the branch being deployed is exactly `staging`. It is
+keyed on the branch, not on how the branch was advanced, so every route
+in INSTALL.md gets it. `rake production_to_staging` remains for doing
+that refresh out of band, without a deploy.
+
+**One detail about the `gh` form**: reading a ref uses `git/ref` and
+updating one uses `git/refs`. That is GitHub's inconsistency, not a typo.
 
 ## Setup for deployment
 

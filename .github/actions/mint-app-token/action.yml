@@ -1,0 +1,115 @@
+---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
+name: Mint a short-lived App token
+description: >-
+  Exchange the openssf-badge-renovate App's id and private key for a
+  token scoped to exactly the permissions the caller asks for.
+
+# WHY THIS EXISTS. renovate.yml and heroku_ruby_versions.yml both open
+# pull requests as the project's bot and need the same three things:
+# the mint, the sentence to print when the App is short a permission,
+# and the git author string. That last is a numeric id nobody would
+# notice going stale in one of two copies.
+#
+# No check that the secrets are set: create-github-app-token already
+# refuses with "The 'client-id' (or deprecated 'app-id') input must be
+# set to a non-empty string. If using a secret or variable, ensure it
+# is available in this workflow context", which names the likely cause.
+#
+# WHY MINT RATHER THAN STORE. Not the default GITHUB_TOKEN, because
+# GitHub raises no workflow runs for events it creates, so a pull
+# request opened with it would start NONE of brakeman, codeql,
+# codespell or main and be checked LESS than a stranger's. So, our own
+# App. And an installation token EXPIRES ONE HOUR after issue, so it
+# cannot be stored: we store the App id and private key and mint per
+# run, revoked when the job ends. A personal access token was rejected
+# separately, for belonging to a person and expiring on their clock.
+#
+# EACH CALLER NAMES ONLY WHAT IT NEEDS, which does two jobs. GitHub
+# refuses to issue a token carrying a permission the installation lacks,
+# so a short grant stops the run instead of half working; and the token
+# is scoped down, rather than carrying everything the App has now or
+# gains later for some other caller. Never "workflows": neither caller
+# belongs under .github/workflows.
+
+inputs:
+  app-id:
+    description: The App's numeric id, from the RENOVATE_APP_ID secret.
+    required: true
+  private-key:
+    description: >-
+      The App's private key, from the RENOVATE_APP_PRIVATE_KEY secret.
+    required: true
+  # Unset ones pass through as "", which create-github-app-token skips.
+  # Name at least one, or the token carries everything the App has.
+  permission-contents:
+    description: '"write" to create branches and commits.'
+    default: ''
+  permission-pull-requests:
+    description: '"write" to open pull requests.'
+    default: ''
+  permission-issues:
+    description: '"write" for Renovate''s dashboard and error reports.'
+    default: ''
+  permission-checks:
+    description: '"read" to see whether CI passed on an open pull request.'
+    default: ''
+  permission-statuses:
+    description: '"read", alongside checks, for commit statuses.'
+    default: ''
+
+outputs:
+  token:
+    description: A token good for one hour, revoked when the job ends.
+    value: ${{ steps.mint.outputs.token }}
+  git-author:
+    # GitHub's format for a bot account: numeric user id, plus sign,
+    # login, noreply domain. Get it wrong and GitHub attributes the
+    # commits to nobody in particular rather than failing, so check it
+    # rather than eyeball it.
+    # Verify: curl -s 'https://api.github.com/users/openssf-badge-renovate%5Bbot%5D'
+    description: The name and address commits by this App should carry.
+    value: >-
+      openssf-badge-renovate[bot]
+      <313971568+openssf-badge-renovate[bot]@users.noreply.github.com>
+
+runs:
+  using: composite
+  steps:
+    - name: Mint
+      id: mint
+      # Pin to commit SHA to prevent supply chain attacks via tag mutation.
+      # Verify: curl -s https://api.github.com/repos/actions/create-github-app-token/git/ref/tags/v3.2.0
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      with:
+        # EXPECT A DEPRECATION WARNING HERE, and ignore it: the action
+        # annotates "app-id" with "Use 'client-id' instead.", which
+        # reads like a breakage and is not one. An App's id and client
+        # id are different strings, so switching means an ossf owner
+        # generating and storing a third secret. Revisit if it errors.
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.private-key }}
+        # Omitting "owner" and "repositories" scopes the token to the
+        # calling workflow's repository: one less name to keep current.
+        permission-contents: ${{ inputs.permission-contents }}
+        permission-pull-requests: ${{ inputs.permission-pull-requests }}
+        permission-issues: ${{ inputs.permission-issues }}
+        permission-checks: ${{ inputs.permission-checks }}
+        permission-statuses: ${{ inputs.permission-statuses }}
+
+    - name: Explain a refused mint
+      # Only when the mint failed, so it cannot comment on a later
+      # failure it knows nothing about.
+      if: failure() && steps.mint.outcome == 'failure'
+      shell: bash
+      run: |
+        echo 'The App could not issue a token with the permissions this'
+        echo 'workflow asked for. Usually that means'
+        echo 'openssf-badge-renovate is missing one of them, which only'
+        echo 'an ossf organization owner can add, in two steps: edit the'
+        echo 'App permissions, THEN approve the change on the'
+        echo 'installation, which does not happen automatically. See'
+        echo 'docs/build-environment-staleness.md.'

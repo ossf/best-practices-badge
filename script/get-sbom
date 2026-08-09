@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Copyright the Linux Foundation and the CII Best Practices badge contributors
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 #
 # Download the SBOM for a given commit from GitHub Releases.
