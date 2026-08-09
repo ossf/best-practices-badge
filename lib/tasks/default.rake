@@ -20,6 +20,8 @@
 require 'English'
 require 'json'
 require 'open3'
+require 'yaml'
+require 'bundler'
 
 # ---------------------------------------------------------------------
 # EVERY TASK WITH A BODY MUST SAY WHETHER IT NEEDS RAILS.
@@ -91,6 +93,7 @@ STATIC_CHECKS = %w[
   circleci_config_check
   gitignore_check
   codeql_version_check
+  dependabot_gems_check
   ruby_version_matches_lock
   html_from_markdown
   eslint
@@ -623,6 +626,75 @@ task codeql_version_check: :no_rails do
       sha, tag = pins[step]
       puts "  #{step}: #{sha} #{tag}"
     end
+    exit 1
+  end
+end
+
+# .github/dependabot.yml NAMES GEMS, AND A NAME THAT MATCHES NOTHING IS
+# SILENT. Its bundler entry lists gems three ways: the Rails release train
+# it groups, the gems whose minor bumps must leave the weekly batch, and
+# the versions never to propose at all. Every one of those is a bare
+# string compared against a dependency name, so a typo, a renamed gem, or
+# a gem we dropped does not fail anything. It just quietly stops matching,
+# and the protection it encoded is gone with no sign that it ever left.
+#
+# That is the same failure shape as an ignore rule hiding a tracked file:
+# the mechanism keeps reporting success while doing nothing. So check that
+# every name still refers to a real dependency.
+#
+# THE LOCKFILE, NOT THE GEMFILE, is the universe to check against. Four of
+# the Rails gems the config groups (actioncable, actionmailbox, actiontext
+# and activestorage) reach us through the development-only "gem 'rails'"
+# and appear in no Gemfile line, which is exactly why they are named:
+# before "allow: all" they were never offered an update at all.
+#
+# Wildcards are skipped. "*" is meant to match everything and would fail
+# any name check by construction.
+#
+# STATIC: both files are in the tree, so no commit, no change.
+DEPENDABOT_PATTERN_KEYS = %w[patterns exclude-patterns].freeze
+
+desc 'Check .github/dependabot.yml only names gems we actually have'
+task dependabot_gems_check: :no_rails do
+  path = '.github/dependabot.yml'
+  puts "Checking #{path} names real gems..."
+  raise StandardError, "Missing #{path}" unless File.exist?(path)
+
+  known = Bundler::LockfileParser.new(File.read('Gemfile.lock'))
+                                 .specs.to_set(&:name)
+
+  config = YAML.safe_load_file(path)
+  bundler_entry =
+    config['updates'].find { |u| u['package-ecosystem'] == 'bundler' }
+  raise StandardError, "No bundler entry in #{path}" if bundler_entry.nil?
+
+  # Each referenced name, paired with the setting it came from, so the
+  # error can say where to look rather than only what is wrong.
+  referenced = []
+  bundler_entry.fetch('groups', {}).each do |group, rules|
+    DEPENDABOT_PATTERN_KEYS.each do |key|
+      rules.fetch(key, []).each do |name|
+        referenced << ["groups.#{group}.#{key}", name]
+      end
+    end
+  end
+  bundler_entry.fetch('ignore', []).each do |rule|
+    referenced << ['ignore', rule['dependency-name']]
+  end
+
+  offenders =
+    referenced.reject { |_where, name| name.include?('*') }
+              .reject { |_where, name| known.include?(name) }
+
+  if offenders.empty?
+    puts "All #{referenced.length} names in #{path} match a locked gem."
+  else
+    puts "ERROR: #{path} names gems that are not in Gemfile.lock."
+    puts 'A name matching nothing does not fail, it just stops'
+    puts 'protecting whatever it was written to protect. Remove the'
+    puts 'entry, or fix the spelling. See the note in the Gemfile about'
+    puts 'keeping these two files in step.'
+    offenders.each { |where, name| puts "  #{where}: #{name}" }
     exit 1
   end
 end
