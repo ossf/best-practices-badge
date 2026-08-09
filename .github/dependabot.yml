@@ -201,6 +201,19 @@ updates:
 
     # THESE VERSIONS ARE NEVER PROPOSED AT ALL.
     #
+    # EVERY ENTRY CARRIES A "REVIEW-BY" DATE, and it is not decoration:
+    # "rake dependabot_ignore_review_check" fails once a date has passed,
+    # and fails if an entry has no date at all. An ignore is silence, and
+    # silence does not expire on its own. Before these entries existed, a
+    # blocked gem still produced a proposal we could dismiss, so the block
+    # stayed visible; now nothing appears, and an entry whose reason was
+    # fixed upstream years ago looks exactly like one still earning its
+    # place.
+    #
+    # When a date passes: check whether the reason still holds. If it
+    # does, move the date out. If it does not, delete the entry and the
+    # matching cap in the Gemfile.
+    #
     # Ignore is applied after allow: Dependabot "checks for all allowed
     # dependencies, then filters out any ignored dependencies", so these
     # still hold now that allow is "all".
@@ -219,11 +232,13 @@ updates:
       # Do not "update" vcr. Later versions switched to a non-OSS license.
       # This dependency is *only* used during testing,
       # so any unintentional vulnerabilities in it don't matter.
+      # REVIEW-BY: 2027-08-09
       - dependency-name: "vcr"
 
       # bootsnap 1.24.x breaks our VCR tests. This is a known defect on
       # our side of the fence, not a version we have merely not gotten to
       # yet, so proposing it would waste a review every week.
+      # REVIEW-BY: 2027-08-09
       - dependency-name: "bootsnap"
         versions: [">= 1.24.0"]
 
@@ -231,6 +246,7 @@ updates:
       # MultiJson.method(:load), which bypasses the compatibility stub and
       # resolves to Kernel#load: every GitHub API response body then gets
       # handed to the file loader. The Gemfile has the full account.
+      # REVIEW-BY: 2027-08-09
       - dependency-name: "multi_json"
         versions: [">= 1.21.0"]
   # Keep our GitHub actions up to date.

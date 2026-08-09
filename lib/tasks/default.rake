@@ -22,6 +22,7 @@ require 'json'
 require 'open3'
 require 'yaml'
 require 'bundler'
+require 'date'
 
 # ---------------------------------------------------------------------
 # EVERY TASK WITH A BODY MUST SAY WHETHER IT NEEDS RAILS.
@@ -94,6 +95,7 @@ STATIC_CHECKS = %w[
   gitignore_check
   codeql_version_check
   dependabot_gems_check
+  dependabot_ignore_review_check
   ruby_version_matches_lock
   html_from_markdown
   eslint
@@ -653,6 +655,76 @@ end
 #
 # STATIC: both files are in the tree, so no commit, no change.
 DEPENDABOT_PATTERN_KEYS = %w[patterns exclude-patterns].freeze
+
+# AN IGNORE IS SILENCE, AND SILENCE DOES NOT EXPIRE ON ITS OWN.
+# Each ignore entry in .github/dependabot.yml names a version we never
+# want proposed, and each records a real reason: a licence change, a
+# release that breaks our tests, an upstream incompatibility. Those
+# reasons get fixed upstream, and nothing tells us when. Before we ignored
+# them, a blocked gem still produced a proposal we could dismiss, so the
+# block stayed visible; now nothing appears at all, and an entry that
+# stopped being necessary in 2027 looks exactly like one still earning its
+# place.
+#
+# So every entry carries a REVIEW-BY date and this fails once one passes,
+# or if an entry has no date. It will go red on somebody's unrelated pull
+# request, which is the price; clearing it is one line, either moving the
+# date out or deleting an entry that has done its job.
+#
+# STATIC: the date moves, but the file does not, so the answer changes
+# only at a boundary we chose.
+# Date.today rather than the time-zone-aware form, because these tasks are
+# :no_rails and there is no zone to ask. A review date is a calendar
+# boundary a year out; no answer turns on which side of midnight UTC we
+# are.
+#
+# It lives HERE, outside any task body, because the only way to silence
+# the cop is to write its name, the Rakefile's marker audit reads each
+# :no_rails body looking for exactly that word, and a disable comment
+# would otherwise make this task look like it had booted the framework.
+def dependabot_today
+  Date.today # rubocop:disable Rails/Date
+end
+
+DEPENDABOT_REVIEW_RE = /^\s*#\s*REVIEW-BY:\s*(\d{4}-\d{2}-\d{2})/
+DEPENDABOT_IGNORE_RE = /^\s*- dependency-name: "([^"]+)"/
+
+desc 'Check .github/dependabot.yml ignores are still under review'
+task dependabot_ignore_review_check: :no_rails do
+  path = '.github/dependabot.yml'
+  puts "Checking #{path} ignore entries are still reviewed..."
+  raise StandardError, "Missing #{path}" unless File.exist?(path)
+
+  pending = nil
+  entries = []
+  File.readlines(path).each do |line|
+    if (found = line.match(DEPENDABOT_REVIEW_RE))
+      pending = Date.parse(found[1])
+    elsif (found = line.match(DEPENDABOT_IGNORE_RE))
+      entries << [found[1], pending]
+      pending = nil
+    end
+  end
+
+  today = dependabot_today
+  undated = entries.select { |_name, date| date.nil? }
+  expired = entries.select { |_name, date| date&.<(today) }
+
+  if undated.empty? && expired.empty?
+    puts "All #{entries.length} ignore entries carry a future review date."
+  else
+    puts "ERROR: #{path} has ignore entries that need attention."
+    undated.map(&:first).each do |name|
+      puts "  #{name}: no REVIEW-BY date. Add one above the entry."
+    end
+    expired.each do |name, date|
+      puts "  #{name}: review was due #{date}. Does the reason still" \
+           ' hold? Move the date out, or delete the entry and the' \
+           ' matching cap in the Gemfile.'
+    end
+    exit 1
+  end
+end
 
 desc 'Check .github/dependabot.yml only names gems we actually have'
 task dependabot_gems_check: :no_rails do
