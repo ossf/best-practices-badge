@@ -9,7 +9,7 @@
 # Modify this example for whatever analysis you want to do.
 
 # Copyright 2018, the Linux Foundation, IDA, and the
-# CII Best Practices badge contributors
+# OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
 import os, sys, re, json, time, urllib
