@@ -1,3 +1,7 @@
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
 # This is a simple GitHub Actions CI workflow.
 name: CI
 

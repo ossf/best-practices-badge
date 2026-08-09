@@ -1,4 +1,8 @@
 ---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
 name: Renovate
 
 # Run Renovate ourselves, on a schedule, rather than installing the hosted

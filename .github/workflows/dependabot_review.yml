@@ -1,4 +1,8 @@
 ---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
 name: Dependabot ignore review
 
 # Raise an issue when a Dependabot ignore entry's REVIEW-BY date passes.
