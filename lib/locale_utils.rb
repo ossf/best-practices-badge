@@ -55,11 +55,17 @@ module LocaleUtils
   # To do this, we remove any locale in the query string and
   # and previously-specified locale.
   #
+  # This always *forces* the returned URL to use PUBLIC_HOSTNAME if it's
+  # defined (which it always is on the production system).
+  # That way, on the production system we always serve the full URL
+  # including the hostname (suitable for including in links) that is
+  # *certain* to be correct and internal.
+  #
   # @param original_url [String] The URL to modify
   # @param locale [String, Symbol, nil] The locale to insert into the URL
   # @return [String] The modified URL with locale parameter
   # rubocop: disable Metrics/AbcSize
-  def self.force_locale_url(original_url, locale)
+  def self.safe_localized_internal_url(original_url, locale)
     url = URI.parse(original_url)
     url.host = ENV.fetch('PUBLIC_HOSTNAME', url.host)
     # Remove locale from query string and main path.  The removing

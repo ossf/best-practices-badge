@@ -60,7 +60,7 @@ class Rack::Attack
       limit: (ENV['RATE_REQ_IP_LIMIT'] || 600).to_i,
       period: (ENV['RATE_REQ_IP_PERIOD'] || 5.minutes).to_i
     ) do |req|
-      ClientIp.acquire(req) # unless req.path.start_with?('/assets')
+      ClientIp.extract(req) # unless req.path.start_with?('/assets')
     end
   end
 
@@ -87,7 +87,7 @@ class Rack::Attack
     ) do |req|
       if req.env['HTTP_ACCEPT']&.include?('application/json') ||
          !BADGE_REGEX_PATH.match(req.path)
-        ClientIp.acquire(req)
+        ClientIp.extract(req)
       end
     end
   end
@@ -114,7 +114,7 @@ class Rack::Attack
       period: (ENV['RATE_LOGINS_IP_PERIOD'] || 20.seconds).to_i
     ) do |req|
       if LOGIN_PATHS.include?(req.path) && req.post?
-        ClientIp.acquire(req)
+        ClientIp.extract(req)
       end
     end
   end
@@ -163,7 +163,7 @@ class Rack::Attack
       period: (ENV['RATE_SIGNUP_IP_PERIOD'] || 10.seconds).to_i
     ) do |req|
       if SIGNUP_PATHS.include?(req.path) && req.post?
-        ClientIp.acquire(req)
+        ClientIp.extract(req)
       end
     end
   end
@@ -184,7 +184,7 @@ class Rack::Attack
       period: (ENV['RATE_PASSWORD_RESET_IP_PERIOD'] || 60.seconds).to_i
     ) do |req|
       if PASSWORD_RESET_PATHS.include?(req.path) && req.post?
-        ClientIp.acquire(req)
+        ClientIp.extract(req)
       end
     end
   end
@@ -245,7 +245,7 @@ class Rack::Attack
     # or if it's from a previously banned IP
     # so the request is blocked
     Rack::Attack::Fail2Ban.filter(
-      "pentesters-#{ClientIp.acquire(req)}",
+      "pentesters-#{ClientIp.extract(req)}",
       maxretry: FAIL2BAN_MAXRETRY,
       findtime: FAIL2BAN_FINDTIME,
       bantime: FAIL2BAN_BANTIME

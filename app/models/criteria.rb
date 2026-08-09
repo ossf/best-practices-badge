@@ -44,7 +44,8 @@ class Criteria
     def active(level)
       instantiate if @criteria.blank?
       @active ||= {}
-      @active[level] ||= @criteria[level].values.reject { |c| c.future? || c.obsolete? }
+      @active[level] ||=
+        @criteria[level].values.reject { |c| c.future? || c.obsolete? }
     end
 
     # Returns all unique criteria names across all levels.
@@ -54,11 +55,17 @@ class Criteria
       @criteria.values.map(&:keys).flatten.uniq
     end
 
+    # Iterates over each [level, criteria_hash] pair.
+    # @yield [Array(String, Hash)] level key and its criteria hash
+    # @return [void]
     def each
       instantiate if @criteria.blank?
       @criteria.each { |level| yield level }
     end
 
+    # Iterates over each level's criteria hash.
+    # @yield [Hash] criteria hash for one level
+    # @return [void]
     def each_value
       instantiate if @criteria.blank?
       @criteria.each_value { |level_data| yield level_data }
@@ -93,15 +100,22 @@ class Criteria
       end
     end
 
+    # Returns all level keys defined in the criteria.
+    # @return [Array<String>] level keys, e.g. ['passing', 'silver', 'gold']
     def keys
       instantiate if @criteria.blank?
       @criteria.keys
     end
 
+    # Returns the raw CriteriaHash used to populate criteria instances.
+    # @return [Hash] the underlying criteria data hash
     def to_h
       CriteriaHash
     end
 
+    # Returns criteria data formatted for JavaScript consumption,
+    # with locale-keyed translations merged into each criterion's fields.
+    # @return [Hash] criteria hash with translated fields per available locale
     # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
     def for_js
       CriteriaHash.deep_dup.each do |level, criteria_set|
@@ -109,7 +123,7 @@ class Criteria
           fields.delete_if { |k, _v| k.in? FIELDS_TO_OMIT }
           translations = {}
           I18n.available_locales.each do |locale|
-            # Get keys for this criterion - works with both flat and nested backends
+            # Get criterion keys; works with flat and nested I18n backends
             criterion_keys = get_criterion_keys(level, criterion, locale)
             criterion_keys.each do |k|
               next if k.to_s.in? FIELDS_TO_OMIT
@@ -202,37 +216,49 @@ class Criteria
     met_justification_required == true
   end
 
+  # Checks if Met status requires either justification text or a URL.
+  # @return [Boolean] true if justification or URL is required for Met status
   def met_justification_or_url_required?
     met_justification_required? || met_url_required?
   end
 
+  # Checks if this criterion has MUST-level obligation.
+  # @return [Boolean] true if category is 'MUST'
   def must?
     category == 'MUST'
   end
 
+  # Checks if N/A is a permitted status for this criterion.
+  # @return [Boolean] true if N/A status is allowed
   def na_allowed?
     na_allowed == true
   end
 
+  # Checks if justification text is required when status is N/A.
+  # @return [Boolean] true if justification is required for N/A status
   def na_justification_required?
     na_justification_required == true
   end
 
+  # Checks if this criterion has SHOULD-level obligation.
+  # @return [Boolean] true if category is 'SHOULD'
   def should?
     category == 'SHOULD'
   end
 
+  # Checks if this criterion has SUGGESTED-level obligation.
+  # @return [Boolean] true if category is 'SUGGESTED'
   def suggested?
     category == 'SUGGESTED'
   end
 
   # Returns the database field symbol for this criterion's status
-  # Precomputed during initialization to avoid string concatenation on every render
+  # Precomputed at initialization to avoid per-render string concatenation
   # @return [Symbol] e.g., :description_good_status
   attr_reader :status_symbol
 
   # Returns the database field symbol for this criterion's justification
-  # Precomputed during initialization to avoid string concatenation on every render
+  # Precomputed at initialization to avoid per-render string concatenation
   # @return [Symbol] e.g., :description_good_justification
   attr_reader :justification_symbol
 

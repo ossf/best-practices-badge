@@ -36,6 +36,12 @@ class User < ApplicationRecord
   DIGITS_OF_EMAIL_ENCRYPTION_KEY = 256 / 8 * 2 # 256-bit AES key in hex
   DIGITS_OF_EMAIL_BLIND_INDEX_KEY = 256 / 8 * 2 # 256-bit HMAC key in hex
 
+  # Age after which a never-activated local account is considered abandoned
+  # and eligible for purging by the daily task. Configurable via env var.
+  UNACTIVATED_ACCOUNT_LIFETIME = Integer(
+    ENV['BADGEAPP_UNACTIVATED_USER_DAYS'] || '7', 10
+  ).days
+
   # For tests
   TEST_EMAIL_ENCRYPTION_KEY = '1' * DIGITS_OF_EMAIL_ENCRYPTION_KEY
   TEST_EMAIL_BLIND_INDEX_KEY = '2' * DIGITS_OF_EMAIL_BLIND_INDEX_KEY
@@ -200,6 +206,25 @@ class User < ApplicationRecord
     user if user && authenticated
   end
 
+  # Finds an unactivated user by email and validates their activation token in constant time.
+  # Prevents timing attacks from enumerating email addresses during account activation.
+  #
+  # @param email [String] The user's email address
+  # @param token [String] The activation token to verify
+  # @return [User, nil] The unactivated user if valid, nil otherwise
+  def self.find_unactivated_by_valid_token(email, token)
+    user = find_by(email: email)
+    unactivated = user && !user.activated?
+    if unactivated
+      token_valid = user.authenticated?(:activation, token)
+    else
+      # Always perform BCrypt to prevent timing-based user enumeration
+      verify_password_against_hash?(DUMMY_HASH, token)
+      token_valid = false
+    end
+    user if unactivated && token_valid
+  end
+
   # Creates a new user from OAuth authentication data.
   # Sets the user as activated and sends a welcome email if email is provided.
   # @param auth [Hash] OAuth authentication hash containing provider, uid, info
@@ -267,6 +292,25 @@ class User < ApplicationRecord
     'CANNOT_DECRYPT'
   end
 
+  # Can we actually deliver mail to this user's address?
+  #
+  # This asks only whether an address exists and is usable, never whether
+  # the user wants a particular message; that is important_notifications?
+  # and its kin.  It is the single place that question is answered, so
+  # that a caller deciding whether to send cannot disagree with the
+  # mailer that does the sending.  They did disagree: the notification
+  # loop tested only that encrypted_email was present, while the mailers
+  # also rejected an address that would not decrypt or had no "@", so an
+  # owner failing the second test but not the first was recorded as
+  # emailed when no mail existed.  See docs/warning_failures.md.
+  #
+  # @return [Boolean] true if we have a usable address for this user
+  def deliverable_email?
+    address = email_if_decryptable
+    address.present? && address != 'CANNOT_DECRYPT' &&
+      address.include?('@')
+  end
+
   # Returns true if email search functionality is available.
   # Email search requires the production blind index key to work correctly.
   # In development without EMAIL_BLIND_INDEX_KEY, searches will fail to match
@@ -310,6 +354,30 @@ class User < ApplicationRecord
   # @return [String] a random URL-safe base64 encoded token
   def self.new_token
     SecureRandom.urlsafe_base64
+  end
+
+  # Returns a scope of local accounts eligible for purging: never activated,
+  # older than UNACTIVATED_ACCOUNT_LIFETIME, and owning no projects or
+  # additional rights.
+  #
+  # @return [ActiveRecord::Relation]
+  def self.purgeable_unactivated_accounts
+    cutoff = UNACTIVATED_ACCOUNT_LIFETIME.ago
+    where(provider: 'local', activated: false)
+      .where(users: { created_at: ...cutoff })
+      .where.missing(:projects)
+      .where.missing(:additional_rights)
+  end
+
+  # Delete all accounts returned by purgeable_unactivated_accounts.
+  # Returns the count of deleted users.
+  #
+  # @return [Integer] number of accounts deleted
+  def self.purge_unactivated_accounts
+    scope = purgeable_unactivated_accounts
+    count = scope.count
+    scope.find_each(&:destroy)
+    count
   end
 
   # Creates a remember token for persistent login sessions.

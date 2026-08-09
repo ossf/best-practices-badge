@@ -41,7 +41,7 @@
             <% Rails.application.config.locale_display_names[I18n.locale.to_s].each do |loc, name| %>
               <li><a href="<%=
                 # TODO: This doesn't include the anchor.
-                force_locale_url(request.original_url, loc)
+                safe_localized_internal_url(request.original_url, loc)
               %>"><%= name %></a></li>
             <% end %>
           </ul>

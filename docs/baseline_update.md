@@ -379,7 +379,7 @@ Run a dry-run report that shows every project which would lose a badge under
 the new criteria. No database writes occur.
 
 ```bash
-rake badge_warning_report EFFECTIVE_DATE=YYYY-MM-DD
+EFFECTIVE_DATE=YYYY-MM-DD rake badge_warning_report
 ```
 
 Replace `YYYY-MM-DD` with the enforce date set in `BaselineConfig::ENFORCE_DATE`.
@@ -390,20 +390,31 @@ Project 42 "My Project" | User 7 Alice <alice@example.com> | baseline-1 -> in_pr
 ```
 
 Review the list. If the count looks unexpectedly large, re-check the criteria
-changes before proceeding — a very large loss count may indicate an import
+changes before proceeding; a very large loss count may indicate an import
 error.
 
 ### Step B: Set warning flags
 
 Once you are satisfied with the report, record the warning in the database so
-that the daily notification job can start sending emails:
+that the daily notification job can start sending emails. Pass the enforce
+date (`BaselineConfig::ENFORCE_DATE`) via `EFFECTIVE_DATE`, in `YYYY-MM-DD`
+form (the same convention as `update_badge_warnings`):
 
 ```bash
-rake update_badge_warnings EFFECTIVE_DATE=YYYY-MM-DD
+EFFECTIVE_DATE=2026-07-31 rake update_baseline_badge_warnings
 ```
 
-This writes `unreported_badge_warning` / `unreported_baseline_badge_warning`
-and `badge_warning_effective_date` to each affected project row.
+On the live site, run it through the Heroku CLI (the `env` prefix sets the
+variable inside the one-off dyno):
+
+```bash
+heroku run --app production-bestpractices -- \
+  env EFFECTIVE_DATE=2026-07-31 bundle exec rake update_baseline_badge_warnings
+```
+
+This writes `unreported_baseline_badge_warning` and
+`badge_warning_effective_date` to each affected project row. It is scoped to
+the baseline levels, so it does not disturb the metal badges.
 
 To verify how many projects have pending warnings:
 
@@ -506,45 +517,43 @@ criteria from display, and close out the version notice.
 
 6. **Recalculate badge percentages and purge the CDN.** After the
    application restarts, the stored `badge_percentage_baseline_*`
-   values in the database are stale — they were computed under the old
+   values in the database are stale; they were computed under the old
    set of active criteria. Projects will be corrected one-by-one as
    their owners save changes, but you must force an immediate bulk
    recalculation so that every project's badge reflects the new active
    criteria right away.
 
-   Create a migration:
+   Run the recalculation task:
 
    ```bash
-   rails generate migration RecalcBaselineBadgePercentages
+   rake recalc_baseline_and_notify_losses
    ```
 
-   Edit the generated file (in `db/migrate/`) to contain:
-
-   ```ruby
-   # frozen_string_literal: true
-
-   class RecalcBaselineBadgePercentages < ActiveRecord::Migration[8.0]
-     def change
-       # Baseline criteria set has changed (futures activated, obsoletes
-       # removed), so stored badge_percentage_baseline_* values are stale.
-       # Recalculate for all projects at all baseline levels.
-       # update_all_badge_percentages also calls FastlyRails.purge_all,
-       # so the CDN cache is cleared and badges update immediately.
-       Project.update_all_badge_percentages(Sections::BASELINE_LEVEL_NAMES)
-     end
-   end
-   ```
-
-   Apply the migration:
+   On the live site, run it through the Heroku CLI:
 
    ```bash
-   rails db:migrate
+   heroku run --app production-bestpractices -- \
+     bundle exec rake recalc_baseline_and_notify_losses
    ```
 
-   `update_all_badge_percentages` calls `FastlyRails.purge_all` on
-   completion, so the CDN badge cache is purged automatically — no
-   manual cache invalidation is needed. The next request for any
-   project's `/baseline` badge will fetch the freshly computed value.
+   Do NOT put this recalculation inside a database migration. It walks every
+   project and saves each one, and inside the single transaction that Rails
+   wraps around a migration, ActiveRecord keeps every touched project row
+   (each is very wide, about 400 columns) alive until the transaction commits.
+   Memory then grows without bound and the dyno is killed (R14/R15, exit 137)
+   partway through; the transaction rolls back, the migration never records,
+   and it re-runs and re-dies on every deploy. The rake task runs outside any
+   wrapping transaction, so each project's own short transaction commits and
+   releases, which keeps memory bounded. (This is exactly why the earlier
+   `RecalcBaselineBadgePercentages` migration was retired to a no-op.)
+
+   `update_all_badge_percentages` purges each project it actually
+   changed from the CDN, through `PurgeCdnProjectJob`, so cache
+   invalidation is automatic and no manual step is needed. The next
+   request for an affected project's `/baseline` badge fetches the
+   freshly computed value. Projects the recalculation did not change
+   keep their cached badges, which is the point: this used to purge the
+   whole cache every time.
 
    **Badge-loss notifications are sent automatically.** For each project
    whose badge level dropped, `update_all_badge_percentages` records the

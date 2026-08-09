@@ -161,6 +161,29 @@ class UserTest < ActiveSupport::TestCase
     assert_equal 'CANNOT_DECRYPT', u.email_if_decryptable
   end
 
+  # deliverable_email? is the one place we decide whether an address can
+  # be mailed at all, so that a caller deciding whether to send cannot
+  # disagree with the mailer doing the sending.  Each rejection below is
+  # a reason a mailer already declined to send; see
+  # docs/warning_failures.md.
+  test 'deliverable_email? accepts a usable address' do
+    assert_predicate users(:test_user), :deliverable_email?
+  end
+
+  test 'deliverable_email? rejects a missing address' do
+    assert_not_predicate User.new, :deliverable_email?
+  end
+
+  test 'deliverable_email? rejects an address that will not decrypt' do
+    assert_not_predicate StubUserEmail.new, :deliverable_email?
+  end
+
+  test 'deliverable_email? rejects an address without an at sign' do
+    u = users(:test_user)
+    u.email = 'no-at-sign'
+    assert_not_predicate u, :deliverable_email?
+  end
+
   test 'Data model encrypted email addresses and blind index keys work' do
     # We precompute the user data fixtures, and it's possible we got it wrong.
     # Walk through the data set to do sanity checks for each value.
@@ -258,6 +281,32 @@ class UserTest < ActiveSupport::TestCase
            "Nonexistent avg: #{nonexistent_avg.round(6)}s"
   end
 
+  test 'find_unactivated_by_valid_token returns user with valid token' do
+    user = users(:test_user_not_active)
+    user.create_activation_digest
+    user.save!
+    assert_equal user, User.find_unactivated_by_valid_token(user.email, user.activation_token)
+  end
+
+  test 'find_unactivated_by_valid_token returns nil with invalid token' do
+    user = users(:test_user_not_active)
+    user.create_activation_digest
+    user.save!
+    assert_nil User.find_unactivated_by_valid_token(user.email, 'invalid_token')
+  end
+
+  test 'find_unactivated_by_valid_token returns nil for non-existent email' do
+    assert_nil User.find_unactivated_by_valid_token('nobody@example.com', 'any_token')
+  end
+
+  test 'find_unactivated_by_valid_token returns nil for already-activated user' do
+    user = users(:test_user)
+    assert user.activated?
+    user.create_activation_digest
+    user.save!
+    assert_nil User.find_unactivated_by_valid_token(user.email, user.activation_token)
+  end
+
   test 'local users can create remember tokens' do
     user = users(:test_user) # Local user
     assert_equal 'local', user.provider
@@ -327,6 +376,71 @@ class UserTest < ActiveSupport::TestCase
     assert_equal fake_key, User.send(:email_blind_index_key_hex, env_test: false)
   ensure
     ENV['EMAIL_BLIND_INDEX_KEY'] = saved
+  end
+
+  # --- purge_unactivated_accounts ---
+
+  # Build an old never-activated local user and return it after saving.
+  # Bypasses the auto-timestamp so created_at is in the purgeable past.
+  def old_unactivated_user(email)
+    u = User.new(
+      name: 'Test Bot', email: email,
+      password: 'p@$$w0rd', password_confirmation: 'p@$$w0rd',
+      provider: 'local', activated: false, preferred_locale: 'en'
+    )
+    u.save!
+    u.update_column(:created_at,
+                    (User::UNACTIVATED_ACCOUNT_LIFETIME + 1.day).ago)
+    u
+  end
+
+  test 'purge_unactivated_accounts deletes old unactivated local accounts' do
+    u = old_unactivated_user('purge-old@example.com')
+    User.purge_unactivated_accounts
+    assert_not User.exists?(u.id)
+  end
+
+  test 'purge_unactivated_accounts keeps recently created unactivated accounts' do
+    u = User.create!(
+      name: 'New Bot', email: 'purge-new@example.com',
+      password: 'p@$$w0rd', password_confirmation: 'p@$$w0rd',
+      provider: 'local', activated: false, preferred_locale: 'en'
+    )
+    User.purge_unactivated_accounts
+    assert User.exists?(u.id)
+  end
+
+  test 'purge_unactivated_accounts keeps activated local accounts' do
+    User.purge_unactivated_accounts
+    assert User.exists?(users(:test_user).id)
+  end
+
+  test 'purge_unactivated_accounts keeps old unactivated accounts that own a project' do
+    u = old_unactivated_user('purge-with-project@example.com')
+    project = u.projects.build(
+      name: 'Purge Test Project',
+      description: 'Temporary project for purge test',
+      license: 'MIT',
+      homepage_url: 'https://example.com',
+      repo_url: 'https://example.com/repo',
+      entry_locale: 'en'
+    )
+    project.save!(validate: false)
+    User.purge_unactivated_accounts
+    assert User.exists?(u.id)
+  end
+
+  test 'purge_unactivated_accounts keeps old unactivated accounts with additional rights' do
+    u = old_unactivated_user('purge-with-rights@example.com')
+    AdditionalRight.create!(user_id: u.id, project_id: projects(:one).id)
+    User.purge_unactivated_accounts
+    assert User.exists?(u.id)
+  end
+
+  test 'purge_unactivated_accounts does not touch github accounts' do
+    u = users(:github_user)
+    User.purge_unactivated_accounts
+    assert User.exists?(u.id)
   end
 end
 # rubocop:enable Metrics/ClassLength

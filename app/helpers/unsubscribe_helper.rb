@@ -6,7 +6,7 @@
 
 # Helper module for unsubscribe functionality
 module UnsubscribeHelper
-  # Maximum unsubscribe token age in days from environment (computed once at startup)
+  # Maximum unsubscribe token age in days (from environment, frozen at startup)
   MAX_TOKEN_AGE_DAYS = (ENV['BADGEAPP_UNSUBSCRIBE_DAYS'] || '30').to_i
 
   # Frozen regexes for token/date validation (memory optimization)
@@ -22,10 +22,11 @@ module UnsubscribeHelper
 
   # Unsubscribe secret keys for key rotation (computed once at startup)
   # This allows tokens generated with any of these keys to be valid
-  # Format: comma-separated list of keys, with the first being the current key for generation
+  # Format: comma-separated keys; first key is used for new token generation
   UNSUBSCRIBE_KEYS =
     begin
-      keys_env = ENV['BADGEAPP_UNSUBSCRIBE_KEYS'] || Rails.application.secret_key_base
+      keys_env = ENV['BADGEAPP_UNSUBSCRIBE_KEYS'] ||
+                 Rails.application.secret_key_base
       compute_key_array(keys_env)
     end
 
@@ -34,9 +35,11 @@ module UnsubscribeHelper
   #
   # @param email [String] The email address to generate the token for
   # @param issued_date [String] The date when the email was issued
-  # @param key [String] Optional secret key to use (defaults to first key in UNSUBSCRIBE_KEYS)
-  # @return [String] A secure HMAC-based token
-  def generate_unsubscribe_token(email, issued_date, key: UNSUBSCRIBE_KEYS.first)
+  # @param key [String] secret key (default: first key in UNSUBSCRIBE_KEYS)
+  # @return [String] a secure HMAC-based token
+  def generate_unsubscribe_token(
+    email, issued_date, key: UNSUBSCRIBE_KEYS.first
+  )
     return if email.blank? || issued_date.nil?
     return unless email.is_a?(String) && issued_date.is_a?(String)
 
@@ -50,7 +53,8 @@ module UnsubscribeHelper
   # This method determines current date and generates token with issued date
   #
   # @param email [String] The email address to generate the token for
-  # @return [issued_date_string, token]
+  # @return [Array(String, String)] [issued_date, token] on success
+  # @return [Array(nil, nil)] if email is blank
   def generate_new_unsubscribe_token(email)
     return [nil, nil] if email.blank?
 
@@ -116,9 +120,11 @@ module UnsubscribeHelper
   # @param email [String] The email address to verify the token for
   # @param issued_date [String] The issued date from the request
   # @param token [String] The token to verify
-  # @param keys [Array<String>] Optional keys array to use (defaults to UNSUBSCRIBE_KEYS)
-  # @return [Boolean] True if the token is valid and within time window
-  def verify_unsubscribe_token?(email, issued_date, token, keys: UNSUBSCRIBE_KEYS)
+  # @param keys [Array<String>] keys to try (default: UNSUBSCRIBE_KEYS)
+  # @return [Boolean] true if the token is valid and within time window
+  def verify_unsubscribe_token?(
+    email, issued_date, token, keys: UNSUBSCRIBE_KEYS
+  )
     return false if email.blank? || token.blank? || issued_date.blank?
     return false if keys.blank?
 
@@ -132,7 +138,7 @@ module UnsubscribeHelper
   private
 
   # Security: Try verification with each key in the array
-  # This supports key rotation - tokens generated with any of the keys will be valid
+  # Supports key rotation: tokens valid with any key in the array
   #
   # @param email [String] The email address to verify the token for
   # @param issued_date [String] The issued date from the request
@@ -148,7 +154,9 @@ module UnsubscribeHelper
       next if expected_token.nil?
 
       # Security: Use constant-time comparison to prevent timing attacks
-      return true if ActiveSupport::SecurityUtils.secure_compare(expected_token, token)
+      secure = ActiveSupport::SecurityUtils
+               .secure_compare(expected_token, token)
+      return true if secure
     end
 
     # If we get here, none of the keys worked

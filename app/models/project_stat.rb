@@ -30,7 +30,7 @@ class ProjectStat < ApplicationRecord
   BADGE_LEVELS = (0..(Sections::METAL_LEVEL_NAMES.length - 1))
 
   # Baseline badge level identifiers (1=baseline-1, 2=baseline-2, 3=baseline-3)
-  # Derived from Sections::BASELINE_LEVEL_NAMES so adding a level auto-propagates.
+  # Derived from Sections::BASELINE_LEVEL_NAMES; new levels auto-propagate.
   BASELINE_BADGE_LEVELS = (1..Sections::BASELINE_LEVEL_NAMES.length)
 
   # NOTE: The constants below are for clarity.  Don't just change them,
@@ -41,7 +41,10 @@ class ProjectStat < ApplicationRecord
 
   before_create :stamp
 
-  # Stamp (fill in) the current values into a ProjectStat. Uses database.
+  # Stamps (fills in) current aggregate values into this ProjectStat record.
+  # Called automatically via before_create; wraps all DB reads in a transaction
+  # to ensure a consistent snapshot.
+  # @return [ProjectStat] self, to support method chaining
   # rubocop:disable Metrics/AbcSize, Metrics/MethodLength, Metrics/BlockLength
   def stamp
     # Use a transaction to get values from a single consistent point in time.
@@ -201,7 +204,9 @@ class ProjectStat < ApplicationRecord
   def self.baseline_percent_field_description(level, percentage)
     level_i = level.to_i
     percentage_i = percentage.to_i
-    return "Bad baseline level #{level}" if BASELINE_BADGE_LEVELS.exclude?(level_i)
+    if BASELINE_BADGE_LEVELS.exclude?(level_i)
+      return "Bad baseline level #{level}"
+    end
 
     level_name = I18n.t("projects.form_early.level.baseline-#{level_i}")
     if percentage_i == 100

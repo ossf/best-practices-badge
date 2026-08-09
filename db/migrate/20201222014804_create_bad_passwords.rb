@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright CII Best Practices badge contributors
+# Copyright OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
 class CreateBadPasswords < ActiveRecord::Migration[5.2]

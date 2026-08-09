@@ -1,5 +1,5 @@
 // Copyright 2015-2017, the Linux Foundation, IDA, and the
-// CII Best Practices badge contributors
+// OpenSSF Best Practices badge contributors
 // SPDX-License-Identifier: MIT
 //=depend_on criteria.yml
 //=depend_on baseline_criteria.yml
@@ -12,6 +12,18 @@
 //=depend_on translation.pt-BR.yml
 //=depend_on translation.ru.yml
 //=depend_on translation.sw.yml
+
+// This ERB template is the server→client bridge for criteria data (see
+// the pipeline documented in config/initializers/00_criteria_hash.rb).
+// It is processed once per asset compilation (not per request).
+// The two globals it defines are consumed by project-form.js:
+//
+//   CRITERIA_HASH_FULL: criteria definitions with per-locale translations,
+//                       built from CriteriaHash via Criteria.for_js
+//   TRANSLATION_HASH_FULL: UI string translations via Translations.for_js
+//
+// The //=depend_on directives above tell Sprockets to recompile this file
+// when any of the listed source files change.
 
 CRITERIA_HASH_FULL = <%= Criteria.for_js.to_json %>;
 TRANSLATION_HASH_FULL = <%= Translations.for_js.to_json %>

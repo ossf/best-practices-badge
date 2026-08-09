@@ -20,7 +20,7 @@
     </li>
   <% end %>
 </ul>
-<%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>
+<%= render 'shared/pagination', pagy: @pagy %>
 
 <% if current_user&.admin? %>
 <h2 class>New Search</h2>

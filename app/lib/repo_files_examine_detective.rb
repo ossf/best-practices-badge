@@ -29,19 +29,22 @@ class RepoFilesExamineDetective < Detective
   # Contribution should be longer to be considered useful.
   CONTRIBUTION_MIN_SIZE = 100
 
+  EMPTY = [].freeze
+
   # Given an enumeration of fso info hashes, return the fso info for files
   # that match the regex name pattern and are at least minimum_size in length.
+  # Returns EMPTY when @top_level is nil (GitHub API returned 404).
   def files_named(name_pattern, minimum_size)
-    @top_level.select do |fso|
+    @top_level&.select do |fso|
       fso['type'] == 'file' && fso['name'].match(name_pattern) &&
         fso['size'] >= minimum_size
-    end
+    end || EMPTY
   end
 
   # Return first entry iff there's a top-level directory matching name_pattern;
   # if not found, returns nil
   def directory_named(name_pattern)
-    @top_level.find do |fso|
+    @top_level&.find do |fso|
       fso['type'] == 'dir' && fso['name'].match(name_pattern)
     end
   end
@@ -95,8 +98,9 @@ class RepoFilesExamineDetective < Detective
 
     @results = {}
 
-    # Top_level is iterable, contains a hash with name, size, type (file|dir).
-    @top_level = repo_files.get_info('/')
+    # nil when GitHub returns 404 (empty/private/deleted repo, transient error);
+    # an array of fso hashes when the scan succeeded.
+    @top_level = repo_files.get_info('/', not_found_result: nil)
 
     # TODO: Look in subdirectories.
 
@@ -140,11 +144,19 @@ class RepoFilesExamineDetective < Detective
   end
 
   # Check for license files and set both metal and baseline criteria
+  # rubocop:disable Metrics/MethodLength
   def check_license_files
+    # Use forced confidence (5) for UNMET only when @top_level is non-empty,
+    # confirming we actually scanned the repo and found no license file.
+    # An empty @top_level may mean the GitHub API returned 404 for reasons
+    # other than genuine absence (empty repo, private repo accessed without
+    # auth, transient failure) — in those cases low confidence avoids
+    # overriding a valid user-set "Met" value with a spurious "Unmet".
+    unmet_confidence = @top_level.nil? ? 1 : 5
     determine_results(
       :license_location_status,
       /\A([A-Za-z0-9]+-)?(license|copying)(\.md|\.txt)?\Z/i,
-      NONTRIVIAL_MIN_SIZE, 'license location', confidence: { unmet: 5 }
+      NONTRIVIAL_MIN_SIZE, 'license location', confidence: { unmet: unmet_confidence }
     )
 
     # If there's a LICENSES directory, then license_location probably met.
@@ -156,6 +168,7 @@ class RepoFilesExamineDetective < Detective
 
     set_baseline_license_status
   end
+  # rubocop:enable Metrics/MethodLength
 
   # Set baseline license-file-presence criteria if license location is met
   # rubocop:disable Metrics/MethodLength
@@ -167,8 +180,9 @@ class RepoFilesExamineDetective < Detective
         explanation: I18n.t('detectives.repo_files.license_found')
       }
     else
+      license_confidence = @results[:license_location_status][:confidence]
       @results[:osps_le_03_01_status] = {
-        value: CriterionStatus::UNMET, confidence: 5,
+        value: CriterionStatus::UNMET, confidence: license_confidence,
         explanation: I18n.t('detectives.repo_files.license_not_found')
       }
       @results[:osps_le_03_02_status] = {

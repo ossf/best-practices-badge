@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'test_helper'
+require 'minitest/mock'
 
 # rubocop:disable Metrics/ClassLength
 class UsersControllerTest < ActionDispatch::IntegrationTest
@@ -468,123 +469,151 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   # Unit tests for search_users_by_lists
   test 'search_users_by_lists returns user IDs for valid names' do
     controller = UsersController.new
-    result = controller.send(:search_users_by_lists, 'Test', nil)
-    assert_nil result[:error]
-    assert_not_empty result[:user_ids]
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, 'Test', nil)
+      assert_nil result[:error]
+      assert_not_empty result[:user_ids]
+    end
   end
 
   test 'search_users_by_lists returns user IDs for valid emails' do
     controller = UsersController.new
-    result = controller.send(:search_users_by_lists, nil, 'melissa@example.com')
-    assert_nil result[:error]
-    assert_equal 1, result[:user_ids].size
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, nil, 'melissa@example.com')
+      assert_nil result[:error]
+      assert_equal 1, result[:user_ids].size
+    end
   end
 
   test 'search_users_by_lists handles blank lines' do
     controller = UsersController.new
-    result = controller.send(:search_users_by_lists, "Test\n\n  \nMark", nil)
-    assert_nil result[:error]
-    assert_not_empty result[:user_ids]
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, "Test\n\n  \nMark", nil)
+      assert_nil result[:error]
+      assert_not_empty result[:user_ids]
+    end
   end
 
   test 'search_users_by_lists returns error for invalid UTF-8 in names' do
-    controller = UsersController.new
     invalid_utf8 = "\xFF\xFE"
-    result = controller.send(:search_users_by_lists, invalid_utf8, nil)
-    assert_equal 'Invalid UTF-8 in name search', result[:error]
-    assert_empty result[:user_ids]
+    controller = UsersController.new
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, invalid_utf8, nil)
+      assert_equal 'Invalid UTF-8 in name search', result[:error]
+      assert_empty result[:user_ids]
+    end
   end
 
   test 'search_users_by_lists returns error for invalid UTF-8 in emails' do
-    controller = UsersController.new
     invalid_utf8 = "\xFF\xFE"
-    result = controller.send(:search_users_by_lists, nil, invalid_utf8)
-    assert_equal 'Invalid UTF-8 in email search', result[:error]
-    assert_empty result[:user_ids]
+    controller = UsersController.new
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, nil, invalid_utf8)
+      assert_equal 'Invalid UTF-8 in email search', result[:error]
+      assert_empty result[:user_ids]
+    end
   end
 
   test 'search_users_by_lists returns error for invalid email format' do
     controller = UsersController.new
-    result = controller.send(:search_users_by_lists, nil, 'not-an-email')
-    assert_includes result[:error], 'Invalid email format'
-    assert_empty result[:user_ids]
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, nil, 'not-an-email')
+      assert_includes result[:error], 'Invalid email format'
+      assert_empty result[:user_ids]
+    end
   end
 
   test 'search_users_by_lists returns error when too many results from names' do
     controller = UsersController.new
-    # Use a low limit to trigger too many results
-    # "%" wildcard matches multiple users in our fixtures
-    result = controller.send(:search_users_by_lists, '%', nil, 2)
-    assert_includes result[:error], 'Too many results'
-    assert_empty result[:user_ids]
+    controller.stub(:current_user, @admin) do
+      # Use a low limit to trigger too many results
+      # "%" wildcard matches multiple users in our fixtures
+      result = controller.send(:search_users_by_lists, '%', nil, 2)
+      assert_includes result[:error], 'Too many results'
+      assert_empty result[:user_ids]
+    end
   end
 
   test 'search_users_by_lists returns error when too many results from emails' do
-    controller = UsersController.new
-    # Use multiple emails and a low limit to trigger too many results
     emails = "melissa@example.com\nmark@example.com\ngithub-user@example.com"
-    result = controller.send(:search_users_by_lists, nil, emails, 2)
-    assert_includes result[:error], 'Too many results'
-    assert_empty result[:user_ids]
+    controller = UsersController.new
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, nil, emails, 2)
+      assert_includes result[:error], 'Too many results'
+      assert_empty result[:user_ids]
+    end
   end
 
   test 'search_users_by_lists deduplicates results' do
     controller = UsersController.new
-    # Search for the same user by name and email
-    result = controller.send(:search_users_by_lists,
-                             @user.name,
-                             @user.email)
-    assert_nil result[:error]
-    # Should only return one ID even though user matches both criteria
-    assert_equal 1, result[:user_ids].size
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, @user.name, @user.email)
+      assert_nil result[:error]
+      # Should only return one ID even though user matches both criteria
+      assert_equal 1, result[:user_ids].size
+    end
   end
 
   test 'search_users_by_lists returns empty array when no matches' do
     controller = UsersController.new
-    result = controller.send(:search_users_by_lists,
-                             'NonexistentUser12345',
-                             'nonexistent@example.com')
-    assert_nil result[:error]
-    assert_empty result[:user_ids]
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists,
+                               'NonexistentUser12345',
+                               'nonexistent@example.com')
+      assert_nil result[:error]
+      assert_empty result[:user_ids]
+    end
   end
 
   test 'search_users_by_lists handles nil inputs' do
     controller = UsersController.new
-    result = controller.send(:search_users_by_lists, nil, nil)
-    assert_nil result[:error]
-    assert_empty result[:user_ids]
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists, nil, nil)
+      assert_nil result[:error]
+      assert_empty result[:user_ids]
+    end
   end
 
   test 'search_email extracts email from Fullname <email> format' do
     controller = UsersController.new
-    # Test with "Fullname <email@domain>" format
-    result = controller.send(:search_users_by_lists,
-                             nil,
-                             'Melissa User <melissa@example.com>')
-    assert_nil result[:error]
-    assert_equal 1, result[:user_ids].size
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists,
+                               nil,
+                               'Melissa User <melissa@example.com>')
+      assert_nil result[:error]
+      assert_equal 1, result[:user_ids].size
+    end
   end
 
   test 'search_email handles malformed > without <' do
     controller = UsersController.new
-    # Test with ">" but no "<" - should just remove the ">"
-    result = controller.send(:search_users_by_lists,
-                             nil,
-                             'melissa@example.com>')
-    assert_nil result[:error]
-    assert_equal 1, result[:user_ids].size
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists,
+                               nil,
+                               'melissa@example.com>')
+      assert_nil result[:error]
+      assert_equal 1, result[:user_ids].size
+    end
   end
 
   test 'search_users_by_lists handles CRLF line endings' do
     controller = UsersController.new
-    # Test with Windows-style CRLF (\r\n) line endings
-    # The \r should be stripped by .strip
-    result = controller.send(:search_users_by_lists,
-                             "Test\r\nMark\r\n",
-                             "melissa@example.com\r\ngithub-user@example.com\r\n")
-    assert_nil result[:error]
-    assert_not_empty result[:user_ids]
-    # Should find users despite the \r characters
+    controller.stub(:current_user, @admin) do
+      result = controller.send(:search_users_by_lists,
+                               "Test\r\nMark\r\n",
+                               "melissa@example.com\r\ngithub-user@example.com\r\n")
+      assert_nil result[:error]
+      assert_not_empty result[:user_ids]
+    end
+  end
+
+  test 'search_users_by_lists returns empty for non-admin' do
+    controller = UsersController.new
+    controller.stub(:current_user, users(:test_user)) do
+      result = controller.send(:search_users_by_lists, 'Test', nil)
+      assert_nil result[:error]
+      assert_empty result[:user_ids]
+    end
   end
 
   test 'Admin search with no matches returns empty list, not all users' do

@@ -8,11 +8,12 @@ Technical Steering Committee (TSC) are:
 * David A. Wheeler (@david-a-wheeler) [The Linux Foundation]
 * Christopher "CRob" Robinson (@SecurityCRob) [The Linux Foundation]
 * Tony Hansen (@TonyLHansen) [AT&T]
+* Toine Siebelink (@toine-at-est) [Ericsson]
 
 Members represent themselves, not their employers.
 We note employers because we want to ensure that no single organization
 controls this project (the Linux Foundation represents other organizations
-so we aren't worrying about that).
+so we consider the Linux Foundation *itself* representing many organizations).
 
 The initial "@" indicates the GitHub id.
 

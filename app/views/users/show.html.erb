@@ -22,7 +22,7 @@
     <br><br>
     <h2><%= t '.projects_owned' %></h2>
     <%= render 'projects/table', projects: @projects, locale: I18n.locale %>
-    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>
+    <%= render 'shared/pagination', pagy: @pagy %>
   <% end %>
 
   <% if @projects_additional_rights.present? %>

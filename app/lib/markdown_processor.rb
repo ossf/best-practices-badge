@@ -8,6 +8,8 @@
 # This tries to *avoid* the more costly process of invoking the
 # markdown processor, then calls the real markdown processor where necessary.
 
+require 'security_utils'
+
 # rubocop:disable Metrics/ModuleLength
 module MarkdownProcessor
   # Try to avoid calling markdown processor, then call if necessary.
@@ -173,6 +175,8 @@ module MarkdownProcessor
   # We must NOT match blank lines (two consecutive newlines) as that is
   # a paragraph break in markdown.
   # rubocop:disable Style/RegexpLiteral
+  # SECURITY: This regex MUST NOT match '<' or '&' (outside of valid entities)
+  # because the result is marked .html_safe in self.render.
   MARKDOWN_UNNECESSARY = %r{
     \A
     #{MARKDOWN_UNNECESSARY_LINE.source}
@@ -180,6 +184,13 @@ module MarkdownProcessor
     \z
   }xu
   # rubocop:enable Style/RegexpLiteral
+
+  # SECURITY: Fail-fast smoke test to ensure regex rejects dangerous tags.
+  # This runs once when the class is loaded.
+  SecurityUtils.security_assertion(
+    !'<script>'.match?(MARKDOWN_UNNECESSARY),
+    'MARKDOWN_UNNECESSARY regex has a bypass!'
+  )
 
   # The following pattern *only* matches simple bare URLs, optionally
   # prefixed with "simple" text, so that

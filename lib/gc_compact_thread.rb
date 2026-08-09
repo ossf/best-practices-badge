@@ -286,6 +286,12 @@ module GcCompactThread
   # Categorize a string by its content pattern
   # rubocop:disable Metrics/CyclomaticComplexity, Metrics/MethodLength
   def categorize_string_content(str)
+    # Classify as 'OTHER' any string whose encoding can't interoperate
+    # with US-ASCII regexps (UTF-32LE, UTF-32BE, UTF-16LE, etc.).
+    # Most of the time this isn't a problem, but omitting this check will
+    # occasionally lead to sudden failures.
+    return 'OTHER' unless str.encoding.ascii_compatible?
+
     preview = str[0, 200]
     case preview
     when /\A<!DOCTYPE html>/i

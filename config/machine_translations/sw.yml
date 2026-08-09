@@ -200,7 +200,7 @@ sw:
     form_early:
       badge_intro:
         description: Miradi inayofuata mazoea bora hapa chini inaweza kujihakikisha kwa hiari na kuonyesha kuwa wamepata nishani ya mazoea bora ya Open Source Security Foundation (OpenSSF).
-        details_html: Hakuna seti ya mazoea yawezayo kuhakikisha kuwa programu haitakuwa na kasoro au udhaifu; hata mbinu rasmi zinaweza kushindwa ikiwa vipimo au dhana ni sahihi. Wala hakuna seti ya mazoea yawezayo kuhakikisha kuwa mradi utaendelea kuwa na jamii ya maendeleo yenye afya na inayofanya kazi vizuri. Hata hivyo, kufuata mazoea bora kunaweza kusaidia kuboresha matokeo ya miradi. Kwa mfano, baadhi ya mazoea huwezesha ukaguzi wa watu wengi kabla ya kutolewa, ambayo inaweza kusaidia kupata udhaifu wa kiufundi ambao vinginevyo ni vigumu kupata na kusaidia kujenga uaminifu na hamu ya mwingiliano wa kurudia kati ya wasanidi programu kutoka makampuni tofauti. Ili kupata nishani, vigezo vyote vya LAZIMA na LAZIMA WALA USIWAHI lazima vifuatwe, vigezo vyote vya INAPASWA lazima vifuatwe AU visivyo fufufutiliana na thibitisho, <em>na</em> vigezo vyote vya PENDEKEZA lazima vifuatwe AU visivyo fufufutiliana (tunataka vifikiwe angalau). Ikiwa unataka kuingiza maandishi ya thibitisho kama maoni ya jumla, badala ya kuwa maelezo ya busara kwamba hali ni inakubaliwa, anza kifungu cha maandishi na '//' ikifuatiwa na nafasi. Maoni ni karibu kupitia <a href="https://github.com/coreinfrastructure/best-practices-badge">tovuti ya GitHub kama masuala au maombi ya kuvuta</a> Kuna pia <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">orodha ya barua pepe kwa majadiliano ya jumla</a>.<br /><br /> Tunafuraha kutoa habari katika lugha nyingi, hata hivyo, ikiwa kuna mgongano au kutokuwa na usawa kati ya tafsiri, toleo la Kiingereza ni toleo lenye mamlaka.
+        details_html: Hakuna seti ya mazoea yawezayo kuhakikisha kuwa programu haitakuwa na kasoro au udhaifu; hata mbinu rasmi zinaweza kushindwa ikiwa vipimo au dhana ni sahihi. Wala hakuna seti ya mazoea yawezayo kuhakikisha kuwa mradi utaendelea kuwa na jamii ya maendeleo yenye afya na inayofanya kazi vizuri. Hata hivyo, kufuata mazoea bora kunaweza kusaidia kuboresha matokeo ya miradi. Kwa mfano, baadhi ya mazoea huwezesha ukaguzi wa watu wengi kabla ya kutolewa, ambayo inaweza kusaidia kupata udhaifu wa kiufundi ambao vinginevyo ni vigumu kupata na kusaidia kujenga uaminifu na hamu ya mwingiliano wa kurudia kati ya wasanidi programu kutoka makampuni tofauti. Ili kupata nishani, vigezo vyote vya LAZIMA na LAZIMA WALA USIWAHI lazima vifuatwe, vigezo vyote vya INAPASWA lazima vifuatwe AU visivyo fufufutiliana na thibitisho, <em>na</em> vigezo vyote vya PENDEKEZA lazima vifuatwe AU visivyo fufufutiliana (tunataka vifikiwe angalau). Ikiwa unataka kuingiza maandishi ya thibitisho kama maoni ya jumla, badala ya kuwa maelezo ya busara kwamba hali ni inakubaliwa, anza kifungu cha maandishi na '//' ikifuatiwa na nafasi. Maoni ni karibu kupitia <a href="https://github.com/ossf/best-practices-badge">tovuti ya GitHub kama masuala au maombi ya kuvuta</a> Kuna pia <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">orodha ya barua pepe kwa majadiliano ya jumla</a>.<br /><br /> Tunafuraha kutoa habari katika lugha nyingi, hata hivyo, ikiwa kuna mgongano au kutokuwa na usawa kati ya tafsiri, toleo la Kiingereza ni toleo lenye mamlaka.
       level:
         '0': Kupita
         0_html: Hizi ni vigezo vya kiwango cha %{passing}. Unaweza pia kuangalia vigezo vya kiwango cha %{silver} au %{gold}.
@@ -219,7 +219,7 @@ sw:
         badge_alt: Kiwango cha nishani kwa mradi %{id} ni %{level}
         description_2: 'Hapa ni jinsi ya kuiweka:'
         details_html: Unaweza kuonyesha hali ya nishani yako kwa kuweka hii katika faili yako ya markdown:<br /> %{markdown_embedding}<br /> au kwa kuweka hii katika HTML yako:<br /> %{html_embedding}<br />
-        editing_description_html: <strong>Tafadhali 'wasilisha' mara kwa mara</strong> kuhifadhi kazi yako (unaweza kurudi na kuhariri zaidi baadaye). <br><br> Ikiwa unahitaji msaada, una swali, au unaona hitilafu, tafadhali <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues" target="_blank" rel="noopener">wasilisha suala</a></em>.
+        editing_description_html: <strong>Tafadhali 'wasilisha' mara kwa mara</strong> kuhifadhi kazi yako (unaweza kurudi na kuhariri zaidi baadaye). <br><br> Ikiwa unahitaji msaada, una swali, au unaona hitilafu, tafadhali <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">wasilisha suala</a></em>.
       got_baseline_badge:
         description_1: 'Ikiwa huu ni mradi wako, tafadhali onyesha hali ya nishani yako ya msingi kwenye ukurasa wa mradi wako! Hali ya nishani ya msingi inaonekana kama hii:'
         badge_alt: Kiwango cha nishani ya msingi kwa mradi %{id} ni %{level}
@@ -338,7 +338,7 @@ sw:
       Ikiwa una maswali, au unahitaji msaada, tafadhali wasiliana na
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       au wasilisha suala kwenye
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (bonyeza kwenye "suala jipya").
       </p>
       <p>
@@ -368,7 +368,7 @@ sw:
       Ikiwa una maswali, au unahitaji msaada, tafadhali wasiliana na
       cii-badges-questions@lists.coreinfrastructure.org
       au wasilisha suala kwenye
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (bonyeza kwenye "suala jipya").
 
       Hatutakutumia tangazo kamwe, na tutakutumia
@@ -419,7 +419,7 @@ sw:
       Ikiwa una maswali, au unahitaji msaada, tafadhali wasiliana na
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       au wasilisha suala kwenye
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (bonyeza kwenye "suala jipya").
       </p>
 
@@ -459,7 +459,7 @@ sw:
       Ikiwa una maswali, au unahitaji msaada, tafadhali wasiliana na
       cii-badges-questions@lists.coreinfrastructure.org
       au wasilisha suala kwenye
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (bonyeza kwenye "suala jipya").
 
       Hatutumi vikumbusho ikiwa unaendelea kusasisha ingizo lako la nishani,
@@ -484,11 +484,11 @@ sw:
       ikijumuisha kuongeza URL zinazonyesha maelezo zaidi.
       Ikiwa una mapendekezo ya jinsi ya kuboresha vigezo au
       programu ya wavuti ya nishani, tafadhali wasilisha suala kwenye:
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       Moja ya malengo yetu ni kuhimiza miradi kufanya maboresho.
       Tunaweka baadhi ya ripoti hizi kwenye wiki ya umma; tafadhali tuambie
       ikiwa HUTAKI mabadiliko yachapishwe hadharani kwenye
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       Asante, na hongera.
     in_markdown_add: 'Katika markdown unaweza kuongeza hii:'
     in_html_add: 'Katika HTML unaweza kuongeza hii:'
@@ -704,7 +704,7 @@ sw:
         details: Wazo ni kuonyesha watumiaji jinsi ya kuanza na kufanya programu ifanye chochote. Hii ni muhimu sana kwa watumiaji watarajiwa kuanza.
       assurance_case:
         description: 'Mradi LAZIMA utoe kesi ya uhakika inayosababisha kwa nini mahitaji yake ya usalama yanakidhi. Kesi ya uhakika LAZIMA ijumuishe: maelezo ya muundo wa tishio, utambulisho wazi wa mipaka ya kuaminiwa, hoja kwamba kanuni za muundo salama zimetumika, na hoja kwamba udhaifu wa kawaida wa utekelezaji wa usalama umekabiliana nao.'
-        details: Kesi ya uhakika ni "mwili wa ushahidi ulioandikwa unaotoa hoja inayoshawishi na halali kwamba seti maalum ya madai muhimu kuhusu mali za mfumo ziko na sababu za kutosha kwa programu maalum katika mazingira maalum" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Uhakika wa Programu Kwa kutumia Miundo ya Kesi ya Uhakika Iliyopangwa", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Mipaka ya kuaminiwa ni mipaka ambapo data au utekelezaji hubadilisha kiwango chake cha kuaminiwa, k.m., mipaka ya seva katika programu ya kawaida ya wavuti. Ni ya kawaida kuorodhesha kanuni za muundo salama (kama vile Saltzer na Schroeer) na udhaifu wa kawaida wa utekelezaji wa usalama (kama vile OWASP top 10 au CWE/SANS top 25), na kuonyesha jinsi kila moja unavyokabiliana. <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">Kesi ya uhakika ya BadgeApp</a> inaweza kuwa mfano wenye manufaa. Hii inahusiana na documentation_security, documentation_architecture, na implement_secure_design.
+        details: Kesi ya uhakika ni "mwili wa ushahidi ulioandikwa unaotoa hoja inayoshawishi na halali kwamba seti maalum ya madai muhimu kuhusu mali za mfumo ziko na sababu za kutosha kwa programu maalum katika mazingira maalum" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Uhakika wa Programu Kwa kutumia Miundo ya Kesi ya Uhakika Iliyopangwa", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Mipaka ya kuaminiwa ni mipaka ambapo data au utekelezaji hubadilisha kiwango chake cha kuaminiwa, k.m., mipaka ya seva katika programu ya kawaida ya wavuti. Ni ya kawaida kuorodhesha kanuni za muundo salama (kama vile Saltzer na Schroeer) na udhaifu wa kawaida wa utekelezaji wa usalama (kama vile OWASP top 10 au CWE/SANS top 25), na kuonyesha jinsi kila moja unavyokabiliana. <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">Kesi ya uhakika ya BadgeApp</a> inaweza kuwa mfano wenye manufaa. Hii inahusiana na documentation_security, documentation_architecture, na implement_secure_design.
       documentation_current:
         description: Mradi LAZIMA ufanye jitihada ya kuweka nyaraka kulingana na toleo la sasa la matokeo ya mradi (ikiwa ni pamoja na programu inayozalishwa na mradi). Kasoro yoyote <em>inayojulikana</em> ya nyaraka inayofanya isilingane LAZIMA irekebishwe. Ikiwa nyaraka kwa ujumla ni za sasa, lakini kwa makosa inajumuisha baadhi ya maelezo ya zamani ambayo sio ya kweli tena, ichukue tu kama kasoro, kisha ifuatilie na urekebishe kama kawaida.
         details: Nyaraka ZINAWEZA kujumuisha habari kuhusu tofauti au mabadiliko kati ya matoleo ya programu na/au kuunganisha kwa matoleo ya zamani ya nyaraka. Kusudi la kigezo hiki ni kwamba jitihada inafanywa ili kuweka nyaraka kulingana, siyo kwamba nyaraka lazima ziwe kamili.
@@ -1112,7 +1112,7 @@ sw:
     intro_p05_html: "<p> Mazoea haya bora yameundwa ili:</p>"
     intro_p06_html: "<ol> <li>kuhamasisha miradi kufuata mazoea bora,</li> <li>kusaidia miradi mipya kugundua mazoea hayo ni yapi, na</li> <li>kusaidia watumiaji kujua ni miradi ipi inayofuata mazoea bora (ili watumiaji waweze kupendelea miradi kama hiyo).</li> </ol>"
     intro_p07_html: '<p> Msemo "mazoea bora" unamaanisha "njia au seti ya taratibu inayopendelewa au kuchukuliwa kuwa kiwango ndani ya shirika, sekta, n.k." (chanzo: <a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>). Vigezo hivi ni kile tunachosadiki kuwa "vinavyopendelewa au kuchukuliwa kuwa kiwango" katika jamii pana ya FLOSS.</p>'
-    intro_p08_html: <p> Kwa maelezo zaidi ya jinsi vigezo hivi vilivyoundwa, ona <a href="https://github.com/coreinfrastructure/best-practices-badge" >tovuti ya GitHub ya nishani ya Mazoea Bora ya OpenSSF</a>.</p> <p> Unaweza pia <a href="/sw/criteria">kuona vigezo kamili</a>.</p>
+    intro_p08_html: <p> Kwa maelezo zaidi ya jinsi vigezo hivi vilivyoundwa, ona <a href="https://github.com/ossf/best-practices-badge" >tovuti ya GitHub ya nishani ya Mazoea Bora ya OpenSSF</a>.</p> <p> Unaweza pia <a href="/sw/criteria">kuona vigezo kamili</a>.</p>
     structure_p01_html: "<p></p> <h2 id='criteria_structure'>Muundo wa Vigezo</h2>"
     structure_p02_html: "<p> Vigezo vya mazoea bora vimegawanywa katika viwango vitatu:<ul> <li><b>Kupita</b> inazingatia mazoea bora ambayo miradi ya FLOSS inayoendeshwa vizuri kwa kawaida tayari inafuata. Kupata nishani ya kupita ni ushindi; wakati wowote mmoja tu karibu asilimia 10 ya miradi yanayofuata nishani hufikia kiwango cha kupita. <li><b>Fedha</b> ni seti ya vigezo vikali zaidi kuliko kupita lakini inatarajiwa kupatikana na miradi midogo na ya shirika moja. <li><b>Dhahabu</b> ni vikali zaidi kuliko fedha na inajumuisha vigezo ambavyo haviwezi kupatikana na miradi midogo au ya shirika moja. </ul>"
     structure_p03_html: "<p> Kila kigezo kina jina fupi, kinachoonyeshwa kama maandishi ya juu ya juu ndani ya mabano ya mraba baada ya maandishi ya vigezo."
@@ -1124,7 +1124,7 @@ sw:
     automation_p04_html: <p>Hata hivyo, tumekusudia kuipa kipaumbele "kile kinachosomeka", hata kama hakiwezi kufanywa kiotomatiki kwa bei nafuu. Tunapenda vipimo vya kiotomatiki, lakini si kila kitu muhimu kinaweza kufanywa kiotomatiki au kinaweza kufanywa kiotomatiki kwa bei nafuu.</p>
     changes_p01_html: "<p></p> <h2 id='criteria_changes'>Mabadiliko kwa muda</h2>"
     changes_p02_html: <p> Tunatarajia kuwa mazoea haya na vigezo vyao vya kina vitaboreshwa kwa muda. Tunapanga kuongeza vigezo vipya lakini kuviweka alama kama vigezo vya "baadaye", ili miradi iweze kuongeza habari hiyo na kudumisha nishani zao.</p>
-    changes_p03_html: <p> Maoni ni <em>sana</em> yanakaribishwa kupitia <a href="https://github.com/coreinfrastructure/best-practices-badge" >tovuti ya GitHub kama masuala au maombi ya kuvuta</a>. Pia kuna <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">orodha ya barua pepe kwa majadiliano ya jumla</a>.</p>
+    changes_p03_html: <p> Maoni ni <em>sana</em> yanakaribishwa kupitia <a href="https://github.com/ossf/best-practices-badge" >tovuti ya GitHub kama masuala au maombi ya kuvuta</a>. Pia kuna <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">orodha ya barua pepe kwa majadiliano ya jumla</a>.</p>
     keywords_p01_html: "<p></p> <h2 id='keywords'>Maneno muhimu</h2>"
     keywords_p02_html: <p> Maneno muhimu "LAZIMA", "LAZIMA WALA USIWAHI", "INAPASWA", "INAPASWA WALA USIWAHI", na "YAWEZA" katika hati hii yatatafsiriwa kama ilivyoelezwa katika <a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a>. Neno la ziada PENDEKEZA limeongezwa. Kwa muhtasari, maneno haya muhimu yana maana zifuatazo:</p>
     keywords_p03_html: "<ul> <li>Neno LAZIMA ni mahitaji kabisa, na LAZIMA WALA USIWAHI ni marufuku kabisa.</li>"

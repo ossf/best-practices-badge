@@ -1,12 +1,11 @@
 # Configuration file for tool rails_best_practices
 # Note: Inside { } you can use "except_methods:" and "ignored_files:" to omit
 # some checks.
-
-# Equivalent to : --features --spec --without-color --exclude railroader/
-features: true
-spec: true
-without_color: true
-exclude: ["railroader/", "^,.*"]
+#
+# IMPORTANT: This file ONLY controls which checks are enabled and their options.
+# Keys like 'exclude:', 'features:', 'spec:', 'without_color:' are silently
+# ignored by the gem — it tries to load them as check class names, fails, and
+# moves on. Pass those flags on the command line instead (see default.rake).
 
 AddModelVirtualAttributeCheck: { }
 AlwaysAddDbIndexCheck: { }

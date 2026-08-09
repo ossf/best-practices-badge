@@ -13,6 +13,20 @@ In particular, we've met our original key objectives:
 * automation to help fill in some information
 * internationalization
 
+## 2026 goal: analyze baseline vs. metal
+
+We implement OpenSSF baseline *and* the metal criteria.
+This year we intend to compare them and see if we can further merge them.
+This will involve many discussions.
+Our current expectation is that the metal criteria will eventually
+become a superset of the baseline criteria.
+
+Once we've decided what to do, we expect to implement changes in the
+metal series and give projects time to adjust to them; this is
+likely to be the key task in 2027.
+
+Beyond, this we focus on sustainment.
+
 ## Handle pull requests and issues
 
 At this point, we are primarily driven by specific pull requests and
@@ -31,7 +45,6 @@ The following are general goals in the 1-2 year horizon:
 
 * Continue to let others know about the badging program
 * Encourage projects to get & display a badge and/or pursue higher levels
-* Add more automation for filling in projects
 * Add more locales
 * Update the criteria annually as more is learned
 * Reduce monthly hosting costs (without hurting user experience)
@@ -52,8 +65,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 

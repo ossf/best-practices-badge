@@ -23,7 +23,7 @@ class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
     assert_match 'This is not the production system', response.body
     assert_template 'projects/new'
 
-    repo_url = 'https://github.com/coreinfrastructure/best-practices-badge'
+    repo_url = 'https://github.com/ossf/best-practices-badge'
 
     VCR.use_cassette('users_manipulate_test') do
       post '/en/projects', params: {
@@ -114,7 +114,7 @@ class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
 
   test 'logged-in user adds assimilation-official' do
     # Regression test, see:
-    # https://github.com/coreinfrastructure/best-practices-badge/issues/160
+    # https://github.com/ossf/best-practices-badge/issues/160
     # Go to login_path to initialize the session
     get login_path(locale: :en)
     log_in_as @user

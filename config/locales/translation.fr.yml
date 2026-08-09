@@ -28,7 +28,7 @@ fr:
     login_html: S'identifier
     footer_text_html: >-
       <small> <strong>Vous avez besoin d'aide ? Vous avez une
-      question ? Vous voyez un problème ? Merci de <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      question ? Vous voyez un problème ? Merci de <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">reporter un problème</a></em>.</strong>
       Copyright © <a href="https://www.bestpractices.dev" target="_blank"
       rel="noopener">OpenSSF Best Practices Badge a Series of
@@ -571,7 +571,7 @@ fr:
           un commentaire générique, au lieu d'une raison justifiant
           que la situation est acceptable, commencez le bloc de
           texte avec '//' suivi d'un espace. Les commentaires
-          sont les bienvenus via le <a href="https://github.com/coreinfrastructure/best-practices-badge">site
+          sont les bienvenus via le <a href="https://github.com/ossf/best-practices-badge">site
           GitHub en tant que problèmes ou pull requests</a>. Il
           existe également une <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">liste
           de diffusion pour discussion générale</a>. <br /> <br
@@ -595,7 +595,7 @@ fr:
           enregistrer votre travail (vous pouvez toujours revenir
           en arrière et éditer plus tard). <br><br> Si vous avez
           besoin d'aide, voulez poser une question ou voyez un
-          problème, veuillez <em> <a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          problème, veuillez <em> <a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">signaler un problème</a></em>.
         badge_alt: Le niveau de badge pour le projet %{id} est
           %{level}
@@ -877,7 +877,7 @@ fr:
       Si vous avez des questions ou avez besoin d'aide, contactez-nous à
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45.own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       ou reportez un problème sur
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (cliquez sur « nouveau problème »).
       </p>
       <p>
@@ -891,7 +891,7 @@ fr:
       Si vous voulez voir seulement ce qui vous manque, visitez votre soumission puis cliquez sur le bouton près du haut étiqueté « Masquer atteints & N/A ».
       Si vous avez des questions ou avez besoin d'aide, contactez-nous à
       cii-badges-questions@lists.coreinfrastructure.org ou reportez un problème sur
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (cliquez sur « nouveau problème »).
       Nous ne vous enverrons jamais de publicité, et nous ne vous enverrons que rarement des emails. Nous vous enverrons un email pour les évènements importants de la soumission d'un projet de badge, comme quand vous créez une nouvelle soumission de projet de badge, quand votre projet gagne ou perd un badge, ou quand quelqu'un demande la réinitialisation du mot de passe pour votre compte utilisateur. Si votre projet n'a pas de badge, et que vous n'avez pas mis à jour l'entrée du projet pendant au moins 30 jours, nous vous enverrons normalement un rappel d'inactivité environ tous les 30-60 jours. Vous pouvez désactiver ces rappels d'inactivité à tout moment ; il vous suffit d'éditer votre entrée de badge à %{project_info_url}#project_disabled_reminders pour activer la « désactivation du rappel d'inactivité ». Souvenez-vous d'éditer le projet pour lequel vous souhaitez changer cette valeur. Si votre projet a gagné un badge, ou que son entrée de badge a été éditée dans les 30 derniers jours, aucun rappel d'inactivité ne vous sera envoyé.
       Merci pour vos efforts.
@@ -926,12 +926,12 @@ fr:
       l'ajout d'URL qui redirigent vers plus d'informations. Si
       vous avez des suggestions sur la façon d'améliorer les critères
       ou l'application Web du badge, veuillez soumettre un problème
-      sur : https://github.com/coreinfrastructure/best-practices-badge/issues\nL'un
+      sur : https://github.com/ossf/best-practices-badge/issues\nL'un
       de nos objectifs est d'encourager les projets à apporter
       des améliorations. Nous mettons certains de ces rapports
       sur le wiki public ; veuillez nous en informer si vous ne
       souhaitez PAS que les changements soient publiés publiquement
-      à\nhttps://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      à\nhttps://github.com/ossf/best-practices-badge/wiki/Impacts
       \nMerci et félicitations.\n"
     lost_level_message: |-
       Nous sommes désolés, mais votre projet n'a plus le badge « %{old_level} »
@@ -964,7 +964,7 @@ fr:
       Si vous avez des questions ou si vous avez besoin d'aide, veuillez contacter
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       ou reporter un problème à
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (cliquez sur « nouveau problème »).
       </p>
       <p>
@@ -993,7 +993,7 @@ fr:
       puis sélectionnez le bouton près du sommet étiqueté « Masquer atteints & N/A ».
       Si vous avez des questions ou si vous avez besoin d'aide, veuillez contacter
       cii-badges-questions@lists.coreinfrastructure.org ou reporter un problème à
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (cliquez sur « nouveau problème »).
       Nous n'envoyons pas de rappels si vous continuez à mettre à jour votre entrée de badge, et nous envoyons seulement des rappels environ tous les 30-60 jours. Cependant, si vous souhaitez désactiver ces messages de rappel, modifiez votre entrée de badge à %{project_info_url}#project_disabled_reminder
       pour activer la « désactivation du rappel d'inactivité ». Vérifiez que vous éditez le projet de badge, au lieu de seulement le consulter, pour pouvoir changer si vous voulez ou non recevoir le rappel d'inactivité.
@@ -2910,7 +2910,7 @@ fr:
           de conception sécurisés (tels que Saltzer et Schroeer)
           et des faiblesses de sécurité courantes de l'implémentation
           (comme le OWASP top 10 ou le CWE/SANS top 25) et de
-          montrer comment chacun est contré. L'<a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">analyse
+          montrer comment chacun est contré. L'<a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">analyse
           de fiabilité de BadgeApp</a> peut être un exemple utile.
           Ceci est lié à documentation_security, documentation_architecture
           et implement_secure_design.
@@ -3361,7 +3361,7 @@ fr:
       p2_html: |-
         Vous pouvez facilement voir les <a href="/fr/criteria/0">critères pour le badge basique</a>. Plus d'informations sur le programme de badge
         des meilleures pratiques de la OpenSSF sont
-        <a href='https://github.com/coreinfrastructure/best-practices-badge'>disponibles sur GitHub</a>.
+        <a href='https://github.com/ossf/best-practices-badge'>disponibles sur GitHub</a>.
         <a href="/fr/project_stats">Les statistiques des projets</a> et
         <a href="/fr/criteria_stats">les statistiques sur les critères</a> sont
         disponibles.  La <a href="/fr/projects">page des projets</a> liste les
@@ -3648,7 +3648,7 @@ fr:
       Ces critères sont ce que nous pensons être largement « préféré ou considéré comme standard » dans la communauté FLOSS au sens large. </p>
     intro_p08_html: >-
       <p> Pour plus d'informations sur la manière dont ces critères
-      ont été développés, consultez le <a href="https://github.com/coreinfrastructure/best-practices-badge">site
+      ont été développés, consultez le <a href="https://github.com/ossf/best-practices-badge">site
       GitHub du badge des meilleures pratiques OpenSSF</a>. </p>
       <p> Vous pouvez également <a href="/fr/criteria"> voir les
       critères complets</a>. </p>
@@ -3714,7 +3714,7 @@ fr:
       ajouter ces informations et conserver leur badge. </p>
     changes_p03_html: >-
       <p> Les commentaires sont <em>très</em> bienvenus via le
-      <a href="https://github.com/coreinfrastructure/best-practices-badge">site
+      <a href="https://github.com/ossf/best-practices-badge">site
       GitHub en tant que problèmes ou pull request</a>. Il existe
       également une <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges"
       rel="nofollow">liste de diffusion pour une discussion générale</a>.

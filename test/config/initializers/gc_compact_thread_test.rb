@@ -219,5 +219,11 @@ class GcCompactThreadTest < ActiveSupport::TestCase
     other = 'Some random text content'
     assert_equal 'OTHER', GcCompactThread.categorize_string_content(other)
   end
+
+  test 'categorize_string_content returns OTHER for non-ASCII-compatible encoding' do
+    utf32 = '<!DOCTYPE html>'.encode('UTF-32LE')
+    assert_nothing_raised { GcCompactThread.categorize_string_content(utf32) }
+    assert_equal 'OTHER', GcCompactThread.categorize_string_content(utf32)
+  end
 end
 # rubocop:enable Metrics/ClassLength

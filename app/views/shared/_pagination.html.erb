@@ -1,0 +1,21 @@
+<%#
+  Pagination block: pagy's Bootstrap nav bar (which itself shows the first
+  and last page numbers with "..." gaps) plus explicit "First"/"Last" jump
+  links. Expects a local `pagy` (a Pagy instance).
+
+  The First/Last URLs are O(1): the last page derives from the count we
+  already have, and pagy just substitutes the page number into the URL.
+-%>
+<% if pagy.pages > 1 %>
+  <div class="pagination-block">
+    <% unless pagy.page == 1 %>
+      <%= link_to t('pagination.first'), pagy.page_url(:first),
+                  class: 'btn btn-default btn-sm', rel: 'first' %>
+    <% end %>
+    <%== pagy.series_nav(:bootstrap) %>
+    <% unless pagy.page == pagy.last %>
+      <%= link_to t('pagination.last'), pagy.page_url(:last),
+                  class: 'btn btn-default btn-sm', rel: 'last' %>
+    <% end %>
+  </div>
+<% end %>

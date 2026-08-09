@@ -305,20 +305,20 @@ class MachineTranslationFallbackBackend < I18n::Backend::Simple
     result[parent_key][leaf_key.to_sym] = merged
   end
 
-  # Ensure parent key is a hash, logging error if replacing a string value.
+  # Ensure parent key is a hash, replacing any string value if needed.
   # @param result [Hash] the result hash to modify
   # @param parent_key [String] the parent key
-  # @param child_key [String] the child key (for error message)
-  def ensure_parent_hash(result, parent_key, child_key)
+  def ensure_parent_hash(result, parent_key, _child_key = nil)
     existing = result[parent_key]
     return result[parent_key] = ActiveSupport::HashWithIndifferentAccess.new if existing.nil?
     return if existing.is_a?(Hash)
 
-    # Inconsistent data: string value but child has plural key. Log and replace.
-    Rails.logger.error(
-      'MachineTranslationFallbackBackend: inconsistent translation data - ' \
-      "key '#{parent_key}' is string but '#{child_key}' is plural. Replacing with hash."
-    )
+    # Some rails-i18n locale files use plain strings for keys that English
+    # defines as plural hashes (e.g., zh-CN/ja/sw for
+    # errors.messages.too_short). This is expected and harmless.
+    # Chinese and Japanese don't grammatically
+    # distinguish singular and plural, and Swahili has a special class system.
+    # No warning needed, simply deal with it.
     result[parent_key] = ActiveSupport::HashWithIndifferentAccess.new
   end
 

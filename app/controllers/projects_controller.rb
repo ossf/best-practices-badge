@@ -109,6 +109,21 @@ class ProjectsController < ApplicationController
   # Cache control for show action - can be disabled via environment variable
   CACHE_SHOW_PROJECT = ENV['BADGEAPP_CACHE_SHOW_PROJECT'] != 'false'
 
+  # Seconds to cache the unfiltered projects-index total count, avoiding a
+  # redundant COUNT(*) on every index/pagination request (most importantly on
+  # rapid crawler "next page" walks). The displayed total is also invalidated
+  # immediately on project create/destroy (see Project#bust_index_count_cache),
+  # so this TTL mainly bounds cross-process staleness and acts as a backstop.
+  # Override (in seconds) via the BADGEAPP_PROJECTS_COUNT_TTL env var.
+  PROJECTS_COUNT_TTL =
+    (ENV['BADGEAPP_PROJECTS_COUNT_TTL'] || '60').to_i.seconds
+
+  # Index query params that change the WHERE clause, and therefore the count.
+  # When any of these is present we recount instead of using the cached total
+  # (sort and page never affect the count). These mirror the filters applied
+  # in retrieve_projects.
+  COUNT_FILTER_PARAMS = %i[status gteq lteq pq url q ids].freeze
+
   # These are the only allowed values for "sort" (if a value is provided)
   ALLOWED_SORT =
     %w[
@@ -193,8 +208,7 @@ class ProjectsController < ApplicationController
     id user_id name description homepage_url repo_url
     created_at updated_at lock_version
     tiered_percentage badge_percentage_0 badge_percentage_1 badge_percentage_2
-  ].map { |f| quoted_sql_fieldname(f.to_s) }
-                           .join(',').freeze
+  ].map { |f| quoted_sql_fieldname(f.to_s) }.join(',').freeze
 
   # Memory optimization: Pre-computed field lists for selective Project loading
   # IMPORTANT: These lists control which fields are loaded from the database.
@@ -290,7 +304,7 @@ class ProjectsController < ApplicationController
   # rubocop:disable Metrics/PerceivedComplexity, Metrics/BlockNesting
   def index
     validated_url = set_valid_query_url
-    if validated_url == request.original_url
+    if validated_url == request.original_fullpath
       retrieve_projects
 
       if params[:as] == 'badge' # Redirect to badge view
@@ -414,6 +428,11 @@ class ProjectsController < ApplicationController
   def show
     # Handle obsolete section names (e.g., "0" -> "passing", "bronze" -> "passing")
     redirect_obsolete_section_names
+    # A redirect (e.g. obsolete section 301) already committed the response;
+    # do not attach page-caching headers, reload section data, or render
+    # again. Its cache headers were set by set_default_cache_control
+    # (private, no-store).
+    return if performed?
 
     # Use normalized section for rendering (set by before_action :set_criteria_level)
     @section = @criteria_level
@@ -425,8 +444,7 @@ class ProjectsController < ApplicationController
     # Load section-specific data for rendering
     load_section_data_for_show(@section)
 
-    # Enable CDN caching for markdown format (no user-specific content)
-    cache_on_cdn if request.format.symbol == :md
+    cache_on_cdn_if_safe
 
     # Respond to different formats
     respond_to do |format|
@@ -532,9 +550,7 @@ class ProjectsController < ApplicationController
         send_data Badge[@project.badge_value],
                   type: 'image/svg+xml', disposition: 'inline'
       end
-      format.json do
-        format.json { render :badge, status: :ok, location: @project }
-      end
+      format.json { render :badge, status: :ok }
     end
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
@@ -664,7 +680,6 @@ class ProjectsController < ApplicationController
     respond_to do |format|
       if @project.save
         @project.send_new_project_email
-        # @project.purge_all
         flash[:success] = t('projects.new.thanks_adding')
         starting_section = validated_starting_section
         format.html { redirect_to edit_project_section_path(@project, starting_section) }
@@ -688,8 +703,34 @@ class ProjectsController < ApplicationController
   def update
     # Only accept updates if there's no repo_url change OR if change is ok
     if repo_url_unchanged_or_change_allowed?
-      # Send CDN purge early, to give it time to distribute purge request
+      # Purge this project from the CDN as soon as the request is authorized,
+      # BEFORE saving, doing BOTH an immediate purge and a delayed re-purge --
+      # and do BOTH unconditionally here, not only after a successful save.
+      #
+      # Why a delayed re-purge at all: the server always has the newest data
+      # once committed, but TCP/IP does not guarantee the CDN receives our
+      # replies in send order. The CDN can receive an *old* in-flight response
+      # *after* our purge and cache it, holding stale data until max-age. A
+      # second purge a few seconds later evicts that straggler; the next
+      # request then repopulates the cache with correct data.
+      #
+      # Why unconditionally (rather than only on @project.save success):
+      # update_additional_rights (below) writes the AdditionalRight table in
+      # its own transaction -- data the anonymous /permissions page renders --
+      # and that write commits independently of @project.save and is NOT
+      # rolled back if the save later fails. So a save-fails-after-rights-
+      # changed path still changes what anonymous users see; scheduling the
+      # delayed re-purge here closes the TCP-reorder race for that path too.
+      # Extra purges are harmless (no long-term effect), and by this point the
+      # request is already authorized.
+      #
+      # Note: in production ActiveJob is backed by solid_queue (a database
+      # queue), so the delayed purge is durable -- it survives a restart
+      # during its wait, and the race-closer is not lost.
       @project.purge_cdn_project
+      PurgeCdnProjectJob.set(
+        wait: BADGE_PURGE_DELAY.seconds
+      ).perform_later(@project.record_key)
       # Capture the level being worked on (baseline or traditional badge)
       old_badge_level = current_working_level(@criteria_level, @project)
       final_project_params = project_params
@@ -742,29 +783,11 @@ class ProjectsController < ApplicationController
         # after saving.
         if @project.save
           successful_update(format, old_badge_level, @criteria_level)
-          # We must send a purge later, not just now, due to a subtle race
-          # condition. Here's what is going on.
-          # The server and the CDN communicate over TCP/IP. This *server*
-          # will always produce the newest information once it's committed.
-          # However, TCP/IP does *NOT* guarantee that different replies
-          # from a server will be received (by the CDN) in the same order that
-          # they were sent. This means that the CDN can receive *old* data
-          # after # receiving a purge request and newer data, resulting in
-          # a CDN caches with obsolete data that will be held for a long time.
-          # A solution: Wait a short time, then send *another* purge. That way
-          # even if the CDN receives updates out-of-order, that old data will
-          # be purged. The next request following this additional purge will
-          # receive the updated data, and then the CDN will have correct data.
-          #
-          # Note: ActiveJob by default stores jobs in RAM. If the system is
-          # restarted while a job is active, and jobs are stored in RAM, the
-          # job will be lost and not executed. The long-term solution is to put
-          # jobs in the database.
-          PurgeCdnProjectJob.set(
-            wait: BADGE_PURGE_DELAY.seconds
-          ).perform_later(@project.record_key)
-          # Also send CDN purge last, to increase likelihood of being purged
-          # and replaced with correct data even before the delayed purpose.
+          # Final immediate purge after the commit, so the freshest data
+          # evicts any stale copy as soon as possible. The delayed re-purge
+          # that closes the TCP-reorder race was already scheduled
+          # unconditionally on entry (see the comment there), so we do not
+          # schedule another one here.
           @project.purge_cdn_project
         else
           format.html { render :edit, criteria_level: @criteria_level }
@@ -795,10 +818,10 @@ class ProjectsController < ApplicationController
   def destroy
     @project.destroy!
     ReportMailer.report_project_deleted(
+      # deletion_rationale is a plain string that is informational only and
+      # is never used in DB queries
       @project, current_user, params[:deletion_rationale]
     ).deliver_now
-    # @project.purge
-    # @project.purge_all
     respond_to do |format|
       @project.homepage_url ||= project_find_default_url
       format.html do
@@ -807,7 +830,16 @@ class ProjectsController < ApplicationController
       end
       format.json { head :no_content }
     end
+    # Purge the deleted project from the CDN, both immediately and on a delay.
+    # The delayed re-purge closes the same TCP-reorder race as in update (see
+    # the long comment there): an old, in-flight show response could reach the
+    # CDN just after the immediate purge and re-cache a deleted project's page
+    # for up to max-age. record_key still resolves after destroy! (the id
+    # remains in memory). solid_queue makes the delayed job durable.
     @project.purge_cdn_project
+    PurgeCdnProjectJob.set(
+      wait: BADGE_PURGE_DELAY.seconds
+    ).perform_later(@project.record_key)
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -890,14 +922,25 @@ class ProjectsController < ApplicationController
     end
     projects.each do |inactive_project| # Send actual reminders
       ReportMailer.email_reminder_owner(inactive_project).deliver_now
-      # Save datetime while disabling paper_trail's versioning through self.
-      # Use "touch: false" to also prevent changing the updated_at value;
-      # we interpret the updated_at value as being an update of the
-      # project badge status information by users and admins.
-      PaperTrail.request(enabled: false) do
-        inactive_project.last_reminder_at = Time.now.utc
-        inactive_project.save!(touch: false)
-      end
+      # Record when we sent the reminder.  This is our bookkeeping, not
+      # the owner's content, so write it with parameterized SQL instead
+      # of save!.  A save! bumps lock_version, and an owner who happened
+      # to have the edit form open would then be told their entry
+      # "changed since you started editing" because *we* sent them a
+      # reminder.  Going around ActiveRecord also means no paper_trail
+      # version and no change to updated_at, which we interpret as an
+      # update of badge status by a user or admin, so neither needs
+      # suppressing any more.
+      Project.write_bookkeeping_columns(
+        inactive_project, last_reminder_at: Time.now.utc
+      )
+      # No CDN purge here, deliberately.  This writes only
+      # last_reminder_at, which Project::BOOKKEEPING_FIELDS withholds
+      # from the project JSON, and no cached page shows it; the admin
+      # reminders summary that does is never cached.  So nothing the CDN
+      # holds has gone stale.  It briefly was published, and this loop
+      # briefly purged for it; withholding the column is the better fix,
+      # because it removes the reason rather than adding a purge.
     end
     projects.map(&:id) # Return a list of project ids that were reminded.
   end
@@ -1048,8 +1091,7 @@ class ProjectsController < ApplicationController
     return true if can_edit?
 
     if !logged_in? && request.get?
-      session[:forwarding_url] = request.original_url
-      return redirect_to login_path
+      return redirect_to login_path(return_to: request.original_fullpath)
     end
 
     flash[:danger] = t('projects.edit.not_authorized')
@@ -1323,8 +1365,10 @@ class ProjectsController < ApplicationController
   # Optimizes data selection and implements pagination.
   # Selects minimal fields for HTML requests, includes associations for JSON
   # to prevent N+1 queries, and sets up pagination with count tracking.
-  # @return [void] Modifies @projects, @pagy, @count, and @pagy_locale instance
-  #   variables
+  # When no count-affecting filter is present (the hot path), the total count
+  # is served from a short-lived cache to avoid a redundant COUNT(*) on every
+  # request; filtered/search requests recount. See docs/pagy-43.md.
+  # @return [void] Modifies @projects, @pagy, and @count instance variables
   def select_data_subset
     # If we're supplying html (common case), select only needed fields
     format = request&.format&.symbol
@@ -1335,13 +1379,18 @@ class ProjectsController < ApplicationController
     elsif format == :json
       @projects = @projects.includes(:additional_rights)
     end
-    @pagy, @projects = pagy(@projects.includes(:user))
-    # We want to know the *total* count, even if we're paging.
-    # Pagy has to figure that out anyway, so instead of doing this:
-    # # @count = @projects.count
-    # we will extract it from pagy.
+    # Seed pagy with the cached total count on the unfiltered hot path;
+    # otherwise pass nil so pagy runs a fresh COUNT for the filtered result.
+    count =
+      if COUNT_FILTER_PARAMS.any? { |key| params[key].present? }
+        nil
+      else
+        Project.cached_index_count(PROJECTS_COUNT_TTL)
+      end
+    @pagy, @projects = pagy(:offset, @projects.includes(:user), count: count)
+    # We want the *total* count, even when paging; pagy exposes it (reusing
+    # the value we seeded above on the unfiltered path).
     @count = @pagy.count
-    @pagy_locale = I18n.locale.to_s # Pagy requires a string version
   end
   # rubocop:enable Metrics/MethodLength
   # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity
@@ -1422,6 +1471,21 @@ class ProjectsController < ApplicationController
     # This method is a placeholder for future section-specific loading
   end
 
+  # Enable CDN caching of the response when it carries no per-user state.
+  #   - :md is always safe (no layout/header, no forms, no CSRF token).
+  #   - :html is safe only when the user is not logged in AND there is no
+  #     flash, and only when the CACHE_SHOW_PROJECT kill switch is on.
+  # cache_on_cdn also calls omit_session_cookie, so no Set-Cookie is sent.
+  # See docs/cdn-cache-not-logged-in.md.
+  # @return [void]
+  def cache_on_cdn_if_safe
+    cacheable =
+      request.format.symbol == :md ||
+      (CACHE_SHOW_PROJECT && request.format.symbol == :html &&
+       !logged_in? && flash.empty?)
+    cache_on_cdn if cacheable
+  end
+
   # Sets and validates criteria level/section from parameters.
   # Checks for :section path parameter first (new routing),
   # then falls back to criteria_level query parameter (legacy URLs).
@@ -1484,7 +1548,7 @@ class ProjectsController < ApplicationController
   # @return [String] Cleaned URL with valid query parameters only
   def set_valid_query_url
     # Rewrites /projects?q=&status=failing to /projects?status=failing
-    original = request.original_url
+    original = request.original_fullpath
     parsed = Addressable::URI.parse(original)
     return original if parsed.query_values.blank?
 
@@ -1494,7 +1558,15 @@ class ProjectsController < ApplicationController
     else
       parsed.query_values = valid_queries
     end
-    parsed.to_s
+    # Generate URL from path+query (no scheme/host) to prevent open redirect
+    # to an arbitrary host.
+    # Rails routing normally rejects paths like //evil.com before the
+    # controller runs. However, by ensuring we *cannot* return
+    # constructs like that, we remove the possibility of problems if there's
+    # an error elsewhere. We *also* ensure that SAST tools can verify
+    # that there is no vulnerability.
+    query = parsed.query
+    query.blank? ? parsed.path : "#{parsed.path}?#{query}"
   end
 
   # Applies sorting to the projects collection based on URL parameters.
@@ -2174,7 +2246,7 @@ class ProjectsController < ApplicationController
       flash.now[:warning] =
         t('projects.edit.automation.chief_overrode', count: @overridden_fields.size) +
         "\n" + format_override_details
-      Rails.logger.info(
+      Rails.logger.info( # integer IDs and field names only — no PII
         "Chief override: project=#{@project.id} user=#{current_user&.id} " \
         "fields=#{@overridden_fields.keys.join(',')}"
       )

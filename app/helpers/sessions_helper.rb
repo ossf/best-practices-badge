@@ -5,11 +5,26 @@
 # SPDX-License-Identifier: MIT
 
 require_relative '../../lib/locale_utils'
+require 'security_utils'
 
 # rubocop:disable Metrics/ModuleLength
 module SessionsHelper
   SESSION_TTL = 48.hours # Automatically log off session if inactive this long
   RESET_SESSION_TIMER = 1.hour # Active sessions older than this reset timer
+
+  # Matches paths that must not be used as post-login redirect destinations.
+  # Covers /login and /signup (would create redirect loops) and /signout
+  # (GET /signout destroys the session, so redirecting there would immediately
+  # log the user back out). Each keyword may be optionally preceded by a
+  # locale prefix /LL or /LL-RR (BCP 47: 2 lowercase letters + optional
+  # hyphen + 2 uppercase letters). The keyword must be followed by '/', '?',
+  # or end of string — so /en/login, /en/login/, /en/login?x are all blocked,
+  # but /en/loginpage is not.
+  INVALID_RETURN_TO_PATH_REGEX = %r{
+    \A(?:/[a-z]{2}(?:-[A-Z]{2})?)?
+    /(?:login|signup|signout)(?:[/?]|\z)
+  }x
+
   GITHUB_PATTERN = %r{
     \Ahttps://github.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)/?\Z
   }x
@@ -23,10 +38,12 @@ module SessionsHelper
   # The rootmost path always has a trailing slash ("http://a.b.c/").
   # Otherwise, there is never a trailing slash.
   # Delegates to LocaleUtils for implementation
-  delegate :force_locale_url, to: :LocaleUtils
+  delegate :safe_localized_internal_url, to: :LocaleUtils
 
   # Low-level route to set user as being logged in.
   # This doesn't set the last_login_at or forward elsewhere.
+  # @param user [User] the user to log in
+  # @return [void]
   # rubocop:disable Metrics/AbcSize
   def log_in(user)
     session[:user_id] = user.id
@@ -35,7 +52,7 @@ module SessionsHelper
     I18n.locale = user.preferred_locale.to_sym
     return unless session[:forwarding_url]
 
-    session[:forwarding_url] = force_locale_url(
+    session[:forwarding_url] = safe_localized_internal_url(
       session[:forwarding_url], I18n.locale
     )
   end
@@ -66,6 +83,8 @@ module SessionsHelper
     @session_user_id.present?
   end
 
+  # Throws :abort to halt the callback chain if no user is logged in.
+  # @return [void]
   def require_logged_in
     throw(:abort) unless logged_in?
   end
@@ -87,6 +106,8 @@ module SessionsHelper
   # that is the *point* of the remember token, and this only occurs when
   # a user specifically requests it. We could try to add device fingerprinting,
   # but an attacker could forge that.
+  # @param user [User] the user to persist in a permanent cookie
+  # @return [void]
   def remember(user)
     user.remember
     cookies.permanent.signed[:user_id] = user.id
@@ -94,6 +115,8 @@ module SessionsHelper
   end
 
   # Forgets a persistent session
+  # @param user [User] the user whose persistent session to clear
+  # @return [void]
   def forget(user)
     user.forget
     cookies.delete(:user_id)
@@ -116,6 +139,9 @@ module SessionsHelper
   # https://api.github.com/:owner/:repo) with a users OAuth token will include
   # a field `permissions`.  We consider a user with `push` permissions an
   # editor and check for that.
+  # @param url [String] GitHub repository URL
+  # @param client [Class] Octokit client class (default Octokit::Client)
+  # @return [Boolean, nil] true if user has push access, false/nil otherwise
   def github_user_can_push?(url, client = Octokit::Client)
     return false unless @session_user_token
 
@@ -124,7 +150,8 @@ module SessionsHelper
 
     github = client.new access_token: @session_user_token
     begin
-      github.repo(github_path).permissions.presence && github.repo(github_path).permissions[:push]
+      perms = github.repo(github_path).permissions
+      perms.presence && perms[:push]
     # If you suddenly get a lot of 503's most likely github has changed
     # its API, make this a generic rescue
     # Disable rubocop - Style/RescueStandardError if that is needed
@@ -133,6 +160,8 @@ module SessionsHelper
     end
   end
 
+  # @param url [String] GitHub repository URL
+  # @return [Boolean] true if the current user owns the GitHub repo
   def current_user_is_github_owner?(url)
     logged_in? && current_user.present? && current_user.provider == 'github' &&
       @session_github_name == get_github_owner(url)
@@ -145,6 +174,9 @@ module SessionsHelper
   # We don't retrieve *all* of them, because for some users that would
   # produce an overwhelming number.
   # Returns empty array on error to prevent 500 errors.
+  # @param client [Class] Octokit client class (default Octokit::Client)
+  # @return [Array<String>] list of public GitHub repo HTML URLs,
+  #   empty on API error
   def github_user_projects(client = Octokit::Client)
     return [] unless @session_user_token
 
@@ -159,6 +191,7 @@ module SessionsHelper
   end
 
   # Logs out the current user.
+  # @return [void]
   def log_out
     forget(current_user)
     reset_session
@@ -207,6 +240,8 @@ module SessionsHelper
   # Returns true iff the current_user can push to the @project repo
   # according to GitHub.  We try to avoid calling GitHub if it is
   # is obviously unnecessary.
+  # @param url [String] the project repository URL
+  # @return [Boolean] true if the current user can push to the GitHub repo
   def can_current_user_edit_on_github?(url)
     return false unless current_user.provider == 'github' &&
                         valid_github_url?(url)
@@ -217,21 +252,31 @@ module SessionsHelper
   # Returns true iff this is not the REAL final production system,
   # including the master/main and staging systems.
   # It only returns false if we are "truly in production"
+  # @param is_real [String, nil] value of BADGEAPP_REAL_PRODUCTION env var
+  # @return [Boolean] true if not running as the real production site
   def in_development?(is_real = ENV.fetch('BADGEAPP_REAL_PRODUCTION', nil))
     return is_real.nil?
   end
 
   # Redirects to stored location (or to the default)
+  # @param default [String] URL to redirect to if no forwarding URL stored
+  # @return [void]
   def redirect_back_or(default)
     forwarding_url = session[:forwarding_url]
     session.delete(:forwarding_url)
-    redirect_to(forwarding_url || force_locale_url(default, I18n.locale))
+
+    # The forwarding_url stored in session is already validated as same-host
+    # by store_internal_referer. However, for defense-in-depth, add
+    # allow_other_host: false to *ensure* redirect is only to same-host.
+    redirect_to(forwarding_url || safe_localized_internal_url(default, I18n.locale),
+                allow_other_host: false)
   end
 
   # Stores the URL trying to be accessed (if its a new project) or a referer.
   # Preserves any forwarding_url already set (e.g., by can_edit_else_redirect),
   # so that query parameters (such as automation proposals) are not lost when
   # the login page involves a locale redirect chain (/login -> /en/login).
+  # @return [void]
   def store_location_and_locale
     session.delete(:locale)
     session[:locale] = I18n.locale
@@ -263,6 +308,30 @@ module SessionsHelper
     url.match(GITHUB_PATTERN).captures.join('/')
   end
 
+  # Returns true iff path is safe to use as a post-login redirect destination.
+  # Accepts only server-relative paths (starting with '/' but not '//';
+  # '//' is treated as a protocol-relative URL by browsers and must be
+  # rejected). Also rejects login/signup paths to prevent redirect loops.
+  # @param path [String, nil]
+  # @return [Boolean]
+  def valid_return_path?(path)
+    return false unless path.is_a?(String)
+    return false if path.blank?
+    return false unless path.start_with?('/')
+    return false if path.start_with?('//')
+
+    !path.match?(INVALID_RETURN_TO_PATH_REGEX)
+  end
+
+  # SECURITY: Fail-fast smoke test to ensure redirection guards are active.
+  # This runs once when the class is loaded.
+  # We use module_function to make valid_return_path? callable here.
+  module_function :valid_return_path?
+  SecurityUtils.security_assertion(
+    !valid_return_path?('//evil.com'),
+    'valid_return_path? has an open-redirect bypass!'
+  )
+
   # Check if referring url is internal, if so, save it.
   # Excludes login and signup URLs regardless of locale prefix, so that an
   # intermediate locale redirect (/login -> /en/login) is never stored as
@@ -273,11 +342,7 @@ module SessionsHelper
     ref_url = request.referer
     ref_uri = URI.parse(ref_url)
     return unless ref_uri.host == request.host
-
-    # Strip locale prefix from path before comparing to exclude /login and
-    # /signup both with and without locale (e.g., /en/login and /login).
-    normalized_path = ref_uri.path.gsub(LocaleUtils::LOCALE_PATH_REGEX, '/')
-    return if %w[/login /signup].include?(normalized_path)
+    return if ref_uri.path.match?(INVALID_RETURN_TO_PATH_REGEX)
 
     session[:forwarding_url] = ref_url
   end

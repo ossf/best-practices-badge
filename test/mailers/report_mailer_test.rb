@@ -7,6 +7,7 @@
 require 'test_helper'
 # See http://guides.rubyonrails.org/testing.html#testing-your-mailers
 
+# rubocop:disable Metrics/ClassLength
 class ReportMailerTest < ActionMailer::TestCase
   setup do
     @perfect_project = projects(:perfect_passing)
@@ -55,6 +56,33 @@ class ReportMailerTest < ActionMailer::TestCase
     assert_predicate email.from, :present?
     assert_predicate email.to, :present?
     assert_predicate email.subject, :present?
+  end
+
+  test 'warn_owner_with_user names the date when there is one' do
+    project = projects(:one)
+    project.update_column(:badge_warning_effective_date, Time.zone.today + 30)
+    email = ReportMailer.warn_owner_with_user(
+      project, project.user, 'passing', 'badge'
+    ).deliver_now
+    assert_includes email.body.to_s, (Time.zone.today + 30).to_s
+    assert_includes email.body.to_s, 'before that date'
+  end
+
+  # A warning with no recorded date is still sent, because a fault in our
+  # bookkeeping is a poor reason to leave an owner unwarned.  It must not
+  # name a day it does not know: no stray "lost on ." and no dangling
+  # reference to a date the message never gave.
+  test 'warn_owner_with_user warns without a date when none was recorded' do
+    project = projects(:one)
+    assert_nil project.badge_warning_effective_date
+    email = ReportMailer.warn_owner_with_user(
+      project, project.user, 'passing', 'badge'
+    ).deliver_now
+    body = email.body.to_s
+    assert_includes body, 'may be'
+    assert_includes body, 'lost when updated criteria take effect'
+    assert_not_includes body, 'lost on'
+    assert_not_includes body, 'before that date'
   end
 
   test 'warn_owner_with_user sends no email for nil project' do
@@ -122,3 +150,4 @@ class ReportMailerTest < ActionMailer::TestCase
     assert_predicate email.subject, :present?
   end
 end
+# rubocop:enable Metrics/ClassLength

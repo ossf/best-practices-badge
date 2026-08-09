@@ -40,7 +40,7 @@ ru:
     login_html: Войти в систему
     footer_text_html: >-
       <small> <strong>Нужна помощь? Есть вопрос? Видите ошибку?
-      Пожалуйста, отправьте <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      Пожалуйста, отправьте <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">вопрос на GitHub</a></em>.</strong>
       © <a href="https://www.bestpractices.dev" target="_blank"
       rel="noopener">OpenSSF Best Practices Badge a Series of
@@ -610,7 +610,7 @@ ru:
           бы рассмотрены). Если вы хотите ввести общий комментарий
           вместо объяснения, почему текущая ситуация приемлема,
           начните текст с '//' и пробела. Приветствуется обратная
-          связь через <a href="https://github.com/coreinfrastructure/best-practices-badge">сайт
+          связь через <a href="https://github.com/ossf/best-practices-badge">сайт
           на GitHub в виде issues или pull requests</a>. Существует
           также <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">список
           рассылки для общих вопросов</a>.<br /><br />Мы с удовольствием
@@ -652,7 +652,7 @@ ru:
           (вы всегда можете вернуться и дописать недостающее позже).
           <br><br> Если вам нужна помощь, у вас есть вопрос или
           вы видите проблему, пожалуйста, <em><a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">отправьте
-          электронное письмо</a> </em> или <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          электронное письмо</a> </em> или <em><a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">опишите проблему в трекере</a></em>.
       got_baseline_badge:
         description_1:
@@ -905,7 +905,7 @@ ru:
       Если у вас есть вопросы или вам нужна помощь, свяжитесь с нами по электронной почте
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       или отправьте issue на
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (Нажмите «New issue»).
       </p>
       <p>
@@ -921,7 +921,7 @@ ru:
       Если у вас есть вопросы или вам нужна помощь, свяжитесь с нами по электронной почте
       cii-badges-questions-owner@lists.coreinfrastructure.org
       или отправьте issue на
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (нажмите «New issue»).
       Мы никогда не рассылаем рекламу и вообще редко шлем письма. Мы отправляем письмо, когда происходит что-то важное, например когда вы создаете новую проектную анкету, когда ваш проект получает или теряет значок или когда кто-то пытается сбросить пароль от вашей учетной записи. Если у вашего проекта нет значка и вы не обновляли анкету по крайней мере 30 дней, мы как правило отправляем напоминание о неактивности каждые примерно 30-60 дней. Вы можете отключить эти напоминания в любой момент: просто откройте проектную анкету по адресу %{project_info_url}#project_disabled_reminders и поставьте флажок "отключить напоминания о неактивности". Убедитесь, что анкета отредактирована, если хотите изменить режим напоминаний! Если ваш проект получил значок или если анкета редактировалась в последние 30 дней, напоминания не высылаются.
       Спасибо за уделенное время.
@@ -938,12 +938,12 @@ ru:
       включая добавление URL, указывающих на дополнительные сведения.
       Если у вас есть предложения по улучшению критериев или
       веб-приложения значка, пожалуйста, зарегистрируйте issue по адресу:
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       Если вы внесли изменения в свой проект, чтобы получить значок, сообщите нам об этом по электронной почте на cii-badges-questions@lists.coreinfrastructure.org.
       Одна из наших целей - поощрять проекты к каким-то улучшениям.
       Мы помещаем некоторые из этих отчетов в общедоступную wiki; пожалуйста дайте нам знать,
       если вы НЕ хотите, чтобы изменения публично размещались в
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       Благодарим вас и поздравляем.
     in_markdown_add: 'В виде markdown вы можете добавить это:'
     in_html_add: 'В виде HTML вы можете добавить это:'
@@ -972,7 +972,7 @@ ru:
       с надписью «Скрыть выполненные и неприменимые (N/A) критерии».\nЕсли
       у вас есть вопросы или вам нужна помощь, свяжитесь с нами
       по электронной почте\n<a href=\"mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;\">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>\nили
-      отправьте запрос на\n<a href=\"https://github.com/coreinfrastructure/best-practices-badge/issues\">https://github.com/coreinfrastructure/best-practices-badge/issues</a>\n(нажмите
+      отправьте запрос на\n<a href=\"https://github.com/ossf/best-practices-badge/issues\">https://github.com/ossf/best-practices-badge/issues</a>\n(нажмите
       «New issue»).\n</p>\n\n<p>\nМы не отправляем напоминания,
       если вы продолжаете обновлять анкету,\nи мы отправляем напоминания
       примерно каждые 30-60 дней. Однако,\nесли вы хотите отключить
@@ -998,7 +998,7 @@ ru:
       а \nзатем кнопку рядом с надписью «Скрыть выполненные и
       неприменимые (N/A) критерии».\nЕсли у вас есть вопросы или
       вам нужна помощь, свяжитесь с нами по электронной почте\ncii-badges-questions-owner@lists.coreinfrastructure.org\nили
-      отправьте запрос на\nhttps://github.com/coreinfrastructure/best-practices-badge/issues\n(нажмите
+      отправьте запрос на\nhttps://github.com/ossf/best-practices-badge/issues\n(нажмите
       «New issue»).\n\nМы не отправляем напоминания, если вы продолжаете
       обновлять анкету,\nи мы отправляем напоминания примерно
       каждые 30-60 дней. Однако,\nесли вы хотите отключить эти
@@ -2279,7 +2279,7 @@ ru:
           and Schroeer) и общие слабости безопасности в реализации
           (такие как OWASP Top 10 или CWE/SANS Top 25), и показывается,
           как противодействовать каждой из них. Полезным примером
-          может служить <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">обоснование
+          может служить <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">обоснование
           для BadgeApp</a>. Этот критерий связан с documentation_security,
           documentation_architecture и implement_secure_design.
       documentation_current:

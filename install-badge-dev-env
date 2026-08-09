@@ -411,7 +411,7 @@ echo 'STAGE 7: Minor git setups.'
 if ! git remote | grep -q '^upstream$' ; then
   echo 'Adding git remote "upstream"'
   git remote add upstream \
-      https://github.com/coreinfrastructure/best-practices-badge.git
+      https://github.com/ossf/best-practices-badge.git
 fi
 
 if ! git config user.name > /dev/null ; then

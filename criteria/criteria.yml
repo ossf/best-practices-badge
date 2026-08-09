@@ -735,7 +735,7 @@
           met_url_required: true
           rationale: >
             Suggested in
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/608">issue#608</a>
+            <a href="https://github.com/ossf/best-practices-badge/issues/608">issue#608</a>
             by Dan Kohn and in the NYC 2016 brainstorm session.
           #autofill: TODO
       - roles_responsibilities:
@@ -797,7 +797,7 @@
             help someone get started and do something with the software;
             this feeling of accomplishment and demonstration that it works
             builds understanding and confidence in the user. See
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/645">issue#645</a>.
+            <a href="https://github.com/ossf/best-practices-badge/issues/645">issue#645</a>.
       - documentation_current:
           category: MUST
           na_allowed: true
@@ -880,7 +880,7 @@
             they receive credit.  This is also important long-term, because
             giving credit encourages additional reporting.
             This was recommended in the
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+            <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
           #autofill:TODO
       - vulnerability_response_process:
           category: MUST
@@ -912,7 +912,7 @@
           met_justification_required: true
           rationale: >
             See
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/453">Build system should honor CC, CFLAGS, CXX, CXXFLAGS</a>
+            <a href="https://github.com/ossf/best-practices-badge/issues/453">Build system should honor CC, CFLAGS, CXX, CXXFLAGS</a>
       - build_preserve_debug:
           category: SHOULD
           na_allowed: true
@@ -970,11 +970,11 @@
             This supports capturing the artifacts (e.g., for analysis)
             without interfering with the build or installation system due to
             system-wide changes. See
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/455">DESTDIR honored at install time</a>
+            <a href="https://github.com/ossf/best-practices-badge/issues/455">DESTDIR honored at install time</a>
             This doesn't apply when there's no "installation" process, or
             when POSIX filesystems aren't supported during installation (e.g.,
             Windows-only programs).  See
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/453">Build system should honor CC, CFLAGS, CXX, CXXFLAGS</a>
+            <a href="https://github.com/ossf/best-practices-badge/issues/453">Build system should honor CC, CFLAGS, CXX, CXXFLAGS</a>
           #autofill: TODO
       - installation_development_quick:
           category: MUST
@@ -983,7 +983,7 @@
           met_justification_required: true
           rationale: >
             Recommended in the
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+            <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
           #autofill: TODO
     - Externally-maintained components: !!omap
       - external_dependencies:
@@ -994,7 +994,7 @@
           met_url_required: true
           rationale: >
             Inspired by the
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+            <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
           #autofill: TODO
       - dependency_monitoring:
           category: MUST
@@ -1171,7 +1171,7 @@
           met_justification_required: true
           rationale: >
             This was inspired by the
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+            <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
           #autofill: TODO
     - Use basic good cryptographic practices: !!omap
       - crypto_weaknesses:
@@ -1212,7 +1212,7 @@
             The problem with this position is that no one can be certain about
             what that "one good algorithm" is; a new attack could be found
             at any time. See the discussion at
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/215">Remove requirement for supporting alternative crypto algorithms (crypto_alternatives)?</a>
+            <a href="https://github.com/ossf/best-practices-badge/issues/215">Remove requirement for supporting alternative crypto algorithms (crypto_alternatives)?</a>
           #autofill: TODO
       - crypto_credential_agility:
           category: MUST
@@ -1264,7 +1264,7 @@
           met_justification_required: true
           rationale: >
             This was suggested by Kevin W. Wall (@kwwall)in
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/709">issue #709</a>.
+            <a href="https://github.com/ossf/best-practices-badge/issues/709">issue #709</a>.
           # autofill: TODO
     - Other security issues: !!omap
       - input_validation:
@@ -1287,9 +1287,9 @@
           rationale: >
             Many sources discuss the rationale for an "assurance case".
             This was inspired by
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/502">Security specification and facilitation of bug bounties</a>
+            <a href="https://github.com/ossf/best-practices-badge/issues/502">Security specification and facilitation of bug bounties</a>
             and by the
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
+            <a href="https://github.com/ossf/best-practices-badge/issues/473">NYC 2016 brainstorming session</a>.
           #autofill: TODO
   - Analysis: !!omap
     - Static code analysis: !!omap
@@ -1314,7 +1314,7 @@
           rationale: >
             This would mean that C/C++ would be required to use something like
             ASAN during some testing and/or fuzz testing. See:
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/256">consider giving links to asan/msan/tsan/ubsan and libFuzzer</a>
+            <a href="https://github.com/ossf/best-practices-badge/issues/256">consider giving links to asan/msan/tsan/ubsan and libFuzzer</a>
           autofill: >
             Look in build/test script for reference to invocation of
             valgrind or ASAN.
@@ -1430,7 +1430,7 @@
             and documentation to increase the number of reviewers. An increase
             in code reviewers lowers maintainer workload while aiding in
             meeting the badge requirement two_person_review. See
-            <a href="https://github.com/coreinfrastructure/best-practices-badge/issues/699">issue 699</a>
+            <a href="https://github.com/ossf/best-practices-badge/issues/699">issue 699</a>
             from GeorgLink.
       - two_person_review:
           category: MUST

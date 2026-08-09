@@ -5,13 +5,14 @@
 # modify other test code that you might expect to be unrelated. The problem
 # is that tests are not reliably cleaned up after running,
 # leading to intermittent failures.  This is issue #397:
-# https://github.com/coreinfrastructure/best-practices-badge/issues/397
+# https://github.com/ossf/best-practices-badge/issues/397
 # To work around this problem, commit 3b87c59b9902dd modified
 # test cases to forcibly reset the test status, but this creates a
 # subtle interdependency on the number of fixtures here.
 
 one:
   user: test_user
+  lock_version: 7
   name: Pathfinder OS
   description: Operating system for Pathfinder rover
   homepage_url: https://www.nasa.gov
@@ -33,6 +34,7 @@ one:
 
 two:
   user: test_user_melissa
+  lock_version: 3
   name: Mars Ascent Vehicle (MAV)
   description: Operating system for Pathfinder rover
   homepage_url: https://www.nasa.gov
@@ -50,6 +52,7 @@ two:
 
 no_repo:
   user: test_user
+  lock_version: 11
   name: Another Ascent Vehicle (AAV)
   description: Random system for rover
   homepage_url: https://www.nasa.gov
@@ -66,6 +69,7 @@ no_repo:
 # No justifications means failing status.
 perfect_unjustified:
   user: test_user
+  lock_version: 5
   name: Unjustified perfect project
   description: The perfect project
   homepage_url: https://www.example.org
@@ -94,6 +98,7 @@ perfect_unjustified:
 # TODO: Generate list of status fields from central location.
 perfect_passing:
   user: test_user
+  lock_version: 13
   name: Justified perfect passing project
   description: The perfect passing project
   homepage_url: https://www.example.org
@@ -115,6 +120,7 @@ perfect_passing:
 
 perfect_silver:
   user: test_user
+  lock_version: 2
   name: Justified perfect silver project
   description: The perfect silver project
   homepage_url: https://www.example.org
@@ -136,6 +142,7 @@ perfect_silver:
 
 perfect:
   user: test_user
+  lock_version: 17
   name: Justified perfect project
   description: The perfect project
   homepage_url: https://www.example.org

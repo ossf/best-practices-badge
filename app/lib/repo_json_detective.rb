@@ -13,6 +13,32 @@ require 'json'
 # File format: JSON with field names as keys (e.g., "contribution_status")
 # Status values must be text: "Met", "Unmet", "N/A" (case-insensitive)
 # Justification fields are optional but recommended with status fields.
+#
+# SECURITY: the .bestpractices.json file is untrusted data (the repo owner
+# controls it). Defenses, so this stays easy to reason about:
+#
+# DoS / oversized file:
+#   get_content fetches at most MAX_FILE_SIZE bytes (GitHub's reported size is
+#   checked first, so oversized files are skipped without downloading).
+#
+# JSON parser abuse:
+#   JSON.parse enforces its default max_nesting (100), so a deeply nested file
+#   cannot exhaust the stack; combined with the size cap, parse work is
+#   bounded. JSON.parse also validates UTF-8 and raises on malformed input,
+#   which we rescue.
+#
+# Type confusion:
+#   Only a JSON *object* is meaningful here. We reject any other top-level
+#   value (array, string, number, bool, null) up front, so keys are always
+#   strings and every value is type-checked (is_a?(String)) before use. This
+#   makes the detective safe on its own, not only because Chief happens to
+#   rescue detective exceptions.
+#
+# Injection / stored-value abuse:
+#   Field names are whitelisted against PROJECT_PERMITTED_FIELDS, statuses are
+#   parsed to a fixed enum, justification length is bounded, and the results
+#   are stored in plain text columns rendered through auto-escaping ERB. No
+#   SQL is built from this data.
 class RepoJsonDetective < Detective
   INPUTS = [:repo_files].freeze
   # OUTPUTS is dynamic based on JSON content, but we must declare it for Chief
@@ -22,7 +48,7 @@ class RepoJsonDetective < Detective
 
   # File locations to check (in order)
   FILE_LOCATIONS = ['.bestpractices.json', '.project.d/bestpractices.json'].freeze
-  MAX_FILE_SIZE = 50_000 # 50 KB
+  MAX_FILE_SIZE = 100_000 # 100 KB
 
   def analyze(_evidence, current)
     repo_files = current[:repo_files]
@@ -30,7 +56,11 @@ class RepoJsonDetective < Detective
 
     # Try to read JSON from one of the file locations
     json_data = read_and_parse_json(repo_files)
-    return {} if json_data.blank?
+    # Only a JSON object is meaningful; reject any other top-level value
+    # (array, string, number, bool, null) so keys are always strings and
+    # every value is type-checked before use. This also covers nil (no file
+    # or parse error). See the SECURITY notes above.
+    return {} unless json_data.is_a?(Hash)
 
     # Validate and convert to changeset
     validate_and_convert_fields(json_data)

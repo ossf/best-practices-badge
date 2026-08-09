@@ -3,10 +3,10 @@
 This is a map from the
 [OpenSSF Scorecard checks](https://github.com/ossf/scorecard/blob/main/docs/checks.md)
 to the
-[OpenSSF Best Practices badge criteria](https://bestpractices.coreinfrastructure.org/en/criteria?details=true).
+[OpenSSF Best Practices badge criteria](https://www.bestpractices.dev/en/criteria?details=true).
 
 Scorecard has 19 checks.
-[The OpenSSF best practices criteria statistics](https://bestpractices.coreinfrastructure.org/en/criteria_stats)
+[The OpenSSF best practices criteria statistics](https://www.bestpractices.dev/en/criteria_stats)
 has 67 criteria for passing, 48 new criteria for silver, and 14 new criteria
 for gold; adding 1 for the existence of the badge leaves 130 total criteria.
 Looking at the Scorecard checks, in sum:
@@ -54,7 +54,7 @@ This maps to the OpenSSF best practices badge `test_continuous_integration`:
 
 ## CII-Best-Practices
 
-> This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/) at the passing, silver, or gold level.
+> This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://www.bestpractices.dev/) at the passing, silver, or gold level.
 >
 > The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open
 source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.

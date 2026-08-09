@@ -1,0 +1,12 @@
+<h1 class='center'><%= t('account_activations.confirm_heading') %></h1>
+
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <p><%= t('account_activations.confirm_prompt') %></p>
+    <%= form_with url: account_activation_path(token: @token), method: :patch do |f| %>
+      <%= hidden_field_tag :email, @email %>
+      <%= f.submit t('account_activations.confirm_button'),
+                   class: 'btn btn-primary' %>
+    <% end %>
+  </div>
+</div>

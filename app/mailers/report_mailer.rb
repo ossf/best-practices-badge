@@ -103,11 +103,7 @@ class ReportMailer < ApplicationMailer
   )
     return if project.nil? || project.id.nil?
     return if user.nil?
-
-    email = user.email_if_decryptable
-    return if email == 'CANNOT_DECRYPT'
-    return unless user.email?
-    return if email.exclude?('@')
+    return unless user.deliverable_email?
 
     @project = project
     @project_info_url =
@@ -143,11 +139,7 @@ class ReportMailer < ApplicationMailer
   def warn_owner_with_user(project, user, old_level, badge_suffix)
     return if project.nil? || project.id.nil?
     return if user.nil?
-
-    email = user.email_if_decryptable
-    return if email == 'CANNOT_DECRYPT'
-    return unless user.email?
-    return if email.exclude?('@')
+    return unless user.deliverable_email?
 
     @project = project
     @project_info_url =

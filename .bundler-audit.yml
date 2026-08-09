@@ -27,7 +27,7 @@ ignore:
 
 # At one time we ignored CVE-2015-9284 (omniauth), because we mitigated this with a
 # third-party countermeasure (omniauth-rails_csrf_protection) in:
-# https://github.com/coreinfrastructure/best-practices-badge/pull/1298
+# https://github.com/ossf/best-practices-badge/pull/1298
 # This is no longer necessary, so we removed that.
 
   # vuln in the carousel component of bootstrap

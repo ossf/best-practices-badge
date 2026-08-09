@@ -26,13 +26,18 @@ class GithubContentAccessTest < ActiveSupport::TestCase
     end
   end
 
-  test 'get_info returns empty array when repo is empty (Octokit::NotFound)' do
+  test 'get_info returns empty array by default when repo returns NotFound' do
     access = GithubContentAccess.new(
       'owner/empty-repo', proc { MockOctokitEmpty.new }
     )
-    result = access.get_info('/')
+    assert_equal [], access.get_info('/')
+  end
 
-    assert_equal [], result
+  test 'get_info returns nil when not_found_result: nil and repo returns NotFound' do
+    access = GithubContentAccess.new(
+      'owner/empty-repo', proc { MockOctokitEmpty.new }
+    )
+    assert_nil access.get_info('/', not_found_result: nil)
   end
 
   test 'get_info returns contents normally for non-empty repo' do
@@ -87,6 +92,34 @@ class GithubContentAccessTest < ActiveSupport::TestCase
     assert_nil result
   end
 
+  test 'get_content logs at info level when file exceeds max_size' do
+    mock_client =
+      Class.new do
+        def contents(_fullname, **)
+          {
+            'type' => 'file',
+            'size' => 100_000, # 100KB
+            'content' => Base64.encode64('x' * 100_000)
+          }
+        end
+      end
+
+    access = GithubContentAccess.new('owner/repo', proc { mock_client.new })
+
+    log_output = StringIO.new
+    original_logger = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(log_output)
+    begin
+      result = access.get_content('huge.txt', max_size: 50_000)
+    ensure
+      Rails.logger = original_logger
+    end
+
+    assert_nil result
+    assert_match(/huge\.txt exceeds max_size/, log_output.string)
+    assert_match(/100000 bytes > 50000/, log_output.string)
+  end
+
   test 'get_content returns nil when content is blank' do
     mock_client =
       Class.new do
@@ -120,6 +153,35 @@ class GithubContentAccessTest < ActiveSupport::TestCase
     result = access.get_content('malicious.txt', max_size: 50_000)
 
     assert_nil result # Should reject due to actual size > max_size
+  end
+
+  test 'get_content logs at warn level when actual content exceeds reported size' do
+    mock_client =
+      Class.new do
+        def contents(_fullname, **options)
+          if options[:accept] == 'application/vnd.github.raw'
+            # Attacker scenario: huge content under a small-size claim
+            'x' * 100_000
+          else
+            { 'type' => 'file', 'size' => 1000 }
+          end
+        end
+      end
+
+    access = GithubContentAccess.new('owner/repo', proc { mock_client.new })
+
+    log_output = StringIO.new
+    original_logger = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(log_output, level: Logger::WARN)
+    begin
+      result = access.get_content('lying.txt', max_size: 50_000)
+    ensure
+      Rails.logger = original_logger
+    end
+
+    assert_nil result
+    assert_match(/lying\.txt actual size 100000/, log_output.string)
+    assert_match(/possible GitHub size misreport or MITM/, log_output.string)
   end
 
   test 'get_content decodes valid base64 content' do

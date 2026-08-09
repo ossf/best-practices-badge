@@ -1,6 +1,6 @@
 # Enable dependabot, a tool to automatically propose dependency updates
 
-# Copyright the Linux Foundation and the CII Best Practices badge contributors
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
 # It's possible to enable dependabot via just GitHub project settings,
@@ -24,15 +24,255 @@ updates:
   - package-ecosystem: "bundler"
     directory: "/"
     schedule:
-      interval: "daily"
+      # Weekly, not daily. These arrive grouped (see "groups" below), so a
+      # daily cadence would mostly produce rebases of a pull request nobody
+      # had reviewed yet. Security updates are NOT on this schedule: they
+      # are a separate mechanism and arrive as soon as an advisory lands.
+      interval: "weekly"
+      # TUESDAY MORNING, TO SPREAD THE WEEKLY LOAD. "day" is not optional
+      # in practice: leaving it unset defaults to Monday, which is
+      # Renovate's slot. Our scheduled work, all times UTC:
+      #
+      #   Mon 04:17  Renovate            .github/workflows/renovate.yml
+      #   Tue 05:00  this file           grouped gem proposals
+      #   Tue 18:34  CodeQL              .github/workflows/codeql.yml
+      #   Wed 21:37  Scorecard           .github/workflows/scorecard.yml
+      #   Thu 04:23  Heroku Ruby probe   heroku_ruby_versions.yml
+      #
+      # Tuesday already holds CodeQL, but that is a scan in the evening,
+      # not a morning batch of pull requests to read, so the two do not
+      # compete for the same attention.
+      #
+      # Deliberately not Friday: a batch of dependency proposals arriving
+      # Friday either eats the end of the week or waits, unreviewed and
+      # going stale, until Monday.
+      day: "tuesday"
+      time: "05:00"
+
+    # EVERY GEM IN THE LOCKFILE, NOT JUST THE 83 IN THE GEMFILE.
+    #
+    # By default Dependabot proposes version updates only for dependencies
+    # "explicitly defined in a manifest", which here means the Gemfile. That
+    # is 83 gems out of the 244 that Gemfile.lock resolves, so roughly
+    # two thirds of what we actually ship was never offered an update at
+    # all; those gems moved only when a direct dependency happened to drag
+    # them, or when a security advisory forced them.
+    #
+    # That is the wrong shape for our goal. We want to be ALREADY current
+    # when a vulnerability is announced, so that the fix is a patch bump we
+    # can merge in minutes rather than a patch bump plus a year of
+    # accumulated behaviour changes, decided under time pressure.
+    #
+    # "all" means direct dependencies and their dependencies. Bundler is one
+    # of the ecosystems that supports it.
+    allow:
+      - dependency-type: "all"
+
+    # RAISE THE GEMFILE'S CEILINGS, DON'T JUST REFILL THE LOCKFILE.
+    #
+    # Our Gemfile constrains most gems with "~>", so a great many updates
+    # are outside what it currently permits: "~> 8.1.1" cannot reach 8.2.0
+    # without editing the Gemfile. If nothing proposes those, staying
+    # current stops at the first ceiling and depends on somebody
+    # remembering to raise it by hand, which is the habit this file is
+    # trying to replace.
+    #
+    # "increase" rewrites the requirement to match the new version, so the
+    # Gemfile keeps naming a specific version, matching its own stated rule
+    # that we "depend on explicit version numbers (so we can control
+    # upgrade times)". The alternative, "increase-if-necessary", WIDENS
+    # instead, which would quietly loosen ceilings we set on purpose.
+    #
+    # Written out rather than left to the "auto" default, which guesses
+    # between application and library behaviour. That guess is almost
+    # certainly right for us, but this is behaviour visible in every
+    # proposal, and a default that changed under us would change it
+    # quietly.
+    versioning-strategy: "increase"
+
+    # WAIT A WEEK BEFORE PROPOSING A NEWLY PUBLISHED VERSION.
+    #
+    # A compromised release is usually caught and yanked within days, so
+    # simply not being first reduces the chance of installing one
+    # substantially, for the price of running week-old code. Seven days is a
+    # common choice and an easy one to defend.
+    #
+    # This delays only VERSION updates. GitHub's documentation is explicit
+    # that cooldown "does not apply to security updates", which is the
+    # property that makes this safe: a known vulnerability is still fixed
+    # immediately. Note Dependabot already applies a 3 day default even with
+    # no cooldown block; saying 7 here makes the policy longer and, more
+    # usefully, visible.
+    cooldown:
+      default-days: 7
+
+    # GROUPS ARE EVALUATED IN ORDER, AND A GEM JOINS THE FIRST ONE IT
+    # MATCHES. Anything matching no group still arrives as its own pull
+    # request, which is what happens to major version bumps below.
+    groups:
+      # THE RAILS RELEASE TRAIN IS ONE DECISION. These gems pin each other
+      # with "=", not "~>", so railties 8.1.3.1 requires exactly
+      # activesupport 8.1.3.1 and actionpack 8.1.3.1. They cannot move
+      # independently, and a pull request proposing one of them alone
+      # cannot resolve.
+      #
+      # Five of the thirteen are not in our Gemfile at all: actioncable,
+      # actionmailbox, actiontext, activestorage and rails itself arrive
+      # through the development-only "gem 'rails'". Before "allow: all"
+      # above they were never offered an update; now they move with the
+      # rest of the train, which is the only correct unit for them.
+      #
+      # NAMED INDIVIDUALLY RATHER THAN GLOBBED, because our lockfile
+      # contains gems the obvious globs would swallow: "action*" also
+      # matches action_text-trix, and "rails*" also matches
+      # rails_best_practices, rails-controller-testing, rails-dom-testing
+      # and rails-html-sanitizer. Those are separate projects on their own
+      # release schedules, and sweeping them in would defeat the point of
+      # having a pull request that means "the framework moved".
+      #
+      # rails-i18n is deliberately absent; see the Gemfile for why.
+      rails:
+        patterns:
+          - "actioncable"
+          - "actionmailbox"
+          - "actionmailer"
+          - "actionpack"
+          - "actiontext"
+          - "actionview"
+          - "activejob"
+          - "activemodel"
+          - "activerecord"
+          - "activestorage"
+          - "activesupport"
+          - "rails"
+          - "railties"
+
+      # EVERYTHING ELSE, SPLIT BY HOW MUCH IT COULD BREAK. Patch bumps are
+      # the boring ones and usually merge on a green build; minor bumps are
+      # where behaviour changes hide and deserve a closer read. Splitting
+      # them means a failure can be reverted by risk class rather than
+      # reverting a week of updates wholesale.
+      #
+      # Major bumps match neither group and so keep arriving one per pull
+      # request, which is what we want: a major is an argument, not a
+      # routine update, and it should not be buried in a batch.
+      gems-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      # MINOR BUMPS ARE BATCHED ONLY WHERE SEMVER IS TRUSTWORTHY. The
+      # whole design is: batch what is low risk into one pull request,
+      # split out what is not, so a routine week is one review and a risky
+      # change is its own argument. Semver is the cheap proxy for risk, and
+      # it is only a proxy: plenty of gems publish a "minor" that changes
+      # behaviour, and Rails is famous for it.
+      #
+      # So the gems below leave the batch and arrive individually. The list
+      # is not a guess; it is what the Gemfile already says about them. Each
+      # is either pinned to an exact version there, meaning we already
+      # decided we choose its upgrade moments by hand, or carries a
+      # deliberate "<" cap. Keep the two files in step: see the matching
+      # note in the Gemfile.
+      #
+      # This list should GROW. When a batched minor breaks the build, add
+      # that gem here and it never batches again.
+      #
+      # Rails needs no entry: the "rails" group above matches first, so its
+      # minors already arrive with the rest of the train and nothing else.
+      gems-minor:
+        patterns:
+          - "*"
+        exclude-patterns:
+          # Exact-pinned in the Gemfile
+          - "mdl"
+          - "rubocop"
+          - "rubocop-rails"
+          - "ruby-graphviz"
+          - "sprockets-rails"
+          - "translation"
+          # Capped in the Gemfile with "<"
+          - "bootsnap"
+          - "minitest"
+          - "minitest-reporters"
+          - "multi_json"
+        update-types:
+          - "minor"
+
+    # THESE VERSIONS ARE NEVER PROPOSED AT ALL.
+    #
+    # EVERY ENTRY CARRIES A "REVIEW-BY" DATE, and it is not decoration:
+    # "rake dependabot_ignore_review_check" fails once a date has passed,
+    # and fails if an entry has no date at all. An ignore is silence, and
+    # silence does not expire on its own. Before these entries existed, a
+    # blocked gem still produced a proposal we could dismiss, so the block
+    # stayed visible; now nothing appears, and an entry whose reason was
+    # fixed upstream years ago looks exactly like one still earning its
+    # place.
+    #
+    # When a date passes: check whether the reason still holds. If it
+    # does, move the date out. If it does not, delete the entry and the
+    # matching cap in the Gemfile.
+    #
+    # Ignore is applied after allow: Dependabot "checks for all allowed
+    # dependencies, then filters out any ignored dependencies", so these
+    # still hold now that allow is "all".
+    #
+    # WHY THESE ARE HERE AND NOT ONLY IN THE GEMFILE. The Gemfile already
+    # caps each of them, and normally we would not say a thing twice. But
+    # the two statements do different work. A Gemfile cap says "do not
+    # RESOLVE to this version". An ignore says "do not PROPOSE it".
+    # "versioning-strategy: increase" above exists precisely to rewrite
+    # Gemfile constraints when a newer version needs more room, so a cap
+    # recording a known defect is not, by itself, a durable block against
+    # a tool whose job is to widen caps. These entries are the durable
+    # form. Keep them in step with the Gemfile: see the matching note
+    # there.
     ignore:
       # Do not "update" vcr. Later versions switched to a non-OSS license.
       # This dependency is *only* used during testing,
       # so any unintentional vulnerabilities in it don't matter.
+      # REVIEW-BY: 2027-08-09
       - dependency-name: "vcr"
+
+      # bootsnap 1.24.x breaks our VCR tests. This is a known defect on
+      # our side of the fence, not a version we have merely not gotten to
+      # yet, so proposing it would waste a review every week.
+      # REVIEW-BY: 2027-08-09
+      - dependency-name: "bootsnap"
+        versions: [">= 1.24.0"]
+
+      # multi_json 1.21.0 renamed MultiJson to MultiJSON, and sawyer calls
+      # MultiJson.method(:load), which bypasses the compatibility stub and
+      # resolves to Kernel#load: every GitHub API response body then gets
+      # handed to the file loader. The Gemfile has the full account.
+      # REVIEW-BY: 2027-08-09
+      - dependency-name: "multi_json"
+        versions: [">= 1.21.0"]
   # Keep our GitHub actions up to date.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       # Every weekday
       interval: "daily"
+    # ONE PULL REQUEST FOR ALL OF github/codeql-action. Dependabot keys
+    # actions by their full path, so "github/codeql-action/init",
+    # ".../analyze" and ".../upload-sarif" look like three unrelated
+    # dependencies to it and each got its own pull request. They are not
+    # unrelated: they ship from one repository in one release, and init
+    # and analyze *must* run the same version, because init records its
+    # version in the config file that analyze reloads and analyze treats
+    # any mismatch as a fatal error. So a pull request bumping one of
+    # them alone cannot pass CodeQL, and three such pull requests can
+    # only go green by being merged together, which is not something the
+    # pull request list can express. Grouping them makes the proposal
+    # match the unit that actually moves. See .github/workflows/codeql.yml
+    # and "rake codeql_version_check", which fails the build if the pins
+    # ever drift apart despite this.
+    #
+    # Everything else stays ungrouped, and so still arrives as one pull
+    # request per action, to be judged on its own.
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"

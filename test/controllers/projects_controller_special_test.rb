@@ -19,8 +19,8 @@ class ProjectsControllerSpecialTest < ActionDispatch::IntegrationTest
       get "/en/projects/#{@project.id}/passing/edit"
       assert_response :found
       # After session timeout without remember token, user is logged out
-      # and can_edit_else_redirect redirects to login_path (for GET requests)
-      assert_redirected_to login_path
+      # and can_edit_else_redirect redirects to login with return_to param
+      assert_match %r{/en/login\?return_to=}, response.location
     end
   end
 

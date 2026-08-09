@@ -1,0 +1,124 @@
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge contributors
+# SPDX-License-Identifier: MIT
+
+name: CodeQL
+
+# Static analysis of our source with GitHub CodeQL (advanced setup).
+#
+# We also run the "Brakeman" SAST tool
+# (.github/workflows/brakeman.yml). However:
+#
+# * CodeQL adds a second, independent analyzer (different engine, different
+#   query set, covering JavaScript and the workflows themselves, not just
+#   Rails), i.e. defense in depth. We want to have *many* ways to detect
+#   vulnerabilities to increase the likelihood of their detection.
+# * OpenSSF Scorecard's SAST check only credits a fixed allowlist of tools
+#   (CodeQL, Sonar, Snyk, ...). It does NOT recognize Brakeman, so a
+#   detected CodeQL workflow is what makes Scorecard see the static
+#   analysis we already perform. See docs/improve-scorecard.md.
+#
+# This is an ADVANCED setup (a committed workflow), deliberately chosen over
+# GitHub's "default setup". Default setup silently stopped scanning when the
+# repo moved from the coreinfrastructure org to ossf (its last scan predated
+# a month of merges). A committed workflow survives org moves and, if it ever
+# breaks, the missing check is visible on the pull request instead of failing
+# silently. Default setup and this advanced workflow cannot both be enabled;
+# default setup must be turned OFF in repo settings for this to run.
+
+# Run on every pull request PROPOSED against main (catch issues before merge)
+# and on every push to main (defense in depth), plus a weekly schedule so new
+# CodeQL queries and newly-disclosed patterns are run against code that has
+# not otherwise changed.
+#
+# We gate ONLY main, deliberately, and for the same reason brakeman.yml
+# does: CodeQL is a purely static analyzer, and the staging and production
+# branches are only ever advanced from main. Code cannot reach a deployment
+# branch without first passing through main, so scanning main is sufficient
+# and this approach avoids redundant re-scans of identical code.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '34 18 * * 2'
+
+# Default to no permissions; grant only what the job needs.
+permissions: {}
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write    # upload CodeQL results to code scanning
+      contents: read            # checkout
+      # Note: we intentionally do NOT grant packages: read or actions: read.
+      # packages: read is only needed to fetch PRIVATE/internal CodeQL packs;
+      # we use the public query suites bundled with the CodeQL CLI. actions:
+      # read is only needed in PRIVATE repositories. This repo is public and
+      # uses public packs, so both are omitted (least privilege).
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # All three languages present in this repo are interpreted / not
+        # compiled, so every one uses build-mode: none (no build step needed).
+        #   ruby                  -- the Rails application (primary language)
+        #   javascript-typescript -- front-end / asset JavaScript
+        #   actions               -- our GitHub Actions workflows; scanning
+        #                            them complements our workflow hardening
+        include:
+          - language: ruby
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: actions
+            build-mode: none
+
+    steps:
+      # Harden the runner and log egress (consistent with the other
+      # workflows). CodeQL downloads its analysis bundle from GitHub at
+      # runtime; that network access is recorded here.
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      # persist-credentials: false so a later compromised step cannot push.
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # OSPS-BR-01.02: validate the branch name before use in the pipeline.
+      - name: Validate branch name
+        run: script/validate_branch_name "$GITHUB_REF_NAME"
+
+      # INIT AND ANALYZE MUST BE THE SAME RELEASE, and not merely as a
+      # tidiness preference: init writes its own version into the config
+      # file it leaves behind, analyze reloads that file and compares, and
+      # any difference is a hard error ("Loaded a configuration file for
+      # version X, but running version Y") with no fallback. A one-line
+      # bump to either step alone therefore fails every language in the
+      # matrix. Dependabot treats each subdirectory of github/codeql-action
+      # as a separate dependency and would propose exactly that one-line
+      # bump, so .github/dependabot.yml groups them into a single pull
+      # request, and "rake codeql_version_check" fails the build if the
+      # pins ever drift apart anyway. upload-sarif in scorecard.yml is in
+      # the group too: it does not read init's config and so is not part of
+      # the constraint, but moving the whole action at once is one less
+      # thing to reason about.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # To broaden coverage (at the cost of more alerts to triage), add:
+          #   queries: security-extended
+          # The default suite is used for now to keep the initial alert volume
+          # manageable; revisit once the baseline is clean.
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+        with:
+          category: "/language:${{ matrix.language }}"

@@ -1,0 +1,40 @@
+{
+  "//": [
+    "Copyright the Linux Foundation and the CII Best Practices badge",
+    "contributors. SPDX-License-Identifier: MIT",
+    "",
+    "This file exists for exactly one reason: to pin the Node.js version",
+    "used when Heroku builds a slug. We are not a Node.js application and",
+    "we have no npm dependencies.",
+    "",
+    "Why it is needed. The Gemfile has 'terser', which minifies our",
+    "JavaScript through ExecJS, and ExecJS runs Node. The deploy runs",
+    "'rake assets:precompile', so Node is on the path that produces the",
+    "JavaScript we serve. Heroku's Ruby buildpack sees 'execjs' in",
+    "Gemfile.lock and installs a Node of its own choosing, which it warns",
+    "'is not pinned and can change over time'. It duly changed from 20.9.0",
+    "to 24.13.0 under us, moving JavaScript minification four major",
+    "versions without anyone deciding to.",
+    "",
+    "How the pin takes effect. 'engines.node' below is read by the",
+    "heroku/nodejs buildpack, which must be configured on the app ahead of",
+    "heroku/ruby; see docs/build-environment-staleness.md. Without that",
+    "buildpack this file pins nothing. That buildpack's bin/detect also",
+    "*requires* this file, so this file must reach the app before the",
+    "buildpack is added, or the next deploy is rejected.",
+    "",
+    "Pin an exact version, not a '24.x' range. A range reintroduces the",
+    "problem: the build silently changes when nobody asked. We pin the",
+    "CircleCI images by digest, the Codecov CLI by SHA-256 and the Heroku",
+    "CLI by SHA-512 for the same reason. Renovate proposes the upgrades.",
+    "",
+    "There is deliberately no package-lock.json. There is nothing to lock,",
+    "and Heroku's buildpack handles its absence without complaint."
+  ],
+  "name": "best-practices-badge",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": "24.19.0"
+  }
+}

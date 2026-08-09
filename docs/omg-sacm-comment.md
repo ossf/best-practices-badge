@@ -337,7 +337,7 @@ named `targt` rather than `target` at line 1108:
 ```
 
 In the spec figure F.5 (Artifact component of the SACM profile)
-this is shown as the presumably corret `target` and not as `targt`.
+this is shown as the presumably correct `target` and not as `targt`.
 
 This typo is unrelated to the primary issue.
 

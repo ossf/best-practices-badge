@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Copyright 2015-2017, the Linux Foundation, IDA, and the
-# CII Best Practices badge contributors
+# OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
 # Rake tasks for BadgeApp
@@ -19,58 +19,138 @@
 
 require 'English'
 require 'json'
+require 'open3'
+require 'yaml'
+require 'bundler'
 
-# NOTE: Our default runs test:optimized, not just test.
-# We want to make sure things work using *all* our tests.
-# test:optimized runs regular tests (parallelized) then system tests (serial).
-# We do the whitespace check early, so it will fail early.
-# AI assistants just can't help but add whitespace at the end of lines.
-task(:default).clear.enhance %w[
+# ---------------------------------------------------------------------
+# EVERY TASK WITH A BODY MUST SAY WHETHER IT NEEDS RAILS.
+#
+#   task foo: :environment do ... end   # uses models, Rails.root, ...
+#   task foo: :no_rails    do ... end   # shells out, lints, moves files
+#
+# The Rakefile loads this file WITHOUT booting Rails, and boots only if
+# the task you asked for needs it. That is worth six seconds on every
+# invocation, and it is why "rake deploy_production" runs on a machine
+# with no development environment at all.
+#
+# Saying nothing is not an option: "rake" refuses to run until the
+# question is answered, naming the task. It also refuses if a task
+# claims ":no_rails" and its body mentions Rails or a model. Both checks
+# live in the Rakefile.
+#
+# Three things to know when adding one:
+#
+# * A "file" task cannot take the marker. Rake::Task#timestamp returns
+#   Time.now, so a plain task as a file task's prerequisite would make it
+#   out of date on every run. They are exempt, and so are tasks with no
+#   body at all, which are pure prerequisite lists.
+#
+# * If your body INVOKES another task rather than depending on it, say
+#   Rake::Task['db:migrate'].invoke, the marker cannot see it. Declare
+#   ":environment" yourself in that case.
+#
+# * If your code must run after Rails and its gems have defined THEIR
+#   tasks, because it enhances one of them, wrap it in
+#   "after_rails_tasks do ... end". At file scope it would run too early,
+#   and Rake::Task['whatever'] would raise.
+#
+# See the Rakefile for the mechanism and
+# docs/build-environment-staleness.md for why.
+# ---------------------------------------------------------------------
+
+# The work "rake default" does, split three ways, because CI runs the
+# halves as separate jobs at the same time and a developer runs all of
+# it with one word. Every list below is built from these constants, so
+# "rake default" cannot come to mean something different from what CI
+# runs; see docs/build-environment-staleness.md.
+#
+# Getting Ruby and the gems in place. Not checks, but nothing else
+# works without them.
+PREFLIGHT = %w[
   rbenv_rvm_setup
-  notice
+  bundle
+].freeze
+
+# STATIC: settled by the commit. The same tree gives the same answer for
+# ever, so these need to run once per commit and no more. That is what
+# lets them move to their own parallel job, and what lets staging and
+# production skip them: those branches are reached only by
+# fast-forwarding main, which has already run every one of them.
+#
+# whitespace_check leads deliberately, and "rake default" also names it
+# ahead of everything so it fails early. AI assistants just can't help
+# but add whitespace at the end of lines.
+STATIC_CHECKS = %w[
   whitespace_check
   ruby_syntax
-  bundle
-  bundle_audit
   generate_criteria_doc
   rubocop
   markdownlint
   rails_best_practices
   license_okay
-  license_finder_report.html
   yaml_syntax_check
+  circleci_config_check
+  gitignore_check
+  codeql_version_check
+  dependabot_gems_check
+  dependabot_ignore_review_check
+  ruby_version_matches_lock
   html_from_markdown
   eslint
   report_code_statistics
+].freeze
+
+# DYNAMIC: not settled by the commit. bundle_audit reads an advisory
+# database and percent_gems_up_to_date reads rubygems.org, both of which
+# move underneath an unchanged commit, so a gem set that was clean when
+# it merged can be vulnerable by the time it deploys. That is exactly
+# the moment we want to be told, so these run on every build, deploys
+# included.
+#
+# The tests belong here for the same reason rather than by analogy: a
+# green suite is not a property of the commit alone. Re-running it is
+# how flapping is noticed, and it is the last thing standing between a
+# deploy and production.
+#
+# test:optimized runs the regular tests (parallelized) and then the
+# system tests (serial).
+DYNAMIC_CHECKS = %w[
+  bundle_audit
   percent_gems_up_to_date
+  ruby_version_deployable
   test:optimized
-]
+].freeze
+
+# Everything, which is what a developer wants from one word, and what
+# runs on a machine with no CI to split the work across. Defined from
+# the two halves so it cannot drift from what CI actually runs.
+task(:default).clear.enhance(
+  %w[notice whitespace_check] + %w[static_checks dynamic_checks]
+)
+
+desc 'Checks settled by the commit; CI runs these in a parallel job'
+task(:static_checks).clear.enhance(PREFLIGHT + STATIC_CHECKS)
+
+desc 'Tests, and checks whose answer changes without the code changing'
+task(:dynamic_checks).clear.enhance(PREFLIGHT + DYNAMIC_CHECKS)
 # Temporarily removed fasterer
 # Waiting for Ruby 2.4 support: https://github.com/seattlerb/ruby_parser/issues/239
 # Temporarily removed railroader because of local install problems;
 # it's still run by the CI for every pull request
 
-# Run Continuous Integration (CI) check processes.
-# This is a shorter list; many checks are run by a separate "pronto" task.
-# Temporarily includes "railroader", we hope to move that to pronto.
-# Removed bundle_doctor due to CircleCI failures
-# Temporarily removed fasterer
-task(:ci).clear.enhance %w[
-  rbenv_rvm_setup
-  ruby_syntax
-  bundle_audit
-  markdownlint
-  license_okay
-  license_finder_report.html
-  whitespace_check
-  yaml_syntax_check
-  report_code_statistics
-  railroader
-]
+# There used to be a "ci" task here, a second shorter list of checks.
+# Nothing referenced it: not .circleci/config.yml, not the GitHub
+# workflows, not the documentation. It still named
+# license_finder_report.html, which left "rake default" some time ago,
+# and railroader, which is not in the default list either. A second list
+# of what CI runs, which CI does not run, is a claim that quietly stops
+# being true. What CI runs is "rake static_checks" and
+# "rake dynamic_checks", both defined above.
 
 # Simple smoke test to avoid development environment misconfiguration
 desc 'Ensure that rbenv or rvm are set up in PATH'
-task :rbenv_rvm_setup do
+task rbenv_rvm_setup: :no_rails do
   # Skip this check in CI environments where Ruby is managed differently
   next if ENV['CI']
 
@@ -82,29 +162,34 @@ end
 
 # Do a quick check of Ruby syntax, takes only ~2 sec in most cases
 desc 'Check for ruby syntax problems on **.rb files modified last 7 days'
-task :ruby_syntax do
-  # Exclude temporary files beginning with comma.
+task ruby_syntax: :no_rails do
+  # Exclude temporary files beginning with comma and files under temp/.
   # The `ruby -c` command only checks one file, so re-invoke for each file.
   # Do checks in parallel to speed results.
   puts 'Checking ruby syntax in files modified in the last 7 days...'
-  sh 'find . -name "*.rb" ! -name ",*" -mtime -7 -print0 | ' \
+  sh 'find . -name "*.rb" ! -name ",*" ! -path "./temp/*" -mtime -7 -print0 | ' \
      'xargs -0 -L 1 -P $(nproc) ruby -c > /dev/null'
 end
 
 desc 'Run Rubocop'
-task :rubocop do
+task rubocop: :no_rails do
   # The default configuration is in .rubocop.yml
   sh 'bundle exec rubocop'
 end
 
 desc 'Run rails_best_practices with options'
-task :rails_best_practices do
-  # The default configuration is in config/rails_best_practices.yml
-  sh 'bundle exec rails_best_practices'
+task rails_best_practices: :no_rails do
+  # The config file (config/rails_best_practices.yml) controls which checks
+  # are enabled/disabled. File-exclusion and mode flags must be passed on
+  # the command line — the YAML 'exclude:' key is silently ignored by the gem.
+  # tmp/ is excluded by the gem's built-in defaults; the others are not.
+  sh 'bundle exec rails_best_practices ' \
+     '--features --spec --without-color ' \
+     '--exclude "temp/,railroader/,/,"'
 end
 
 desc 'Setup railroader if needed'
-task 'railroader/bin/railroader' do
+task 'railroader/bin/railroader' => :no_rails do
   # "gem install" doesn't honor Gemfile.lock, so use git clone + bundle install
   sh 'mkdir -p railroader'
   sh 'cd railroader; ' \
@@ -114,7 +199,7 @@ task 'railroader/bin/railroader' do
 end
 
 desc 'Run railroader'
-task railroader: %w[railroader/bin/railroader] do
+task railroader: ['railroader/bin/railroader', :no_rails] do
   # TEMPORARY: DISABLE
   # Disable pager, so that "rake" can keep running without halting.
   # sh 'bundle exec railroader --quiet --no-pager'
@@ -124,19 +209,19 @@ task railroader: %w[railroader/bin/railroader] do
 end
 
 desc 'Run bundle if needed'
-task :bundle do
+task bundle: :no_rails do
   sh 'bundle check || bundle install'
 end
 
 # NOTE: We've had some trouble with bundle doctor, so it might
 # not be run by default.
 desc 'Run bundle doctor - check for some Ruby gem configuration problems'
-task :bundle_doctor do
+task bundle_doctor: :no_rails do
   sh 'bundle doctor'
 end
 
 desc 'Report code statistics'
-task :report_code_statistics do
+task report_code_statistics: :no_rails do
   verbose(false) do
     sh 'script/report_code_statistics'
   end
@@ -152,7 +237,7 @@ end
 
 # rubocop:disable Metrics/BlockLength
 desc 'Run bundle-audit - check for known vulnerabilities in dependencies'
-task :bundle_audit do
+task bundle_audit: :no_rails do
   # rubocop:disable Metrics/MethodLength
   def bundle_audit_update_successful?
     max_retries = 4
@@ -179,6 +264,9 @@ task :bundle_audit do
     false
   end
   # rubocop:enable Metrics/MethodLength
+
+  # If SKIP_BUNDLE_AUDIT set, skip `bundle audit` to allow other checks.
+  next if ENV['SKIP_BUNDLE_AUDIT']
 
   apply_bundle_audit =
     if network_available?
@@ -208,7 +296,7 @@ end
 # a lot of output that is normally useless. The developer can always run
 # "bundle outdated" if that's important.
 desc 'Report percentage of gems that are up-to-date if network available'
-task :percent_gems_up_to_date do
+task percent_gems_up_to_date: :no_rails do
   if network_available?
     begin
       bundle_list_output = `bundle list 2>/dev/null`
@@ -253,11 +341,17 @@ end
 # NOTE: If you don't want mdl to be run on a markdown file, rename it to
 # end in ".markdown" instead.  (E.g., for markdown fragments.)
 desc 'Run markdownlint (mdl) - check for markdown problems on **.md files'
-task :markdownlint do
+task markdownlint: :no_rails do
   # The default configuration is in .mdlrc + style config/markdown_style.rb
   # Exclude temporary files beginning with comma
-  sh 'find . -name "*.md" ! -name ",*" -print0 | xargs -0 bundle exec mdl'
+  sh 'find . -name "*.md" ! -name ",*" ! -path "./tmp/*" ! -path "./temp/*" ! -path "*/.*" -print0 | xargs -0 bundle exec mdl'
 end
+
+# The tool is called mdl, so let "rake mdl" work too. No body, so it
+# needs no ":no_rails" of its own: the Rakefile decides a bodiless task
+# from what it depends on, and markdownlint says ":no_rails" already.
+desc 'Alias for markdownlint'
+task mdl: :markdownlint
 
 # Apply JSCS to look for issues in JavaScript files.
 # To use, must install jscs; the easy way is to use npm, and at
@@ -271,7 +365,7 @@ end
 # We don't scan 'app/assets/javascripts/application.js';
 # it is primarily auto-generated code + special directives.
 desc 'Run jscs - JavaScript style checker'
-task :jscs do
+task jscs: :no_rails do
   jscs_exe = 'node_modules/.bin/jscs'
   jscs_options = '--preset=node-style-guide -m 9999'
   jscs_files = 'app/assets/javascripts/project-form.js'
@@ -279,10 +373,10 @@ task :jscs do
 end
 
 desc 'Load current self.json'
-task :load_self_json do
+task load_self_json: :no_rails do
   require 'json'
   require 'open-uri'
-  url = 'https://master.bestpractices.coreinfrastructure.org/projects/1.json'
+  url = 'https://staging.bestpractices.dev/projects/1.json'
   contents = URI.parse(url).open.read
   pretty_contents = JSON.pretty_generate(JSON.parse(contents))
   File.write('docs/self.json', pretty_contents)
@@ -296,7 +390,18 @@ file 'license_okay' => ['Gemfile.lock', 'docs/dependency_decisions.yml'] do
   sh 'bundle exec license_finder --decisions_file docs/dependency_decisions.yml && touch license_okay'
 end
 
-desc 'Create license report'
+# NOT in the default list, deliberately. This renders the same scan
+# 'license_okay' has just done, as a browsable page, and license_finder
+# offers no way to get both from one pass: "action_items --format html"
+# gates correctly but emits 205 bytes saying everything is approved,
+# not the 340 KB report. So having both in 'rake default' meant
+# scanning every gem twice, about 40 seconds, for one scan's worth of
+# information.
+#
+# 'license_okay' is the check and it still runs everywhere. This is the
+# convenience, one command away when someone wants to read it:
+#     rake license_finder_report.html
+desc 'Create browsable license report (not part of "rake default")'
 file 'license_finder_report.html' => [
   'Gemfile.lock',
   'docs/dependency_decisions.yml'
@@ -305,7 +410,7 @@ file 'license_finder_report.html' => [
 end
 
 desc 'Notice about proposal requirements (for AI)'
-task :notice do
+task notice: :no_rails do
   puts 'NOTE: Change proposals are *required* to pass "rake default" including'
   puts 'all linters and tests, and *must* have 100% test statement coverage.'
   puts
@@ -315,7 +420,7 @@ end
 YAML_WS_EXCEPTIONS ||= ':!test/vcr_cassettes/*.yml'
 
 desc 'Check for trailing whitespace in all text files.'
-task :whitespace_check do
+task whitespace_check: :no_rails do
   puts 'Checking for trailing whitespace...'
 
   # Find all files, exclude directories we don't want, exclude comma-prefixed
@@ -324,7 +429,8 @@ task :whitespace_check do
   cmd = <<~SHELL
     find . -type f ! -name ',*' \
       ! -path './vendor/*' ! -path './node_modules/*' \
-      ! -path './railroader/*' ! -path './tmp/*' ! -path './.git/*' \
+      ! -path './railroader/*' ! -path './tmp/*' ! -path './temp/*' \
+      ! -path './.git/*' \
       ! -path './log/*' ! -path './test/vcr_cassettes/*' \
       ! -path './license_finder_report.html' \
       ! -path './coverage/index.html' \
@@ -349,7 +455,7 @@ task :whitespace_check do
 end
 
 desc 'Check YAML syntax (except project.yml, which is not straight YAML)'
-task :yaml_syntax_check do
+task yaml_syntax_check: :no_rails do
   # Don't check "project.yml" - it's not a straight YAML file, but instead
   # it's processed by ERB (even though the filename doesn't admit it).
   puts 'Checking YAML syntax...'
@@ -370,21 +476,520 @@ task :yaml_syntax_check do
   end
 end
 
+# CircleCI parses ".circleci/config.yml" at a layer ABOVE YAML, where a
+# doubled less-than sign opens one of its own parameter expressions. It
+# scans forward for the matching doubled greater-than and, not finding
+# one, rejects the entire file with "Expressions must be less than 2048
+# characters" reported against the top of the enclosing step.
+#
+# Two shell constructs open with exactly that pair, here-strings and
+# here-documents, and both are natural things to write in a "command:"
+# block. Neither survives. Comments inside a command block do not
+# survive either, because CircleCI parses the whole string and does not
+# know that the shell would have ignored part of it.
+#
+# None of this is visible to "rake yaml_syntax_check": the file is
+# perfectly good YAML. The "circleci" CLI would catch it with
+# "circleci config validate", but that is another tool to install and
+# keep current, and this is a grep.
+#
+# A genuine CircleCI expression is still allowed, so that a
+# parameterized executor remains available: see
+# docs/build-environment-staleness.md.
+desc 'Check .circleci/config.yml for shell syntax CircleCI misreads'
+task circleci_config_check: :no_rails do
+  path = '.circleci/config.yml'
+  puts "Checking #{path} for CircleCI expression traps..."
+  raise StandardError, "Missing #{path}" unless File.exist?(path)
+
+  # The only legitimate use of the pair: opening a reference to a
+  # CircleCI parameter or pipeline value.
+  allowed = /\A<<\s*(parameters|pipeline)\./
+  offenders =
+    File.readlines(path).each_with_index.filter_map do |line, index|
+      found = line.enum_for(:scan, /<</).map { Regexp.last_match.begin(0) }
+      next if found.empty? || found.all? { |at| line[at..].match?(allowed) }
+
+      [index + 1, line.strip]
+    end
+
+  if offenders.empty?
+    puts 'CircleCI config check completed successfully.'
+  else
+    puts 'ERROR: a doubled less-than sign in .circleci/config.yml.'
+    puts 'CircleCI reads it as the start of a parameter expression and'
+    puts 'rejects the whole file. Shell here-strings and here-documents'
+    puts 'open with it; so rewrite them (awk, or a pipe), and describe'
+    puts 'the characters in comments rather than spelling them out.'
+    offenders.each do |line_number, text|
+      puts "  #{path}:#{line_number}: #{text}"
+    end
+    exit 1
+  end
+end
+
+# .gitignore ignores dot paths by default (".*"), which is the right
+# default for credentials and editor state, and then re-includes the dot
+# paths that are real configuration. That list has to stay complete, and
+# nothing about an incomplete one is visible day to day: ignore rules do
+# not apply to files git already tracks, so a tracked file whose entry is
+# missing keeps working. The bill comes due later, when the file is
+# deleted and restored, or when a new file lands beside it: git status
+# never mentions it and git add refuses it, so it looks committed while
+# never leaving the machine it was written on. That is the failure this
+# catches, and it applies to any ignore rule, not just ".*" (/tmp and
+# ",*" each hide a tracked file too, and each has its own exception).
+#
+# Being tracked and being ignored is the contradiction, so ask git both
+# questions and intersect the answers.
+desc 'Check no tracked file is covered by an ignore rule'
+task gitignore_check: :no_rails do
+  puts 'Checking that no tracked file is ignored...'
+  tracked = `git ls-files -z`
+  unless $CHILD_STATUS.success?
+    raise StandardError, 'git ls-files failed; not a git work tree?'
+  end
+  raise StandardError, 'git ls-files reported no files' if tracked.empty?
+
+  # capture2 pumps stdin and stdout on separate threads. Feeding this
+  # much input to a pipe we also read from would otherwise risk a
+  # deadlock, on precisely the broken .gitignore that makes the output
+  # large. check-ignore exits 0 when something matched, 1 when nothing
+  # did, and 128 on a real error, so 1 is the answer we want.
+  output, status = Open3.capture2(
+    'git', 'check-ignore', '--no-index', '--stdin', '-z',
+    stdin_data: tracked
+  )
+  if status.exitstatus > 1
+    raise StandardError, "git check-ignore failed (#{status.exitstatus})"
+  end
+
+  offenders = output.split("\0").reject(&:empty?)
+  if offenders.empty?
+    puts 'No tracked file is ignored.'
+  else
+    puts 'ERROR: these files are tracked, yet .gitignore ignores them.'
+    puts 'Deleting and restoring one, or adding a file beside it, will'
+    puts 'fail silently. Add an exception ("!" line) for each, after'
+    puts 'the rule that hides it. To see which rule that is, run:'
+    puts '  git ls-files | git check-ignore --no-index --stdin -v'
+    offenders.each { |file| puts "  #{file}" }
+    exit 1
+  end
+end
+
+# The CodeQL action's "init" step writes the version of itself into the
+# config file it leaves in the work area, and the "analyze" step reloads
+# that file and compares the two. A difference is fatal, reported as
+# "Loaded a configuration file for version X, but running version Y", and
+# there is no fallback: every language in the matrix fails.
+#
+# Nothing in a workflow file expresses that constraint, and the two steps
+# are pinned by commit SHA on separate lines, which is precisely the shape
+# an automated dependency bump edits one line of. Dependabot did, three
+# times, because it keys actions by full path and so sees "init" and
+# "analyze" as unrelated dependencies. .github/dependabot.yml now groups
+# them, and this is the check that notices if they ever come apart
+# regardless: a hand edit, a bad merge, or a future tool with the same
+# blind spot.
+#
+# Only init and analyze are constrained. upload-sarif reads no config
+# from init and is deliberately not checked here, so scorecard.yml stays
+# free to move on its own schedule.
+desc 'Check github/codeql-action init and analyze are pinned alike'
+task codeql_version_check: :no_rails do
+  path = '.github/workflows/codeql.yml'
+  puts "Checking #{path} pins CodeQL init and analyze alike..."
+  raise StandardError, "Missing #{path}" unless File.exist?(path)
+
+  # Capture the SHA and the trailing "# vX.Y.Z" comment for each step, so
+  # a mismatch can be reported in the terms the file is written in.
+  pattern = %r{codeql-action/(init|analyze)@(\S+)\s*(?:\#\s*(\S+))?}
+  pins =
+    File.read(path).scan(pattern).to_h do |step, sha, tag|
+      [step, [sha, tag]]
+    end
+
+  missing = %w[init analyze] - pins.keys
+  if missing.any?
+    raise StandardError,
+          "No CodeQL #{missing.join(' or ')} step in #{path}"
+  end
+
+  if pins['init'].first == pins['analyze'].first
+    puts "CodeQL version check completed successfully (#{pins['init'].last})."
+  else
+    puts 'ERROR: CodeQL init and analyze are pinned to different releases.'
+    puts 'The analyze step reloads the config file init wrote and rejects'
+    puts 'any version difference, so every language in the matrix fails.'
+    puts 'Move both lines to the same commit SHA of github/codeql-action.'
+    %w[init analyze].each do |step|
+      sha, tag = pins[step]
+      puts "  #{step}: #{sha} #{tag}"
+    end
+    exit 1
+  end
+end
+
+# .github/dependabot.yml NAMES GEMS, AND A NAME THAT MATCHES NOTHING IS
+# SILENT. Its bundler entry lists gems three ways: the Rails release train
+# it groups, the gems whose minor bumps must leave the weekly batch, and
+# the versions never to propose at all. Every one of those is a bare
+# string compared against a dependency name, so a typo, a renamed gem, or
+# a gem we dropped does not fail anything. It just quietly stops matching,
+# and the protection it encoded is gone with no sign that it ever left.
+#
+# That is the same failure shape as an ignore rule hiding a tracked file:
+# the mechanism keeps reporting success while doing nothing. So check that
+# every name still refers to a real dependency.
+#
+# THE LOCKFILE, NOT THE GEMFILE, is the universe to check against. Four of
+# the Rails gems the config groups (actioncable, actionmailbox, actiontext
+# and activestorage) reach us through the development-only "gem 'rails'"
+# and appear in no Gemfile line, which is exactly why they are named:
+# before "allow: all" they were never offered an update at all.
+#
+# Wildcards are skipped. "*" is meant to match everything and would fail
+# any name check by construction.
+#
+# STATIC: both files are in the tree, so no commit, no change.
+DEPENDABOT_PATTERN_KEYS = %w[patterns exclude-patterns].freeze
+
+desc 'Check .github/dependabot.yml only names gems we actually have'
+task dependabot_gems_check: :no_rails do
+  path = '.github/dependabot.yml'
+  puts "Checking #{path} names real gems..."
+  raise StandardError, "Missing #{path}" unless File.exist?(path)
+
+  known = Bundler::LockfileParser.new(File.read('Gemfile.lock'))
+                                 .specs.to_set(&:name)
+
+  config = YAML.safe_load_file(path)
+  bundler_entry =
+    config['updates'].find { |u| u['package-ecosystem'] == 'bundler' }
+  raise StandardError, "No bundler entry in #{path}" if bundler_entry.nil?
+
+  # Each referenced name, paired with the setting it came from, so the
+  # error can say where to look rather than only what is wrong.
+  referenced = []
+  bundler_entry.fetch('groups', {}).each do |group, rules|
+    DEPENDABOT_PATTERN_KEYS.each do |key|
+      rules.fetch(key, []).each do |name|
+        referenced << ["groups.#{group}.#{key}", name]
+      end
+    end
+  end
+  bundler_entry.fetch('ignore', []).each do |rule|
+    referenced << ['ignore', rule['dependency-name']]
+  end
+
+  offenders =
+    referenced.reject { |_where, name| name.include?('*') }
+              .reject { |_where, name| known.include?(name) }
+
+  if offenders.empty?
+    puts "All #{referenced.length} names in #{path} match a locked gem."
+  else
+    puts "ERROR: #{path} names gems that are not in Gemfile.lock."
+    puts 'A name matching nothing does not fail, it just stops'
+    puts 'protecting whatever it was written to protect. Remove the'
+    puts 'entry, or fix the spelling. See the note in the Gemfile about'
+    puts 'keeping these two files in step.'
+    offenders.each { |where, name| puts "  #{where}: #{name}" }
+    exit 1
+  end
+end
+
+# THE REMINDER MUST NOT BLOCK THE MERGE IT REMINDS US ABOUT.
+# Ignore entries in .github/dependabot.yml carry a REVIEW-BY date, because
+# an ignore is silence and silence does not expire on its own. But a date
+# that has passed is a question waiting for a human, and a question must
+# never stand between us and an urgent merge: a security fix should not
+# wait on an argument about vcr's licence.
+#
+# So an expired date reports and passes here, and the scheduled notifier in
+# .github/workflows/dependabot_review.yml raises an issue about it instead,
+# where it can wait without holding anything up. A MISSING date still
+# fails, because that is a configuration error its author can fix in the
+# same change.
+#
+# The work lives in the script so the notifier can run it without a bundle
+# install; this task is the pipeline's view of the same answer.
+#
+# STATIC: the date moves, but the file does not.
+desc 'Report Dependabot ignores whose review date has passed'
+task dependabot_ignore_review_check: :no_rails do
+  sh 'script/dependabot_review_due'
+end
+
+# THE RUBY VERSION IS IN TWO FILES AND HEROKU READS THE OTHER ONE.
+# Gemfile says `ruby File.read('.ruby-version').strip`, so the two agree
+# whenever "bundle install" last ran and stop agreeing the moment
+# .ruby-version is edited alone. Heroku's support reference: "We install
+# the Ruby version specified in your Gemfile.lock".
+#
+# Nothing else catches this. CI runs a plain "bundle install", so
+# Bundler reconciles the lock in the working tree and the suite passes;
+# "bundle check" reports satisfied even with BUNDLE_FROZEN=true, since
+# frozen mode guards the gem set and not the recorded Ruby. Nothing is
+# red until a deploy installs the OLD Ruby and meets a Gemfile
+# demanding the new one.
+#
+# STATIC: both files are in the tree, so no commit, no change.
+desc 'Check .ruby-version and Gemfile.lock name the same Ruby'
+task ruby_version_matches_lock: :no_rails do
+  puts 'Checking .ruby-version against Gemfile.lock...'
+  wanted = File.read('.ruby-version').strip
+  # "RUBY VERSION\n   ruby 3.4.1p0"; the patchlevel suffix is Bundler's
+  # and is not part of what .ruby-version can say, so it is ignored.
+  locked = File.read('Gemfile.lock')[/^RUBY VERSION\s*\n\s*ruby ([\d.]+)/, 1]
+
+  if locked.nil?
+    puts 'ERROR: Gemfile.lock has no RUBY VERSION section.'
+    puts 'Gemfile names a Ruby, so the lock should record one. Run'
+    puts '"bundle install" and commit the result.'
+    exit 1
+  elsif locked == wanted
+    puts "Both name Ruby #{wanted}."
+  else
+    puts "ERROR: .ruby-version says #{wanted}, Gemfile.lock says #{locked}."
+    puts 'Heroku installs the version in Gemfile.lock, so this deploys'
+    puts 'the wrong Ruby, or fails when Bundler finds the Gemfile asking'
+    puts "for #{wanted}. Run \"bundle install\" and commit Gemfile.lock"
+    puts 'alongside the .ruby-version change.'
+    exit 1
+  end
+end
+
+# Only Rubies Heroku publishes for our stack will deploy, so a bumped
+# .ruby-version could pass every test and fail at deploy. This asks S3
+# the same question a deploy will.
+#
+# DYNAMIC, not static: Heroku can withdraw a Ruby under an unchanged
+# tree, and the moment to hear about that is the deploy we were about
+# to do. Same argument as bundle_audit.
+#
+# NOT A MINITEST TEST. test/test_helper.rb disables outbound
+# connections, and WebMock's refusal is not a network error, so any
+# "skip when offline" logic would read it as an offline developer and
+# skip for ever. A guard that never guards is worse than none, being
+# also reassuring.
+#
+# Offline is a SKIP: a developer on a train is not stopped, and CI has
+# a network, so CI is where this bites.
+desc 'Check .ruby-version is a Ruby Heroku can deploy on our stack'
+task ruby_version_deployable: :no_rails do
+  require_relative '../heroku_ruby_availability'
+  require_relative '../project_stack'
+
+  version = File.read('.ruby-version').strip
+  stack = ProjectStack.name
+  puts "Checking Heroku has Ruby #{version} for #{stack}..."
+
+  begin
+    deployable = HerokuRubyAvailability.available?(
+      version: version, stack: stack
+    )
+  rescue HerokuRubyAvailability::Unreachable => e
+    puts "SKIPPED: #{e.message}"
+    puts 'Offline, so this proves nothing either way. CI has a network.'
+    next
+  end
+
+  if deployable
+    puts "Heroku has ruby-#{version} for #{stack}."
+  else
+    puts "ERROR: Heroku has no ruby-#{version} for #{stack}."
+    puts 'This would pass every test here and then fail at deploy.'
+    puts "Asked for: #{HerokuRubyAvailability.url_for(
+      version: version, stack: stack
+    )}"
+    puts 'Pick a version from .github/heroku-ruby-versions.txt, or run'
+    puts '"rake heroku_ruby_versions" to see what Heroku has now.'
+    exit 1
+  end
+end
+
+# A convenience for humans. The weekly workflow runs the same script to
+# refresh .github/heroku-ruby-versions.txt, which Renovate reads as a
+# custom datasource; it lives in script/ because it must run on a bare
+# runner, and our Rakefile loads config/boot, i.e. Bundler.
+desc 'Print the Rubies Heroku can deploy on our stack'
+task heroku_ruby_versions: :no_rails do
+  sh 'script/heroku_ruby_versions'
+end
+
 # The following are invoked as needed.
 
 desc 'Create visualization of gem dependencies (requires graphviz)'
-task :bundle_viz do
+task bundle_viz: :no_rails do
   sh 'bundle viz --version --requirements --format svg'
 end
 
+# Deploying is now purely a matter of advancing a branch.  The database
+# refresh used to happen here, which is why this task needed the Heroku
+# CLI and an interactive login on the developer's machine; it now runs
+# in the CircleCI deploy job on HEROKU_API_KEY, which never needs a
+# browser, and under maintenance mode rather than against a live site.
+# See .circleci/config.yml and docs/build-environment-staleness.md.
+# FETCHES ORIGIN'S main INTO LOCAL staging, THEN PUSHES THAT.
+#
+# The fetch source is origin's main, never your local main, so an
+# unpushed commit of yours cannot reach staging.
+#
+# WHAT IT UPDATES LOCALLY, deliberately: your local "staging" branch is
+# created if absent and fast-forwarded if present, so "git log staging"
+# and "git diff staging" tell the truth after a deploy instead of
+# describing wherever staging sat when you last looked. In a full clone
+# the push updates "origin/staging" too; in a --single-branch or --depth
+# clone it does not, because that clone's refspec never mapped it.
+# Nothing else is touched: no other branch moves, the working tree is
+# left alone, and a dirty tree is fine.
+#
+# WHAT YOU CANNOT BE ON: "staging" itself. Git refuses to fetch into a
+# checked-out branch and stops with "refusing to fetch into branch". That
+# is a fair limitation, since staging is a branch to read rather than
+# work on, and the refusal is a useful signal that something odd is
+# going on.
+#
+# THE SECOND REFSPEC KEEPS "git status" HONEST. "+main:refs/..." updates
+# origin/main, which the first refspec does not, because an explicit
+# src:dst overrides the clone's configured refspec and so no
+# remote-tracking ref would be touched otherwise. Without it origin/main
+# goes stale as deploys succeed and "git status" on main stops reporting
+# how far behind you are. It writes to a remote-tracking ref rather than
+# to refs/heads/main, so it works even while you are standing on main.
+# The leading "+" is deliberate and the asymmetry is the point: a
+# tracking ref is a mirror of the remote, where a forced update is
+# normal, while "main:staging" stays unforced so a divergence stops the
+# deploy.
+#
+# THE "&&" IS THE SAFETY, more than it looks. If your local staging has
+# diverged, the fetch is REJECTED as a non-fast-forward and exits 1,
+# leaving the divergent commit in place; an unguarded push would then
+# send that commit to the deploy branch. Not passing --force is the other
+# half: the push refuses a non-fast-forward on the far end too.
+#
+# The same two commands are documented for people without a development
+# environment in docs/INSTALL.md.
+#
+# AFTER THE DEPLOY, IT REPORTS ON YOUR LOCAL main, and only when there is
+# something to say. The deploy has already happened by then, so nothing
+# here can delay or fail it. origin/main was just refreshed above, so
+# both comparisons are free and need no network, so it makes sense to
+# add the checks specifically *here* since within this command we *can*
+# know for certain what difference there is (if any) between the
+# remote origin's main and our local main.
+#
+# Behind is the ordinary case and only needs the cure. AHEAD IS NOT: it
+# means commits exist here and nowhere else, which is what happens when
+# you forget to branch before starting work, so it names them and offers
+# the way out. "git reset --keep" rather than "--hard" because it refuses
+# rather than discarding uncommitted changes.
+#
+# "--ff-only" ON THE SUGGESTED PULL LOOKS REDUNDANT AND IS NOT. This
+# message appears only when main is behind and not ahead, where a plain
+# "git pull" fast-forwards anyway. The flag is there for the reader's
+# configuration rather than for the ordinary case: with pull.rebase=true,
+# a common setting, a plain pull silently rewrites their commits if main
+# has diverged since this ran, and with pull.rebase=false it puts a merge
+# commit on main. Git's own default refuses either way, so this guards
+# against configuration, not against git.
+#
+# The heredoc below is unquoted, so keep Ruby out of it: no "#{...}", and
+# no backslash escapes, which Ruby would consume before the shell saw
+# them. deploy_production quotes its delimiter for exactly that reason.
 desc 'Deploy current origin/main to staging'
-task deploy_staging: :production_to_staging do
-  sh 'git checkout staging && git pull && git merge --ff-only origin/main && git push && git checkout main'
+task deploy_staging: :no_rails do
+  # Shown as it runs, because these two commands ARE the deploy and are
+  # what someone without a development environment types instead.
+  sh 'git fetch origin main:staging +main:refs/remotes/origin/main && ' \
+     'git push origin staging'
+
+  # Reported quietly. "verbose(false)" keeps Rake from echoing this
+  # script, which is bookkeeping rather than anything anyone would run by
+  # hand, so the only thing that reaches the screen is a finding. It is a
+  # separate sh so a failed deploy above raises and this never runs,
+  # which is why nothing here needs "|| exit 1".
+  verbose(false) do
+    sh <<~SHELL
+      ahead=$(git rev-list --count origin/main..main 2>/dev/null || echo 0)
+      behind=$(git rev-list --count main..origin/main 2>/dev/null || echo 0)
+      if [ "$ahead" -gt 0 ]; then
+        echo
+        echo "WARNING: your local main has commits that are not on GitHub,"
+        echo 'so they are not reviewed, not tested and not deployed:'
+        git log --oneline origin/main..main
+        echo 'If you meant to work on a branch, move them onto one and put'
+        echo 'main back where GitHub has it:'
+        echo '  git branch SAVED-WORK main'
+        echo '  git switch main && git reset --keep origin/main'
+      elif [ "$behind" -gt 0 ]; then
+        echo
+        echo 'Your local main is out of date. To catch up:'
+        echo '  git switch main && git pull --ff-only'
+      fi
+    SHELL
+  end
 end
 
+# Same shape as deploy_staging, one branch further along, so the same
+# notes apply: it reads origin's staging rather than your local one,
+# updates your local "production" branch so it tells the truth
+# afterwards, refuses if you are standing on "production", and relies on
+# the "&&" and on not passing --force to keep every step a
+# fast-forward.
+#
+# The one difference that matters: PRODUCTION WAITS FOR EVIDENCE. A staging
+# deploy may legitimately start before main's checks finish, because
+# CircleCI tests the tree again on the staging branch and the two suites
+# then run in parallel. Production has no such excuse, so this refuses
+# unless everything on staging passed.
+#
+# BOTH ENDPOINTS ARE ASKED, and neither is redundant. CircleCI's
+# "ci/circleci: static" is reported as a commit STATUS and never appears
+# among the check runs, while CodeQL, brakeman and codespell are check
+# RUNS and never appear among the statuses. Asking only for statuses
+# once called a commit green whose three CodeQL analyses had failed.
+#
+# The grep pair is inverted on purpose: it reports anything that is not
+# "success" or "completed" rather than looking for known bad words, so a
+# conclusion GitHub invents later stops the deploy instead of slipping
+# past. A null conclusion, meaning still running, stops it too.
+#
+# "|| exit 1" after the curl is not decoration. curl exits 22 when -f
+# meets an error, and without that the empty reply would look like an
+# empty list of problems, which is to say like success.
 desc 'Deploy current origin/staging to production'
-task :deploy_production do
-  sh 'git checkout production && git pull && git merge --ff-only origin/staging && git push && git checkout main'
+task deploy_production: :no_rails do
+  # The check is quiet, because how we ask is bookkeeping; what it found
+  # is not. Both arms say something: one line when staging is clean, and
+  # the refusal with the offending lines when it is not. Its own sh, so a
+  # refusal raises here and the deploy below is never reached, which is
+  # why the "if" no longer has to fall through to it.
+  verbose(false) do
+    sh <<~'SHELL'
+      api=https://api.github.com/repos/ossf/best-practices-badge/commits/staging
+      checks=$(curl -sSf "$api/status" \
+        "$api/check-runs?per_page=100") || exit 1
+      not_green=$(printf '%s\n' "$checks" |
+        grep -E '"(state|status|conclusion)":' |
+        grep -vE '"(success|completed)"')
+      if [ -z "$not_green" ]; then
+        echo 'Staging has passed everything.'
+      else
+        echo 'Refusing to deploy: staging has not passed everything.'
+        printf '%s\n' "$not_green"
+        echo 'Open the staging commit on GitHub to see what.'
+        exit 1
+      fi
+    SHELL
+  end
+
+  # Shown as it runs, like the staging deploy: these are the commands.
+  sh 'git fetch origin staging:production ' \
+     '+staging:refs/remotes/origin/staging && ' \
+     'git push origin production'
 end
 
 rule '.html' => '.md' do |t|
@@ -406,11 +1011,11 @@ file 'docs/criteria.md' =>
 end
 
 # Name task so we don't have to use the filename
-task generate_criteria_doc: 'docs/criteria.md' do
+task generate_criteria_doc: ['docs/criteria.md', :no_rails] do
 end
 
 desc 'Use fasterer to report Ruby constructs that perform poorly'
-task :fasterer do
+task fasterer: :no_rails do
   sh 'fasterer'
 end
 
@@ -431,7 +1036,7 @@ namespace :fastly do
   # Unfortunately we *cannot* do a soft purge, "Fastly-Soft-Purge: 1"
   # on a purge-all, per the Fastly documentation.
   desc 'Purge ALL of Fastly cache (takes about 5s)'
-  task :purge_all do
+  task purge_all: :no_rails do
     puts 'Starting purge ALL of Fastly cache (typically takes about 5s)'
     # The following is needed to load fastly_rails without bringing in the
     # entire Rails environment (which we don't need).
@@ -442,8 +1047,8 @@ namespace :fastly do
   end
 
   desc 'Test Fastly Caching'
-  task :test, [:site_name] do |_t, args|
-    args.with_defaults site_name: 'https://master.bestpractices.coreinfrastructure.org/projects/1/badge'
+  task :test, [:site_name] => :no_rails do |_t, args|
+    args.with_defaults site_name: 'https://staging.bestpractices.dev/projects/1/badge'
     puts 'Starting test of Fastly caching'
     verbose(false) do
       sh "script/fastly_test #{args.site_name}"
@@ -452,7 +1057,7 @@ namespace :fastly do
 end
 
 desc 'Drop development database'
-task :drop_database do
+task drop_database: :no_rails do
   puts 'Dropping database development'
   # Command from http://stackoverflow.com/a/13245265/1935918
   sh "echo 'SELECT pg_terminate_backend(pg_stat_activity.pid) FROM " \
@@ -462,7 +1067,7 @@ task :drop_database do
 end
 
 desc 'Copy database from production into development (requires access privs)'
-task :pull_production do
+task pull_production: :no_rails do
   puts 'Getting production database'
   Rake::Task['drop_database'].reenable
   Rake::Task['drop_database'].invoke
@@ -473,7 +1078,7 @@ end
 
 # Don't use this one unless you need to
 desc 'Copy active production database into development (if normal one fails)'
-task :pull_production_alternative do
+task pull_production_alternative: :no_rails do
   puts 'Getting production database (alternative)'
   sh 'heroku pg:backups:capture --app production-bestpractices && ' \
      'curl -o db/latest.dump `heroku pg:backups:url ' \
@@ -483,34 +1088,27 @@ task :pull_production_alternative do
      '           -d development db/latest.dump'
 end
 
-desc 'Copy active main database into development (requires access privs)'
-task :pull_main do
-  puts 'Getting main database'
-  Rake::Task['drop_database'].reenable
-  Rake::Task['drop_database'].invoke
-  sh 'heroku pg:pull DATABASE_URL development --app master-bestpractices'
-  Rake::Task['db:migrate'].reenable
-  Rake::Task['db:migrate'].invoke
-end
-
 # This just copies the most recent backup of production; in almost
 # all cases this is adequate, and this way we don't disturb production
 # unnecessarily.  If you want the current active database, you can
 # force a backup with:
 # heroku pg:backups:capture --app production-bestpractices
-desc 'Copy production database backup to main stage, overwriting main database'
-task :production_to_main do
-  sh 'heroku pg:backups:restore $(heroku pg:backups:url ' \
-     '--app production-bestpractices) DATABASE_URL --app master-bestpractices'
-  sh 'heroku run:detached bundle exec rake db:migrate --app master-bestpractices'
-end
-
-desc 'Copy production database backup to staging, overwriting staging database'
-task :production_to_staging do
+# NOTE: deploying to staging no longer calls this.  The CircleCI deploy
+# job does the same refresh itself, under maintenance mode, whenever the
+# branch is exactly "staging".  This task remains for refreshing staging
+# out of band, without a deploy.
+#
+# The migration here is blocking, not "run:detached".  It used to be
+# detached because CI migrated again straight afterwards, so nobody
+# needed this one's result; run on its own, a migration whose outcome is
+# never reported is not worth running.
+desc 'Copy production database backup to staging (not part of deploying)'
+task production_to_staging: :no_rails do
   sh 'heroku pg:backups:restore $(heroku pg:backups:url ' \
      '--app production-bestpractices) DATABASE_URL ' \
      '--app staging-bestpractices --confirm staging-bestpractices'
-  sh 'heroku run:detached bundle exec rake db:migrate --app staging-bestpractices'
+  sh 'heroku run --app staging-bestpractices -- ' \
+     'bundle exec rake db:migrate'
 end
 
 # require 'rails/testtask.rb'
@@ -518,14 +1116,21 @@ end
 #   t.pattern = 'test/features/**/*_test.rb'
 # end
 
-task 'test:features' => 'test:prepare' do
+task 'test:features' => ['test:prepare', :no_rails] do
   $LOAD_PATH << 'test'
   Minitest.rake_run(['test/features'])
 end
 
 # This gem isn't available in production
 # Use string comparison, because Rubocop doesn't know about fake_production
-if Rails.env.production? || Rails.env == 'fake_production'
+#
+# Read the environment from ENV rather than from Rails.env, because this
+# runs at FILE SCOPE: it decides which task to define, so it executes
+# when the Rakefile loads this file, which is before Rails exists. That
+# is not a loss of fidelity; Rails.env is itself
+# ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'.
+rails_env = ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
+if %w[production fake_production].include?(rails_env)
   task :eslint do
     puts 'Skipping eslint checking in production (libraries not available).'
   end
@@ -539,21 +1144,33 @@ else
     t.options = :eslintrc
   end
 end
-
-desc 'Stub do-nothing jobs:work task to eliminate Heroku log complaints'
-task 'jobs:work' do
-end
+# Marked here rather than at the definition, because the definition
+# belongs to the eslintrb gem: it builds the task for us, so there is no
+# "task :eslint" line of ours to annotate. Linting JavaScript needs no
+# Rails either way.
+#
+# This does not race the definition, which is the obvious worry.
+# Eslintrb::EslintTask.new defines the task inside new: it yields self so
+# the block can configure it, then calls define. So :eslint exists by the
+# time we get here, from whichever branch above ran. Verified in both
+# RAILS_ENV values, and the audit in the Rakefile would refuse to run at
+# all if this line ever stopped taking effect.
+#
+# Note the string. Rake's task DSL converts prerequisites to strings, but
+# Task#enhance stores whatever it is given, so :no_rails as a symbol
+# would not match and the audit would report this task as unanswered.
+Rake::Task[:eslint].enhance(['no_rails'])
 
 desc 'Run in fake_production mode'
 # This tests the asset pipeline
-task :fake_production do
+task fake_production: :no_rails do
   sh 'RAILS_ENV=fake_production bundle exec rake assets:precompile'
   sh 'RAILS_ENV=fake_production bundle check || bundle install'
   sh 'RAILS_ENV=fake_production rails server -p 4000'
 end
 
 desc 'precompile assets'
-task :precompile do
+task precompile: :no_rails do
   sh 'rm -rf tmp/cache/* public/assets/*'
   sh 'bundle exec rake assets:precompile'
 end
@@ -579,6 +1196,19 @@ end
 def normalize_string(value, locale)
   # Remove trailing whitespace
   value.sub!(/\s+$/, '')
+  # Forcibly substitute GitHub organization with literal string match
+  value = value.gsub('github.com/coreinfrastructure/best-practices-badge',
+                     'github.com/ossf/best-practices-badge')
+
+  # Forcibly substitute the old production domain with the current one.
+  # Our site moved from bestpractices.coreinfrastructure.org to
+  # www.bestpractices.dev (we use the www. host, not the bare domain,
+  # because bare DNS domains complicate our Fastly CDN setup). Like the
+  # GitHub-org rewrite above, this catches stale references that arrive
+  # via translation.io so we don't have to hand-edit translated strings.
+  value = value.gsub('bestpractices.coreinfrastructure.org',
+                     'www.bestpractices.dev')
+
   return value if value.exclude?('<')
 
   # Google Translate generates html text that has predictable errors.
@@ -615,7 +1245,7 @@ def normalize_yaml(path)
 end
 
 desc "Ensure you're on the main branch"
-task :ensure_main do
+task ensure_main: :no_rails do
   raise StandardError, 'Must be on main branch to proceed' unless
     `git rev-parse --abbrev-ref HEAD` == "main\n"
 
@@ -623,24 +1253,24 @@ task :ensure_main do
 end
 
 desc 'Reformat en.yml'
-task :reformat_en do
+task reformat_en: :environment do
   normalize_yaml Rails.root.join('config', 'locales', 'en.yml')
 end
 
 desc 'Fix locale text'
-task :fix_localizations do
+task fix_localizations: :environment do
   normalize_yaml Rails.root.join('config', 'locales', 'translation.*.yml')
 end
 
 desc 'Save English translation file as .ORIG file'
-task :backup_en do
+task backup_en: :environment do
   FileUtils.cp Rails.root.join('config', 'locales', 'en.yml'),
                Rails.root.join('config', 'locales', 'en.yml.ORIG'),
                preserve: true # this is the equivalent of cp -p
 end
 
 desc 'Restore English translation file from .ORIG file'
-task :restore_en do
+task restore_en: :environment do
   FileUtils.mv Rails.root.join('config', 'locales', 'en.yml.ORIG'),
                Rails.root.join('config', 'locales', 'en.yml')
 end
@@ -653,12 +1283,21 @@ end
 # - https://github.com/yaml/libyaml/issues/46
 # We save and restore the en version around the sync to resolve.
 # The task only runs in development, since the gem is only loaded then.
-if Rails.env.development?
-  Rake::Task['translation:sync'].enhance %w[ensure_main backup_en] do
-    at_exit do
-      Rake::Task['restore_en'].invoke
-      Rake::Task['fix_localizations'].invoke
-      puts "Now run: git commit -sam 'rake translation:sync'"
+#
+# This enhances a task the translation.io GEM defines, so it can only run
+# once that gem's tasks exist, which is after Rails boots. Registered
+# through after_rails_tasks (see the Rakefile) rather than run here: at
+# file scope "Rake::Task['translation:sync']" would raise, and guarding
+# it with task_defined? would be worse, because the enhancement would
+# silently stop happening rather than failing.
+after_rails_tasks do
+  if Rails.env.development?
+    Rake::Task['translation:sync'].enhance %w[ensure_main backup_en] do
+      at_exit do
+        Rake::Task['restore_en'].invoke
+        Rake::Task['fix_localizations'].invoke
+        puts "Now run: git commit -sam 'rake translation:sync'"
+      end
     end
   end
 end
@@ -760,7 +1399,7 @@ end
 # it easy to separately determine the database to apply the command to.
 # Note that this depends on non-standard PostgreSQL extensions.
 desc 'Convert file "project.json" into SQL insertion command in "project.sql".'
-task :create_project_insertion_command do
+task create_project_insertion_command: :no_rails do
   puts 'Reading file project.json (this uses PostgreSQL extensions)'
   file_contents = File.read('project.json')
   data_hash = JSON.parse(file_contents)
@@ -780,7 +1419,7 @@ end
 # You can run a SQL command to do this instead, but an error such as
 # forgetting the WHERE clause can cause a big mistake. The statement would be:
 # echo "UPDATE projects SET user_id = {OWNER_NUM} WHERE id = {PROJECT_NUM}" | \
-#  heroku pg:psql --app master-bestpractices
+#  heroku pg:psql --app production-bestpractices
 
 desc 'Change owner of PROJECT. rake change_owner -- PROJECT_NUM NEW_OWNER_NUM'
 task change_owner: :environment do
@@ -825,11 +1464,50 @@ task update_all_higher_level_badge_percentages: :environment do
   Project.update_all_badge_percentages(Criteria.keys - ['0'])
 end
 
+# Recalculate ONLY the baseline badge percentages for all projects, and queue
+# badge-loss notifications for owners who fall below a baseline level.
+# This is the deferred, non-transactional replacement for migration
+# 20260607150000 (see that migration's comment): the OSPS baseline was bumped
+# from v2025.10.10 to v2026.02.19 (#2726), adding criteria, so projects that
+# earned a baseline badge under the old version no longer qualify. Run this
+# only after those owners have been warned and given a grace period.
+# Scoped to the baseline levels so it does not disturb the metal badges.
+desc 'Recalculate baseline badge percentages and notify baseline losses'
+task recalc_baseline_and_notify_losses: :environment do
+  Project.update_all_badge_percentages(Sections::BASELINE_LEVEL_NAMES)
+end
+
+# Set baseline badge-loss warning flags for every project that will fall below
+# a baseline level, effective on EFFECTIVE_DATE, so the reminders task can
+# email the owners in advance. This is the baseline-scoped companion of
+# recalc_baseline_and_notify_losses: warn first, then recalc on or after the
+# effective date. It reads EFFECTIVE_DATE like its whole-badge sibling
+# update_badge_warnings, but requires strict YYYY-MM-DD form. Example:
+#   rake update_baseline_badge_warnings EFFECTIVE_DATE=2026-07-31
+desc 'Set baseline badge-loss warnings; EFFECTIVE_DATE=YYYY-MM-DD required'
+task update_baseline_badge_warnings: :environment do
+  date_str =
+    ENV.fetch('EFFECTIVE_DATE') do
+      raise ArgumentError, 'Set EFFECTIVE_DATE=YYYY-MM-DD, e.g. 2026-07-31'
+    end
+  unless date_str.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+    raise ArgumentError, 'EFFECTIVE_DATE must be YYYY-MM-DD, e.g. 2026-07-31'
+  end
+
+  # strptime also rejects impossible dates such as 2026-13-40.
+  Project.update_all_badge_warnings(
+    Sections::BASELINE_LEVEL_NAMES,
+    effective_date: Date.strptime(date_str, '%Y-%m-%d')
+  )
+end
+
 desc 'Backfill baseline_tiered_percentage for all projects'
 task backfill_baseline_tiered_percentage: :environment do
   puts 'Backfilling baseline_tiered_percentage for all projects...'
   count = 0
-  Project.find_each do |project|
+  # Small batch: projects are very wide (>400 cols), so the default 1000 can
+  # OOM a 512MB dyno. See Project::BULK_RECALC_BATCH_SIZE.
+  Project.find_each(batch_size: Project::BULK_RECALC_BATCH_SIZE) do |project|
     # rubocop:disable Rails/SkipsModelValidations
     # Intentionally skip validations for performance; we're computing from existing data
     project.update_column(:baseline_tiered_percentage,
@@ -861,7 +1539,11 @@ task rekey: :environment do
   end
 end
 
-Rake::Task['test:run'].enhance ['test:features']
+# "test:run" belongs to Rails, so this can only run once Rails has
+# defined it. See the Rakefile for after_rails_tasks.
+after_rails_tasks do
+  Rake::Task['test:run'].enhance ['test:features']
+end
 
 # Ensure assets are precompiled before running any test task.
 # Outside CI: auto-recompiles if stale (avoids hours of debugging cache bugs).
@@ -893,7 +1575,7 @@ end
 # SimpleCov merges results from previous runs, which can be misleading
 # if there's "old" information present.
 desc 'Clear all previous test coverage results'
-task 'test:clear' do
+task 'test:clear' => :environment do
   puts 'test:clear - Clearing all previous test coverage results.'
 
   # Remove the entire directory to ensure a 100% fresh start
@@ -908,7 +1590,7 @@ end
 # SimpleCov automatically merges coverage from all parallel workers.
 # Clears coverage first to avoid merging stale results from previous runs.
 desc 'Run ALL tests: regular tests parallelized, system tests serial'
-task 'test:optimized' => 'test:ensure_assets' do
+task 'test:optimized' => ['test:ensure_assets', :no_rails] do
   puts 'To see test names, set env var SLOW=true' if ENV['SLOW'].to_s.empty?
 
   require 'simplecov'
@@ -932,7 +1614,7 @@ task 'test:optimized' => 'test:ensure_assets' do
 end
 
 desc 'Report coverage gaps from SimpleCov results'
-task 'test:coverage_gaps' do
+task 'test:coverage_gaps' => :environment do
   require 'simplecov'
 
   puts 'Merging results from all runs...'
@@ -940,6 +1622,24 @@ task 'test:coverage_gaps' do
   result = SimpleCov::ResultMerger.merged_result
 
   puts "Combined Coverage: #{result.covered_percent.round(2)}%"
+
+  # In CI, write coverage/coverage.json from the merged result so the
+  # Codecov CLI (see .circleci/config.yml) has a file to upload. This MUST
+  # happen here, not in test_helper.rb: the test workers run with
+  # DEFER_COVERAGE set, which swaps in the minimal SimpleFormatter, so a
+  # report formatter never runs during the test processes. The merged
+  # result is only complete once all parallel + system test runs finish.
+  #
+  # We use SimpleCov::Formatter::JSONFormatter (from simplecov_json_formatter,
+  # a dependency of simplecov) because Codecov's backend natively parses its
+  # output. We previously used the abandoned 'codecov' gem's formatter, but
+  # it emits the deprecated "network" report format that the current Codecov
+  # backend rejects as "unusable report ... incorrect data format", silently
+  # yielding 0% coverage on the site even though the upload itself succeeds.
+  if ENV['CI']
+    require 'simplecov_json_formatter'
+    SimpleCov::Formatter::JSONFormatter.new.format(result)
+  end
 
   # Iterate through files using SimpleCov's own 'missed_lines' logic
   # to report what we missed.
@@ -968,6 +1668,7 @@ task 'test:coverage_gaps' do
   end
 
   puts 'All files have 100% statement coverage.' unless gaps_found
+  raise StandardError, 'Has untested production code statements.' if gaps_found
 end
 
 # This is the task to run every day, e.g., to record statistics
@@ -976,8 +1677,105 @@ end
 desc 'Run daily tasks used in any tier, e.g., record daily statistics'
 task daily: :environment do
   ProjectStat.create!
+  puts 'Purging never-activated local accounts older than ' \
+       "#{User::UNACTIVATED_ACCOUNT_LIFETIME.inspect}."
+  puts "Purged #{User.purge_unactivated_accounts} never-activated account(s)."
   day_for_monthly = (ENV['BADGEAPP_DAY_FOR_MONTHLY'] || '5').to_i
   Rake::Task['monthly'].invoke if Time.now.utc.day == day_for_monthly
+end
+
+# List purgeable users (never-activated local accounts older than
+# UNACTIVATED_ACCOUNT_LIFETIME that have no project or additional rights)
+# to stdout as CSV, one per line: name, email, created_at.
+# Requires EMAIL_ENCRYPTION_KEY and EMAIL_BLIND_INDEX_KEY to decrypt emails.
+# Example: EMAIL_ENCRYPTION_KEY=... EMAIL_BLIND_INDEX_KEY=... rake list_purgeable_unactivated_users
+desc 'Print purgeable never-activated local accounts to stdout as CSV.'
+task list_purgeable_unactivated_users: :environment do
+  require 'csv'
+  csv = CSV.new($stdout)
+  csv << %w[name email created_at]
+  User.purgeable_unactivated_accounts.find_each do |user|
+    csv << [user.name, user.email_if_decryptable, user.created_at.iso8601]
+  end
+end
+
+# Identify activated local accounts that look like bot/spam registrations.
+# Used by list_suspicious_activated_users and purge_suspicious_activated_users.
+# Each yields/lists only accounts that:
+#   - are local (password-based), activated, own no projects, have no
+#     additional_rights, have not logged in for over a year (or never), and
+#     were created more than a year ago.
+#
+# Heuristics (reasons) reported per account:
+#
+#   random_email   - the local part has 4+ dot-separated segments of 1-3 chars,
+#                    matching the fragmented pattern bots use to register many
+#                    accounts from one Gmail address (Gmail ignores dots in the
+#                    local part, so a.b.c.d@gmail.com and abcd@gmail.com
+#                    deliver to the same inbox). Note: some privacy-conscious
+#                    users deliberately dot their own address as a
+#                    spam-tracking alias per service, but such users typically
+#                    log in and own projects (both filtered out above).
+#
+# The following name heuristics apply only to Latin-script names (names
+# containing characters outside U+0000-U+024F are skipped — they may be
+# Chinese, Arabic, Cyrillic, etc. and require different analysis):
+#
+#   low_vowels     - fewer than 15% of letters are vowels (aeiou/y plus common
+#                    accented Latin vowels). All human languages use vowels;
+#                    a very low ratio strongly suggests a random string.
+#
+#   consonant_run  - 5 or more consecutive consonants within a single word.
+#                    Even the most consonant-heavy natural languages rarely
+#                    exceed 4 in a row.
+#
+#   rare_letters   - more than 35% of inner-word letters (excluding capitalised
+#                    first letters, which are conventional in proper names) are
+#                    from {q, x, z, j} — uncommon in nearly all Latin-script
+#                    languages.
+#
+
+# Yields each suspicious activated user with their decrypted email and reasons.
+# rubocop:disable Metrics/MethodLength
+def each_suspicious_activated_user
+  one_year_ago = 1.year.ago
+  User.where(provider: 'local', activated: true)
+      .where('last_login_at < ? OR last_login_at IS NULL', one_year_ago)
+      .where(created_at: ...one_year_ago)
+      .where.missing(:projects)
+      .where.missing(:additional_rights)
+      .find_each do |user|
+    email = user.email_if_decryptable
+    reasons = SuspiciousUserUtils.name_suspicion_reasons(user.name.to_s)
+    reasons << 'random_email' if SuspiciousUserUtils.suspicious_email?(email)
+    next if reasons.empty?
+
+    yield user, email, reasons
+  end
+end
+# rubocop:enable Metrics/MethodLength
+
+desc 'Print suspicious activated local accounts to stdout as CSV.'
+task list_suspicious_activated_users: :environment do
+  require 'csv'
+  csv = CSV.new($stdout)
+  csv << %w[name email created_at last_login_at reasons]
+  each_suspicious_activated_user do |user, email, reasons|
+    csv << [
+      user.name, email, user.created_at.iso8601,
+      user.last_login_at&.iso8601, reasons.join(';')
+    ]
+  end
+end
+
+desc 'Destroy suspicious activated local accounts (see list_suspicious_activated_users).'
+task purge_suspicious_activated_users: :environment do
+  count = 0
+  each_suspicious_activated_user do |user, _email, _reasons|
+    user.destroy
+    count += 1
+  end
+  puts "Purged #{count} suspicious activated account(s)."
 end
 
 # Run this task to email a limited set of reminders to inactive projects
@@ -1069,7 +1867,7 @@ end
 # to learn of each other's email addresses.
 # We do *NOT* try to localize, for speed.
 desc 'Send a mass email (e.g., a required GDPR notification)'
-task :mass_email do
+task mass_email: :environment do
   subject = ENV.fetch('MASS_EMAIL_SUBJECT', nil)
   body = ENV.fetch('MASS_EMAIL_BODY', nil)
   where_condition = ENV['MASS_EMAIL_WHERE'] || 'true'
@@ -1084,7 +1882,7 @@ end
 # Run this task periodically if we want to test the
 # install-badge-dev-environment script
 desc 'check that install-badge-dev-environment works'
-task :test_dev_install do
+task test_dev_install: :no_rails do
   puts 'Updating test-dev-install branch'
   sh <<-TEST_BRANCH_SHELL
     git checkout test-dev-install
@@ -1102,7 +1900,7 @@ end
 # CORS tests) can interfere with the usual test setups, so again, they
 # aren't worth running in the "normal" automated tests run on each commit.
 desc 'Run slow tests (e.g., CORS middleware stack location)'
-task :slow_tests do
+task slow_tests: :no_rails do
   # Test CORS library middleware stack location check in environments.
   # Because of the way it works, Rack::Cors *must* be first in the Rack
   # middleware stack, as documented here: https://github.com/cyu/rack-cors
@@ -1282,24 +2080,8 @@ task update_bad_password_db: :environment do
   BadPassword.force_load
 end
 
-desc 'Convert old papertrail version values from YAML to json'
-task convert_papertrail_yaml_to_json: :environment do
-  # We request access to the full environment; that makes this easier to do
-  # since that loads what we need.
-  PaperTrail::Version.where.not(old_yaml_object: nil).find_each do |version|
-    # Show progress
-    puts "#{version.item_id} #{version.event} #{version.created_at} " \
-         "#{version.whodunnit} " \
-         "#{version.old_yaml_object[0..200].tr("\n", ' ')}\n\n"
-    # rubocop:disable Rails/SkipsModelValidations
-    version.update_columns old_yaml_object: nil,
-                           object: YAML.unsafe_load(version.old_yaml_object)
-    # rubocop:enable Rails/SkipsModelValidations
-  end
-end
-
 desc 'Update SVG badge images from shields.io'
-task :update_badge_images do
+task update_badge_images: :no_rails do
   # require 'Paleta'
   sh 'curl -o app/assets/images/badge_static_passing.svg ' \
      'https://img.shields.io/badge/openssf_best_practices-passing-4c1'
@@ -1464,6 +2246,6 @@ task markdown_optimizations: :environment do
 end
 
 desc 'Print hello as simple smoke test.'
-task :hello do
+task hello: :no_rails do
   puts 'Hello'
 end

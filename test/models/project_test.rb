@@ -24,9 +24,27 @@ class ProjectTest < ActiveSupport::TestCase
     assert @project_built.valid?
   end
 
+  # A misspelled entry here would withhold nothing and publish the real
+  # column silently, which is the failure this list exists to prevent.
+  test 'every bookkeeping field is a real column' do
+    unknown = Project::BOOKKEEPING_FIELDS - Project.column_names.to_set
+    assert_empty unknown, "not projects columns: #{unknown.to_a}"
+  end
+
   test 'user id should be present' do
     @project_built.user_id = nil
     assert_not @project_built.valid?
+  end
+
+  test 'invalid URLs should be rejected' do
+    @project_built.homepage_url = 'http://127.0.0.1'
+    assert_not @project_built.valid?
+    assert @project_built.errors[:homepage_url].any?
+
+    @project_built.homepage_url = 'https://www.example.org'
+    @project_built.repo_url = 'https://containrrr/watchtower'
+    assert_not @project_built.valid?
+    assert @project_built.errors[:repo_url].any?
   end
 
   test '#contains_url?' do
@@ -40,12 +58,14 @@ class ProjectTest < ActiveSupport::TestCase
       Project.new.contains_url?('See also http://x for more information.')
     )
     assert_not Project.new.contains_url? 'www.google.com'
+    # New regex requires a dot in the hostname to reject obvious nonsense
+    assert_not Project.new.contains_url? 'http://nodothost'
   end
 
   # rubocop:disable Metrics/BlockLength
   test 'Rigorous project and repo URL checker' do
     regex = UrlValidator::URL_REGEX
-    my_url = 'https://github.com/coreinfrastructure/best-practices-badge'
+    my_url = 'https://github.com/ossf/best-practices-badge'
     assert my_url =~ regex
 
     # Here we just the regex directly, to make sure it's okay.
@@ -70,6 +90,19 @@ class ProjectTest < ActiveSupport::TestCase
     assert_not validator.url_acceptable?('http://google.com?hello')
     # We do allow fragments, e.g., #
     assert_not validator.url_acceptable?('http://google.com#hello')
+
+    # Security: Reject all IP addresses (IPv4 and IPv6) and malformed domains
+    assert_not validator.url_acceptable?('http://127.0.0.1')
+    assert_not validator.url_acceptable?('http://10.0.0.1')
+    assert_not validator.url_acceptable?('http://192.168.1.1')
+    assert_not validator.url_acceptable?('http://8.8.8.8')
+    assert_not validator.url_acceptable?('http://3.6.47.234')
+    assert_not validator.url_acceptable?('http://[::1]')
+    assert_not validator.url_acceptable?('http://localhost')
+    assert_not validator.url_acceptable?('http://127.1') # Shorthand
+    assert_not validator.url_acceptable?('http://0x7f000001') # Hex bypass
+    assert_not validator.url_acceptable?('http://2130706433') # Integer bypass
+    assert_not validator.url_acceptable?('https://containrrr/watchtower') # Missing dot
 
     # Accept U+0020 (space) and U+00E9 c3 a9 "LATIN SMALL LETTER E WITH ACUTE"
     assert validator.url_acceptable?('https://github.com/linuxfoundation/' \
@@ -107,7 +140,22 @@ class ProjectTest < ActiveSupport::TestCase
     assert_not validator.text_acceptable?("The best practices badge\xe4")
     # Don't accept an invalid control character
     assert_not validator.text_acceptable?("The best practices badge\x0c")
+    # Reject NUL (PostgreSQL can't store it) and DEL, plus other C0 controls.
+    # Built from byte values so the source file stays control-char free.
+    assert_not validator.text_acceptable?("badge#{0x00.chr}here")
+    assert_not validator.text_acceptable?("badge#{0x7f.chr}here")
+    assert_not validator.text_acceptable?("badge#{0x01.chr}here")
+    # Accept the whitespace controls we intentionally allow: tab, LF, CR.
+    assert validator.text_acceptable?(
+      "line1#{0x09.chr}col2#{0x0a.chr}line2#{0x0d.chr}"
+    )
+    # Accept ordinary UTF-8 text including multibyte code points.
+    # Built from code points ("cafe" with an acute e, then a CJK character)
+    # so the source stays ASCII and free of any partial-word fragments.
+    # Otherwise the spelling checker will reject this.
     assert validator.text_acceptable?('The best practices badge.')
+    multibyte = [0x63, 0x61, 0x66, 0xE9, 0x20, 0x65E5].pack('U*')
+    assert validator.text_acceptable?(multibyte)
   end
 
   # rubocop:disable Metrics/BlockLength

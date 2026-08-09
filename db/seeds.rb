@@ -52,9 +52,9 @@ user.projects.create!(
   name:  'BadgeApp',
   description: 'Badge Application',
   homepage_url:
-                          'https://github.com/coreinfrastructure/best-practices-badge',
+                          'https://github.com/ossf/best-practices-badge',
   repo_url:
-                          'https://github.com/coreinfrastructure/best-practices-badge',
+                          'https://github.com/ossf/best-practices-badge',
   license: 'MIT',
   badge_percentage_0: 0,
   homepage_url_status: 0,

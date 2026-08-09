@@ -40,7 +40,12 @@ driver = ENV['DRIVER'].try(:to_sym)
 Capybara.javascript_driver = driver.present? ? driver : :headless_chrome
 Capybara.default_driver = driver.present? ? driver : :headless_chrome
 
-Capybara.default_max_wait_time = 5
+# Headroom for the polling/wait helpers (ensure_choice, wait_for_jquery,
+# wait_for_url) whose Timeout budgets derive from this. Under load (a full
+# system-test batch contending for CPU and the browser), 5s was too tight and
+# they would all time out together; 10s costs nothing on the happy path since
+# waits return as soon as their condition is met.
+Capybara.default_max_wait_time = 10
 Capybara.server_port = 31_337
 
 # By default newer versions of Capybara have the annoying habit of
@@ -60,9 +65,44 @@ Capybara.server = :puma, { Silent: true }
 # Must run headless and disable sandbox, see:
 # https://medium.com/@john200Ok/running-rails-6-system-tests-using-chrome-headless-and-selenium-on-gitlab-ci-9b4de5cafcd0
 
+# When SELENIUM_REMOTE_URL is set, Chrome is not installed here: it runs
+# in a separate container (selenium/standalone-chrome) and we drive it
+# over the network. Unset, everything below behaves exactly as before,
+# so local development is unaffected.
+#
+# This must be passed through driven_by's "options:", not through
+# Capybara.register_driver. ActionDispatch::SystemTesting::Driver
+# registers a driver of its own and makes it current, so a
+# register_driver block of ours is not what system tests run.
+#
+# "browser: :remote" is Rails' supported spelling, and it does more than
+# select a transport: Driver#initialize skips Browser#preload for it,
+# and preload is what runs Selenium Manager to find a *local*
+# chromedriver. Without it, a machine with no browser would still try to
+# download one. See docs/build-environment-staleness.md.
+SELENIUM_REMOTE_URL = ENV.fetch('SELENIUM_REMOTE_URL', nil)
+SELENIUM_OPTIONS =
+  if SELENIUM_REMOTE_URL
+    { browser: :remote, url: SELENIUM_REMOTE_URL }
+  else
+    {}
+  end
+
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  # DRIVER and SELENIUM_REMOTE_URL are independent, and all four
+  # combinations work. DRIVER picks the browser: unset means
+  # :headless_chrome, and DRIVER=chrome runs headed so you can watch,
+  # which is the usual way to debug a failing system test. Rails adds
+  # --headless only for :headless_chrome, so DRIVER=chrome really is
+  # headed, in a container as well as here. See docs/testing.md.
   driver = ENV['DRIVER'].try(:to_sym)
-  driven_by :selenium, using: driver || :headless_chrome, screen_size: [1400, 1400] do |option|
+  driven_by :selenium, using: driver || :headless_chrome,
+            screen_size: [1400, 1400], options: SELENIUM_OPTIONS do |option|
     option.add_argument('no-sandbox')
+    # Use /tmp instead of /dev/shm for Chrome's shared memory. /dev/shm is
+    # often capped at 64MB in containers/CI; when it fills under load the
+    # renderer process crashes, killing the browser session and cascading into
+    # spurious errors in later tests. This flag is the standard fix.
+    option.add_argument('disable-dev-shm-usage')
   end
 end

@@ -1,8 +1,8 @@
 # bestpractices.json
 
-If a project repository has a `.bestpractices.json` file in its top-level
-(or in a `.projects.d` subdirectory), that information is used to fill in
-proposed answers.
+If a project repository has either a `.bestpractices.json` file at its
+top level or a `.project.d/bestpractices.json` file, that information is
+used to fill in proposed answers.
 
 ## Building on other projects
 

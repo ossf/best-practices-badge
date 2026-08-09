@@ -93,8 +93,8 @@ es:
       p2_html: >-
         M&aacute;s informaci&oacute;n acerca del programa que
         confiere la insignia de Mejores Pr&aacute;cticas, incluyendo
-        sus antecedentes y <a href='https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/criteria.md'>criterios</a>
-        aplicables se puede encontrar en <a href='https://github.com/coreinfrastructure/best-practices-badge'>GitHub</a>.
+        sus antecedentes y <a href='https://github.com/ossf/best-practices-badge/blob/main/docs/criteria.md'>criterios</a>
+        aplicables se puede encontrar en <a href='https://github.com/ossf/best-practices-badge'>GitHub</a>.
         <a href="/es/project_stats">Las estad&iacute;sticas del
         proyecto</a> y las <a href="/es/criteria_stats">estad&iacute;sticas
         de los criterios</a> tambi&eacute;n están disponibles.
@@ -388,7 +388,7 @@ es:
           genérico, en lugar de ser un razonamiento de que la
           situación es aceptable, comience el bloque de texto
           con '//' seguido de un espacio. Los comentarios son
-          bienvenidos a través del <a href="https://github.com/coreinfrastructure/best-practices-badge">sitio
+          bienvenidos a través del <a href="https://github.com/ossf/best-practices-badge">sitio
           de GitHub mediante "issues" o "pull requests"</a>. También
           hay una <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">lista
           de correo electrónico para el tema principal</a>.<br/><br/>Con

@@ -489,6 +489,23 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'in_progress', body['badge_level']
   end
 
+  # The JSON describes the project; it is not a window into how we run
+  # the badging process.  Withholding these also means a write that only
+  # touches them cannot make a cached page stale.
+  test 'project JSON withholds badging-process bookkeeping' do
+    get "/projects/#{@project.id}.json"
+    assert_response :success
+    body = response.parsed_body
+    Project::BOOKKEEPING_FIELDS.each do |field|
+      assert_not body.key?(field), "#{field} should not be published"
+    end
+    # ...while still publishing what the project actually is.
+    assert_equal 'Pathfinder OS', body['name']
+    assert body.key?('badge_percentage_0')
+    assert body.key?('achieved_passing_at')
+    assert body.key?('user_id')
+  end
+
   test 'should show project JSON data without locale' do
     get "/projects/#{@project.id}.json"
     assert_response :success
@@ -819,9 +836,9 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
                  @project.osps_ac_01_01_justification
   end
 
-  test 'should update and show future baseline-1 criterion (osps_br_01_03)' do
+  test 'should update and show active baseline-1 criterion (osps_br_01_03)' do
     log_in_as(@project.user)
-    # Future criterion must appear on the edit page (view and edit, just not counted)
+    # Active criterion must appear on the edit page (view and edit)
     get "/en/projects/#{@project.id}/baseline-1/edit"
     assert_response :success
     assert_select '#osps_br_01_03'
@@ -1192,6 +1209,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     get "/en/projects/#{@project.id}/badge.json",
         headers: { Origin: 'example.com' }
     assert_equal 'Accept-Encoding', @response.headers['Vary']
+    assert_equal '*', @response.headers['Access-Control-Allow-Origin']
   end
 
   test 'A perfect silver project should have the silver badge' do
@@ -1664,11 +1682,11 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'choose_edit redirects unauthenticated user to login' do
+  test 'choose_edit redirects unauthenticated user to login with return_to' do
     project = projects(:perfect)
     get "/en/projects/#{project.id}/choose/edit"
     assert_response :found
-    assert_redirected_to '/en/login'
+    assert_match %r{/en/login\?return_to=}, response.location
   end
 
   test 'choose_show shows section list for read-only viewing' do
@@ -1745,6 +1763,40 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     late_project.reload
     assert_not_nil late_project.last_reminder_at
     # assert_equal late_project.id, result[0]
+  end
+
+  # Sending a reminder is our bookkeeping, not the owner's edit, so it
+  # must not bump lock_version.  If it did, an owner who happened to have
+  # the edit form open would be told their entry "changed since you
+  # started editing" because we mailed them a reminder.
+  test 'sending reminders leaves lock_version alone' do
+    late_project = Project.find_by(name: 'Pathfinder OS')
+    late_project.last_reminder_at = nil
+    late_project.lost_passing_at = nil
+    late_project.save!(touch: false)
+    before = Project.where(id: late_project.id).pick(:lock_version)
+    assert_predicate before, :positive?, 'fixture must exercise a real lock'
+
+    ProjectsController.send :send_reminders
+
+    fresh = Project.find(late_project.id)
+    assert_not_nil fresh.last_reminder_at, 'reminder was not recorded'
+    assert_equal before, fresh.lock_version
+  end
+
+  # Sending a reminder writes only last_reminder_at, which is withheld
+  # from the project JSON and shown on no cached page, so it must not
+  # cost a CDN purge.  Purging for a field nobody can see is the waste
+  # that Project::BOOKKEEPING_FIELDS exists to make visible.
+  test 'sending reminders does not purge the CDN' do
+    late_project = Project.find_by(name: 'Pathfinder OS')
+    late_project.last_reminder_at = nil
+    late_project.lost_passing_at = nil
+    late_project.save!(touch: false)
+
+    assert_no_enqueued_jobs only: PurgeCdnProjectJob do
+      ProjectsController.send :send_reminders
+    end
   end
 
   # This is a unit test of a private method in ProjectsController.

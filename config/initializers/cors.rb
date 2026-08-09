@@ -115,7 +115,7 @@ CORS_DIFFERENTIATED_RESOURCE_PATTERNS = [
 # that would just produce useless "/badge" and "/badge.json" and so on.
 
 CORS_UNDIFFERENTIATED_RESOURCE_PATTERNS = [
-  %r{\A/([a-z]{2}(-[A-Z]{2})?/)?projects/[1-9][0-9]*/badge\z},
+  %r{\A/([a-z]{2}(-[A-Z]{2})?/)?projects/[1-9][0-9]*/badge(\.json)?\z},
   %r{\A/([a-z]{2}(-[A-Z]{2})?/)?projects(/[1-9][0-9]*)?\.json\z},
   %r{\A/([a-z]{2}(-[A-Z]{2})?/)?project_stats(/[a-z0-9_]+)?\.json\z},
   %r{\A/assets/([A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*)\z}

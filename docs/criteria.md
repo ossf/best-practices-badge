@@ -11,11 +11,11 @@
 We've recently moved the criteria information to the active website!
 
 There you can see the
-<a href="https://bestpractices.coreinfrastructure.org/criteria/0">passing
+<a href="https://www.bestpractices.dev/criteria/0">passing
 criteria</a>,
-<a href="https://bestpractices.coreinfrastructure.org/criteria">all
+<a href="https://www.bestpractices.dev/criteria">all
 criteria</a>, and the
-<a href="https://bestpractices.coreinfrastructure.org/criteria_discussion">criteria discussion</a>.
+<a href="https://www.bestpractices.dev/criteria_discussion">criteria discussion</a>.
 
 This change makes it easier to see the real criteria in any language,
 as well as hide or reveal the details and rationale.
@@ -103,7 +103,7 @@ We plan to add new criteria but mark them as "future" criteria, so that
 projects can add that information and maintain their badge.
 
 Feedback is *very* welcome via the
-[GitHub site as issues or pull requests](https://github.com/coreinfrastructure/best-practices-badge).
+[GitHub site as issues or pull requests](https://github.com/ossf/best-practices-badge).
 There is also a
 [mailing list for general discussion](https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges).
 
@@ -596,8 +596,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 

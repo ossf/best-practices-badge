@@ -4,56 +4,22 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# NOTE: If you change SimpleCov configuration (used locally), you may also
-# need to change codecov configuration (used on the website) as managed
-# via codecov.yml.
-
 # *MUST* load 'simplecov' FIRST, before any other code is run.
 # See: https://github.com/colszowka/simplecov/issues/296
+#
+# Requiring simplecov also auto-loads the project's `.simplecov` file, which
+# holds ALL of our SimpleCov configuration. Configure coverage there, not
+# here: the rake process that merges results and reports coverage gaps
+# (lib/tasks/default.rake) only does `require 'simplecov'`, so it picks up
+# `.simplecov` but never loads this file. Settings placed here alone silently
+# fail to apply to the merge. See `.simplecov` for the gory details.
 require 'simplecov'
 
 # *MUST* state VERY EARLY that we're in the test environment.
 ENV['RAILS_ENV'] ||= 'test'
 
-# Configure SimpleCov formatting before we start it
-if ENV['CI']
-  require 'codecov'
-  SimpleCov.formatters = [
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Codecov
-  ]
-else
-  SimpleCov.formatters = SimpleCov::Formatter::HTMLFormatter
-end
-
-# Start SimpleCov to track coverage
-# NOTE: If you change SimpleCov configuration (used locally), you may also
-# need to change codecov configuration (used on the website) as managed
-# via codecov.yml.
-SimpleCov.start 'rails' do
-  # Ensure this is NOT set to false - we'll use its test merging capabilities
-  use_merging true
-  # Set a long merge_timeout (default is 10 mins) to ensure
-  # system tests don't take so long that the regular test results "expire"
-  merge_timeout 3600
-
-  # Give each process a unique name so they don't overwrite each other
-  # if running in parallel.
-  command_name "job-#{ENV['TEST_ENV_NUMBER'] || 'manual'}"
-
-  # If we are deferring, don't generate the HTML/Text formatter output yet
-  if ENV['DEFER_COVERAGE']
-    formatter SimpleCov::Formatter::SimpleFormatter # Minimal overhead
-  end
-
-  add_group 'Validators', 'app/validators'
-  add_filter '/config/'
-  add_filter '/lib/tasks'
-  add_filter '/test/'
-  add_filter '/vendor/'
-  # Exclude baseline development scripts (not run in production)
-  add_filter %r{^/lib/baseline_.*\.rb$}
-end
+# Begin measuring coverage, using the configuration `.simplecov` just applied.
+SimpleCov.start
 
 # Some tests flap, producing false failures, so enable auto-retry
 if ENV['CI']
@@ -96,6 +62,10 @@ WebMock.disable_net_connect!(allow_localhost: true, allow: driver_urls)
 # Rails will try to automatically load them into models, resulting in
 # confusing error messages.
 require 'vcr'
+# Shared rule that neutralizes git SHA-1 object ids which secret scanners
+# mistake for CircleCI tokens; see the file for the full rationale.
+require_relative 'test_helper_redaction'
+
 VCR.configure do |config|
   config.ignore_localhost = true
   # We use Google Chrome for testing, which chattily updates.
@@ -107,6 +77,20 @@ VCR.configure do |config|
   # Sometimes we have the "same" query but with and without per_page=...
   # query values.  Record both variants by recording new_episodes:
   config.default_cassette_options = { record: :new_episodes }
+  # Filter sensitive data from cassettes
+  # These aren't really sensitive since they're not real, but tools have
+  # trouble determining that and it's safer if we redact them no matter what.
+  config.filter_sensitive_data('REDACTED') do |interaction|
+    interaction.request.headers['Authorization']&.first
+  end
+  # Neutralize 40-hex strings (git SHAs, ETags, session HMACs) that secret
+  # scanners mistake for CircleCI tokens (see VcrRedaction). Runs only when
+  # recording new episodes, so freshly created/updated cassettes are scrubbed
+  # automatically.
+  config.before_record do |interaction|
+    VcrRedaction.redact_message!(interaction.request)
+    VcrRedaction.redact_message!(interaction.response)
+  end
   # Default :match_requests_on => [:method, :uri]
   # You can also match on: scheme, port, method, host, path, query
   # You can create new matchers like this:
@@ -186,6 +170,11 @@ module ActiveSupport
       # rubocop:disable Rails/I18nLocaleAssignment
       I18n.locale = :en
       # rubocop:enable Rails/I18nLocaleAssignment
+      # The projects-index count cache key is process-global and is NOT rolled
+      # back with the test transaction, so clear it before each test to keep a
+      # stale count from leaking between tests. (after_commit invalidation does
+      # not fire under transactional tests, so we cannot rely on it here.)
+      Rails.cache.delete(Project::INDEX_COUNT_CACHE_KEY)
     end
 
     def teardown
@@ -246,19 +235,35 @@ module ActiveSupport
     # rubocop:enable Metrics/MethodLength
 
     def scroll_to_see(id)
-      # From http://toolsqa.com/selenium-webdriver/scroll-element-view-selenium-javascript/
+      # Scroll element to the bottom of the viewport to clear
+      # the fixed top navbar, mirroring a realistic user action.
       execute_script("document.getElementById('#{id}').scrollIntoView(false);")
     end
 
     # Click a radio button and verify it becomes checked.
     # Scrolls into view first to avoid fixed headers intercepting the click.
     # Retries if the click doesn't take (a known Capybara/Selenium issue).
-    def ensure_choice(radio_button_id)
-      Timeout.timeout(Capybara.default_max_wait_time) do
+    # rubocop:disable Metrics/MethodLength
+    def ensure_choice(radio_button_id, wait_time: Capybara.default_max_wait_time)
+      Timeout.timeout(wait_time) do
         loop do
           scroll_to_see(radio_button_id)
-          choose radio_button_id
-          break if find("##{radio_button_id}")['checked']
+          # wait_for_jquery now includes animation and stability checks
+          wait_for_jquery
+
+          begin
+            choose radio_button_id
+          rescue Selenium::WebDriver::Error::ElementClickInterceptedError
+            # If intercepted, wait for UI to settle and retry
+            wait_for_jquery
+            choose radio_button_id
+          end
+
+          # Verify state. visible: :all is safe here because we've already
+          # successfully called 'choose' (which respects visibility).
+          # Some radio buttons are technically "hidden" while their labels
+          # are clicked; has_checked_field? handles this correctly.
+          break if has_checked_field?(radio_button_id, visible: :all, wait: 0.5)
 
           sleep 0.1
         end
@@ -267,6 +272,7 @@ module ActiveSupport
       raise Timeout::Error,
             "Timeout: radio button '#{radio_button_id}' never became checked"
     end
+    # rubocop:enable Metrics/MethodLength
 
     def user_logged_in?
       # Returns true if a test user is logged in.
@@ -278,21 +284,36 @@ module ActiveSupport
     # find(...), ensure_choice, clicking radio buttons, and filling in forms.
     # You should INSTEAD use wait_for_page_load after
     # a page navigation ("visit").
-    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
     def wait_for_jquery
       Timeout.timeout(Capybara.default_max_wait_time) do
-        # First, wait for jQuery to be loaded
+        # 1. Wait for jQuery and all AJAX requests to complete
         loop do
-          break if evaluate_script('typeof jQuery !== "undefined"')
+          break if evaluate_script('typeof jQuery !== "undefined"') &&
+                   finished_all_jquery_requests?
 
           sleep 0.05
         end
 
-        # Then wait for all jQuery AJAX requests to complete
-        loop do
-          break if finished_all_jquery_requests?
+        # 2. Wait for UI stability (animations and scrolling).
+        # We use separate loops to ensure each phase completes fully.
 
-          sleep 0.05 # Avoid busy-wait CPU burning
+        # 2a. Wait for Bootstrap transitions to finish (.collapsing class)
+        loop do
+          break unless page.has_css?('.collapsing', wait: 0)
+
+          sleep 0.05
+        end
+
+        # 2b. Wait for viewport/scroll position to stabilize
+        # This ensures we aren't trying to click a moving target.
+        last_pos = nil
+        loop do
+          current_pos = evaluate_script('window.pageYOffset')
+          break if current_pos == last_pos && !last_pos.nil?
+
+          last_pos = current_pos
+          sleep 0.05
         end
       end
     rescue Timeout::Error
@@ -311,7 +332,7 @@ module ActiveSupport
       raise Timeout::Error, "Timeout waiting for jQuery. jQuery defined: #{jquery_defined}, " \
                             "jQuery.active: #{jquery_active}"
     end
-    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
     def wait_for_url(url)
       Timeout.timeout(Capybara.default_max_wait_time) do

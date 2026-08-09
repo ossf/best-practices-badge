@@ -115,7 +115,7 @@ Rails.application.routes.draw do
   # Weird special case: for David A. Wheeler to get log issues from Google,
   # we have to let Google verify this.  Locale is irrelevant.
   # It isn't really HTML, even though the filename extension is .html. See:
-  # https://github.com/coreinfrastructure/best-practices-badge/issues/1223
+  # https://github.com/ossf/best-practices-badge/issues/1223
   get '/google75f94b1182a77eb8.html' => 'static_pages#google_verifier',
       defaults: FORMAT_TEXT
 
@@ -246,12 +246,19 @@ Rails.application.routes.draw do
     get 'feed' => 'projects#feed', defaults: FORMAT_ATOM
     get 'reminders' => 'projects#reminders_summary'
 
-    resources :account_activations, only: [:edit]
+    resources :account_activations, param: :token, only: %i[edit update]
     resources :password_resets,     only: %i[new create edit update]
 
     get 'login' => 'sessions#new'
     post 'login' => 'sessions#create'
     get 'auth/:provider/callback' => 'sessions#create'
+    # OmniAuth redirects here (302) when a login attempt fails, e.g. when the
+    # request-phase CSRF token is missing/stale (a stale or CDN-cached login
+    # page). Without this route that redirect 404s ("not found"); the action
+    # turns it into a friendly "please try again" and logs the rejection.
+    # OmniAuth's default path_prefix is '/auth', so the path is
+    # '/auth/failure'.
+    get 'auth/failure' => 'sessions#failure'
     get '/signout' => 'sessions#destroy', as: :signout
     delete 'logout' => 'sessions#destroy'
 

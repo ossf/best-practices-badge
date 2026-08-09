@@ -11,6 +11,9 @@ module Translations
   # be called in bulk.  For example, there are translations we would like
   # to export to JavaScript.  We can use a method here to do that quickly.
 
+  # Returns all JavaScript-relevant translations keyed by locale then field.
+  # @return [Hash{Symbol => Hash{String => String}}]
+  #   locale symbol -> translation key -> translated string
   def for_js
     # Get keys from English locale - works with both nested and flat backends
     keys = js_translation_keys
@@ -26,8 +29,9 @@ module Translations
     js_translations.to_h
   end
 
-  # Get list of keys under projects.misc.in_javascript.
+  # Returns the list of translation keys under projects.misc.in_javascript.
   # Works with both nested backends (returns hash.keys) and flat backends.
+  # @return [Array<Symbol>] sorted list of JavaScript translation keys
   def js_translation_keys
     # Try traditional nested backend approach first
     result = I18n.t('.projects.misc.in_javascript', locale: :en, default: nil)

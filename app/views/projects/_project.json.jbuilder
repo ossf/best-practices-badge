@@ -11,6 +11,10 @@
 
 # Add all project attributes with on-the-fly transformations
 project.attributes.each do |key, value|
+  # Withhold the columns that describe how we run the badging process
+  # rather than the project itself; see Project::BOOKKEEPING_FIELDS.
+  next if Project::BOOKKEEPING_FIELDS.include?(key)
+
   # Transform baseline field names to display form (uppercase with dashes)
   # Uses precomputed mapping for O(1) lookup with no allocations
   transformed_key = ProjectsHelper::BASELINE_FIELD_DISPLAY_NAME_MAP.fetch(key, key)

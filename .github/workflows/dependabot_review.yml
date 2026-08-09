@@ -1,0 +1,125 @@
+---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
+name: Dependabot ignore review
+
+# Raise an issue when a Dependabot ignore entry's REVIEW-BY date passes.
+#
+# An ignore entry in .github/dependabot.yml means those versions are never
+# proposed at all, so the usual signal that a block still exists (a
+# proposal arriving and being dismissed) is gone. Each entry therefore
+# carries a REVIEW-BY date.
+#
+# THIS IS A NOTIFICATION, NOT A GATE. The obvious implementation is to fail
+# the build once a date passes, and that is wrong: it would stand between
+# us and every unrelated merge, including a security fix, over a question
+# that has been waiting a year and can wait an hour more. An issue waits
+# without holding anything up.
+#
+# "rake dependabot_ignore_review_check" runs the same script in the
+# pipeline and deliberately passes on an expired date. It still fails on an
+# entry with NO date, which is a configuration error its author can fix in
+# the same change.
+
+# Limit permissions per OpenSSF Scorecard best practices.
+# Since we set "permissions", anything unset has access "none".
+#
+# Opening the issue does NOT use this token; it uses a short-lived token
+# minted from our own GitHub App, as Renovate does.
+permissions:
+  contents: read
+
+on:
+  schedule:
+    # Monthly. The dates are a year out, so a monthly look is timely
+    # enough, and a reminder that arrives too often is one people learn to
+    # skip. Third of the month rather than the first, which is when every
+    # other monthly job in the world runs; minute off the hour because
+    # GitHub delays schedules that pile up there.
+    - cron: '41 6 3 * *'
+  # So a human can ask without waiting a month.
+  workflow_dispatch:
+
+jobs:
+  review:
+    name: Check ignore review dates
+    runs-on: ubuntu-latest
+
+    steps:
+      # Use harden-runner https://github.com/step-security/harden-runner
+      # presented at OpenSSF Best Practices WG 2022-03-15
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        # Pin to commit SHA to prevent supply chain attacks via tag mutation.
+        # Verify: curl -s https://api.github.com/repos/actions/checkout/git/ref/tags/v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # OSPS-BR-01.02: Validate branch name before use in pipeline
+      - name: Validate branch name
+        run: script/validate_branch_name "$GITHUB_REF_NAME"
+
+      # --strict makes an expired date a non-zero exit, which is what this
+      # job wants and what the pipeline does not. Plain Ruby, no gems, so
+      # there is nothing to install first.
+      - name: Look for reviews that are due
+        id: due
+        run: |
+          set +e
+          # 2>&1 because an entry with no REVIEW-BY date is reported on
+          # stderr, and an issue whose body says nothing helps nobody.
+          output="$(script/dependabot_review_due --strict 2>&1)"
+          status=$?
+          set -e
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          {
+            echo 'report<<REPORT_EOF'
+            echo "$output"
+            echo 'REPORT_EOF'
+          } >> "$GITHUB_OUTPUT"
+          echo "$output"
+
+      - name: Mint a short-lived token from the App
+        if: steps.due.outputs.status != '0'
+        id: app_token
+        uses: ./.github/actions/mint-app-token
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          # Reading the open issues and filing one is all this needs.
+          permission-issues: write
+
+      # ONE OPEN ISSUE AT A TIME. Without this check a year-old question
+      # would collect twelve identical issues, which is how a reminder
+      # becomes noise and then becomes ignored. If the issue is already
+      # open, this job has nothing to add.
+      - name: File an issue if one is not already open
+        if: steps.due.outputs.status != '0'
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          REPORT: ${{ steps.due.outputs.report }}
+          TITLE: Dependabot ignore entries are due for review
+        run: |
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues"
+          open_count="$(curl -sS --fail \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            "${api}?state=open&per_page=100" |
+            jq --arg t "$TITLE" '[.[] | select(.title == $t)] | length')"
+          if [ "$open_count" -gt 0 ]; then
+            echo 'An issue is already open; leaving it alone.'
+            exit 0
+          fi
+          body="$(printf '%s\n\n%s\n' "$REPORT" \
+            'Raised by .github/workflows/dependabot_review.yml.')"
+          jq -n --arg t "$TITLE" --arg b "$body" \
+            '{title: $t, body: $b, labels: ["dependencies"]}' > payload.json
+          curl -sS --fail -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            "$api" -d @payload.json > /dev/null
+          echo 'Issue filed.'

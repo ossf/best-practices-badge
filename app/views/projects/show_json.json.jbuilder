@@ -2,15 +2,14 @@
 
 # JSON data doesn't depend on locale.
 
-# The JSON data *does* depend on the additional_rights value.
-# However, it is very rare for additional_rights to change, so we'll just
-# depend on the expiration time to invalidate old data, and for a short time
-# we'll return an obsolete additional_rights list.
-# If it's important to *immediately* return the current list,
-# then we could invalidate the cache value on a change to additional_rights,
-# or we could instead add this to the cache key:
-# additional_rights_list = project.additional_rights.pluck(:user_id).join(',')
+# Do NOT add fragment caching (json.cache!) here. The fragment cache key embeds
+# updated_at, but update_all_badge_percentages uses save!(touch: false), so
+# updated_at does not change when criteria rules are recalculated. When that
+# recalculation purges this project from the CDN, the CDN would re-fetch from
+# Rails, receive the stale fragment, and re-cache stale data for 10 days.
+# Fastly's CDN TTL is the primary cache; rendering this template on a CDN miss
+# is cheap by comparison.
+# Note: additional_rights changes also would not have been reflected until
+# fragment cache expiry, so removing caching improves correctness there too.
 
-json.cache! @project, expires_in: 10.minutes do
-  json.partial! 'project', project: @project
-end
+json.partial! 'project', project: @project

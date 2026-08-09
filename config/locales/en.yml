@@ -11,6 +11,9 @@ en:
     few: "%{count} Projects"
     many: "%{count} Projects"
     other: "%{count} Projects"
+  pagination:
+    first: First
+    last: Last
   feed_title: OpenSSF Best Practices BadgeApp Updated Projects
   project_name_unknown: "(Name unknown)"
   locale_name:
@@ -37,7 +40,7 @@ en:
     login_html: Login
     footer_text_html: >-
       <small> <strong>Need help? Have a question? See a problem?
-      Please <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      Please <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">file an issue</a></em>.</strong>
       Copyright ©
       <a href="https://www.bestpractices.dev" target="_blank" rel="noopener">OpenSSF Best Practices Badge a Series of LF Projects, LLC</a>.
@@ -73,6 +76,12 @@ en:
         As an anti-spam measure, you must wait %{count} hours after activation
         before you can log in.
     failed_activation: Invalid activation link
+    link_invalid_or_used: >
+      Activation failed. If your account is already activated, please log in.
+    confirm_heading: Activate Your Account
+    confirm_prompt: >
+      Click the button below to confirm and activate your account.
+    confirm_button: Activate my account
   password_resets:
     forgot_password: Forgot password
     reset_password: Reset password
@@ -108,6 +117,8 @@ en:
     already_logged_in: You are already logged in.
     login_disabled: All logins temporarily disabled
     incorrect_login_info: Incorrect login information
+    login_failed: >-
+      Sorry, that login attempt could not be completed. Please try again.
     invalid_combo: Invalid email/password combination
     signed_in: "Logged in! Last login: %{last_login_at}"
     not_activated: >-
@@ -169,7 +180,7 @@ en:
         Automated analysis will determine many of the criteria answers for you
         (and prevent obviously incorrect answers).
         More information on the OpenSSF Best Practices Badging program is
-        <a href='https://github.com/coreinfrastructure/best-practices-badge'>available
+        <a href='https://github.com/ossf/best-practices-badge'>available
         on GitHub</a>. <a href="/en/project_stats">Project statistics</a>
         and <a href="/en/criteria_stats">criteria statistics</a> are available.
         The <a href="/en/projects">projects page</a> shows participating
@@ -723,7 +734,7 @@ en:
           instead of being a rationale that the situation is acceptable,
           start the text block with '//' followed by a space.
           Feedback is welcome via the
-          <a href="https://github.com/coreinfrastructure/best-practices-badge">GitHub
+          <a href="https://github.com/ossf/best-practices-badge">GitHub
           site as issues or pull requests</a> There is also a
           <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">mailing
           list for general discussion</a>.<br /><br /> We gladly
@@ -768,7 +779,7 @@ en:
           <strong>Please 'submit' often</strong> to save your
           work (you can always go back and edit more later). <br><br>
           If you need help, have a question, or see a problem,
-          please <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          please <em><a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">file an issue</a></em>.
       got_baseline_badge:
         description_1: >-
@@ -1003,7 +1014,7 @@ en:
       If you have questions, or need help, please contact
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       or file an issue at
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (click on "new issue").
       </p>
       <p>
@@ -1033,7 +1044,7 @@ en:
       If you have questions, or need help, please contact
       cii-badges-questions@lists.coreinfrastructure.org
       or file an issue at
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (click on "new issue").
 
       We will never send you advertisements, and we will only rarely
@@ -1084,7 +1095,7 @@ en:
       If you have questions, or need help, please contact
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       or file an issue at
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (click on "new issue").
       </p>
 
@@ -1124,7 +1135,7 @@ en:
       If you have questions, or need help, please contact
       cii-badges-questions@lists.coreinfrastructure.org
       or file an issue at
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (click on "new issue").
 
       We don't send reminders if you continue to update your badge entry,
@@ -1149,11 +1160,11 @@ en:
       including adding URLs that point to more information.
       If you have suggestions on how to improve the criteria or
       badge web application, please file an issue at:
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       One of our goals is to encourage projects to make some improvements.
       We put some of these reports on the public wiki; please let us know
       if you do NOT want the changes publicly posted at
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       Thank you, and congratulations.
     in_markdown_add: 'In markdown you can add this:'
     in_html_add: 'In HTML you can add this:'
@@ -1169,6 +1180,10 @@ en:
       This is an advance notice that your project's "%{old_level}" badge may be
       lost on %{effective_date} when updated criteria take effect.
       Please review your badge entry at the following URL before that date:
+    warned_level_message_no_date: |-
+      This is an advance notice that your project's "%{old_level}" badge may be
+      lost when updated criteria take effect.
+      Please review your badge entry at the following URL:
     unsubscribe_notice_html: >-
       To unsubscribe from these email notifications, please visit:
       <a href="%{unsubscribe_url}">%{unsubscribe_url}</a>
@@ -2446,7 +2461,7 @@ en:
           to list secure design principles (such as Saltzer and
           Schroeer) and common implementation security weaknesses
           (such as the OWASP top 10 or CWE/SANS top 25), and show
-          how each are countered. The <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp
+          how each are countered. The <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp
           assurance case</a> may be a useful example. This is
           related to documentation_security, documentation_architecture,
           and implement_secure_design.
@@ -3241,9 +3256,6 @@ en:
       osps_vm_02_01:
         description: "While active, the project documentation MUST contain security contacts."
         details: "Create a security.md (or similarly-named) file that contains security contacts for the project."
-      osps_br_01_02:
-        description: "When a CI/CD pipeline uses a branch name in its functionality, that name value MUST be sanitized and validated prior to use in the pipeline."
-        details: ""
     baseline-2:
       osps_ac_04_01:
         description: "When a CI/CD task is executed with no permissions specified, the CI/CD system MUST default the task's permissions to the lowest permissions granted in the pipeline."
@@ -3491,7 +3503,7 @@ en:
       <p>
       For more information on how these criteria were developed,
       see the <a
-      href="https://github.com/coreinfrastructure/best-practices-badge"
+      href="https://github.com/ossf/best-practices-badge"
       >OpenSSF Best Practices badge GitHub site</a>.</p>
       <p>
       You may also <a href="/en/criteria">see the full criteria</a>.</p>
@@ -3558,7 +3570,7 @@ en:
     changes_p03_html:  >-
       <p>
       Feedback is <em>very</em> welcome via the
-      <a href="https://github.com/coreinfrastructure/best-practices-badge"
+      <a href="https://github.com/ossf/best-practices-badge"
       >GitHub site as issues or pull requests</a>.
       There is also a
       <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges"

@@ -15,27 +15,31 @@ module ProjectsHelper
   SECTION_ID_INVALID_CHARS = /[^a-z0-9_-]/
 
   # Invoke markdown processor, which is in its own module.
-  # @param content [String] The content to render as Markdown
+  # @param content [String] the content to render as Markdown
+  # @return [String] rendered HTML
   def markdown(content)
     MarkdownProcessor.render(content)
   end
 
   # Hash of automated fields for O(1) lookup via Hash#include?.
   # Returns empty hash when @automated_fields is nil.
+  # @return [Hash] automated field names set
   def automated_field_set
     @automated_fields || {}
   end
 
   # Hash of overridden fields for O(1) lookup via Hash#[].
   # Returns empty hash when @overridden_fields is nil.
-  # Values are { old_value:, new_value:, explanation: }.
+  # @return [Hash] overridden fields; values are
+  #   {old_value:, new_value:, explanation:}
   def overridden_field_set
     @overridden_fields || {}
   end
 
   # Hash of divergent fields for O(1) lookup via Hash#[].
   # Returns empty hash when @divergent_fields is nil.
-  # Values are { proposed_status: Integer, proposed_justification: String|nil }.
+  # @return [Hash] divergent fields; values are
+  #   {proposed_status: Integer, proposed_justification: String, nil}
   def divergent_field_set
     @divergent_fields || {}
   end
@@ -43,7 +47,8 @@ module ProjectsHelper
   # Builds a full-width ⚠️ override disclosure block.
   # Used by non_criteria_automation_display and _status_chooser.html.erb.
   # @param detail_body [String] Translated body text
-  # @param extra_class [String, nil] Additional CSS class (e.g. 'col-xs-12' in grid rows)
+  # @param extra_class [String, nil] Additional CSS class
+  # @return [ActiveSupport::SafeBuffer] HTML for the disclosure block
   # rubocop:disable Rails/OutputSafety
   def override_detail_block(detail_body, extra_class: nil)
     css = ['override-detail-block', extra_class].compact.join(' ')
@@ -60,7 +65,8 @@ module ProjectsHelper
   # Builds a full-width ≠ divergent disclosure block.
   # Used by non_criteria_automation_display and _status_chooser.html.erb.
   # @param detail_body [String] Translated body text
-  # @param extra_class [String, nil] Additional CSS class (e.g. 'col-xs-12' in grid rows)
+  # @param extra_class [String, nil] Additional CSS class
+  # @return [ActiveSupport::SafeBuffer] HTML for the disclosure block
   # rubocop:disable Rails/OutputSafety
   def divergent_detail_block(detail_body, extra_class: nil)
     css = ['divergent-detail-block', extra_class].compact.join(' ')
@@ -75,7 +81,8 @@ module ProjectsHelper
   # rubocop:enable Rails/OutputSafety
 
   # Returns [highlight_css_class, icon_html] for a non-criteria field.
-  # Used by _form_basics to show yellow (automated), orange (overridden), or ≠ (divergent).
+  # Used by _form_basics to show yellow (automated), orange (overridden),
+  # or ≠ (divergent).
   # Returns [nil, nil] when the field was not touched by automation.
   # @param field_sym [Symbol] Non-criteria field symbol (e.g., :name, :license)
   # @return [Array(String?, ActiveSupport::SafeBuffer?)] [css_class, icon_html]
@@ -100,9 +107,15 @@ module ProjectsHelper
                       old_status: override_data[:old_value].to_s,
                       old_justification_part: old_justification_part,
                       explanation_part: explanation_part)
-      [ApplicationHelper::HIGHLIGHT_OVERRIDDEN_CLASS, override_detail_block(detail_body)]
+      [
+        ApplicationHelper::HIGHLIGHT_OVERRIDDEN_CLASS,
+        override_detail_block(detail_body)
+      ]
     elsif automated_field_set.include?(field_sym)
-      [ApplicationHelper::HIGHLIGHT_AUTOMATED_CLASS, ApplicationHelper::ROBOT_EMOJI_SAFE]
+      [
+        ApplicationHelper::HIGHLIGHT_AUTOMATED_CLASS,
+        ApplicationHelper::ROBOT_EMOJI_SAFE
+      ]
     elsif (divergent_data = divergent_field_set[field_sym])
       justification_part =
         if divergent_data[:proposed_justification].present?
@@ -114,7 +127,10 @@ module ProjectsHelper
       detail_body = t('projects.edit.automation.divergent_detail',
                       status: divergent_data[:proposed_value].to_s,
                       justification_part: justification_part)
-      [ApplicationHelper::HIGHLIGHT_DIVERGENT_CLASS, divergent_detail_block(detail_body)]
+      [
+        ApplicationHelper::HIGHLIGHT_DIVERGENT_CLASS,
+        divergent_detail_block(detail_body)
+      ]
     else
       [nil, nil]
     end
@@ -148,8 +164,9 @@ module ProjectsHelper
     CriterionStatus::STATUS_VALUES[value]
   end
 
-  # Handles fork and original functionality.
-  # @param retrieved_repo_data - Repository data from GitHub API
+  # Splits repo data into forks and originals.
+  # @param retrieved_repo_data [Array, nil] repository data from GitHub API
+  # @return [Array(Array, Array)] [forks, originals]
   def fork_and_original(retrieved_repo_data)
     if retrieved_repo_data.blank?
       NO_REPOS
@@ -166,7 +183,9 @@ module ProjectsHelper
     retrieved_repo_data = repo_data
     return if retrieved_repo_data.nil?
 
-    build_repo_select_groups(retrieved_repo_data, t('.original_repos'), t('.fork_repos'))
+    build_repo_select_groups(
+      retrieved_repo_data, t('.original_repos'), t('.fork_repos')
+    )
   end
 
   # Pure function to build grouped options from repo data.
@@ -188,7 +207,14 @@ module ProjectsHelper
     groups
   end
 
-  # Use the status_chooser to render the given criterion.
+  # Renders the status_chooser partial for one criterion.
+  # @param criterion [Symbol] the criterion key
+  # @param f [ActionView::Helpers::FormBuilder] the form builder
+  # @param project [Project] the project being edited
+  # @param criteria_level [String] e.g. 'passing', 'silver', 'gold'
+  # @param view_only [Boolean] true to render in read-only mode
+  # @param is_last [Boolean] true if last criterion in the section
+  # @return [String] rendered HTML partial
   # rubocop:disable Metrics/ParameterLists
   def render_status(
     criterion, f, project, criteria_level, view_only, is_last = false
@@ -204,14 +230,17 @@ module ProjectsHelper
   end
 
   # Generate HTML for minor heading
-  # @param minor [Object] The minor heading text
+  # @param minor [Object] the minor heading text
+  # @return [ActiveSupport::SafeBuffer] HTML list item containing h3
   # rubocop:enable Metrics/ParameterLists
   def minor_header_html(minor)
     # rubocop:disable Rails/OutputSafety
-    # Section ids are section_ followed by lowercased letters, digits, _ for space
+    # Section ids: section_ + lowercase letters, digits, _ for spaces.
     # We strip out everything else.
     # Use string interpolation to avoid intermediate string allocation
-    section_id = "section_#{minor.downcase.tr(' ', '_').gsub(SECTION_ID_INVALID_CHARS, '')}"
+    normalized = minor.downcase.tr(' ', '_')
+                      .gsub(SECTION_ID_INVALID_CHARS, '')
+    section_id = "section_#{normalized}"
 
     safe_join(
       [
@@ -225,10 +254,16 @@ module ProjectsHelper
     # rubocop:enable Rails/OutputSafety
   end
 
-  # Render all the status_choosers in the given minor section.
-  # This takes a ridiculous number of parameters, because we have to
-  # select the correct minor section & then pass the information the
-  # status_chooser needs (which also needs a ridiculous number).
+  # Renders all status_choosers in the given minor criteria section.
+  # @param criteria_level [String] e.g. 'passing', 'silver', 'gold'
+  # @param major [String] the major section name
+  # @param minor [String] the minor section name
+  # @param f [ActionView::Helpers::FormBuilder] the form builder
+  # @param project [Project] the project being edited
+  # @param view_only [Boolean] true to render in read-only mode
+  # @param wrapped [Boolean] true to include list-item wrapper HTML
+  # @return [ActionView::OutputBuffer] rendered HTML for the section
+  # @raise [NameError] if the minor section has no criteria
   # rubocop:disable Metrics/MethodLength,Metrics/AbcSize
   # rubocop:disable Metrics/ParameterLists
   def render_minor_status(
@@ -252,8 +287,9 @@ module ProjectsHelper
   end
 
   # Return HTML for a sortable header.
-  # @param title [String] The title text for the sortable header
-  # @param field_name [Object] The database field name for sorting
+  # @param title [String] the title text for the sortable header
+  # @param field_name [Object] the database field name for sorting
+  # @return [ActiveSupport::SafeBuffer] HTML anchor tag
   # rubocop:enable Metrics/ParameterLists
   # rubocop:enable Metrics/MethodLength,Metrics/AbcSize
   def sortable_header(title, field_name)
@@ -276,8 +312,8 @@ module ProjectsHelper
   end
 
   # Given tiered percentage as integer value, return its string representation
-  # Returns nil if given blank value.
-  # @param value [Object] The value to process
+  # @param value [Object] tiered percentage integer (0-300), or blank
+  # @return [String, nil] localized progress string, or nil if blank
   # rubocop:disable Metrics/MethodLength
   def tiered_percent_as_string(value)
     return if value.blank?
@@ -304,8 +340,9 @@ module ProjectsHelper
   # rubocop:enable Rails/OutputSafety
 
   # Insert wbr (HTML word break) after _ etc. per WORD_BREAK_DIVIDERS.
-  # The text is presumed to be unsafe.  We produce a safe (escaped) HTML result.
-  # @param text [String] The text content to break down into words
+  # The text is presumed to be unsafe; output is escaped HTML.
+  # @param text [String] the text to insert word-break opportunities into
+  # @return [ActiveSupport::SafeBuffer] escaped HTML with wbr tags inserted
   def word_breakdown(text)
     safe_join(
       text.split(WORD_BREAK_DIVIDERS).each_with_index.map do |fragment, i|
@@ -338,7 +375,8 @@ module ProjectsHelper
       "#{parts.first.upcase}-#{parts[1].upcase}-#{parts[2]}.#{parts[3]}"
     elsif parts.size == 5 && %w[status justification].include?(parts[4])
       # Field name: OSPS-AC-03.01_status
-      "#{parts.first.upcase}-#{parts[1].upcase}-#{parts[2]}.#{parts[3]}_#{parts[4]}"
+      prefix = [parts.first.upcase, parts[1].upcase, parts[2]].join('-')
+      "#{prefix}.#{parts[3]}_#{parts[4]}"
     else
       id_str # Return original if not recognized format
     end
@@ -380,7 +418,8 @@ module ProjectsHelper
   # Precomputed mapping: Baseline display names to internal field names.
   # Computed once at load time, eliminating repeated transformations and GC.
   # BASELINE_DISPLAY_TO_INTERNAL_NAME_MAP =
-  #   BASELINE_FIELD_DISPLAY_NAME_MAP.each_with_object({}) do |(internal, display), hash|
+  #   BASELINE_FIELD_DISPLAY_NAME_MAP
+  #     .each_with_object({}) do |(internal, display), hash|
   #     hash[display] = internal
   #   end
   # BASELINE_DISPLAY_TO_INTERNAL_NAME_MAP.freeze
@@ -424,16 +463,16 @@ module ProjectsHelper
   #   id_str.downcase.tr('-.', '__')
   # end
 
-  # Generate a radio button for a status field, handling integer↔string conversion.
-  # Status values are stored as integers in the database but displayed as strings
-  # in forms. This helper reads the integer value, converts it to a string for
-  # comparison with the radio button value, and generates the appropriate HTML.
+  # Generates a radio button, handling integer↔string conversion.
+  # Status integers are stored in DB, displayed as strings in forms.
+  # Reads the integer value, converts to string for comparison,
+  # then generates the appropriate HTML radio button.
   #
-  # @param form [ActionView::Helpers::FormBuilder] The form builder (f)
-  # @param project [Project] The project instance
-  # @param status_field [Symbol] The status field name (e.g., :description_good_status)
-  # @param string_value [String] The radio button value ('Met', 'Unmet', 'N/A', '?')
-  # @param ** [Hash] Additional keyword arguments passed to radio_button (label:, disabled:, etc.)
+  # @param form [ActionView::Helpers::FormBuilder] the form builder
+  # @param project [Project] the project instance
+  # @param status_field [Symbol] e.g. :description_good_status
+  # @param string_value [String] radio value e.g. 'Met', 'Unmet'
+  # @param ** [Hash] extra keyword args (label:, disabled:, etc.)
   # @return [String] HTML for the radio button
   def status_radio_button(form, project, status_field, string_value, **)
     # Read the raw integer value from the database and convert to string
@@ -443,7 +482,7 @@ module ProjectsHelper
     checked = (current_string == string_value)
 
     # Generate the radio button using bootstrap_form's radio_button helper
-    # We pass the string value so the form submits strings (which the controller converts)
+    # Pass the string value; the controller converts it to integer
     form.radio_button(status_field, string_value, checked: checked, **)
   end
 end

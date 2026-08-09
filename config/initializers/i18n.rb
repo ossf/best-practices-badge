@@ -116,8 +116,12 @@ end
 def build_locale_select_options(display_names)
   {}.tap do |hash|
     I18n.available_locales.each do |ui_locale|
+      names = display_names[ui_locale.to_s]
+      # Defense in depth: skip if names is nil (should not happen normally)
+      next if names.nil?
+
       hash[ui_locale.to_s] =
-        display_names[ui_locale.to_s]
+        names
         .map { |code, name| [name, code].freeze }
         .freeze
     end

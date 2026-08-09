@@ -1,0 +1,112 @@
+---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
+name: Renovate
+
+# Run Renovate ourselves, on a schedule, rather than installing the hosted
+# GitHub App. Updating our own CI configuration is no reason to give a
+# third party write access to this repository. See
+# docs/build-environment-staleness.md for the due diligence.
+#
+# What it proposes is scoped by .github/renovate.json5 to two things
+# Dependabot cannot do: the images pinned in .circleci/config.yml, an
+# ecosystem it has no manager for, and the Ruby version, which it has
+# declined to update since 2018.
+
+# Limit permissions per OpenSSF Scorecard best practices.
+# Since we set "permissions", anything unset has access "none".
+#
+# Renovate does NOT use this token. It authenticates with a short-lived
+# token minted from our own GitHub App; see the mint step for why.
+permissions:
+  contents: read
+
+on:
+  schedule:
+    # Weekly, early Monday UTC. Minute chosen off the hour because
+    # GitHub delays schedules that pile up on the hour.
+    - cron: '17 4 * * 1'
+  # So a human can ask for a run without waiting a week.
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    name: Propose CircleCI image updates
+    runs-on: ubuntu-latest
+
+    steps:
+      # Use harden-runner https://github.com/step-security/harden-runner
+      # presented at OpenSSF Best Practices WG 2022-03-15
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        # Pin to commit SHA to prevent supply chain attacks via tag mutation.
+        # Verify: curl -s https://api.github.com/repos/actions/checkout/git/ref/tags/v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # OSPS-BR-01.02: Validate branch name before use in pipeline
+      # GITHUB_REF_NAME is the short ref name (e.g., "main" not "refs/heads/main")
+      - name: Validate branch name
+        run: script/validate_branch_name "$GITHUB_REF_NAME"
+
+      # Guard, mint and the failure explanation all live in the
+      # composite action, because heroku_ruby_versions.yml needs the
+      # same four things and two copies of a credential dance drift.
+      # The permissions asked for are NOT shared: each caller names only
+      # what it needs, so this token cannot touch anything Renovate has
+      # no business with. See .github/actions/mint-app-token/action.yml.
+      - name: Mint a short-lived token from the App
+        id: app_token
+        uses: ./.github/actions/mint-app-token
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          # A pull request is a branch plus a commit, and GitHub files
+          # both of those under contents; there is no narrower pair.
+          permission-contents: write
+          permission-pull-requests: write
+          # The dependency dashboard is an issue, and so are Renovate's
+          # config-error reports.
+          permission-issues: write
+          # Whether CI passed on a pull request it already opened, so it
+          # knows to leave that alone or refresh it.
+          permission-checks: read
+          permission-statuses: read
+
+      - name: Renovate
+        # Pin to commit SHA to prevent supply chain attacks via tag mutation.
+        # Verify: curl -s https://api.github.com/repos/renovatebot/github-action/git/ref/tags/v46.2.1
+        uses: renovatebot/github-action@316d7cd859606d6039a2182b7d69199e9b036835 # v46.2.1
+        with:
+          # Deliberately no "configurationFile". That input sets
+          # Renovate's GLOBAL config, which is a different layer: it
+          # configures the runner, not this repository's update rules.
+          # Pointing it at .github/renovate.json5 makes Renovate read our
+          # repository config as global config, which is the wrong thing
+          # even where it appears to work. Renovate finds
+          # .github/renovate.json5 by itself, that being one of the
+          # standard repository config locations. The distinction is
+          # visible in renovate-config-validator, which reports
+          # "Validating ... as global config" when handed the path
+          # explicitly, and just "Validating ..." when it discovers it.
+          token: ${{ steps.app_token.outputs.token }}
+        env:
+          # Only this repository, whatever the token can otherwise reach.
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          LOG_LEVEL: info
+
+          # WHO THE COMMITS COME FROM, stated rather than detected.
+          # Renovate normally learns this by asking GitHub who the token
+          # belongs to, which it cannot do here: an App installation
+          # token has no user behind it, and /user answers "Resource not
+          # accessible by integration". Recent Renovate can work the
+          # identity out for App tokens, but the failure mode if it
+          # cannot is an unclear error at startup, and saying it outright
+          # removes the question. The string itself comes from the
+          # composite action, so the numeric id in it has one home.
+          RENOVATE_USERNAME: 'openssf-badge-renovate[bot]'
+          RENOVATE_GIT_AUTHOR: ${{ steps.app_token.outputs.git-author }}

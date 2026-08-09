@@ -1,5 +1,13 @@
+<%# A warning normally names the date the badge would be lost.  If no
+    date was recorded we still warn, but say nothing about when; see
+    Project.send_warning_email and docs/warning_failures.md. %>
+<% if @effective_date %>
 <%= t('report_mailer.warned_level_message',
       old_level: @old_level, effective_date: @effective_date) %>
+<% else %>
+<%= t('report_mailer.warned_level_message_no_date',
+      old_level: @old_level) %>
+<% end %>
 <%= @project_info_url %>
 
 <%= t 'report_mailer.ending' %>

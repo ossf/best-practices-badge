@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Copyright the Linux Foundation and the CII Best Practices badge contributors
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 #
 # Download the SBOM for a given commit from GitHub Releases.
@@ -18,7 +18,7 @@ require 'json'
 require 'net/http'
 require 'uri'
 
-REPO = 'coreinfrastructure/best-practices-badge'
+REPO = 'ossf/best-practices-badge'
 MAX_PAGES = 5 # 100 releases/page * 5 = 500 releases searched
 
 # Perform an HTTPS GET request, setting GitHub API headers.

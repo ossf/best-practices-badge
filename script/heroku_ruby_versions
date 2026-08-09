@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Print the Rubies Heroku can deploy on our stack, newest per release
+# line, one per line.
+#
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+#
+# Usage:  script/heroku_ruby_versions
+#
+# A DATASOURCE, not a decision. The output goes to
+# .github/heroku-ruby-versions.txt, which Renovate reads through a
+# custom datasource with format "plain" (one release per line).
+# Proposing, deduplicating, rebasing and remembering a rejection are
+# Renovate's job; we tried writing those ourselves and deleted them.
+#
+# Versions to stdout so a caller can redirect; everything else stderr.
+#
+# NO BUNDLER AND NO GEMS. This runs on a bare runner with whatever Ruby
+# the image ships, and installing our whole Gemfile at a matching Ruby
+# to send a few HEAD requests would be absurd. Both libraries it loads
+# say so at the top, where someone would add the require. It is also
+# why this is a script: our Rakefile loads config/boot, i.e. Bundler.
+
+require_relative '../lib/heroku_ruby_availability'
+require_relative '../lib/project_stack'
+
+Dir.chdir(File.expand_path('..', __dir__))
+
+current = File.read('.ruby-version').strip
+stack = ProjectStack.name
+warn "Asking Heroku which Rubies it has for #{stack}..."
+
+begin
+  versions =
+    HerokuRubyAvailability.available_versions(current: current, stack: stack)
+rescue HerokuRubyAvailability::Unreachable => e
+  # A blip must not read as "Heroku withdrew everything". Fail loudly
+  # and print nothing, so the caller leaves the published file alone.
+  warn "Could not ask: #{e.message}"
+  warn 'Leaving the published list untouched.'
+  exit 1
+end
+
+warn(versions.empty? ? 'Heroku has none on our lines.' : "Has: #{versions.join(', ')}")
+puts versions

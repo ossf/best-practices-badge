@@ -1,4 +1,8 @@
 ---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
 name: Codespell
 
 # Limit permissions per OpenSSF Scorecard best practices.
@@ -21,7 +25,7 @@ jobs:
       - name: Checkout
         # Pin to commit SHA to prevent supply chain attacks via tag mutation.
         # Verify: curl -s https://api.github.com/repos/actions/checkout/git/ref/tags/v5.0.0
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # OSPS-BR-01.02: Validate branch name before use in pipeline
       # This protects against potential future use of branch names in commands
       # GITHUB_REF_NAME is the short ref name (e.g., "main" not "refs/heads/main")
@@ -30,6 +34,6 @@ jobs:
       - name: Codespell
         # Pin to commit SHA to prevent supply chain attacks via tag mutation.
         # Verify: curl -s https://api.github.com/repos/codespell-project/actions-codespell/git/ref/tags/v2
-        uses: codespell-project/actions-codespell@406322ec52dd7b488e48c1c4b82e2a8b3a1bf630 # v2
+        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2.2
         with:
           ignore_words_file: .codespellignore

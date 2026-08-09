@@ -1,14 +1,16 @@
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
 # This is a simple GitHub Actions CI workflow.
 name: CI
 
 # Limit permissions. See:
 # https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions
-# https://github.com/actions/first-interaction/issues/10#issuecomment-1041402989
 # Since we set "permissions", anything unset has access "none".
 permissions:
   contents: read
-  checks: write
 
 # Controls when the action will run. Triggers the workflow on push or pull
 # request events but only for the main branch (formerly the master branch)
@@ -29,7 +31,7 @@ jobs:
     steps:
       # Use harden-runner https://github.com/step-security/harden-runner
       # presented at OpenSSF Best Practices WG 2022-03-15
-      - uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
         with:
           egress-policy: audit
 
@@ -39,7 +41,7 @@ jobs:
       # we pin this to a specific hash value to prevent use of an unknown
       # (and possibly subverted) version.
       # Update by consulting: https://github.com/actions/checkout/releases
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # OSPS-BR-01.02: Validate branch name before use in pipeline
       # This protects against potential future use of branch names in commands

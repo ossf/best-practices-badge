@@ -26,18 +26,28 @@ class Icon
       fa-github
     ].freeze
 
-    # Return the SafeBuffer text that represents icon "key".
+    # Returns the pre-rendered SafeBuffer HTML for icon +key+.
+    # @param key [Symbol] icon name, e.g. :'fa-user'
+    # @return [ActiveSupport::SafeBuffer, nil] frozen HTML for the icon,
+    #   or nil if the icon cache has not been initialized
+    # @raise [KeyError] if key is not a registered icon name
     def [](key)
       # Use fetch, not @icon_data[key], so we discover missing keys
       @icon_data&.fetch(key)
     end
 
-    # Useful for debugging. Equivalent to:
+    # Returns all registered icon keys. Useful for debugging.
+    # @return [Array<Symbol>] list of icon keys
+    # Equivalent to:
     # def keys
     #   @icon_data.keys
     # end
     delegate :keys, to: :@icon_data
 
+    # Populates the icon cache by pre-rendering HTML for every registered icon.
+    # Must be called once during application initialization
+    # before Icon[] is used.
+    # @return [nil]
     def initialize_class
       @icon_data = {}
       ICONS_TO_GENERATE.each do |name|

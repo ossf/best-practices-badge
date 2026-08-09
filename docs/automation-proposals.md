@@ -249,6 +249,10 @@ dashes or periods (both are replaced with `_`).
 
 Each OSPS criterion also has an `original_id` in the format
 `OSPS-XX-NN.SS` (e.g., `OSPS-AC-01.01`).
+Some readbacks and UI labels display baseline status fields using the
+original OSPS ID with `_status`, for example `OSPS-AC-01.01_status`.
+Proposal URLs, `.bestpractices.json` files, and internal field names use
+the lowercase underscore form, for example `osps_ac_01_01_status`.
 
 **Examples:**
 

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Download JSON data from bestpractices.coreinfrastructure.org and analyze it.
+# Download JSON data from www.bestpractices.dev and analyze it.
 
 # Since the JSON data is paged, we simply download each page in turn.
 # This is written to be simple code; it loads the entire dataset into memory.
@@ -9,7 +9,7 @@
 # Modify this example for whatever analysis you want to do.
 
 # Copyright 2018, the Linux Foundation, IDA, and the
-# CII Best Practices badge contributors
+# OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
 import os, sys, re, json, time, urllib
@@ -19,7 +19,7 @@ from urllib.request import urlopen
 cached_filename = 'projects.json'
 
 # This is the base URL for project data.
-base_url = 'https://bestpractices.coreinfrastructure.org/' + cached_filename
+base_url = 'https://www.bestpractices.dev/' + cached_filename
 
 # Retrieve paged JSON data
 def retrieve_data():

@@ -21,19 +21,44 @@ class GithubContentAccess
   # linuxfoundation/cii-best-practices-badge/contents
   # We use the Octokit gem to simplify access.
 
+  EMPTY = [].freeze
+
+  # TRUST BOUNDARY (why we accept transport compression here):
+  # We deliberately do NOT force identity encoding on this path. HTTP
+  # Content-Encoding is applied by GitHub-the-organization, the party that
+  # terminates the TLS connection and serves the response - and that party is
+  # exactly who this path already trusts (see get_content's SECURITY NOTE). If
+  # they were to gzip-bomb the transport, that is GitHub attacking us, which is
+  # outside our threat model and no worse than the raw-oversized-response case
+  # we already accept. So we let Net::HTTP request and transparently inflate
+  # gzip, saving network bandwidth, and rely on the size caps below to bound
+  # what we keep.
+  #
+  # The distinction that matters: the repo file *content* we read is authored
+  # by untrusted GitHub users, but it is only ever treated as opaque bytes/text
+  # here - we never recursively expand it as an archive. Any future feature
+  # that unpacks an attacker-authored .zip/.tar.gz MUST route through the
+  # bounded SafeInflate decompressor instead of trusting it like transport.
+
   # Given a filename, reply with information about it.
   # - For files (type='file') this is a hash of data
   #   Fields include: name, path, size, html_url.
   # - For directories (type='dir') this is an iterable set of hashes;
   #   each hash represents a filesystem object (see above)
-  def get_info(filename)
+  # The GitHub contents API returns 404 in several situations:
+  # private repos accessed without auth (GitHub returns 404, not 403, to
+  # avoid revealing that the repo exists), deleted repos, and occasionally
+  # transient errors. Note: empty repos return 409 Conflict, not 404.
+  #
+  # @param not_found_result [Object] value to return when the GitHub API
+  #   returns 404. Defaults to EMPTY (a frozen []) so callers can iterate
+  #   safely. Pass nil when the caller needs to distinguish a successful
+  #   (possibly empty) scan from an inaccessible repo.
+  def get_info(filename, not_found_result: EMPTY)
     @octokit_client = @octokit_client_factory.call if @octokit_client.nil?
-    @octokit_client.contents @fullname, path: filename
+    @octokit_client.contents(@fullname, path: filename)
   rescue Octokit::NotFound
-    # Empty repositories return 404 from the GitHub contents API.
-    # Return an empty array so callers iterate over zero entries
-    # instead of crashing.
-    []
+    not_found_result
   end
 
   # Get the actual content of a file (not just metadata).
@@ -61,15 +86,28 @@ class GithubContentAccess
   # us to load oversized content into memory. If this is unacceptable, the
   # only solution is HTTP streaming with size limits at a lower level than
   # the Octokit gem provides.
+  #
+  # We intentionally allow GitHub to gzip the transport (see the TRUST BOUNDARY
+  # note above): the compression is applied by GitHub-the-organization, the
+  # same party whose reported size we already trust here, so a gzip bomb on the
+  # transport is no more in-scope than a raw oversized response. Both are
+  # bounded only by trusting GitHub over HTTPS; the size caps bound what we
+  # actually retain.
   # rubocop:disable Metrics/MethodLength
-  def get_content(filename, max_size: 50_000)
+  def get_content(filename, max_size: 100_000)
     # First, get metadata to check size BEFORE fetching content
     file_info = get_info(filename)
     return if file_info.blank? || file_info.is_a?(Array)
     return if file_info['type'] != 'file'
 
     # Trust but verify: Check GitHub's reported size before fetching
-    return if file_info['size'] > max_size
+    if file_info['size'] > max_size
+      Rails.logger.info(
+        "GithubContentAccess: #{filename} exceeds max_size " \
+        "(#{file_info['size']} bytes > #{max_size}); skipping fetch"
+      )
+      return
+    end
 
     # Now fetch raw content. GitHub already told us the size is OK.
     # Use raw API to get unencoded content (avoids base64 overhead).
@@ -81,7 +119,14 @@ class GithubContentAccess
     )
 
     # Defense in depth: Verify actual size matches GitHub's claim
-    return if content.bytesize > max_size
+    if content.bytesize > max_size
+      Rails.logger.warn(
+        "GithubContentAccess: #{filename} actual size #{content.bytesize} " \
+        "bytes exceeds reported #{file_info['size']} and max_size #{max_size}; " \
+        'rejecting (possible GitHub size misreport or MITM)'
+      )
+      return
+    end
 
     content
   rescue StandardError

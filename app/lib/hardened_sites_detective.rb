@@ -71,9 +71,9 @@ class HardenedSitesDetective < Detective
   # Note: in the returned hash all field names are ASCII *lowercase*, so that
   # we can easily do case-insensitive matches (HTTP field names are
   # case-insensitive, see RFC 2616 section 4.2).
-  def get_headers(evidence, url)
-    response = evidence.get(url)
-    results = response.nil? ? {} : response[:meta]
+  def response_headers(evidence, url)
+    # We only need the response headers here, so use get_headers (no body).
+    results = evidence.get_headers(url) || {}
     # Return a version with keys in lowercase; we do *not* modify the original.
     # We use ":ascii" so that Turkic locales don't cause oddities. That
     # shouldn't matter anyway, since the user's locale is in I18n.locale,
@@ -83,7 +83,7 @@ class HardenedSitesDetective < Detective
 
   # Given evidence and a URL, return the list of problems with it.
   def problems_in_url(evidence, url)
-    headers = get_headers(evidence, url)
+    headers = response_headers(evidence, url)
     problems = missing_security_fields(headers)
     problems += missing_frame_options(headers)
     if problems.empty?

@@ -10,18 +10,32 @@
 
 require 'nokogiri'
 
-# Parses OpenSSF Baseline HTML to extract criteria
+# Parses an OpenSSF Baseline HTML page to extract OSPS criteria controls.
+# Locates every <h4> whose HTML id begins with "osps-", reads the text
+# content following each heading up to the next heading, and extracts the
+# control's requirement, recommendation, category, and maturity level.
+# Retired controls (those containing "Retired" text but no "Requirement:"
+# section) are excluded from the results.
 class BaselineHtmlParser
+  # @return [Array<Hash>] parsed controls, each with keys:
+  #   :original_id (String), :field_name (String), :category (String),
+  #   :requirement (String, nil), :recommendation (String, nil),
+  #   :maturity_level (Array<Integer>)
   attr_reader :controls
 
   # HTML element names to stop at when parsing control content
   STOP_ELEMENTS = %w[h3 h4].freeze
 
+  # @param html_content [String] raw HTML of the OpenSSF Baseline spec page
   def initialize(html_content)
     @doc = Nokogiri::HTML(html_content)
     @controls = []
   end
 
+  # Parses all <h4 id="osps-*"> control elements from the HTML and
+  # populates {#controls}. Retired controls (those containing "Retired"
+  # text but lacking a "Requirement:" section) are skipped.
+  # @return [Array<Hash>] same as {#controls}
   def parse
     # Find all h4 elements with IDs starting with "osps-"
     @doc.css('h4[id^="osps-"]').each do |h4|

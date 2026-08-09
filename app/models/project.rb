@@ -4,6 +4,8 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
+require 'security_utils'
+
 # rubocop:disable Metrics/ClassLength
 class Project < ApplicationRecord
   has_many :additional_rights, dependent: :destroy
@@ -17,6 +19,20 @@ class Project < ApplicationRecord
 
   include PgSearch::Model # PostgreSQL-specific text search
   include LevelConversion # Shared level name/number conversion
+
+  # Cache key for the total (unfiltered) number of projects shown on the
+  # projects index. The count is cached to avoid a COUNT(*) on every
+  # index/pagination request; see ProjectsController and docs/pagy-43.md.
+  INDEX_COUNT_CACHE_KEY = 'projects/index/count'
+
+  # Return the total number of projects, cached for +ttl+ to avoid a COUNT(*)
+  # on every unfiltered index/pagination request (which matters most for
+  # rapid crawler "next page" walks).
+  # @param ttl [ActiveSupport::Duration, Integer] cache lifetime
+  # @return [Integer] total number of projects
+  def self.cached_index_count(ttl)
+    Rails.cache.fetch(INDEX_COUNT_CACHE_KEY, expires_in: ttl) { count }
+  end
 
   # When did we add met_justification_required?
   STATIC_ANALYSIS_JUSTIFICATION_REQUIRED_DATE =
@@ -100,6 +116,13 @@ class Project < ApplicationRecord
     'gold' => '2'
   }.freeze
 
+  # SECURITY: Helper to bundle sanitization and parameterization.
+  # Defined early so it is available to scopes.
+  def self.prefix_match(column_name, text)
+    safe_text = "#{sanitize_sql_like(text)}%"
+    arel_table[column_name].matches(safe_text)
+  end
+
   # Reverse mapping: internal level ID to URL-friendly name
   LEVEL_NUMBER_TO_NAME = {
     '0' => 'passing',
@@ -132,6 +155,37 @@ class Project < ApplicationRecord
   ALL_CRITERIA_JUSTIFICATION = Criteria.all.map(&:justification).freeze
   ALL_CRITERIA_JUSTIFICATION_STRINGS =
     ALL_CRITERIA_JUSTIFICATION.map(&:to_s).freeze
+
+  # Columns that record how *we* run the badging process, as opposed to
+  # anything about the project or its owner.  The published JSON is meant
+  # to describe the project; when we last emailed someone about it, how
+  # many delivery attempts we have made, and which edit form they have
+  # opened are our business, not the reader's.
+  #
+  # Adding a column does NOT normally belong here.  New project data
+  # should appear in the JSON without anyone having to ask, which is why
+  # this is a list of what to withhold rather than a list of what to
+  # publish.  Add to it only when a column answers "what has the badge
+  # application done lately", not "what is this project like".
+  #
+  # A Set built once at startup: the JSON view consults it for every one
+  # of a project's 450 columns, on every cache miss.
+  #
+  # These are also, not by coincidence, the columns whose change cannot
+  # make any cached page stale, since nothing cached shows them.  That
+  # makes this list the natural starting point for deciding which writes
+  # must purge the CDN; see docs/cdn-cache-not-logged-in.md section 11.
+  BOOKKEEPING_FIELDS = (
+    %w[
+      lock_version
+      last_reminder_at disabled_reminders
+      unreported_badge_loss unreported_baseline_badge_loss
+      unreported_badge_warning unreported_baseline_badge_warning
+      last_loss_sent_at last_warning_sent_at
+      loss_send_attempts warning_send_attempts
+      badge_warning_effective_date
+    ] + Sections::LEVEL_SAVED_FLAGS.values.map(&:to_s)
+  ).to_set.freeze
   # Achievement status fields are internal tracking fields that keep raw integer values
   # (not converted to/from strings like criteria status fields)
   ACHIEVEMENT_STATUS_FIELDS = %i[
@@ -210,6 +264,7 @@ class Project < ApplicationRecord
   # Convenience method to set badge percentage for a level
   # @param level [String] criteria level name
   # @param value [Integer] percentage value
+  # @return [void]
   def set_badge_percentage(level, value)
     self[badge_percentage_field_name(level)] = value
   end
@@ -251,17 +306,26 @@ class Project < ApplicationRecord
   )
 
   # prefix query (old search system)
+  # SECURITY: We use Arel .matches here specifically to ensure DB-level
+  # parameterization of user input.
   scope :text_search, (
     lambda do |text|
-      start_text = "#{sanitize_sql_like(text)}%"
       where(
-        Project.arel_table[:name].matches(start_text).or(
-          Project.arel_table[:homepage_url].matches(start_text)
+        Project.prefix_match(:name, text).or(
+          Project.prefix_match(:homepage_url, text)
         ).or(
-          Project.arel_table[:repo_url].matches(start_text)
+          Project.prefix_match(:repo_url, text)
         )
       )
     end
+  )
+
+  # SECURITY: Fail-fast smoke test to ensure SQL parameterization.
+  # This runs once when the class is loaded.
+  # Note: .to_sql is a read-only metadata operation, no DB is called.
+  SecurityUtils.security_assertion(
+    text_search("test' OR 1=1").to_sql.include?("''"),
+    'text_search scope has an SQL injection bypass!'
   )
 
   # Search for exact match on URL
@@ -292,6 +356,12 @@ class Project < ApplicationRecord
 
   before_validation :normalize_entry_locale
   before_save :update_badge_percentages, unless: :skip_callbacks
+
+  # Invalidate the cached unfiltered index count whenever a project is added
+  # or removed (edits never change the total). Best-effort per process: with
+  # the production :memory_store this clears the entry only in the process
+  # that runs it, so the cache TTL remains the cross-process bound.
+  after_commit :bust_index_count_cache, on: %i[create destroy]
 
   # A project is associated with a user (optional: user_id may be NULL in DB)
   belongs_to :user, optional: true
@@ -412,7 +482,7 @@ class Project < ApplicationRecord
   def contains_url?(text)
     return false if !text || text.start_with?('// ')
 
-    text =~ %r{https?://[^ ]{5}}
+    text =~ %r{https?://[^/. ]+\.[^ ]}
   end
 
   # Returns symbol indicating the status of a particular criterion in this project.
@@ -661,6 +731,15 @@ class Project < ApplicationRecord
   # Updates badge percentages for all project entries.
   # Use this after badging rules have changed. We precalculate and store
   # percentages in the database for speed, but rule changes don't automatically
+  # Batch size for the whole-table recalc loops below. A `projects` row is
+  # extremely wide (>400 columns, about half of them text: every criterion's status
+  # and justification across all levels), so each loaded Project object is
+  # large. find_each's default batch of 1000 keeps ~1000 of these giants alive
+  # at once, peaking over 1GB and OOM-killing a standard 512MB dyno (R14/R15,
+  # SIGKILL/exit 137) -- which silently aborts these migrations. A small batch
+  # bounds the working set so the recalc fits in a normal dyno.
+  BULK_RECALC_BATCH_SIZE = 100
+
   # update the precalculated values.
   # NOTE: No emails are sent to badge losers or gainers — email notification
   # only happens through the controller's normal save flow.
@@ -676,7 +755,9 @@ class Project < ApplicationRecord
       raise ArgumentError, "Invalid level: #{l}" unless l.in? Criteria.keys
     end
     Project.skip_callbacks = true
-    Project.find_each do |project|
+    changed = 0
+    Project.find_each(batch_size: BULK_RECALC_BATCH_SIZE) do |project|
+      modified = false
       project.with_lock do
         # Snapshot current badge levels before recalculation so we can
         # record any losses for later notification.
@@ -690,31 +771,124 @@ class Project < ApplicationRecord
         project.update_tiered_percentage
         project.update_baseline_tiered_percentage
         if notify_losses
-          # Store the rank of each lost level so the daily notification task
-          # can send emails in a rate-limited batch.  We always overwrite with
-          # the most recent loss; the daily task handles clearing.
-          if Sections.badge_level_lost?(old_metal_level, project.badge_level)
-            project.unreported_badge_loss =
-              Sections::BADGE_LEVEL_RANK[old_metal_level]
-          end
-          if Sections.badge_level_lost?(old_baseline_level,
-                                        project.baseline_badge_level)
-            project.unreported_baseline_badge_loss =
-              Sections::BADGE_LEVEL_RANK[old_baseline_level]
-          end
+          record_pending_losses(project, old_metal_level, old_baseline_level)
         end
-        project.save!(touch: false)
+        # Ask before writing; afterward the record reports no changes.
+        # Most projects in a typical recalculation are untouched, and
+        # writing nothing is both faster and one less CDN purge.
+        # Bookkeeping columns do not count toward "modified": nothing
+        # cached shows them, so a project whose only change was a
+        # pending-notification flag has nothing stale to purge.
+        pending_changes = project.changes.transform_values(&:last)
+        modified =
+          pending_changes.keys.any? { |c| BOOKKEEPING_FIELDS.exclude?(c) }
+        # Everything we write here we computed ourselves; none of it came
+        # from the owner.  So write it as bookkeeping rather than with
+        # save, which would bump lock_version and make an owner who has
+        # the edit form open fail with "changed since you started
+        # editing".  Nothing is lost by not blocking them: their save
+        # recomputes these same percentages from their own answers.
+        #
+        # This also means no paper_trail version, which is what we want.
+        # A version records who changed an entry; a recalculation is not
+        # a person, and on a wide projects row each version stores a copy
+        # of the old record, so a large criteria change would have
+        # written thousands of them.  send_reminders already suppressed
+        # versioning for the same reason.
+        unless pending_changes.empty?
+          write_bookkeeping_columns(project, pending_changes)
+        end
       end
+      # Only once with_lock has committed.  Purging while the old value
+      # is still the one a reader would get invites the CDN to cache it
+      # again, and nothing would come along afterward to correct it.
+      next unless modified
+
+      changed += 1
+      purge_project_cdn_data(project)
     end
     Project.skip_callbacks = false
-    # Purge the entire CDN cache because badge levels may have changed for
-    # many projects, and we have no cheap way to know which ones changed.
-    # This method is run rarely (only when criteria rules change), so a
-    # full purge is acceptable. It is a no-op in test/development where
-    # Fastly credentials are absent.
-    FastlyRails.purge_all
+    # Say what we did.  purge_all logged nothing on success, so its
+    # effect could never be confirmed from the log afterward; see
+    # docs/warning_failures.md.
+    Rails.logger.info(
+      "Recalculation changed #{changed} projects and purged each from " \
+      'the CDN.'
+    )
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+  # Purge one project's cached data from the CDN, now and again shortly
+  # afterward.
+  #
+  # One key does for all of it: `record_key` is `projects/<id>`, and the
+  # badge, baseline badge, and JSON responses all carry it as a
+  # surrogate key (see set_surrogate_key_header).
+  #
+  # The repeat closes the race the controller documents at length around
+  # its own saves. A response that was already in flight when we
+  # committed can reach the CDN just after the purge and cache the old
+  # badge again, where it then sits until it expires. The whole-cache
+  # purge this replaces did not have that problem, because it ran at the
+  # end of the recalculation, long after most projects had committed;
+  # purging each project as soon as it is saved brings the race back, so
+  # it has to be closed the same way.
+  #
+  # Both are jobs, not direct calls, so a purge that fails is retried
+  # with backoff rather than swallowed, which is what `purge_all` does.
+  # That retry is also why there is no "too many changed, purge
+  # everything instead" fallback here. Fastly answers a rate limit with
+  # an unsuccessful response, `purge_by_key` returns false, the job
+  # raises and backs off, so a large recalculation purges more slowly
+  # rather than losing purges. Dropping the whole cache of a site this
+  # busy to avoid going slowly would be the worse trade.
+  #
+  # @param project [Project] project whose cached data is now stale
+  # @return [void]
+  def self.purge_project_cdn_data(project)
+    key = project.record_key
+    PurgeCdnProjectJob.perform_later(key)
+    # The one source of truth for this delay lives on the controller;
+    # config/puma.rb reaches for it the same way.
+    PurgeCdnProjectJob
+      .set(wait: ApplicationController::BADGE_PURGE_DELAY.seconds)
+      .perform_later(key)
+  end
+  private_class_method :purge_project_cdn_data
+
+  # Note any badge level +project+ has just lost, so the daily task can
+  # notify its owner in a rate-limited batch.  We always overwrite with
+  # the most recent loss; the daily task handles clearing.
+  #
+  # Assigns rather than writes: the caller saves.  That is safe here
+  # because the record came from find_each and is fully loaded, unlike
+  # the notification loop's tight SELECT.
+  #
+  # Resetting loss_send_attempts is the reason this is worth its own
+  # method.  A project that exhausted its attempts on an earlier loss
+  # would otherwise be permanently unnotifiable, and the next genuine
+  # loss would be dropped without a word.  See docs/warning_failures.md.
+  #
+  # @param project [Project] project just recalculated, not yet saved
+  # @param old_metal [String] metal level before recalculation
+  # @param old_baseline [String] baseline level before recalculation
+  # @return [void]
+  def self.record_pending_losses(project, old_metal, old_baseline)
+    ranks = Sections::BADGE_LEVEL_RANK
+    metal_lost = Sections.badge_level_lost?(old_metal,
+                                            project.badge_level)
+    baseline_lost = Sections.badge_level_lost?(
+      old_baseline, project.baseline_badge_level
+    )
+    return unless metal_lost || baseline_lost
+
+    project.unreported_badge_loss = ranks[old_metal] if metal_lost
+    if baseline_lost
+      project.unreported_baseline_badge_loss = ranks[old_baseline]
+    end
+    project.loss_send_attempts = 0
+  end
+  private_class_method :record_pending_losses
 
   # Preview or record which projects will lose a badge when criteria change.
   #
@@ -739,7 +913,7 @@ class Project < ApplicationRecord
     # before_save callback cannot fire.  update_columns bypasses callbacks
     # unconditionally, making skip_callbacks both unnecessary and risky
     # (an exception would leave it true for the process lifetime).
-    Project.find_each do |project|
+    Project.find_each(batch_size: BULK_RECALC_BATCH_SIZE) do |project|
       apply_badge_warning_for_project(project, levels,
                                       effective_date: effective_date,
                                       report: report)
@@ -790,6 +964,7 @@ class Project < ApplicationRecord
 
   # Prints admin report lines for one project's pending badge warning.
   # @param project [Project] the project (full object needed for name)
+  # @return [void]
   # rubocop:disable Metrics/ParameterLists
   def self.print_warning_report_lines(
     project,
@@ -820,6 +995,7 @@ class Project < ApplicationRecord
   # rubocop:enable Metrics/ParameterLists
 
   # Writes warning columns to the DB for one project.
+  # @return [void]
   # rubocop:disable Rails/SkipsModelValidations, Metrics/ParameterLists
   def self.save_warning_columns(
     project,
@@ -829,14 +1005,18 @@ class Project < ApplicationRecord
     old_metal_level,
     old_baseline_level
   )
-    cols = { badge_warning_effective_date: effective_date }
-    if metal_lost
-      cols[:unreported_badge_warning] =
-        Sections::BADGE_LEVEL_RANK[old_metal_level]
-    end
+    # Reset the attempt count: this is a new warning, and a project that
+    # exhausted its attempts on an earlier one must not be left
+    # permanently unwarnable.  Unconditional because the caller reaches
+    # here only when a level is at risk.  See docs/warning_failures.md.
+    ranks = Sections::BADGE_LEVEL_RANK
+    cols = {
+      badge_warning_effective_date: effective_date,
+      warning_send_attempts: 0
+    }
+    cols[:unreported_badge_warning] = ranks[old_metal_level] if metal_lost
     if baseline_lost
-      cols[:unreported_baseline_badge_warning] =
-        Sections::BADGE_LEVEL_RANK[old_baseline_level]
+      cols[:unreported_baseline_badge_warning] = ranks[old_baseline_level]
     end
     project.update_columns(cols)
   end
@@ -856,23 +1036,61 @@ class Project < ApplicationRecord
   MAX_BADGE_WARNING_NOTIFICATIONS =
     (ENV['BADGEAPP_MAX_BADGE_WARNING_NOTIFICATIONS'] || 10).to_i
 
+  # How many times to try delivering one notification before giving up.
+  # At a nightly cadence this is five days to ride out an outage.  The
+  # bound is what stops "retry tomorrow" becoming "retry forever": a
+  # permanently rejected address would otherwise fail every night
+  # indefinitely, which is this incident again with a different cause.
+  MAX_NOTIFICATION_ATTEMPTS =
+    (ENV['BADGEAPP_MAX_NOTIFICATION_ATTEMPTS'] || 5).to_i
+
+  # How we tell "try again later" from "this will never work".  The
+  # split lives here as an explicit list rather than in a reviewer's
+  # head, because it decides whether an owner eventually hears from us.
+  #
+  # These constants come from net/smtp, which the mail gem loads at
+  # boot.  If that ever stopped being true this file would fail to load
+  # outright, which is a loud failure and the right kind.
+  TRANSIENT_SEND_ERRORS = [
+    Net::SMTPServerBusy, # 4xx, the server is asking us to wait
+    Net::OpenTimeout, Net::ReadTimeout,
+    Errno::ECONNRESET, Errno::ECONNREFUSED,
+    IOError
+  ].freeze
+
+  # 5xx and friends.  These do not improve overnight, so retrying only
+  # delays the report and wastes the attempt budget.
+  PERMANENT_SEND_ERRORS = [
+    Net::SMTPFatalError, Net::SMTPSyntaxError,
+    Net::SMTPAuthenticationError
+  ].freeze
+
   # Columns selected for the loss-notification project query.  Tight list so
   # we avoid pulling criteria status/justification data into memory.
   # tiered_percentage and badge_percentage_baseline_* are small integers
   # needed to compute the current badge level for the "now at X" email line.
+  #
+  # CAREFUL.  Trimming these two lists for memory is exactly how this
+  # code broke: omitting lock_version made every clear silently match no
+  # row.  Anything the notification path reads or writes must be listed,
+  # including the *_send_attempts counters, and anything a mail template
+  # comes to use, since deliver_now renders from the record as loaded.
+  # Omissions raise ActiveModel::MissingAttributeError rather than
+  # failing quietly, so add columns here before using them.
   LOSS_NOTIFY_PROJECT_FIELDS =
     'id, user_id, updated_at, unreported_badge_loss, ' \
-    'unreported_baseline_badge_loss, tiered_percentage, ' \
-    'badge_percentage_baseline_1, badge_percentage_baseline_2, ' \
-    'badge_percentage_baseline_3'
+    'unreported_baseline_badge_loss, loss_send_attempts, ' \
+    'tiered_percentage, badge_percentage_baseline_1, ' \
+    'badge_percentage_baseline_2, badge_percentage_baseline_3'
 
   # Columns selected for the warning-notification project query.
   # Includes badge_warning_effective_date so the email can state the deadline.
   WARN_NOTIFY_PROJECT_FIELDS =
     'id, user_id, updated_at, unreported_badge_warning, ' \
-    'unreported_baseline_badge_warning, badge_warning_effective_date, ' \
-    'tiered_percentage, badge_percentage_baseline_1, ' \
-    'badge_percentage_baseline_2, badge_percentage_baseline_3'
+    'unreported_baseline_badge_warning, warning_send_attempts, ' \
+    'badge_warning_effective_date, tiered_percentage, ' \
+    'badge_percentage_baseline_1, badge_percentage_baseline_2, ' \
+    'badge_percentage_baseline_3'
 
   # Columns selected when loading a user for loss/warning notification sending.
   # Tight list; the loop loads at most MAX_BADGE_*_NOTIFICATIONS users.
@@ -897,7 +1115,7 @@ class Project < ApplicationRecord
   LAST_SENT_REMINDER = (ENV['BADGEAPP_LAST_SENT_REMINDER'] || 60).to_i
 
   # Returns projects that should be reminded to work on their badges.
-  # See: https://github.com/coreinfrastructure/best-practices-badge/issues/487
+  # See: https://github.com/ossf/best-practices-badge/issues/487
   # Selects in-progress projects that are inactive, not recently reminded,
   # have valid email, and owner accepts emails. Uses single database query.
   # @return [ActiveRecord::Relation] projects eligible for reminders
@@ -993,53 +1211,455 @@ class Project < ApplicationRecord
   end
   private_class_method :projects_with_pending_loss_notifications
 
-  # Send badge-loss notification emails in a rate-limited daily batch.
-  # Each email counts toward MAX_BADGE_LOSS_NOTIFICATIONS; silently-drained
-  # notifications (user opted out) do not.  Stops as soon as the cap is hit.
-  # Returns the number of emails actually sent.
-  # @return [Integer] number of emails sent
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
-  # rubocop:disable Rails/SkipsModelValidations
-  def self.send_loss_notifications
-    emails_sent = 0
-    projects_with_pending_loss_notifications.each do |project|
-      break if emails_sent >= MAX_BADGE_LOSS_NOTIFICATIONS
+  # Write bookkeeping columns for one project: clearing a pending
+  # notification flag, stamping a delivery, counting a failed attempt,
+  # recording when we last sent a reminder, storing a recalculated
+  # percentage, or any combination the caller names.
+  #
+  # Use this for anything that is *our* record of what the application
+  # did, as opposed to what the project's owner told us.  Owner content
+  # must go through a normal save, so that optimistic locking can catch
+  # two people editing the same entry.  Bookkeeping must not, because
+  # bumping lock_version tells an owner in mid-edit that their entry
+  # "changed since you started editing" when nothing of theirs did.
+  #
+  # This issues plain parameterized SQL rather than going through the ORM,
+  # deliberately.  Both ORM paths carry hidden behavior that has already
+  # broken this exact code once each:
+  #
+  #   update_columns adds lock_version to the WHERE clause, so a record
+  #   loaded through a tight SELECT that omits that column sends
+  #   "AND lock_version = 0", matches no row for any project that has ever
+  #   been edited, and returns false without raising.  That is the defect
+  #   that re-sent the same emails nightly for five weeks.
+  #
+  #   update_all adds "lock_version = lock_version + 1" to the SET clause,
+  #   which would make a project owner's in-flight edit fail with
+  #   StaleObjectError, telling them their entry "changed since you started
+  #   editing" when only our bookkeeping columns had moved.
+  #
+  # A literal UPDATE touches exactly the columns named, leaves lock_version
+  # alone by never mentioning it, ignores default_scope, and stays correct
+  # across ORM upgrades.  See docs/warning_failures.md.
+  #
+  # SECURITY: values are bound parameters.  Column names are interpolated,
+  # so they are first checked against the real schema; callers pass literal
+  # symbols, never user input.
+  #
+  # Going around the ORM also means going around its type serialization,
+  # so values are quoted as the database adapter sees them.  That is
+  # correct for every column `projects` has, since they are all plain
+  # scalars: boolean, date, datetime, integer, string, and text.  If
+  # someone ever adds a jsonb, array, or custom-typed column, do not
+  # write it through here without checking that it round-trips.
+  #
+  # @param project [Project] project whose bookkeeping should be written
+  # @param columns [Hash] columns and values to write
+  # @return [Boolean] true if exactly one row was updated
+  # @raise [ArgumentError] if asked to write something that is not a column
+  # This is a command that reports whether it succeeded, not a predicate;
+  # a trailing "?" would wrongly suggest it has no side effects.
+  # rubocop:disable Naming/PredicateMethod
+  def self.write_bookkeeping_columns(project, columns)
+    rows_updated = update_one_project(project.id, columns)
+    return true if rows_updated == 1
 
-      # Tight SELECT — only the fields needed for sending or skipping.
-      # Bounded by MAX_BADGE_LOSS_NOTIFICATIONS so N+1 cost is minimal.
-      user = User.select(LOSS_NOTIFY_USER_FIELDS).find(project.user_id)
-      can_email = user.important_notifications? &&
-                  user.encrypted_email.present?
-      now = Time.now.utc
+    report_failed_bookkeeping_write(project, columns, rows_updated)
+    false
+  end
+  # rubocop:enable Naming/PredicateMethod
 
-      if project.unreported_badge_loss > 0
-        if can_email
-          send_loss_email(project, user, BADGE_LEVELS[project.unreported_badge_loss],
-                          'badge')
-          emails_sent += 1
-        end
-        # update_columns intentional: only tracking fields, skip validations
-        project.update_columns(unreported_badge_loss: 0, last_loss_sent_at: now)
+  # Set the given columns on exactly one project, by parameterized SQL.
+  # See write_bookkeeping_columns for why this does not use the ORM.
+  # @param id [Integer] project id
+  # @param columns [Hash] columns and values to write
+  # @return [Integer] number of rows updated
+  # @raise [ArgumentError] if asked to write something that is not a column
+  def self.update_one_project(id, columns)
+    unknown = columns.keys.map(&:to_s) - column_names
+    raise ArgumentError, "Not projects columns: #{unknown}" if unknown.any?
+
+    assignments = columns.keys.map { |column| "#{column} = ?" }.join(', ')
+    sql = sanitize_sql_array(
+      [
+        "UPDATE projects SET #{assignments} WHERE id = ?",
+        *columns.values, id
+      ]
+    )
+    with_connection { |conn| conn.update(sql) }
+  end
+  private_class_method :update_one_project
+
+  # Report a bookkeeping write that did not affect exactly one row.
+  # Silence here is precisely what let duplicate emails go out nightly for
+  # five weeks, so this must be noisy even though it cannot be recovered
+  # from automatically.
+  # @param project [Project] the project we failed to update
+  # @param columns [Hash] the columns we tried to write
+  # @param rows_updated [Integer] how many rows actually changed
+  # @return [void]
+  def self.report_failed_bookkeeping_write(project, columns, rows_updated)
+    message =
+      "Bookkeeping write affected #{rows_updated} rows (expected 1) " \
+      "for project #{project.id}, columns #{columns.keys.join(', ')}. " \
+      'Whatever this recorded did not get recorded, so a task that ' \
+      'depends on it may repeat work it has already done.'
+    Rails.logger.error(message)
+    # No-op unless Sentry is configured (SENTRY_DSN set).
+    Sentry.capture_message(message)
+  end
+  private_class_method :report_failed_bookkeeping_write
+
+  # Everything that differs between the four notification kinds: two
+  # series, loss and warning, each with a metal kind and a baseline kind.
+  # send_notifications below is driven entirely by these entries, so
+  # adding a kind is a data change rather than another copy of the loop.
+  # :flag names the column holding the rank of the level involved,
+  # :levels turns that rank back into a level name, and :suffix picks the
+  # badge series for the email.  Kinds are listed in the order they send.
+  NOTIFICATION_SERIES = {
+    loss: {
+      sent_at: :last_loss_sent_at,
+      attempts: :loss_send_attempts,
+      kinds: [
+        {
+          flag: :unreported_badge_loss,
+          levels: BADGE_LEVELS, suffix: 'badge'
+        },
+        {
+          flag: :unreported_baseline_badge_loss,
+          levels: BASELINE_BADGE_LEVELS, suffix: 'baseline'
+        }
+      ]
+    },
+    warning: {
+      sent_at: :last_warning_sent_at,
+      attempts: :warning_send_attempts,
+      kinds: [
+        {
+          flag: :unreported_badge_warning,
+          levels: BADGE_LEVELS, suffix: 'badge'
+        },
+        {
+          flag: :unreported_baseline_badge_warning,
+          levels: BASELINE_BADGE_LEVELS, suffix: 'baseline'
+        }
+      ]
+    }
+  }.freeze
+
+  # What one notification attempt did.  This is the vocabulary the block
+  # given to send_notifications answers in.
+  #
+  #   :sent               mail was delivered
+  #   :not_relevant       the notification no longer means anything, so
+  #                       there is nothing to send and nothing to keep
+  #   :suppressed         we chose not to send: the owner has opted out
+  #                       of important notifications, or has no usable
+  #                       address
+  #   :transient_failure  delivery failed in a way that may work later
+  #   :permanent_failure  delivery failed in a way that will not
+  #
+  # The old Boolean could express none of this: everything but "sent"
+  # was "false", and treating those cases alike is what discarded a
+  # suppressed owner's notification permanently.  Each now gets the
+  # handling it deserves in record_outcome.  See
+  # docs/warning_failures.md.
+  NOTIFICATION_OUTCOMES = %i[
+    sent not_relevant suppressed transient_failure permanent_failure
+  ].freeze
+
+  # Confirm that a notification block answered in the agreed vocabulary.
+  # A block still returning the old +true+ would otherwise be read as
+  # "not sent", quietly undercounting mail and, once the outcomes drive
+  # clearing, quietly mishandling the flag.  Fail loudly instead.
+  # @param outcome [Symbol] what the block returned
+  # @return [Symbol] the same outcome, if it is a known one
+  # @raise [ArgumentError] if the outcome is not in NOTIFICATION_OUTCOMES
+  def self.checked_outcome(outcome)
+    return outcome if NOTIFICATION_OUTCOMES.include?(outcome)
+
+    raise ArgumentError, "Unknown notification outcome: #{outcome.inspect}"
+  end
+  private_class_method :checked_outcome
+
+  # Try to deliver one notification, turning a delivery failure into an
+  # outcome instead of letting it end the run.  Only the send itself is
+  # rescued: checked_outcome runs outside, so a block answering outside
+  # the vocabulary still fails loudly rather than being mistaken for a
+  # transient network problem.
+  #
+  # @param project [Project] project to notify about
+  # @param user [User] the project owner, already loaded
+  # @param kind [Hash] one entry of a series' :kinds
+  # @param rank [Integer] rank of the level this notification concerns
+  # @return [Symbol] one of NOTIFICATION_OUTCOMES
+  def self.attempt_notification(project, user, kind, rank)
+    result =
+      begin
+        yield(project, user, kind[:levels][rank], kind[:suffix])
+      rescue StandardError => e
+        classify_send_error(e, project, kind)
       end
+    checked_outcome(result)
+  end
+  private_class_method :attempt_notification
 
-      break if emails_sent >= MAX_BADGE_LOSS_NOTIFICATIONS
+  # Decide whether a delivery failure is worth trying again.
+  # @param error [StandardError] what the delivery raised
+  # @param project [Project] project we were notifying about
+  # @param kind [Hash] one entry of a series' :kinds
+  # @return [Symbol] :transient_failure or :permanent_failure
+  def self.classify_send_error(error, project, kind)
+    Rails.logger.error(
+      "Notification #{kind[:flag]} for project #{project.id} failed: " \
+      "#{error.class}: #{error.message}"
+    )
+    return :permanent_failure if error_matches?(PERMANENT_SEND_ERRORS, error)
+    return :transient_failure if error_matches?(TRANSIENT_SEND_ERRORS, error)
 
-      next if project.unreported_baseline_badge_loss <= 0
+    # We could not classify it, which is a gap in those two lists and
+    # deserves attention now rather than in five nights' time.  Treat it
+    # as transient anyway: the attempt bound caps the cost of guessing
+    # wrong in that direction, while guessing "permanent" would drop the
+    # notification silently, with no bound and no signal.
+    Sentry.capture_exception(error)
+    :transient_failure
+  end
+  private_class_method :classify_send_error
 
-      if can_email
-        send_loss_email(project, user,
-                        BASELINE_BADGE_LEVELS[project.unreported_baseline_badge_loss],
-                        'baseline')
-        emails_sent += 1
-      end
-      # update_columns intentional: only tracking fields, skip validations
-      project.update_columns(unreported_baseline_badge_loss: 0,
-                             last_loss_sent_at: now)
+  # @param classes [Array<Class>] exception classes to test against
+  # @param error [StandardError] the error to classify
+  # @return [Boolean] true if +error+ is one of +classes+
+  def self.error_matches?(classes, error)
+    classes.any? { |klass| error.is_a?(klass) }
+  end
+  private_class_method :error_matches?
+
+  # Record what one notification attempt did.
+  #
+  #   :sent               clear the flag and stamp the delivery time
+  #   :not_relevant       clear the flag; nothing was delivered, so
+  #                       nothing is stamped
+  #   :suppressed         leave it pending, for a run when we can send
+  #   :transient_failure  count the attempt; give up once they run out
+  #   :permanent_failure  give up now, it will not improve tomorrow
+  #
+  # Only :sent writes the sent-at column.  Those columns are the record
+  # of delivery now that mail goes out synchronously, so stamping them
+  # when nothing was delivered would recreate the misleading state that
+  # made this incident so hard to diagnose.
+  #
+  # @param project [Project] project we were notifying about
+  # @param kind [Hash] one entry of a series' :kinds
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @param outcome [Symbol] one of NOTIFICATION_OUTCOMES
+  # @param now [Time] time to record as the delivery time
+  # @return [Boolean] true if this notification is still pending, which
+  #   report_stuck_queue needs so that a deliberate deferral is not
+  #   mistaken for a queue that has stopped draining
+  def self.record_outcome(project, kind, series, outcome, now)
+    case outcome
+    when :sent, :not_relevant
+      columns = { kind[:flag] => 0 }
+      columns[series[:sent_at]] = now if outcome == :sent
+      write_bookkeeping_columns(project, columns)
+      false
+    when :transient_failure, :permanent_failure
+      handle_send_failure(project, kind, series, outcome)
+    else
+      # :suppressed writes nothing at all, deliberately.  Clearing here
+      # would mean an owner who re-enables notifications gets nothing,
+      # since no new flag is raised unless the badge changes level
+      # again.  It stays pending, on purpose.
+      true
     end
+  end
+  private_class_method :record_outcome
+
+  # A delivery failed.  Count the attempt, and stop trying once the
+  # count runs out, so that "retry tomorrow" cannot quietly become
+  # "retry forever" and recreate this incident with a different cause.
+  # @param project [Project] project we were notifying about
+  # @param kind [Hash] one entry of a series' :kinds
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @param outcome [Symbol] :transient_failure or :permanent_failure
+  # @return [Boolean] true if the notification is still pending
+  # Writes to the database, so it is a command that answers a question,
+  # not a predicate; a trailing "?" would suggest it has no effect.
+  # rubocop:disable Naming/PredicateMethod
+  def self.handle_send_failure(project, kind, series, outcome)
+    attempts = project[series[:attempts]] + 1
+    if outcome == :transient_failure &&
+       attempts < MAX_NOTIFICATION_ATTEMPTS
+      # Leave the flag set so that a later run tries again.
+      write_bookkeeping_columns(project, series[:attempts] => attempts)
+      true
+    else
+      abandon_notification(project, kind, series, outcome, attempts)
+      false
+    end
+  end
+  # rubocop:enable Naming/PredicateMethod
+  private_class_method :handle_send_failure
+
+  # Give up on a notification.  Clear the flag so it stops being
+  # retried, keep the attempt count as the record of why it stopped, and
+  # say so loudly: the owner will not hear this message, which is the
+  # price of not mailing the same person forever, and that price must
+  # not be paid in silence.
+  # @param project [Project] project we were notifying about
+  # @param kind [Hash] one entry of a series' :kinds
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @param outcome [Symbol] why we are giving up
+  # @param attempts [Integer] attempts made, recorded as the reason
+  # @return [void]
+  def self.abandon_notification(project, kind, series, outcome, attempts)
+    message =
+      "Abandoning #{kind[:flag]} notification for project " \
+      "#{project.id} after #{attempts} attempt(s): #{outcome}."
+    Rails.logger.error(message)
+    # No-op unless Sentry is configured (SENTRY_DSN set).
+    Sentry.capture_message(message)
+    write_bookkeeping_columns(
+      project, kind[:flag] => 0, series[:attempts] => attempts
+    )
+  end
+  private_class_method :abandon_notification
+
+  # Check, after a run that examined everything, that the queue actually
+  # drained.
+  #
+  # This re-reads the database rather than trusting what the writes above
+  # reported, which is the whole point of it.  The defect this repair
+  # exists for reported eleven emails sent and eleven flags cleared, and
+  # left eleven flags set; every layer said it had worked.  An
+  # end-to-end count is the one check that does not take their word for
+  # it.
+  #
+  # +expected+ is the number of projects we deliberately left pending:
+  # owners we cannot mail, and notifications waiting on a retry. Without
+  # that subtraction this would cry wolf every night, and a nightly
+  # false alarm is exactly the habit that let the original defect run
+  # for five weeks.
+  #
+  # @param pending [ActiveRecord::Relation] the pending-notification scope
+  # @param expected [Integer] projects deliberately left pending
+  # @return [void]
+  def self.report_stuck_queue(pending, expected)
+    # reselect: the caller's tight column list would become a syntax
+    # error inside COUNT().
+    remaining = pending.reselect('projects.id').count
+    return if remaining <= expected
+
+    message =
+      "Notification queue did not drain: #{remaining} projects still " \
+      'pending after a run that finished under its cap, of which ' \
+      "#{expected} were deliberately deferred. Flags may not be " \
+      'clearing; see docs/warning_failures.md.'
+    Rails.logger.error(message)
+    # No-op unless Sentry is configured (SENTRY_DSN set).
+    Sentry.capture_message(message)
+  end
+  private_class_method :report_stuck_queue
+
+  # Send one series of notification emails in a rate-limited batch.
+  # Only mail actually sent counts toward +cap+; notifications drained
+  # without sending do not.  Stops as soon as the cap is hit.  What each
+  # outcome does to the pending flag is in record_outcome.
+  #
+  # Mail is delivered synchronously (deliver_now), as
+  # ProjectsController.send_reminders already does at a larger volume, so
+  # that the outcome of delivery is known here.  With deliver_later the
+  # loop learned only that a job had been enqueued, which is why
+  # last_loss_sent_at and last_warning_sent_at could not honestly claim to
+  # record deliveries.  The cost is that SMTP latency now sits in the
+  # nightly task, bounded by +cap+.
+  #
+  # @param pending [ActiveRecord::Relation] projects with a pending flag
+  # @param cap [Integer] most emails to send in this run
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @yieldparam project [Project] project to notify about
+  # @yieldparam user [User] the project owner, already loaded
+  # @yieldparam old_level [String] level the notification concerns
+  # @yieldparam badge_suffix [String] 'badge' or 'baseline'
+  # @yieldreturn [Symbol] one of NOTIFICATION_OUTCOMES
+  # @return [Integer] number of emails sent
+  def self.send_notifications(pending, cap, series, &block)
+    emails_sent = 0
+    deferred = 0
+    pending.each do |project|
+      break if emails_sent >= cap
+
+      sent, still_pending =
+        notify_project(project, series, cap - emails_sent, &block)
+      emails_sent += sent
+      deferred += 1 if still_pending
+    end
+    # Reaching the cap leaves work behind legitimately and means we did
+    # not look at the rest, so there is nothing to conclude.  A run that
+    # examined everything and still landed exactly on the cap skips the
+    # check too; that costs one night's alarm at worst, and is far
+    # cheaper than a flag tracking which of two breaks we took.
+    report_stuck_queue(pending, deferred) if emails_sent < cap
     emails_sent
   end
-  # rubocop:enable Rails/SkipsModelValidations
+  private_class_method :send_notifications
+
+  # Send whatever +project+ has pending in this series, up to +allowed+
+  # more emails.
+  #
+  # @param project [Project] project to notify about
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @param allowed [Integer] emails this project may still send
+  # @yieldparam project [Project] project to notify about
+  # @yieldparam user [User] the project owner, already loaded
+  # @yieldparam old_level [String] level the notification concerns
+  # @yieldparam badge_suffix [String] 'badge' or 'baseline'
+  # @yieldreturn [Symbol] one of NOTIFICATION_OUTCOMES
+  # @return [Array(Integer, Boolean)] emails sent, and whether anything
+  #   is still pending for this project afterward
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  def self.notify_project(project, series, allowed, &block)
+    # Tight SELECT: only the fields needed for sending or skipping.
+    # Bounded by the cap, so N+1 cost is minimal.
+    user = User.select(LOSS_NOTIFY_USER_FIELDS).find(project.user_id)
+    # deliverable_email? is the mailers' own test, so what we count as
+    # sent and what they will actually send cannot drift apart.
+    can_email = user.important_notifications? && user.deliverable_email?
+    now = Time.now.utc
+    sent = 0
+    still_pending = false
+    series[:kinds].each do |kind|
+      break if sent >= allowed
+
+      rank = project[kind[:flag]]
+      next if rank <= 0
+
+      outcome =
+        if can_email
+          attempt_notification(project, user, kind, rank, &block)
+        else
+          :suppressed
+        end
+      sent += 1 if outcome == :sent
+      still_pending ||= record_outcome(project, kind, series, outcome, now)
+    end
+    [sent, still_pending]
+  end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  private_class_method :notify_project
+
+  # Send badge-loss notification emails in a rate-limited daily batch.
+  # @return [Integer] number of emails sent
+  def self.send_loss_notifications
+    send_notifications(
+      projects_with_pending_loss_notifications,
+      MAX_BADGE_LOSS_NOTIFICATIONS, NOTIFICATION_SERIES[:loss]
+    ) do |project, user, level, suffix|
+      send_loss_email(project, user, level, suffix)
+    end
+  end
 
   # Deliver one loss-notification email if the loss is still current.
   # Skips silently if the project has since regained the lost level.
@@ -1047,6 +1667,7 @@ class Project < ApplicationRecord
   # @param user [User] the project owner (pre-fetched, avoids N+1)
   # @param old_level [String] the badge level that was lost
   # @param badge_suffix [String] 'badge' or 'baseline'
+  # @return [Symbol] :sent, or :not_relevant if the level was regained
   def self.send_loss_email(project, user, old_level, badge_suffix)
     new_level =
       if badge_suffix == 'baseline'
@@ -1054,10 +1675,14 @@ class Project < ApplicationRecord
       else
         project.badge_level
       end
-    return unless Sections.badge_level_lost?(old_level, new_level)
+    # The level is back, so there is no loss left to report.
+    unless Sections.badge_level_lost?(old_level, new_level)
+      return :not_relevant
+    end
 
     ReportMailer.email_owner_with_user(project, user, old_level, new_level,
-                                       true, badge_suffix).deliver_later
+                                       true, badge_suffix).deliver_now
+    :sent
   end
   private_class_method :send_loss_email
 
@@ -1075,73 +1700,53 @@ class Project < ApplicationRecord
   private_class_method :projects_with_pending_warning_notifications
 
   # Send badge-warning notification emails in a rate-limited daily batch.
-  # Each email counts toward MAX_BADGE_WARNING_NOTIFICATIONS; silently-drained
-  # notifications (user opted out) do not.  Stops as soon as the cap is hit.
-  # Returns the number of emails actually sent.
   # @return [Integer] number of emails sent
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
-  # rubocop:disable Rails/SkipsModelValidations
   def self.send_warning_notifications
-    emails_sent = 0
-    projects_with_pending_warning_notifications.each do |project|
-      break if emails_sent >= MAX_BADGE_WARNING_NOTIFICATIONS
-
-      # Tight SELECT — only the fields needed for sending or skipping.
-      # Bounded by MAX_BADGE_WARNING_NOTIFICATIONS so N+1 cost is minimal.
-      user = User.select(LOSS_NOTIFY_USER_FIELDS).find(project.user_id)
-      can_email = user.important_notifications? &&
-                  user.encrypted_email.present?
-      now = Time.now.utc
-
-      if project.unreported_badge_warning > 0
-        if can_email
-          send_warning_email(
-            project, user,
-            BADGE_LEVELS[project.unreported_badge_warning], 'badge'
-          )
-          emails_sent += 1
-        end
-        # update_columns intentional: only tracking fields, skip validations
-        project.update_columns(unreported_badge_warning: 0,
-                               last_warning_sent_at: now)
-      end
-
-      break if emails_sent >= MAX_BADGE_WARNING_NOTIFICATIONS
-
-      next if project.unreported_baseline_badge_warning <= 0
-
-      if can_email
-        send_warning_email(
-          project, user,
-          BASELINE_BADGE_LEVELS[project.unreported_baseline_badge_warning],
-          'baseline'
-        )
-        emails_sent += 1
-      end
-      # update_columns intentional: only tracking fields, skip validations
-      project.update_columns(unreported_baseline_badge_warning: 0,
-                             last_warning_sent_at: now)
+    send_notifications(
+      projects_with_pending_warning_notifications,
+      MAX_BADGE_WARNING_NOTIFICATIONS, NOTIFICATION_SERIES[:warning]
+    ) do |project, user, level, suffix|
+      send_warning_email(project, user, level, suffix)
     end
-    emails_sent
   end
-  # rubocop:enable Rails/SkipsModelValidations
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Deliver one warning-notification email.
-  # Unlike send_loss_email, there is no "already-regained" check — the badge
-  # has not been lost yet, so the warning is always valid at send time.
+  #
+  # A warning states a deadline, so it stops meaning anything once that
+  # deadline is behind us: the badge has by then been lost or kept, and
+  # either way the message would announce a date in the past.  This is
+  # what the 11 stale flags of 2026-07-31 would have done had they not
+  # been cleared by hand; see docs/warning_failures.md.
+  #
+  # A project with no recorded date is warned rather than skipped.  We
+  # cannot show a deadline has passed when we do not know what it was,
+  # and skipping would discard the notification for good and say
+  # nothing.  save_warning_columns always records a date, so a missing
+  # one is a data fault, and a fault in our bookkeeping is a poor reason
+  # to leave an owner unwarned about their badge.  The template answers
+  # with warned_level_message_no_date, which warns without naming a day,
+  # so the owner gets a true message rather than one with a hole in it.
+  #
   # @param project [Project] the project at risk of losing its badge
   # @param user [User] the project owner (pre-fetched, avoids N+1)
   # @param old_level [String] the badge level that will be lost
   # @param badge_suffix [String] 'badge' or 'baseline'
+  # @return [Symbol] :sent, or :not_relevant if the deadline has passed
   def self.send_warning_email(project, user, old_level, badge_suffix)
+    deadline = project.badge_warning_effective_date
+    return :not_relevant if deadline && deadline < Time.zone.today
+
     ReportMailer.warn_owner_with_user(project, user, old_level,
-                                      badge_suffix).deliver_later
+                                      badge_suffix).deliver_now
+    :sent
   end
   private_class_method :send_warning_email
 
-  # Return which projects should be announced as getting badges in the
-  # month target_month with level (as a number, 0=passing)
+  # Returns projects that first achieved +level+ during +target_month+.
+  # @param level [Integer] badge level number (0=passing, 1=silver, 2=gold)
+  # @param target_month [Date] any date within the target calendar month
+  # @return [ActiveRecord::Relation, nil] projects ordered by achievement date,
+  #   or nil if level is not a valid LEVEL_ID_NUMBER
   def self.projects_first_in(level, target_month)
     # Defense-in-depth: ensure 'level' is a valid value.
     return unless LEVEL_ID_NUMBERS.member?(level)
@@ -1162,6 +1767,10 @@ class Project < ApplicationRecord
       .reorder("achieved_#{name}_at")
   end
 
+  # Returns projects that received a reminder within the past 14 days.
+  # Joins users so the caller can access the encrypted email without an N+1.
+  # @return [ActiveRecord::Relation] projects with last_reminder_at set
+  #   in the past 14 days, ordered by reminder date ascending
   def self.recently_reminded
     Project
       .select('projects.*, users.encrypted_email as user_encrypted_email')
@@ -1181,6 +1790,12 @@ class Project < ApplicationRecord
   WHAT_IS_ENOUGH = %i[criterion_passing criterion_barely].freeze
 
   private
+
+  # Clear the cached unfiltered index count (see INDEX_COUNT_CACHE_KEY).
+  # Triggered by after_commit on create/destroy.
+  def bust_index_count_cache
+    Rails.cache.delete(INDEX_COUNT_CACHE_KEY)
+  end
 
   # Normalize blank entry_locale to 'en' (the expected default)
   # HTML forms submit empty string ("") for blank selects. We normalize

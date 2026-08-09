@@ -26,7 +26,7 @@ zh-CN:
     login_html: 登录
     footer_text_html: >-
       <small> <strong>需要帮助？有疑问？发现问题？请 <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">发送邮件</a>
-      或 <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      或 <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">提出问题</a></em>.</strong> ©
       2015-2017 <a href="https://openssf.org/" target="_blank"
       rel="noopener">Open Source Security Foundation （核心基础设施计划）</a>,
@@ -324,7 +324,7 @@ zh-CN:
         description: 遵循以下最佳实践的项目将能够自愿的自我认证，并显示他们已经实现了核心基础设施计划（OpenSSF）徽章。
         details_html: >-
           没有一套可以保证软件永远不会有缺陷或漏洞的做法；如果规范或假设是错误的，即使合适的方法也可能失败。也没有哪些做法可以保证一个项目能够维持健康和运作良好的开发者社区。但是，遵循最佳做法可以帮助改善项目的成果。例如，一些做法可以在发布之前进行多人评估，这可以帮助您找到其他难以找到的技术漏洞，并帮助建立信任，并希望不同公司的开发人员之间进行重复的交互。要获得徽章，必须满足所有“必须”和“禁止”的条款，满足所有“应该”条款或有合适的理由，<em>和</em>所有“建议”条款必须满足或未满足（至少希望考虑）。欢迎通过<a
-          href="https://github.com/coreinfrastructure/best-practices-badge">
+          href="https://github.com/ossf/best-practices-badge">
           GitHub网站创建问题或提出请求</a>进行反馈。另外还有一个<a href ="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">一般讨论邮件列表</a>。<br/>
           <br/>
       got_badge:
@@ -336,7 +336,7 @@ zh-CN:
         editing_description_html: >-
           <strong>请经常提交</strong>保存您的工作（您可以随时返回并编辑更多内容）。 <br> <br>如果您需要帮助，有疑问或发现问题，请<em><a
           href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">发送邮件</a>
-          </em>或者 <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          </em>或者 <em><a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">提交问题</a></em>。
         badge_alt: 项目%{id}的徽章级别为%{level}
       level:
@@ -518,7 +518,7 @@ zh-CN:
       有问题，或者需要帮助，请联系：
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       或者提交问题：
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       （点击“new issue”）。
       </p>
       <p>
@@ -532,7 +532,7 @@ zh-CN:
       有问题，或者需要帮助，请联系：
       cii-badges-questions-owner@lists.coreinfrastructure.org
       或者提交问题：
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       （点击“new issue”）。
       感谢您的时间投入。
     in_markdown_add: 在markdown标记文本中，您可以添加：
@@ -555,12 +555,12 @@ zh-CN:
       我们强烈建议您添加或改进理由陈述，
       包括添加指向更多信息的URL。
       如果您有关于如何改进条款或徽章网络应用程序的建议，请提出问题：
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       如果您对项目进行了更改以获得徽章，请通过电子邮件通知我们：cii-badges-questions@lists.coreinfrastructure.org。
       我们的目标之一是鼓励项目进行持续性的改进。
       我们把这些报告放在公共维基上；
       如果您不想公开发布更改，请告诉我们：
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       谢谢。恭喜！
     lost_level_message: |-
       很抱歉，您的项目不再具有“%{old_level}”徽章
@@ -593,7 +593,7 @@ zh-CN:
       如果您有疑问，或者需要帮助，请联系
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       或者在该链接创建问题：
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (点击 "new issue")。
       </p>
       <p>
@@ -627,7 +627,7 @@ zh-CN:
       如果您有疑问，或者需要帮助，请联系
       cii-badges-questions-owner@lists.coreinfrastructure.org
       或者在该链接创建问题：
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (点击 "new issue").
       如果您持续的更新徽章记录，我们将不会发送提醒邮件，
       并且我们估计30~60天才会发送一次。当然，
@@ -1229,7 +1229,7 @@ zh-CN:
           一个保证案例是“一个文献记录的证据体系，提供了一个有说服力和有效的论据，指出一组关于系统属性的关键权利要求在给定环境中给定应用程序是充分合理的”（<a
           href ="http://nvlpubs.nist.gov/nistpubs/ir/2009/ir7608.pdf">使用结构化保证案例模型的软件保证，Thomas
           Rhodes等人，NIST机构间报告7608）。信任边界是数据或执行改变其信任级别的边界，例如，典型Web应用程序中的服务器边界。常见做法是列出安全设计原则（例如Saltzer和Schroeer）和常见的实施安全漏洞（例如OWASP前10名或CWE
-          / SANS前25名），并显示每个方案如何抵御。 <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">
+          / SANS前25名），并显示每个方案如何抵御。 <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">
           BadgeApp保证案例</a>可能是一个有用的例子。本条款与documentation_security，documentation_architecture和implement_secure_design等条款有关。
       achieve_passing:
         description: 项目必须拥有通过徽章。
@@ -1531,8 +1531,8 @@ zh-CN:
       p2_html: |-
         关于OpenSSF 最佳实践徽章计划的更多信息，
         包括背景以及
-        <a href='https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/criteria.md'>标准</a>, 可以访问
-        <a href='https://github.com/coreinfrastructure/best-practices-badge'>GitHub 项目</a>.
+        <a href='https://github.com/ossf/best-practices-badge/blob/main/docs/criteria.md'>标准</a>, 可以访问
+        <a href='https://github.com/ossf/best-practices-badge'>GitHub 项目</a>.
         <a href="/zh-CN/project_stats">项目统计数据</a> 和
         <a href="/zh-CN/criteria_stats">标准统计数据</a> 也同时提供。
         <a href="/zh-CN/projects">项目页面</a> 展示所有参与的项目，

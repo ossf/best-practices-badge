@@ -4,6 +4,40 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
+# Criteria data pipeline — overview
+#
+# This initializer is the first step in a multi-stage pipeline that makes
+# criteria data available both server-side (Ruby) and client-side (JavaScript):
+#
+# 1. SOURCE  criteria/criteria.yml: metal levels (passing/silver/gold)
+#            criteria/baseline_criteria.yml: baseline levels (baseline-1/2/3)
+#
+# 2. BOOT    THIS FILE: loads both YAML files at Rails boot
+#            Produces four constants:
+#              FullCriteriaHash: raw merged data (all fields)
+#              CriteriaHash: filtered runtime data (i18n fields stripped)
+#              YAML_METAL_LEVEL_KEYS: metal level key array used by routing
+#              YAML_BASELINE_LEVEL_KEYS: baseline level key array for routing
+#            Also consumed by config/initializers/01_section_names.rb, which
+#            uses YAML_*_LEVEL_KEYS to build routing constraints and canonical
+#            level name mappings.
+#
+# 3. MODEL   app/models/criteria.rb: wraps CriteriaHash in Criteria objects
+#            Criteria.active(level) returns non-future, non-obsolete criteria.
+#            Criteria.for_js returns CriteriaHash with
+#            locale translations merged.
+#
+# 4. BRIDGE  app/assets/javascripts/criteria.js.erb
+#            Embeds Criteria.for_js as CRITERIA_HASH_FULL (and translations as
+#            TRANSLATION_HASH_FULL) into a JavaScript file served to browsers.
+#
+# 5. CLIENT  app/assets/javascripts/project-form.js
+#            Reads CRITERIA_HASH_FULL to compute live badge percentages and
+#            drive the form UX. Several functions here mirror methods in
+#            app/models/project.rb
+#            (e.g. getCriterionResult ↔ get_criterion_result)
+#            keep them in sync when changing badge logic.
+
 require 'yaml'
 # Load in entire criteria.yml, which keys off the major/minor groups
 # NOTE: Using YAML.safe_load_file for security

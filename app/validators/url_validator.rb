@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'uri'
+require 'security_utils'
 
 class UrlValidator < ActiveModel::EachValidator
   # Check URL (invoked in models where "validates ... url: true").
@@ -45,9 +46,10 @@ class UrlValidator < ActiveModel::EachValidator
     str
   end
 
-  # Return true if URL matches URL_REGEX and its decoding is valid UTF-8.
+  # Return true if URL matches URL_REGEX and its decoding is valid UTF-8,
+  # and it's not a dubious URL (e.g. IP address or loopback).
   def url_acceptable?(value)
-    if URL_REGEX.match?(value)
+    if URL_REGEX.match?(value) && !SecurityUtils.dubious_url?(value)
       # The unescapes the *entire* URL, but that's okay because we've
       # already confirmed that the domain name doesn't have "%"
       unescape_unforced(value).force_encoding('UTF-8').valid_encoding?

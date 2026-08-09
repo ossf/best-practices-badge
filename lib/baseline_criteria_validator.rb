@@ -7,11 +7,17 @@
 require 'yaml'
 require 'json'
 
-# Validates baseline criteria and mapping files
+# Validates the baseline criteria YAML and mapping JSON files for
+# internal consistency. Used by CI rake tasks and pre-migration checks
+# to catch errors before they reach production.
+# Requires Rails.root and the BASELINE_CONFIG initializer constant.
 # rubocop:disable Metrics/ClassLength
 class BaselineCriteriaValidator
+  # @return [Array<String>] human-readable error messages from the last
+  #   call to {#validate}; empty if all checks passed
   attr_reader :errors
 
+  # Sets up file paths from BASELINE_CONFIG. Requires Rails.root.
   def initialize
     @criteria_file = Rails.root.join(BASELINE_CONFIG[:criteria_file])
     @mapping_file = Rails.root.join(BASELINE_CONFIG[:mapping_file])
@@ -19,6 +25,10 @@ class BaselineCriteriaValidator
     @errors = []
   end
 
+  # Runs all validation checks against the criteria and mapping files.
+  # Clears errors from any prior run before starting.
+  # @return [Boolean] true if all checks passed, false if any errors were found
+  #
   # These are command methods that perform validation and modify state (@errors),
   # not pure predicate methods. The naming follows validation command conventions.
   # rubocop:disable Naming/PredicateMethod

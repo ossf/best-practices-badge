@@ -82,7 +82,6 @@ baseline-1:
         original_id: OSPS-BR-01.03
         na_allowed: true
         na_justification_required: true
-        future: true
       osps_br_03_01:
         category: MUST
         description: When the project lists a URI as an official project channel,
@@ -308,16 +307,6 @@ baseline-1:
         original_id: OSPS-VM-02.01
         na_allowed: true
         na_justification_required: true
-      osps_br_01_02:
-        obsolete: true
-        category: MUST
-        description: When a CI/CD pipeline uses a branch name in its functionality,
-          that name value MUST be sanitized and validated prior to use in the pipeline.
-        details: ''
-        met_url_required: false
-        original_id: OSPS-BR-01.02
-        na_allowed: true
-        na_justification_required: true
 baseline-2:
   General:
     Controls:
@@ -407,7 +396,6 @@ baseline-2:
         original_id: OSPS-DO-07.01
         na_allowed: true
         na_justification_required: true
-        future: true
       osps_gv_01_01:
         category: MUST
         description: While active, the project documentation MUST include a list of
@@ -594,7 +582,6 @@ baseline-3:
         original_id: OSPS-BR-01.04
         na_allowed: true
         na_justification_required: true
-        future: true
       osps_br_02_02:
         category: MUST
         description: When an official release is created, all assets within that release

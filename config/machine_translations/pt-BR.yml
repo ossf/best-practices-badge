@@ -29,7 +29,7 @@ pt-BR:
     logout_html: Sair
     signup_html: Inscrever-se
     login_html: Entrar
-    footer_text_html: <small> <strong>Precisa de ajuda? Tem alguma pergunta? Viu algum problema? Por favor <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues" target="_blank" rel="noopener">registre uma questão</a></em>.</strong> Copyright © <a href="https://www.bestpractices.dev" target="_blank" rel="noopener">OpenSSF Best Practices Badge a Series of LF Projects, LLC</a>. Para os termos de uso do site, política de marca registrada e outras políticas do projeto, consulte <a href="https://lfprojects.org" target="_blank" rel="noopener">estas políticas</a>. Para mais informações, consulte os sites da <a href="https://openssf.org" target="_blank" rel="noopener">Open Source Security Foundation (OpenSSF)</a> e <a href="https://www.linuxfoundation.org/" target="_blank" rel="noopener">The Linux Foundation</a>. Todos os direitos reservados. Por favor, consulte nossa <a href="https://www.linuxfoundation.org/privacy" target="_blank" rel="noopener">política de privacidade</a>.</small>
+    footer_text_html: <small> <strong>Precisa de ajuda? Tem alguma pergunta? Viu algum problema? Por favor <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">registre uma questão</a></em>.</strong> Copyright © <a href="https://www.bestpractices.dev" target="_blank" rel="noopener">OpenSSF Best Practices Badge a Series of LF Projects, LLC</a>. Para os termos de uso do site, política de marca registrada e outras políticas do projeto, consulte <a href="https://lfprojects.org" target="_blank" rel="noopener">estas políticas</a>. Para mais informações, consulte os sites da <a href="https://openssf.org" target="_blank" rel="noopener">Open Source Security Foundation (OpenSSF)</a> e <a href="https://www.linuxfoundation.org/" target="_blank" rel="noopener">The Linux Foundation</a>. Todos os direitos reservados. Por favor, consulte nossa <a href="https://www.linuxfoundation.org/privacy" target="_blank" rel="noopener">política de privacidade</a>.</small>
     translation_disclaimer_html: Esta tradução pode conter erros. Em caso de conflito, a versão original em inglês prevalece.
   admin_only: Somente administrador.
   account_activations:
@@ -349,7 +349,7 @@ pt-BR:
     form_early:
       badge_intro:
         description: Projetos que seguem as melhores práticas abaixo podem se autocertificar voluntariamente e mostrar que alcançaram um selo de melhores práticas da Open Source Security Foundation (OpenSSF).
-        details_html: Não existe um conjunto de práticas que possa garantir que o software nunca terá defeitos ou vulnerabilidades; mesmo métodos formais podem falhar se as especificações ou suposições estiverem erradas. Nem existe qualquer conjunto de práticas que possa garantir que um projeto sustentará uma comunidade de desenvolvimento saudável e bem-funcionada. No entanto, seguir as melhores práticas pode ajudar a melhorar os resultados dos projetos. Por exemplo, algumas práticas permitem revisão multipessoal antes do lançamento, o que pode ajudar a encontrar vulnerabilidades técnicas difíceis de encontrar e ajudar a construir confiança e desejo de interação repetida entre desenvolvedores de diferentes empresas. Para ganhar um selo, todos os critérios DEVE e NÃO DEVE devem ser atendidos, todos os critérios DEVERIA devem ser atendidos OU não atendidos com justificativa, <em>e</em> todos os critérios SUGERIDO devem ser atendidos OU não atendidos (queremos que sejam considerados pelo menos). Se você quiser inserir texto de justificativa como um comentário genérico, em vez de ser uma justificativa de que a situação é aceitável, inicie o bloco de texto com '//' seguido de um espaço. Feedback é bem-vindo via <a href="https://github.com/coreinfrastructure/best-practices-badge">site do GitHub como questões ou pull requests</a> Há também uma <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">lista de discussão para discussão geral</a>.<br /><br /> Fornecemos com prazer as informações em vários idiomas, no entanto, se houver qualquer conflito ou inconsistência entre as traduções, a versão em inglês é a versão autoritativa.
+        details_html: Não existe um conjunto de práticas que possa garantir que o software nunca terá defeitos ou vulnerabilidades; mesmo métodos formais podem falhar se as especificações ou suposições estiverem erradas. Nem existe qualquer conjunto de práticas que possa garantir que um projeto sustentará uma comunidade de desenvolvimento saudável e bem-funcionada. No entanto, seguir as melhores práticas pode ajudar a melhorar os resultados dos projetos. Por exemplo, algumas práticas permitem revisão multipessoal antes do lançamento, o que pode ajudar a encontrar vulnerabilidades técnicas difíceis de encontrar e ajudar a construir confiança e desejo de interação repetida entre desenvolvedores de diferentes empresas. Para ganhar um selo, todos os critérios DEVE e NÃO DEVE devem ser atendidos, todos os critérios DEVERIA devem ser atendidos OU não atendidos com justificativa, <em>e</em> todos os critérios SUGERIDO devem ser atendidos OU não atendidos (queremos que sejam considerados pelo menos). Se você quiser inserir texto de justificativa como um comentário genérico, em vez de ser uma justificativa de que a situação é aceitável, inicie o bloco de texto com '//' seguido de um espaço. Feedback é bem-vindo via <a href="https://github.com/ossf/best-practices-badge">site do GitHub como questões ou pull requests</a> Há também uma <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">lista de discussão para discussão geral</a>.<br /><br /> Fornecemos com prazer as informações em vários idiomas, no entanto, se houver qualquer conflito ou inconsistência entre as traduções, a versão em inglês é a versão autoritativa.
       level:
         '0': Aprovação
         0_html: Estes são os critérios de nível de %{passing}. Você também pode visualizar os critérios de nível %{silver} ou %{gold}.
@@ -368,7 +368,7 @@ pt-BR:
         badge_alt: O nível do selo para o projeto %{id} é %{level}
         description_2: 'Aqui está como incorporá-lo:'
         details_html: Você pode mostrar o status do seu selo incorporando isto no seu arquivo markdown:<br /> %{markdown_embedding}<br /> ou incorporando isto no seu HTML:<br /> %{html_embedding}<br />
-        editing_description_html: <strong>Por favor, "envie" frequentemente</strong> para salvar seu trabalho (você sempre pode voltar e editar mais tarde). <br><br> Se você precisar de ajuda, tiver uma pergunta ou ver um problema, por favor <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues" target="_blank" rel="noopener">registre uma questão</a></em>.
+        editing_description_html: <strong>Por favor, "envie" frequentemente</strong> para salvar seu trabalho (você sempre pode voltar e editar mais tarde). <br><br> Se você precisar de ajuda, tiver uma pergunta ou ver um problema, por favor <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">registre uma questão</a></em>.
       got_baseline_badge:
         description_1: 'Se este é o seu projeto, por favor mostre o status do seu selo básico na página do seu projeto! O status do selo básico se parece com isto:'
         badge_alt: O nível do selo básico para o projeto %{id} é %{level}
@@ -493,7 +493,7 @@ pt-BR:
       Se você tiver perguntas, ou precisar de ajuda, por favor entre em contato com
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       ou registre uma questão em
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (clique em "new issue").
       </p>
       <p>
@@ -523,7 +523,7 @@ pt-BR:
       Se você tiver perguntas, ou precisar de ajuda, por favor entre em contato com
       cii-badges-questions@lists.coreinfrastructure.org
       ou registre uma questão em
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (clique em "new issue").
 
       Nunca enviaremos anúncios a você, e raramente
@@ -574,7 +574,7 @@ pt-BR:
       Se você tiver perguntas, ou precisar de ajuda, por favor entre em contato com
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       ou registre uma questão em
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (clique em "new issue").
       </p>
 
@@ -614,7 +614,7 @@ pt-BR:
       Se você tiver perguntas, ou precisar de ajuda, por favor entre em contato com
       cii-badges-questions@lists.coreinfrastructure.org
       ou registre uma questão em
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (clique em "new issue").
 
       Não enviamos lembretes se você continuar a atualizar sua entrada de selo,
@@ -639,11 +639,11 @@ pt-BR:
       incluindo adicionar URLs que apontem para mais informações.
       Se você tiver sugestões sobre como melhorar os critérios ou
       a aplicação web do selo, por favor registre uma questão em:
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       Um dos nossos objetivos é encorajar projetos a fazer algumas melhorias.
       Colocamos alguns desses relatórios no wiki público; por favor nos avise
       se você NÃO quiser que as mudanças sejam publicadas publicamente em
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       Obrigado, e parabéns.
     in_markdown_add: 'No markdown você pode adicionar isto:'
     in_html_add: 'No HTML você pode adicionar isto:'
@@ -925,7 +925,7 @@ pt-BR:
         details: A ideia é mostrar aos usuários como começar e fazer o software fazer qualquer coisa. Isso é extremamente importante para que potenciais usuários comecem.
       assurance_case:
         description: 'O projeto DEVE fornecer um caso de garantia que justifique por que seus requisitos de segurança são atendidos. O caso de garantia DEVE incluir: uma descrição do modelo de ameaças, identificação clara dos limites de confiança, um argumento de que os princípios de projeto seguro foram aplicados e um argumento de que fraquezas comuns de segurança na implementação foram combatidas.'
-        details: Um caso de garantia é "um corpo documentado de evidências que fornece um argumento convincente e válido de que um conjunto específico de reivindicações críticas sobre as propriedades de um sistema são adequadamente justificadas para uma dada aplicação em um dado ambiente" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Software Assurance Using Structured Assurance Case Models", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Limites de confiança são fronteiras onde os dados ou a execução muda seu nível de confiança, por exemplo, os limites de um servidor em uma aplicação web típica. É comum listar princípios de projeto seguro (como Saltzer e Schroeer) e fraquezas comuns de segurança na implementação (como o OWASP top 10 ou CWE/SANS top 25), e mostrar como cada um é combatido. O <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">caso de garantia do BadgeApp</a> pode ser um exemplo útil. Isso está relacionado a documentation_security, documentation_architecture e implement_secure_design.
+        details: Um caso de garantia é "um corpo documentado de evidências que fornece um argumento convincente e válido de que um conjunto específico de reivindicações críticas sobre as propriedades de um sistema são adequadamente justificadas para uma dada aplicação em um dado ambiente" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Software Assurance Using Structured Assurance Case Models", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Limites de confiança são fronteiras onde os dados ou a execução muda seu nível de confiança, por exemplo, os limites de um servidor em uma aplicação web típica. É comum listar princípios de projeto seguro (como Saltzer e Schroeer) e fraquezas comuns de segurança na implementação (como o OWASP top 10 ou CWE/SANS top 25), e mostrar como cada um é combatido. O <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">caso de garantia do BadgeApp</a> pode ser um exemplo útil. Isso está relacionado a documentation_security, documentation_architecture e implement_secure_design.
       documentation_current:
         description: O projeto DEVE fazer um esforço para manter a documentação consistente com a versão atual dos resultados do projeto (incluindo software produzido pelo projeto). Quaisquer defeitos de documentação <em>conhecidos</em> que a tornem inconsistente DEVEM ser corrigidos. Se a documentação estiver geralmente atualizada, mas erroneamente incluir algumas informações antigas que não são mais verdadeiras, trate isso apenas como um defeito, então rastreie e corrija como de costume.
         details: A documentação PODE incluir informações sobre diferenças ou mudanças entre versões do software e/ou link para versões antigas da documentação. A intenção deste critério é que um esforço seja feito para manter a documentação consistente, não que a documentação deva ser perfeita.
@@ -1319,7 +1319,7 @@ pt-BR:
     intro_p05_html: "<p> Essas melhores práticas foram criadas para:</p>"
     intro_p06_html: "<ol> <li>encorajar os projetos a seguir as melhores práticas,</li> <li>ajudar novos projetos a descobrir quais são essas práticas, e</li> <li>ajudar os usuários a saber quais projetos estão seguindo as melhores práticas (para que os usuários possam preferir tais projetos).</li> </ol>"
     intro_p07_html: '<p> A expressão "melhores práticas" significa "um procedimento ou conjunto de procedimentos que é preferido ou considerado padrão dentro de uma organização, indústria, etc." (fonte: <a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>). Esses critérios são o que acreditamos ser amplamente "preferido ou considerado padrão" na comunidade FLOSS mais ampla.</p>'
-    intro_p08_html: <p> Para mais informações sobre como esses critérios foram desenvolvidos, consulte o <a href="https://github.com/coreinfrastructure/best-practices-badge" >site GitHub do selo de Melhores Práticas OpenSSF</a>.</p> <p> Você também pode <a href="/pt-BR/criteria">ver os critérios completos</a>.</p>
+    intro_p08_html: <p> Para mais informações sobre como esses critérios foram desenvolvidos, consulte o <a href="https://github.com/ossf/best-practices-badge" >site GitHub do selo de Melhores Práticas OpenSSF</a>.</p> <p> Você também pode <a href="/pt-BR/criteria">ver os critérios completos</a>.</p>
     structure_p01_html: "<p></p> <h2 id='criteria_structure'>Estrutura dos Critérios</h2>"
     structure_p02_html: "<p> Os critérios de melhores práticas são divididos em três níveis:<ul> <li><b>Aprovação</b> concentra-se em melhores práticas que projetos FLOSS bem administrados normalmente já seguem. Obter o selo de aprovação é uma conquista; a qualquer momento, apenas cerca de 10% dos projetos que buscam um selo alcançam o nível de aprovação. <li><b>Prata</b> é um conjunto de critérios mais rigoroso do que a aprovação, mas espera-se que seja alcançável por projetos pequenos e de uma única organização. <li><b>Ouro</b> é ainda mais rigoroso do que prata e inclui critérios que não são alcançáveis por projetos pequenos ou de uma única organização. </ul>"
     structure_p03_html: "<p> Cada critério tem um nome curto, mostrado como texto sobrescrito dentro de colchetes após o texto dos critérios."
@@ -1331,7 +1331,7 @@ pt-BR:
     automation_p04_html: <p>No entanto, priorizamos intencionalmente o "que é importante", mesmo que não possa ser automatizado de forma viável. Adoramos medições automatizadas, mas nem tudo importante é automatizável ou pode ser automatizado de forma viável.</p>
     changes_p01_html: "<p></p> <h2 id='criteria_changes'>Mudanças ao longo do tempo</h2>"
     changes_p02_html: <p> Esperamos que estas práticas e seus critérios detalhados sejam atualizados ao longo do tempo. Planejamos adicionar novos critérios mas marcá-los como critérios "futuros", para que os projetos possam adicionar essa informação e manter seu selo.</p>
-    changes_p03_html: <p> Feedback é <em>muito</em> bem-vindo via <a href="https://github.com/coreinfrastructure/best-practices-badge" >site do GitHub como questões ou pull requests</a>. Há também uma <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">lista de discussão para discussão geral</a>.</p>
+    changes_p03_html: <p> Feedback é <em>muito</em> bem-vindo via <a href="https://github.com/ossf/best-practices-badge" >site do GitHub como questões ou pull requests</a>. Há também uma <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">lista de discussão para discussão geral</a>.</p>
     keywords_p01_html: "<p></p> <h2 id='keywords'>Palavras-chave</h2>"
     keywords_p02_html: <p> As palavras-chave "DEVE", "NÃO DEVE", "DEVERIA", "NÃO DEVERIA" e "PODE" neste documento devem ser interpretadas conforme descrito na <a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a>. O termo adicional SUGERIDO é adicionado. Em resumo, essas palavras-chave têm os seguintes significados:</p>
     keywords_p03_html: "<ul> <li>O termo DEVE é um requisito absoluto, e NÃO DEVE é uma proibição absoluta.</li>"

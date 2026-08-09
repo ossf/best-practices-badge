@@ -5,32 +5,32 @@
 # SPDX-License-Identifier: MIT
 
 module ApplicationHelper
-  include Pagy::Frontend
-
   # Frozen string constant for unknown project names (memory optimization)
   NAME_UNKNOWN = '(Name Unknown)'
 
   # URL for the automation proposals documentation page.
   # Update this if the documentation moves to a new location.
   AUTOMATION_PROPOSALS_URL =
-    'https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/automation-proposals.md'
+    'https://github.com/ossf/best-practices-badge/blob/main/docs/automation-proposals.md'
 
-  # Frozen string constant for robot emoji indicating automation (memory optimization)
+  # Frozen string constant: robot emoji for automation (memory optimization)
   ROBOT_EMOJI = '🤖 '
   # rubocop:disable Rails/OutputSafety
   ROBOT_EMOJI_SAFE = ROBOT_EMOJI.html_safe.freeze
   # rubocop:enable Rails/OutputSafety
 
-  # Frozen string constants for automation highlight CSS classes (memory optimization)
+  # Frozen string constants for highlight CSS classes (memory optimization)
   HIGHLIGHT_AUTOMATED_CLASS  = 'highlight-automated'
   HIGHLIGHT_OVERRIDDEN_CLASS = 'highlight-overridden'
   HIGHLIGHT_DIVERGENT_CLASS  = 'highlight-divergent'
 
   # Pre-computed section dropdown data for project show navigation.
   # Lazy-initialized (memoized) to avoid I18n initialization order issues.
-  # Eagerly triggered during app boot (see config/initializers/zz_eager_load_helpers.rb)
-  # to ensure single-threaded initialization before Puma starts its thread pool.
-  # Returns frozen hash keyed by locale to avoid rebuilding on every render.
+  # Eagerly triggered during app boot
+  # (see config/initializers/zz_eager_load_helpers.rb) to ensure
+  # single-threaded initialization before Puma starts its thread pool.
+  # @return [Hash{Symbol => Array<Hash>}] frozen hash keyed by locale;
+  #   each value is an array of {name:, level:} section descriptors
   # rubocop:disable Metrics/MethodLength, Style/MethodCalledOnDoEndBlock
   def self.project_nav_sections
     @project_nav_sections ||= {}.tap do |hash|
@@ -49,15 +49,18 @@ module ApplicationHelper
             level: 'gold'
           },
           {
-            name: I18n.t('projects.form_early.level.baseline-1', locale: locale),
+            name: I18n.t('projects.form_early.level.baseline-1',
+                         locale: locale),
             level: 'baseline-1'
           },
           {
-            name: I18n.t('projects.form_early.level.baseline-2', locale: locale),
+            name: I18n.t('projects.form_early.level.baseline-2',
+                         locale: locale),
             level: 'baseline-2'
           },
           {
-            name: I18n.t('projects.form_early.level.baseline-3', locale: locale),
+            name: I18n.t('projects.form_early.level.baseline-3',
+                         locale: locale),
             level: 'baseline-3'
           },
           {
@@ -90,6 +93,11 @@ module ApplicationHelper
   #   <% cache_frozen [locale, 'sidebar'] do %>
   #     ...expensive rendering...
   #   <% end %>
+  # @param name [Object] cache key fragment (default {})
+  # @param options [Hash] cache store options (default {})
+  # @return [nil] content is written to the output buffer; when cached,
+  #   a frozen SafeBuffer is stored and reused to avoid per-request
+  #   allocation (memory optimization under heavy load)
   # rubocop:disable Rails/OutputSafety
   def cache_frozen(name = {}, options = {}, &)
     if controller.respond_to?(:perform_caching) && controller.perform_caching
@@ -101,6 +109,11 @@ module ApplicationHelper
   end
 
   # Like +cache_if+: caches only when +condition+ is true.
+  # @param condition [Boolean] caches only when truthy
+  # @param name [Object] cache key fragment (default {})
+  # @param options [Hash] cache store options (default {})
+  # @return [nil] content is written to the output buffer; see
+  #   cache_frozen for the frozen SafeBuffer memory optimization
   def cache_frozen_if(condition, name = {}, options = {}, &)
     if condition
       cache_frozen(name, options, &)
@@ -111,6 +124,11 @@ module ApplicationHelper
   end
 
   # Like +cache_unless+: caches only when +condition+ is false.
+  # @param condition [Boolean] skips caching when truthy
+  # @param name [Object] cache key fragment (default {})
+  # @param options [Hash] cache store options (default {})
+  # @return [nil] content is written to the output buffer; see
+  #   cache_frozen for the frozen SafeBuffer memory optimization
   def cache_frozen_unless(condition, name = {}, options = {}, &)
     cache_frozen_if(!condition, name, options, &)
   end

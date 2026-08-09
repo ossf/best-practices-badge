@@ -116,12 +116,12 @@ Find the `executors:` section near the top and update the SHA256 hashes:
 executors:
   ruby-postgres:
     docker:
-      - image: drdavidawheeler/cii-bestpractices@sha256:YOUR_SHA256_FROM_STEP_5 # pin :3.4.1-browsers
+      - image: drdavidawheeler/cii-bestpractices:3.4.1-browsers@sha256:YOUR_SHA256_FROM_STEP_5
         environment: ...
 
   ruby-only:
     docker:
-      - image: drdavidawheeler/cii-bestpractices@sha256:YOUR_SHA256_FROM_STEP_5 # pin :3.4.1-browsers
+      - image: drdavidawheeler/cii-bestpractices:3.4.1-browsers@sha256:YOUR_SHA256_FROM_STEP_5
         environment: ...
 ```
 

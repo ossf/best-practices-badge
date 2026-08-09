@@ -21,7 +21,7 @@ However, documentation is often unnoticed and too much can obscure what's import
 **Key URLs:**
 
 - Production: https://www.bestpractices.dev/
-- GitHub: https://github.com/coreinfrastructure/best-practices-badge
+- GitHub: https://github.com/ossf/best-practices-badge
 
 ## Common Development Commands
 
@@ -102,8 +102,10 @@ used in the CI or production environments.
 
 ### Security Analysis
 
-GitHub runs Brakeman and CodeQL remotely for static security analysis, it's
-not done on the local system.
+GitHub runs Brakeman for static security analysis via
+`.github/workflows/brakeman.yml` (gating the main branch), and CodeQL where
+configured; this is not done on the local system. Brakeman's accepted
+findings are recorded in `config/brakeman.ignore`.
 
 ### Development Server
 
@@ -192,6 +194,11 @@ has many configuration files.
   - `@raise [ExceptionClass] description` - documents exceptions
   - Focus on non-obvious methods; private helpers don't always need documentation
 
+- **Inline Comments**: Use multi-line comment blocks when they are helpful,
+  especially to explain non-obvious WHY (hidden constraints, subtle invariants,
+  security rationale, workarounds for specific bugs). Do not limit comments to
+  one line when more context aids understanding.
+
 ### Testing Strategy
 
 - **Minitest**: Uses Rails' default Minitest framework
@@ -218,6 +225,19 @@ Security is *VERY* important in this application.
 - **Git Workflow**: Feature branches with pull request review
 - **Commit Signing**: DCO sign-off required (`git commit --signoff`)
 - **Branch Protection**: Main branch requires review and CI passage
+- **AI Assistance**: When an AI coding assistant helped produce a commit,
+  record it with an `Assisted-by:` trailer, using the Linux kernel's
+  `AGENT_NAME:MODEL_VERSION` format. `MODEL_VERSION` is the identifier the
+  vendor publishes, copied verbatim: use `claude-opus-5`, not
+  `Claude Opus 5` or `claude-5-opus`. Give each agent its own line. Do not use
+  `Co-authored-by:` for an AI; that implies authorship, and copyright
+  requires human creative activity. Only a human adds `Signed-off-by:`,
+  which certifies the DCO and is a claim an AI cannot make.
+
+  ```text
+  Signed-off-by: Jane Developer <jane@example.com>
+  Assisted-by: Claude:claude-opus-5
+  ```
 
 ## Environment Variables
 
@@ -278,21 +298,23 @@ selective upgrades:
   directory structure, extensive use of `Rails.application.config.*`,
   an asset pipeline with a Rails 5+ Sprockets setup, and initializer structure.
 
-* It has some pre-Rails 5 remnants:
-  - No `config.load_defaults` in application.rb (would be Rails 5.1+)
-  - Manual framework defaults instead of version-specific defaults
+* It has some older remnants:
   - Some older asset organization (app/assets/javascripts vs modern
-    app/javascript)
+    app/javascript), still served by `sprockets-rails`
 
 * Some Rails 6+ features in use:
   - Modern gems: E.g., Rails, `solid_queue`, `secure_headers`
   - Security configurations: Advanced CSRF, CSP headers
   - Database setup: Modern PostgreSQL configuration
+  - `config/application.rb` sets `config.load_defaults 8.1`, adopted
+    incrementally rather than all at once, with a comment there listing
+    the key effect of each version from 5.0 onward
 
-We want to slowly move to more recent Rails conventions. However, rapid
-moves like the direct use of `rails app:update` or adding `load_defaults
-8.0` is likely to cause a cascade of many changes, leading to
-many hard-to-fix failures with little obvious external benefit.
+We want to slowly move to more recent Rails conventions. Do that the way
+`load_defaults` was done: one increment at a time, understanding what
+each step changes. Rapid moves such as running `rails app:update`
+directly are likely to cause a cascade of changes, leading to many
+hard-to-fix failures with little obvious external benefit.
 
 ## Simple DRY code
 

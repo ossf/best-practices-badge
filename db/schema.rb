@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_03_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -100,7 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.index ["created_at"], name: "index_project_stats_on_created_at"
   end
 
-  create_table "projects", id: :serial, force: :cascade do |t|
+  create_table "projects", id: :serial, comment: "Best practices criteria results. Integer _status columns: 0=unknown(?), 1=unmet, 2=N/A, 3=met. Paired _justification text columns hold free-text explanations.", force: :cascade do |t|
     t.text "access_continuity_justification"
     t.integer "access_continuity_status", limit: 2, default: 0, null: false
     t.text "accessibility_best_practices_justification"
@@ -109,27 +109,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.integer "achieve_passing_status", limit: 2, default: 0, null: false
     t.text "achieve_silver_justification"
     t.integer "achieve_silver_status", limit: 2, default: 0, null: false
-    t.datetime "achieved_baseline_1_at"
-    t.datetime "achieved_baseline_2_at"
-    t.datetime "achieved_baseline_3_at"
-    t.datetime "achieved_gold_at", precision: nil
-    t.datetime "achieved_passing_at", precision: nil
-    t.datetime "achieved_silver_at", precision: nil
+    t.datetime "achieved_baseline_1_at", comment: "Most recently achieved baseline-1; not cleared on loss"
+    t.datetime "achieved_baseline_2_at", comment: "Most recently achieved baseline-2; not cleared on loss"
+    t.datetime "achieved_baseline_3_at", comment: "Most recently achieved baseline-3; not cleared on loss"
+    t.datetime "achieved_gold_at", precision: nil, comment: "Most recently achieved gold; not cleared on loss (compare lost_gold_at)"
+    t.datetime "achieved_passing_at", precision: nil, comment: "Most recently achieved passing; not cleared on loss (compare lost_passing_at)"
+    t.datetime "achieved_silver_at", precision: nil, comment: "Most recently achieved silver; not cleared on loss (compare lost_silver_at)"
     t.text "assurance_case_justification"
     t.integer "assurance_case_status", limit: 2, default: 0, null: false
     t.text "automated_integration_testing_justification"
     t.integer "automated_integration_testing_status", limit: 2, default: 0, null: false
-    t.integer "badge_percentage_0"
-    t.integer "badge_percentage_1", default: 0
-    t.integer "badge_percentage_2", default: 0
-    t.integer "badge_percentage_baseline_1"
-    t.integer "badge_percentage_baseline_2"
-    t.integer "badge_percentage_baseline_3"
-    t.date "badge_warning_effective_date"
-    t.boolean "baseline_1_saved", default: false, null: false
-    t.boolean "baseline_2_saved", default: false, null: false
-    t.boolean "baseline_3_saved", default: false, null: false
-    t.integer "baseline_tiered_percentage", comment: "Tiered percentage for baseline series (0-300)"
+    t.integer "badge_percentage_0", comment: "Completion percentage (0-100) toward passing badge"
+    t.integer "badge_percentage_1", default: 0, comment: "Completion percentage (0-100) toward silver badge"
+    t.integer "badge_percentage_2", default: 0, comment: "Completion percentage (0-100) toward gold badge"
+    t.integer "badge_percentage_baseline_1", comment: "Completion percentage (0-100) toward baseline-1 badge"
+    t.integer "badge_percentage_baseline_2", comment: "Completion percentage (0-100) toward baseline-2 badge"
+    t.integer "badge_percentage_baseline_3", comment: "Completion percentage (0-100) toward baseline-3 badge"
+    t.date "badge_warning_effective_date", comment: "Date when pending criteria changes take effect (i.e., when the badge will be lost)"
+    t.boolean "baseline_1_saved", default: false, null: false, comment: "True after first form edit of baseline-1 criteria; gates first-edit automation"
+    t.boolean "baseline_2_saved", default: false, null: false, comment: "True after first form edit of baseline-2 criteria; gates first-edit automation"
+    t.boolean "baseline_3_saved", default: false, null: false, comment: "True after first form edit of baseline-3 criteria; gates first-edit automation"
+    t.integer "baseline_tiered_percentage", comment: "<100 = in_progress (value = % toward baseline-1); 100-199 = baseline-1 (value-100 = % toward baseline-2); 200-299 = baseline-2 (value-200 = % toward baseline-3); 300 = baseline-3 (same encoding as tiered_percentage)"
     t.text "build_common_tools_justification"
     t.integer "build_common_tools_status", limit: 2, default: 0, null: false
     t.text "build_floss_tools_justification"
@@ -164,7 +164,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.integer "contributors_unassociated_status", limit: 2, default: 0, null: false
     t.text "copyright_per_file_justification"
     t.integer "copyright_per_file_status", limit: 2, default: 0, null: false
-    t.string "cpe"
+    t.string "cpe", comment: "Common Platform Enumeration identifier for NVD vulnerability tracking"
     t.datetime "created_at", precision: nil, null: false
     t.text "crypto_algorithm_agility_justification"
     t.integer "crypto_algorithm_agility_status", limit: 2, default: 0, null: false
@@ -244,15 +244,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.datetime "first_achieved_baseline_1_at", comment: "First time baseline-1 was achieved"
     t.datetime "first_achieved_baseline_2_at", comment: "First time baseline-2 was achieved"
     t.datetime "first_achieved_baseline_3_at", comment: "First time baseline-3 was achieved"
-    t.datetime "first_achieved_gold_at", precision: nil
-    t.datetime "first_achieved_passing_at", precision: nil
-    t.datetime "first_achieved_silver_at", precision: nil
+    t.datetime "first_achieved_gold_at", precision: nil, comment: "First time ever gold was achieved; never reset after badge loss"
+    t.datetime "first_achieved_passing_at", precision: nil, comment: "First time ever passing was achieved; never reset after badge loss"
+    t.datetime "first_achieved_silver_at", precision: nil, comment: "First time ever silver was achieved; never reset after badge loss"
     t.text "floss_license_justification"
     t.text "floss_license_osi_justification"
     t.integer "floss_license_osi_status", limit: 2, default: 0, null: false
     t.integer "floss_license_status", limit: 2, default: 0, null: false
     t.text "general_comments"
-    t.boolean "gold_saved", default: false, null: false
+    t.boolean "gold_saved", default: false, null: false, comment: "True after first form edit of gold criteria; gates first-edit automation"
     t.text "governance_justification"
     t.integer "governance_status", limit: 2, default: 0, null: false
     t.text "hardened_site_justification"
@@ -261,7 +261,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.integer "hardening_status", limit: 2, default: 0, null: false
     t.string "homepage_url"
     t.text "homepage_url_justification"
-    t.string "homepage_url_status", default: "?", null: false
+    t.string "homepage_url_status", default: "?", null: false, comment: "String (legacy URL field, not the integer enum); '?' = unknown/not evaluated"
     t.text "implement_secure_design_justification"
     t.integer "implement_secure_design_status", limit: 2, default: 0, null: false
     t.string "implementation_languages", default: ""
@@ -291,7 +291,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.integer "license_location_status", limit: 2, default: 0, null: false
     t.text "license_per_file_justification"
     t.integer "license_per_file_status", limit: 2, default: 0, null: false
-    t.integer "lock_version", default: 0
+    t.integer "lock_version", default: 0, comment: "Rails optimistic locking column; incremented on each update to detect concurrent edits"
+    t.integer "loss_send_attempts", default: 0, null: false, comment: "Failed attempts to deliver the pending badge-loss notification; reset to 0 when a loss is newly recorded"
     t.datetime "lost_baseline_1_at"
     t.datetime "lost_baseline_2_at"
     t.datetime "lost_baseline_3_at"
@@ -435,7 +436,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.integer "osps_vm_06_01_status", limit: 2, default: 0, null: false
     t.text "osps_vm_06_02_justification"
     t.integer "osps_vm_06_02_status", limit: 2, default: 0, null: false
-    t.boolean "passing_saved", default: false, null: false
+    t.boolean "passing_saved", default: false, null: false, comment: "True after first form edit of passing criteria; gates first-edit automation"
     t.text "regression_tests_added50_justification"
     t.integer "regression_tests_added50_status", limit: 2, default: 0, null: false
     t.text "release_notes_justification"
@@ -461,7 +462,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.text "report_tracker_justification"
     t.integer "report_tracker_status", limit: 2, default: 0, null: false
     t.text "report_url_justification"
-    t.string "report_url_status", default: "?", null: false
+    t.string "report_url_status", default: "?", null: false, comment: "String (legacy URL field, not the integer enum); '?' = unknown/not evaluated"
     t.text "require_2FA_justification"
     t.integer "require_2FA_status", limit: 2, default: 0, null: false
     t.text "roles_responsibilities_justification"
@@ -472,7 +473,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.integer "security_review_status", limit: 2, default: 0, null: false
     t.text "signed_releases_justification"
     t.integer "signed_releases_status", limit: 2, default: 0, null: false
-    t.boolean "silver_saved", default: false, null: false
+    t.boolean "silver_saved", default: false, null: false, comment: "True after first form edit of silver criteria; gates first-edit automation"
     t.text "sites_https_justification"
     t.integer "sites_https_status", limit: 2, default: 0, null: false
     t.text "sites_password_security_justification"
@@ -509,13 +510,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.integer "tests_are_added_status", limit: 2, default: 0, null: false
     t.text "tests_documented_added_justification"
     t.integer "tests_documented_added_status", limit: 2, default: 0, null: false
-    t.integer "tiered_percentage"
+    t.integer "tiered_percentage", comment: "<100 = in_progress (value = % toward passing); 100-199 = passing (value-100 = % toward silver); 200-299 = silver (value-200 = % toward gold); 300 = gold"
     t.text "two_person_review_justification"
     t.integer "two_person_review_status", limit: 2, default: 0, null: false
-    t.integer "unreported_badge_loss", default: 0, null: false
-    t.integer "unreported_badge_warning", default: 0, null: false
-    t.integer "unreported_baseline_badge_loss", default: 0, null: false
-    t.integer "unreported_baseline_badge_warning", default: 0, null: false
+    t.integer "unreported_badge_loss", default: 0, null: false, comment: "BADGE_LEVELS index of lost metal badge level pending notification email; 0=nothing pending"
+    t.integer "unreported_badge_warning", default: 0, null: false, comment: "BADGE_LEVELS index of at-risk metal badge level pending warning email; 0=nothing pending"
+    t.integer "unreported_baseline_badge_loss", default: 0, null: false, comment: "BASELINE_BADGE_LEVELS index of lost baseline badge level pending notification email; 0=nothing pending"
+    t.integer "unreported_baseline_badge_warning", default: 0, null: false, comment: "BASELINE_BADGE_LEVELS index of at-risk baseline badge level pending warning email; 0=nothing pending"
     t.text "updateable_reused_components_justification"
     t.integer "updateable_reused_components_status", limit: 2, default: 0, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -542,6 +543,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.integer "vulnerability_report_response_status", limit: 2, default: 0, null: false
     t.text "vulnerability_response_process_justification"
     t.integer "vulnerability_response_process_status", limit: 2, default: 0, null: false
+    t.integer "warning_send_attempts", default: 0, null: false, comment: "Failed attempts to deliver the pending badge-warning notification; reset to 0 when a warning is newly recorded"
     t.text "warnings_fixed_justification"
     t.integer "warnings_fixed_status", limit: 2, default: 0, null: false
     t.text "warnings_justification"
@@ -895,9 +897,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.text "blocked_rationale"
     t.datetime "can_login_starting_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
-    t.string "email_bidx"
-    t.string "encrypted_email"
-    t.string "encrypted_email_iv"
+    t.string "email_bidx", comment: "HMAC blind index for encrypted-email lookup without decrypting"
+    t.string "encrypted_email", comment: "AES-256-GCM encrypted email address"
+    t.string "encrypted_email_iv", comment: "Initialization vector (IV) for AES-256-GCM email encryption"
     t.boolean "important_notifications", default: true, null: false
     t.datetime "last_login_at", precision: nil
     t.string "name"
@@ -905,16 +907,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_03_000001) do
     t.boolean "notification_emails", default: true, null: false
     t.string "password_digest"
     t.string "preferred_locale", default: "en"
-    t.string "provider", null: false
+    t.string "provider", null: false, comment: "'local' for password-based accounts; OAuth provider name (e.g., 'github') for OAuth accounts"
     t.string "remember_digest"
     t.string "reset_digest"
     t.datetime "reset_sent_at", precision: nil
-    t.string "role"
+    t.string "role", comment: "'admin' for administrators; blank/nil for normal users"
     t.string "secret_token"
-    t.string "uid"
+    t.string "uid", comment: "OAuth provider's unique user ID; blank for local (password-based) accounts"
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "use_gravatar", default: false, null: false
     t.string "validation_code"
+    t.index ["created_at"], name: "index_users_on_created_at_local", where: "((provider)::text = 'local'::text)"
     t.index ["email_bidx"], name: "email_local_unique_bidx", unique: true, where: "((provider)::text = 'local'::text)"
     t.index ["email_bidx"], name: "index_users_on_email_bidx"
     t.index ["last_login_at"], name: "index_users_on_last_login_at"

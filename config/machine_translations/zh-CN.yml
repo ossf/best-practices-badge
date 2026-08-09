@@ -316,7 +316,7 @@ zh-CN:
     intro_p04_html: "<p> 本页讨论为开源安全基金会（OpenSSF）最佳实践徽章开发的自由/开放源代码软件（FLOSS）项目的最佳实践集。遵循这些最佳实践的项目将能够自愿自我认证并展示他们已获得相关徽章。项目可以免费使用Web应用程序（BadgeApp）来解释他们如何满足这些实践及其详细条款。</p>"
     intro_p06_html: "<ol> <li>鼓励项目遵循最佳实践，</li> <li>帮助新项目发现这些实践是什么，以及</li> <li>帮助用户了解哪些项目正在遵循最佳实践（以便用户可以优先选择这些项目）。</li> </ol>"
     intro_p07_html: <p> "最佳实践"这个成语的意思是"在一个组织、行业等中被优选或视为标准的程序或一套程序"（来源：<a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>）。这些条款是我们认为在更广泛的FLOSS社区中被广泛"优选或视为标准"的内容。</p>
-    intro_p08_html: <p> 有关这些条款如何制定的更多信息，请参阅<a href="https://github.com/coreinfrastructure/best-practices-badge" >OpenSSF最佳实践徽章GitHub网站</a>。</p> <p> 您也可以<a href="/zh-CN/criteria">查看完整条款</a>。</p>
+    intro_p08_html: <p> 有关这些条款如何制定的更多信息，请参阅<a href="https://github.com/ossf/best-practices-badge" >OpenSSF最佳实践徽章GitHub网站</a>。</p> <p> 您也可以<a href="/zh-CN/criteria">查看完整条款</a>。</p>
     structure_p02_html: "<p> 最佳实践条款分为三个级别：<ul> <li><b>通过</b>侧重于运行良好的FLOSS项目通常已经遵循的最佳实践。获得通过徽章是一项成就；在任何时候，只有约10%追求徽章的项目达到通过级别。 <li><b>银级</b>是比通过更严格的一套条款，但预计小型和单一组织项目可以实现。 <li><b>金级</b>甚至比银级更严格，包括小型或单一组织项目无法实现的条款。 </ul>"
     structure_p03_html: "<p> 每个条款都有一个简短的名称，在条款文本后的方括号内以上标文本显示。"
     other_p02_html: <p> Linux基金会还赞助<a href="https://www.openchainproject.org/" rel="nofollow">OpenChain项目</a>，该项目确定"高质量自由和开源软件（FOSS）合规计划"的条款。OpenChain专注于组织如何最好地使用FOSS并为FOSS项目做出贡献，而OpenSSF最佳实践徽章专注于FLOSS项目本身。OpenSSF最佳实践徽章和OpenChain共同努力，帮助改进FLOSS以及FLOSS的使用方式。</p>
@@ -324,7 +324,7 @@ zh-CN:
     automation_p03_html: "<p> 我们打算在未来改进这种自动化。欢迎改进自动化的贡献！</p>"
     automation_p04_html: <p>然而，我们有意优先考虑"什么是重要的"，即使无法负担得起自动化。我们喜欢自动化测量，但并非所有重要的事情都可以自动化或可以负担得起自动化。</p>
     changes_p02_html: <p> 我们预计这些实践及其详细条款将随着时间的推移而更新。我们计划添加新条款，但将其标记为"未来"条款，以便项目可以添加该信息并保持其徽章。</p>
-    changes_p03_html: <p> <em>非常</em>欢迎通过<a href="https://github.com/coreinfrastructure/best-practices-badge" >GitHub网站以问题或拉取请求的形式</a>提供反馈。还有一个<a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">用于一般讨论的邮件列表</a>。</p>
+    changes_p03_html: <p> <em>非常</em>欢迎通过<a href="https://github.com/ossf/best-practices-badge" >GitHub网站以问题或拉取请求的形式</a>提供反馈。还有一个<a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">用于一般讨论的邮件列表</a>。</p>
     keywords_p02_html: <p> 本文档中的关键词"MUST"、"MUST NOT"、"SHOULD"、"SHOULD NOT"和"MAY"应按照<a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a>中的描述进行解释。添加了附加术语SUGGESTED。总之，这些关键词具有以下含义：</p>
     keywords_p03_html: <ul> <li>术语"必须"（MUST）是绝对要求，"禁止"（MUST NOT）是绝对禁止。</li>
     keywords_p04_html: <li>术语"应该"（SHOULD）表示通常要求的标准，但在特定情况下可能存在忽略它的合理理由。但是，在选择不同的方案之前，必须理解并仔细权衡其全部影响。</li>

@@ -14,7 +14,7 @@ es:
     sw: Suajili
   layouts:
     toggle_navigation: Alternar navegación plegable
-    footer_text_html: <small> <strong>¿Necesita ayuda? ¿Tiene alguna pregunta? ¿Ve algún problema? Por favor <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues" target="_blank" rel="noopener">presente un issue</a></em>.</strong> Copyright © <a href="https://www.bestpractices.dev" target="_blank" rel="noopener">OpenSSF Best Practices Badge a Series of LF Projects, LLC</a>. Para los términos de uso del sitio web, la política de marcas registradas y otras políticas del proyecto, consulte <a href="https://lfprojects.org" target="_blank" rel="noopener">estas políticas</a>. Para obtener más información, consulte los sitios web de la <a href="https://openssf.org" target="_blank" rel="noopener">Open Source Security Foundation (OpenSSF)</a> y <a href="https://www.linuxfoundation.org/" target="_blank" rel="noopener">The Linux Foundation</a>. Todos los derechos reservados. Consulte nuestra <a href="https://www.linuxfoundation.org/privacy" target="_blank" rel="noopener">política de privacidad</a>.</small>
+    footer_text_html: <small> <strong>¿Necesita ayuda? ¿Tiene alguna pregunta? ¿Ve algún problema? Por favor <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">presente un issue</a></em>.</strong> Copyright © <a href="https://www.bestpractices.dev" target="_blank" rel="noopener">OpenSSF Best Practices Badge a Series of LF Projects, LLC</a>. Para los términos de uso del sitio web, la política de marcas registradas y otras políticas del proyecto, consulte <a href="https://lfprojects.org" target="_blank" rel="noopener">estas políticas</a>. Para obtener más información, consulte los sitios web de la <a href="https://openssf.org" target="_blank" rel="noopener">Open Source Security Foundation (OpenSSF)</a> y <a href="https://www.linuxfoundation.org/" target="_blank" rel="noopener">The Linux Foundation</a>. Todos los derechos reservados. Consulte nuestra <a href="https://www.linuxfoundation.org/privacy" target="_blank" rel="noopener">política de privacidad</a>.</small>
     translation_disclaimer_html: Esta traducción puede contener errores. En caso de conflicto, prevalece el original en inglés.
   admin_only: Solo administrador.
   account_activations:
@@ -333,7 +333,7 @@ es:
         badge_alt: El nivel de insignia para el proyecto %{id} es %{level}
         description_2: 'Aquí se explica cómo insertarla:'
         details_html: Puede mostrar el estado de su insignia insertando esto en su archivo markdown:<br /> %{markdown_embedding}<br /> o insertando esto en su HTML:<br /> %{html_embedding}<br />
-        editing_description_html: <strong>Por favor 'envíe' con frecuencia</strong> para guardar su trabajo (siempre puede volver y editar más tarde). <br><br> Si necesita ayuda, tiene alguna pregunta o ve algún problema, por favor <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues" target="_blank" rel="noopener">presente un issue</a></em>.
+        editing_description_html: <strong>Por favor 'envíe' con frecuencia</strong> para guardar su trabajo (siempre puede volver y editar más tarde). <br><br> Si necesita ayuda, tiene alguna pregunta o ve algún problema, por favor <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">presente un issue</a></em>.
       got_baseline_badge:
         description_1: 'Si este es su proyecto, por favor muestre el estado de su insignia base en la página de su proyecto. El estado de la insignia base se ve así:'
         badge_alt: El nivel de insignia base para el proyecto %{id} es %{level}
@@ -457,7 +457,7 @@ es:
       Si tiene preguntas o necesita ayuda, póngase en contacto con
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       o presente un problema en
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (haga clic en "new issue").
       </p>
       <p>
@@ -487,7 +487,7 @@ es:
       Si tiene preguntas o necesita ayuda, póngase en contacto con
       cii-badges-questions@lists.coreinfrastructure.org
       o presente un problema en
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (haga clic en "new issue").
 
       Nunca le enviaremos anuncios publicitarios y solo le enviaremos
@@ -538,7 +538,7 @@ es:
       Si tiene preguntas o necesita ayuda, póngase en contacto con
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       o presente un problema en
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (haga clic en "new issue").
       </p>
 
@@ -578,7 +578,7 @@ es:
       Si tiene preguntas o necesita ayuda, póngase en contacto con
       cii-badges-questions@lists.coreinfrastructure.org
       o presente un problema en
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (haga clic en "new issue").
 
       No enviamos recordatorios si continúa actualizando su entrada de insignia,
@@ -603,11 +603,11 @@ es:
       incluyendo la adición de URLs que apunten a más información.
       Si tiene sugerencias sobre cómo mejorar los criterios o
       la aplicación web de insignias, presente un problema en:
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       Uno de nuestros objetivos es alentar a los proyectos a realizar algunas mejoras.
       Publicamos algunos de estos informes en el wiki público; háganos saber
       si NO desea que los cambios se publiquen públicamente en
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       Gracias y felicitaciones.
     in_markdown_add: 'En markdown puede agregar esto:'
     in_html_add: 'En HTML puede agregar esto:'
@@ -887,7 +887,7 @@ es:
         details: La idea es mostrar a los usuarios cómo comenzar y hacer que el software haga algo. Esto es de importancia crítica para que los posibles usuarios puedan comenzar.
       assurance_case:
         description: 'El proyecto DEBE proporcionar un caso de aseguramiento que justifique por qué se cumplen sus requisitos de seguridad. El caso de aseguramiento DEBE incluir: una descripción del modelo de amenazas, una identificación clara de los límites de confianza, un argumento de que se han aplicado principios de diseño seguro, y un argumento de que se han contrarrestado las debilidades de seguridad de implementación comunes.'
-        details: Un caso de aseguramiento es "un cuerpo documentado de evidencia que proporciona un argumento convincente y válido de que un conjunto especificado de afirmaciones críticas con respecto a las propiedades de un sistema están adecuadamente justificadas para una aplicación dada en un entorno dado" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Software Assurance Using Structured Assurance Case Models", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Los límites de confianza son límites donde los datos o la ejecución cambian su nivel de confianza, por ejemplo, los límites de un servidor en una aplicación web típica. Es común enumerar principios de diseño seguro (como Saltzer y Schroeder) y debilidades de seguridad de implementación comunes (como el top 10 de OWASP o el top 25 de CWE/SANS), y mostrar cómo se contrarresta cada uno. El <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">caso de aseguramiento de BadgeApp</a> puede ser un ejemplo útil. Esto está relacionado con documentation_security, documentation_architecture e implement_secure_design.
+        details: Un caso de aseguramiento es "un cuerpo documentado de evidencia que proporciona un argumento convincente y válido de que un conjunto especificado de afirmaciones críticas con respecto a las propiedades de un sistema están adecuadamente justificadas para una aplicación dada en un entorno dado" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Software Assurance Using Structured Assurance Case Models", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Los límites de confianza son límites donde los datos o la ejecución cambian su nivel de confianza, por ejemplo, los límites de un servidor en una aplicación web típica. Es común enumerar principios de diseño seguro (como Saltzer y Schroeder) y debilidades de seguridad de implementación comunes (como el top 10 de OWASP o el top 25 de CWE/SANS), y mostrar cómo se contrarresta cada uno. El <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">caso de aseguramiento de BadgeApp</a> puede ser un ejemplo útil. Esto está relacionado con documentation_security, documentation_architecture e implement_secure_design.
       documentation_current:
         description: El proyecto DEBE hacer un esfuerzo para mantener la documentación consistente con la versión actual de los resultados del proyecto (incluido el software producido por el proyecto). Cualquier defecto de documentación <em>conocido</em> que lo haga inconsistente DEBE ser corregido. Si la documentación es generalmente actual, pero incluye erróneamente alguna información antigua que ya no es verdadera, simplemente trátelo como un defecto, luego rastree y corrija como de costumbre.
         details: La documentación PUEDE incluir información sobre diferencias o cambios entre versiones del software y/o enlaces a versiones anteriores de la documentación. La intención de este criterio es que se haga un esfuerzo por mantener la documentación consistente, no que la documentación deba ser perfecta.
@@ -1279,7 +1279,7 @@ es:
     intro_p05_html: "<p> Estas mejores prácticas se han creado para:</p>"
     intro_p06_html: "<ol> <li>animar a los proyectos a seguir las mejores prácticas,</li> <li>ayudar a nuevos proyectos a descubrir cuáles son esas prácticas, y</li> <li>ayudar a los usuarios a saber qué proyectos están siguiendo las mejores prácticas (para que los usuarios puedan preferir tales proyectos).</li> </ol>"
     intro_p07_html: '<p> El modismo "mejores prácticas" significa "un procedimiento o conjunto de procedimientos que es preferido o considerado estándar dentro de una organización, industria, etc." (fuente: <a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>). Estos criterios son lo que creemos que son ampliamente "preferidos o considerados estándar" en la comunidad FLOSS más amplia.</p>'
-    intro_p08_html: <p> Para más información sobre cómo se desarrollaron estos criterios, vea el <a href="https://github.com/coreinfrastructure/best-practices-badge" >sitio GitHub de la insignia de Mejores Prácticas de OpenSSF</a>.</p> <p> También puede <a href="/es/criteria">ver los criterios completos</a>.</p>
+    intro_p08_html: <p> Para más información sobre cómo se desarrollaron estos criterios, vea el <a href="https://github.com/ossf/best-practices-badge" >sitio GitHub de la insignia de Mejores Prácticas de OpenSSF</a>.</p> <p> También puede <a href="/es/criteria">ver los criterios completos</a>.</p>
     structure_p01_html: "<p></p> <h2 id='criteria_structure'>Estructura de los Criterios</h2>"
     structure_p02_html: "<p> Los criterios de mejores prácticas se dividen en tres niveles:<ul> <li><b>Aprobado</b> se enfoca en las mejores prácticas que los proyectos FLOSS bien ejecutados generalmente ya siguen. Obtener la insignia de aprobado es un logro; en cualquier momento dado, solo alrededor del 10% de los proyectos que buscan una insignia alcanzan el nivel de aprobado. <li><b>Plata</b> es un conjunto de criterios más estricto que el de aprobado, pero se espera que sea alcanzable por proyectos pequeños y de una sola organización. <li><b>Oro</b> es aún más estricto que plata e incluye criterios que no son alcanzables por proyectos pequeños o de una sola organización. </ul>"
     structure_p03_html: "<p> Cada criterio tiene un nombre corto, mostrado como texto en superíndice dentro de corchetes después del texto de los criterios."
@@ -1291,7 +1291,7 @@ es:
     automation_p04_html: <p>Sin embargo, hemos priorizado intencionalmente lo "que es importante", incluso si no puede automatizarse de manera asequible. Nos encantan las mediciones automatizadas, pero no todo lo importante es automatizable o puede automatizarse de manera asequible.</p>
     changes_p01_html: "<p></p> <h2 id='criteria_changes'>Cambios a lo largo del tiempo</h2>"
     changes_p02_html: <p> Esperamos que estas prácticas y sus criterios detallados se actualicen con el tiempo. Planeamos agregar nuevos criterios pero marcarlos como criterios "futuros", para que los proyectos puedan agregar esa información y mantener su insignia.</p>
-    changes_p03_html: <p> Los comentarios son <em>muy</em> bienvenidos a través del <a href="https://github.com/coreinfrastructure/best-practices-badge" >sitio de GitHub como issues o pull requests</a>. También hay una <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">lista de correo para discusión general</a>.</p>
+    changes_p03_html: <p> Los comentarios son <em>muy</em> bienvenidos a través del <a href="https://github.com/ossf/best-practices-badge" >sitio de GitHub como issues o pull requests</a>. También hay una <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">lista de correo para discusión general</a>.</p>
     keywords_p01_html: "<p></p> <h2 id='keywords'>Palabras clave</h2>"
     keywords_p02_html: <p> Las palabras clave "DEBE", "NO DEBE", "DEBERÍA", "NO DEBERÍA", y "PUEDE" en este documento deben interpretarse como se describe en <a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a>. Se añade el término adicional SUGERIDO. En resumen, estas palabras clave tienen los siguientes significados:</p>
     keywords_p03_html: "<ul> <li>El término DEBE es un requisito absoluto, y NO DEBE es una prohibición absoluta.</li>"

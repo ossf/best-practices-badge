@@ -8,7 +8,7 @@ require 'application_system_test_case'
 
 class RobotsContentsTest < ApplicationSystemTestCase
   test 'robots.txt on nonproduction site' do
-    # The tests never seet ENV['PUBLIC_HOSTNAME'] to the production site value.
+    # The tests never set ENV['PUBLIC_HOSTNAME'] to the production site value.
     visit '/robots.txt'
     assert_text 'User-Agent: *'
     assert_not has_content? 'Allow: /'
