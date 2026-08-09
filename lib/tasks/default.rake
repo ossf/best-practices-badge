@@ -19,6 +19,7 @@
 
 require 'English'
 require 'json'
+require 'open3'
 
 # ---------------------------------------------------------------------
 # EVERY TASK WITH A BODY MUST SAY WHETHER IT NEEDS RAILS.
@@ -88,6 +89,7 @@ STATIC_CHECKS = %w[
   license_okay
   yaml_syntax_check
   circleci_config_check
+  gitignore_check
   codeql_version_check
   ruby_version_matches_lock
   html_from_markdown
@@ -518,6 +520,56 @@ task circleci_config_check: :no_rails do
     offenders.each do |line_number, text|
       puts "  #{path}:#{line_number}: #{text}"
     end
+    exit 1
+  end
+end
+
+# .gitignore ignores dot paths by default (".*"), which is the right
+# default for credentials and editor state, and then re-includes the dot
+# paths that are real configuration. That list has to stay complete, and
+# nothing about an incomplete one is visible day to day: ignore rules do
+# not apply to files git already tracks, so a tracked file whose entry is
+# missing keeps working. The bill comes due later, when the file is
+# deleted and restored, or when a new file lands beside it: git status
+# never mentions it and git add refuses it, so it looks committed while
+# never leaving the machine it was written on. That is the failure this
+# catches, and it applies to any ignore rule, not just ".*" (/tmp and
+# ",*" each hide a tracked file too, and each has its own exception).
+#
+# Being tracked and being ignored is the contradiction, so ask git both
+# questions and intersect the answers.
+desc 'Check no tracked file is covered by an ignore rule'
+task gitignore_check: :no_rails do
+  puts 'Checking that no tracked file is ignored...'
+  tracked = `git ls-files -z`
+  unless $CHILD_STATUS.success?
+    raise StandardError, 'git ls-files failed; not a git work tree?'
+  end
+  raise StandardError, 'git ls-files reported no files' if tracked.empty?
+
+  # capture2 pumps stdin and stdout on separate threads. Feeding this
+  # much input to a pipe we also read from would otherwise risk a
+  # deadlock, on precisely the broken .gitignore that makes the output
+  # large. check-ignore exits 0 when something matched, 1 when nothing
+  # did, and 128 on a real error, so 1 is the answer we want.
+  output, status = Open3.capture2(
+    'git', 'check-ignore', '--no-index', '--stdin', '-z',
+    stdin_data: tracked
+  )
+  if status.exitstatus > 1
+    raise StandardError, "git check-ignore failed (#{status.exitstatus})"
+  end
+
+  offenders = output.split("\0").reject(&:empty?)
+  if offenders.empty?
+    puts 'No tracked file is ignored.'
+  else
+    puts 'ERROR: these files are tracked, yet .gitignore ignores them.'
+    puts 'Deleting and restoring one, or adding a file beside it, will'
+    puts 'fail silently. Add an exception ("!" line) for each, after'
+    puts 'the rule that hides it. To see which rule that is, run:'
+    puts '  git ls-files | git check-ignore --no-index --stdin -v'
+    offenders.each { |file| puts "  #{file}" }
     exit 1
   end
 end
