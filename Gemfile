@@ -78,14 +78,14 @@ gem 'activesupport', '~> 8.1.1' # Rails. Underlying library.
 # gem 'activetext' # Not used. Text editor that fails to support markdown.
 gem 'attr_encrypted', '~> 4' # Simplify encrypting model attributes
 gem 'bcrypt', '~> 3.1.18' # Security - for salted hashed interacted passwords
-gem 'blind_index', '~> 2.7.0' # Index encrypted data (email addresses)
+gem 'blind_index', '~> 2.8.1' # Index encrypted data (email addresses)
 gem 'bootstrap-sass', '~> 3.4' # Use bootstrap v3
 gem 'bootstrap-social-rails', '~> 4.12' # Pretty social media buttons
 gem 'bootstrap_form', '~> 2.7' # DO NOT update unless updating bootstrap
 gem 'bundler' # Ensure it's available
 # Note: if webpacker is used, see chartkick website for added instructions
 gem 'chartkick', '~> 5.2' # Chart project_stats
-gem 'commonmarker', '~> 2.6.2' # Process markdown in textareas
+gem 'commonmarker', '~> 2.9.0' # Process markdown in textareas
 gem 'faraday-retry', '~> 2.1' # Force retry of faraday requests for reliability
 # We no longer use "fastly-rails"; it doesn't support Rails 6+.
 # They recommend switching to the "fastly" gem (aka "fastly-ruby"),
@@ -154,7 +154,7 @@ gem 'rack-headers_filter', '~> 0.0.1' # Filter out "dangerous" headers
 # We load sprockets-rails, but its version number isn't kept in sync.
 # Note: Update the gem versions of action* and railties in sync.
 gem 'railties', '~> 8.1.1' # Rails. Rails core, loads rest of Rails
-gem 'rails-i18n', '~> 8.0.1' # Localizations for Rails built-ins
+gem 'rails-i18n', '~> 8.1.0' # Localizations for Rails built-ins
 # Redcarpet had reliability issues, but commonmarker has memory issues
 # We've created a local fork, while providing pull requests upstream,
 # to fix problems.
