@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Copyright the Linux Foundation and the CII Best Practices badge contributors
+# SPDX-License-Identifier: MIT
+
+# Report Dependabot ignore entries whose REVIEW-BY date has passed.
+#
+# An ignore entry in .github/dependabot.yml is silence: the named versions
+# are never proposed at all. Each records a real reason, and upstream fixes
+# those reasons without telling us, so every entry carries a REVIEW-BY date.
+#
+# TWO KINDS OF PROBLEM, DELIBERATELY TREATED DIFFERENTLY.
+#
+# A MISSING date is a configuration error. Whoever added the entry can fix
+# it in the same change, and nobody else is affected, so this exits 1 and
+# the pipeline stops, exactly like a lint error.
+#
+# An EXPIRED date is a reminder, and a reminder must never stand between us
+# and an urgent merge. A security fix at 2am should not wait on a question
+# about vcr's licence that has been open for a year. So by default this
+# reports and exits 0. Pass --strict to make expiry an error, which is what
+# the scheduled notifier does: it wants a non-zero exit so it can raise an
+# issue, where the reminder can wait for attention without holding anything
+# up.
+#
+# Plain Ruby with no gems, so the notifier workflow needs no bundle install.
+
+require 'date'
+
+CONFIG = '.github/dependabot.yml'
+REVIEW_RE = /^\s*#\s*REVIEW-BY:\s*(\d{4}-\d{2}-\d{2})/
+IGNORE_RE = /^\s*- dependency-name: "([^"]+)"/
+
+strict = ARGV.include?('--strict')
+
+unless File.exist?(CONFIG)
+  warn "Missing #{CONFIG}"
+  exit 1
+end
+
+# Walk the file pairing each ignore entry with the REVIEW-BY comment that
+# precedes it. Reset after each entry so a date cannot silently cover two.
+pending = nil
+entries = []
+File.readlines(CONFIG).each do |line|
+  if (found = line.match(REVIEW_RE))
+    pending = Date.parse(found[1])
+  elsif (found = line.match(IGNORE_RE))
+    entries << [found[1], pending]
+    pending = nil
+  end
+end
+
+undated = entries.select { |_name, date| date.nil? }
+expired = entries.select { |_name, date| date && date < Date.today }
+
+undated.map(&:first).each do |name|
+  warn "#{name}: no REVIEW-BY date. Add one above the entry in #{CONFIG}."
+end
+
+expired.each do |name, date|
+  puts "#{name}: review was due #{date}."
+end
+
+unless expired.empty?
+  puts
+  puts 'Does each reason still hold? If so, move the date out. If not,'
+  puts "delete the entry from #{CONFIG} and the matching cap in the Gemfile."
+end
+
+exit 1 unless undated.empty?
+exit 1 if strict && !expired.empty?
+
+if entries.empty?
+  puts "No ignore entries in #{CONFIG}."
+elsif expired.empty?
+  puts "All #{entries.length} ignore entries carry a future review date."
+end

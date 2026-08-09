@@ -22,7 +22,6 @@ require 'json'
 require 'open3'
 require 'yaml'
 require 'bundler'
-require 'date'
 
 # ---------------------------------------------------------------------
 # EVERY TASK WITH A BODY MUST SAY WHETHER IT NEEDS RAILS.
@@ -656,76 +655,6 @@ end
 # STATIC: both files are in the tree, so no commit, no change.
 DEPENDABOT_PATTERN_KEYS = %w[patterns exclude-patterns].freeze
 
-# AN IGNORE IS SILENCE, AND SILENCE DOES NOT EXPIRE ON ITS OWN.
-# Each ignore entry in .github/dependabot.yml names a version we never
-# want proposed, and each records a real reason: a licence change, a
-# release that breaks our tests, an upstream incompatibility. Those
-# reasons get fixed upstream, and nothing tells us when. Before we ignored
-# them, a blocked gem still produced a proposal we could dismiss, so the
-# block stayed visible; now nothing appears at all, and an entry that
-# stopped being necessary in 2027 looks exactly like one still earning its
-# place.
-#
-# So every entry carries a REVIEW-BY date and this fails once one passes,
-# or if an entry has no date. It will go red on somebody's unrelated pull
-# request, which is the price; clearing it is one line, either moving the
-# date out or deleting an entry that has done its job.
-#
-# STATIC: the date moves, but the file does not, so the answer changes
-# only at a boundary we chose.
-# Date.today rather than the time-zone-aware form, because these tasks are
-# :no_rails and there is no zone to ask. A review date is a calendar
-# boundary a year out; no answer turns on which side of midnight UTC we
-# are.
-#
-# It lives HERE, outside any task body, because the only way to silence
-# the cop is to write its name, the Rakefile's marker audit reads each
-# :no_rails body looking for exactly that word, and a disable comment
-# would otherwise make this task look like it had booted the framework.
-def dependabot_today
-  Date.today # rubocop:disable Rails/Date
-end
-
-DEPENDABOT_REVIEW_RE = /^\s*#\s*REVIEW-BY:\s*(\d{4}-\d{2}-\d{2})/
-DEPENDABOT_IGNORE_RE = /^\s*- dependency-name: "([^"]+)"/
-
-desc 'Check .github/dependabot.yml ignores are still under review'
-task dependabot_ignore_review_check: :no_rails do
-  path = '.github/dependabot.yml'
-  puts "Checking #{path} ignore entries are still reviewed..."
-  raise StandardError, "Missing #{path}" unless File.exist?(path)
-
-  pending = nil
-  entries = []
-  File.readlines(path).each do |line|
-    if (found = line.match(DEPENDABOT_REVIEW_RE))
-      pending = Date.parse(found[1])
-    elsif (found = line.match(DEPENDABOT_IGNORE_RE))
-      entries << [found[1], pending]
-      pending = nil
-    end
-  end
-
-  today = dependabot_today
-  undated = entries.select { |_name, date| date.nil? }
-  expired = entries.select { |_name, date| date&.<(today) }
-
-  if undated.empty? && expired.empty?
-    puts "All #{entries.length} ignore entries carry a future review date."
-  else
-    puts "ERROR: #{path} has ignore entries that need attention."
-    undated.map(&:first).each do |name|
-      puts "  #{name}: no REVIEW-BY date. Add one above the entry."
-    end
-    expired.each do |name, date|
-      puts "  #{name}: review was due #{date}. Does the reason still" \
-           ' hold? Move the date out, or delete the entry and the' \
-           ' matching cap in the Gemfile.'
-    end
-    exit 1
-  end
-end
-
 desc 'Check .github/dependabot.yml only names gems we actually have'
 task dependabot_gems_check: :no_rails do
   path = '.github/dependabot.yml'
@@ -769,6 +698,28 @@ task dependabot_gems_check: :no_rails do
     offenders.each { |where, name| puts "  #{where}: #{name}" }
     exit 1
   end
+end
+
+# THE REMINDER MUST NOT BLOCK THE MERGE IT REMINDS US ABOUT.
+# Ignore entries in .github/dependabot.yml carry a REVIEW-BY date, because
+# an ignore is silence and silence does not expire on its own. But a date
+# that has passed is a question waiting for a human, and a question must
+# never stand between us and an urgent merge: a security fix should not
+# wait on an argument about vcr's licence.
+#
+# So an expired date reports and passes here, and the scheduled notifier in
+# .github/workflows/dependabot_review.yml raises an issue about it instead,
+# where it can wait without holding anything up. A MISSING date still
+# fails, because that is a configuration error its author can fix in the
+# same change.
+#
+# The work lives in the script so the notifier can run it without a bundle
+# install; this task is the pipeline's view of the same answer.
+#
+# STATIC: the date moves, but the file does not.
+desc 'Report Dependabot ignores whose review date has passed'
+task dependabot_ignore_review_check: :no_rails do
+  sh 'script/dependabot_review_due'
 end
 
 # THE RUBY VERSION IS IN TWO FILES AND HEROKU READS THE OTHER ONE.
