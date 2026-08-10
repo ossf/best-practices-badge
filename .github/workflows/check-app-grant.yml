@@ -1,0 +1,100 @@
+---
+# TEMPORARY, for one question. Delete the branch when it is answered.
+#
+# Prints the permissions the openssf-badge-renovate installation
+# actually holds on this repository. Creates no token: one read-only
+# GET, authenticated as the App with a five-minute JWT.
+#
+# "on: push" rather than workflow_dispatch on purpose: a dispatchable
+# workflow has to exist on the DEFAULT branch before it can be run,
+# and this one must never get there.
+
+name: Check App grant
+
+on:
+  push:
+    branches: ['check-app-grant']
+
+permissions:
+  contents: read
+
+jobs:
+  ask:
+    name: Ask GitHub what the installation holds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read the installation
+        env:
+          APP_ID: ${{ secrets.RENOVATE_APP_ID }}
+          PRIVATE_KEY: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+        run: |
+          # base64url, unpadded, which is what a JWT wants.
+          b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+
+          now=$(date +%s)
+          # iat backdated 60s for clock skew. GitHub rejects an exp
+          # more than ten minutes out, so five is well inside.
+          header=$(printf '{"alg":"RS256","typ":"JWT"}' | b64url)
+          payload=$(printf '{"iat":%d,"exp":%d,"iss":"%s"}' \
+            "$((now - 60))" "$((now + 300))" "$APP_ID" | b64url)
+          # Process substitution keeps the key out of the filesystem.
+          signature=$(printf '%s' "$header.$payload" |
+            openssl dgst -sha256 -binary \
+              -sign <(printf '%s\n' "$PRIVATE_KEY") | b64url)
+
+          # "|| true" so a failure is still reported rather than
+          # dying before the annotation is emitted.
+          result="$(curl -sS \
+            -H "Authorization: Bearer $header.$payload.$signature" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/installation" |
+            python3 -c '
+          import json, sys
+
+          # What renovate.yml asks for, and is refused.
+          want = {
+              "contents": "write",
+              "pull_requests": "write",
+              "issues": "write",
+              "checks": "read",
+              "statuses": "read",
+          }
+
+          d = json.load(sys.stdin)
+          if "permissions" not in d:
+              print("No installation returned:", d.get("message", d))
+              sys.exit(1)
+
+          have = d["permissions"]
+          print("app_slug:", d.get("app_slug"))
+          print("installation:", d.get("id"), "(expected 151774661)")
+          print("repo selection:", d.get("repository_selection"))
+          print("granted:", json.dumps(have, sort_keys=True))
+
+          rank = {"read": 1, "write": 2}
+          short = [
+              (k, v, have.get(k))
+              for k, v in want.items()
+              if rank.get(have.get(k), 0) < rank[v]
+          ]
+          if short:
+              # Only double quotes below: this program sits inside a
+              # single-quoted shell string, and one single quote
+              # would end it and mangle the program.
+              print("SHORT, which is why the mint is refused:")
+              for k, v, got in short:
+                  print("  %s: want %s, have %s" % (k, v, got or "nothing"))
+          else:
+              print("All five ARE granted, so a short grant is NOT the cause.")
+          ' 2>&1)" || true
+
+          printf '%s\n' "$result"
+          printf '%s\n' "$result" >>"$GITHUB_STEP_SUMMARY"
+
+          # An annotation is one line, and reaches the PUBLIC
+          # annotations API. Escape "%" first or it escapes the
+          # escapes; newlines then travel as "%0A".
+          escaped="${result//%/%25}"
+          printf '::notice title=%s::%s\n' 'App grant' \
+            "${escaped//$'\n'/%0A}"
