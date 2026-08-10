@@ -4,7 +4,7 @@ info:
   description: RESTful API for OpenSSF Best Practices badge website
   version: 1.0.0
 servers:
-  - url: https://bestpractices.coreinfrastructure.org
+  - url: https://www.bestpractices.dev
     description: Main site
 paths:
   /{locale}/projects/{id}/{level}.{format}:

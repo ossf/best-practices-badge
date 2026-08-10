@@ -1,0 +1,136 @@
+---
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
+name: Refresh the Heroku Ruby list
+
+# Keep .github/heroku-ruby-versions.txt saying which Rubies Heroku can
+# deploy on our stack. Renovate reads it as a custom datasource and
+# does the rest: noticing, opening, rebasing, remembering a rejection.
+# Why a file of our own, and why it must be committed, are in
+# .github/renovate.json5 beside the config they explain.
+#
+# THIS JOB PUBLISHES A FACT; IT PROPOSES NOTHING. An earlier version
+# opened the upgrade pull requests itself, reimplementing Renovate in
+# about 400 lines of our own Ruby. This comment exists so nobody adds
+# it back.
+
+on:
+  schedule:
+    # Thursday, deliberately not Monday when Renovate runs, so a new
+    # fact reaches main before Renovate next looks. Minute off the hour
+    # because GitHub delays schedules that pile up on it.
+    - cron: '23 4 * * 4'
+  # So a human can ask without waiting a week.
+  workflow_dispatch:
+
+# No permissions by default; the job authenticates as our own App. See
+# .github/actions/mint-app-token/action.yml for why not GITHUB_TOKEN.
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    name: Publish which Rubies Heroku has
+    runs-on: ubuntu-latest
+
+    steps:
+      # Use harden-runner https://github.com/step-security/harden-runner
+      # presented at OpenSSF Best Practices WG 2022-03-15
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        # Pin to commit SHA to prevent supply chain attacks via tag mutation.
+        # Verify: curl -s https://api.github.com/repos/actions/checkout/git/ref/tags/v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # gh supplies the push credential, so a checkout credential
+          # left behind is only one a later step could misuse.
+          persist-credentials: false
+
+      # OSPS-BR-01.02: Validate branch name before use in pipeline
+      - name: Validate branch name
+        run: script/validate_branch_name "$GITHUB_REF_NAME"
+
+      # The runner's own Ruby; see the script for why no bundle.
+      #
+      # A RED RUN HERE MEANS WE COULD NOT ASK, not that Heroku has
+      # nothing: the script prints nothing and fails, so a blip cannot
+      # empty the file and tell Renovate every Ruby had vanished.
+      - name: Ask Heroku what it has
+        run: script/heroku_ruby_versions > /tmp/versions.txt
+
+      - name: Mint a short-lived token from the App
+        id: app_token
+        uses: ./.github/actions/mint-app-token
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          # A pull request is a branch plus a commit, and GitHub files
+          # both of those under contents; there is no narrower pair.
+          permission-contents: write
+          permission-pull-requests: write
+
+      # One fixed branch, so a second run updates the open pull request
+      # rather than opening another.
+      #
+      # "gh" is GitHub's own CLI, already on the runner. It replaced two
+      # curl calls, two snippets of Python to pick one field out of a
+      # response, and a hand-built JSON heredoc. There is no official
+      # actions/create-pull-request, and the third-party one would cost
+      # another dependency with write access to this repository.
+      #
+      # "gh auth setup-git" installs a credential helper for the push,
+      # so no token reaches a command line or .git/config.
+      - name: Open or update the pull request
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          GIT_AUTHOR: ${{ steps.app_token.outputs.git-author }}
+          REPO: ${{ github.repository }}
+          BASE: ${{ github.ref_name }}
+          BRANCH: heroku-ruby-versions
+          LIST: .github/heroku-ruby-versions.txt
+        run: |
+          set -euo pipefail
+          if cmp -s /tmp/versions.txt "$LIST"; then
+            echo 'Unchanged; Heroku has published nothing new.'
+            exit 0
+          fi
+          echo 'Changed:'; diff -u "$LIST" /tmp/versions.txt || true
+
+          git config user.name "${GIT_AUTHOR%% <*}"
+          email="${GIT_AUTHOR##*<}"; git config user.email "${email%>}"
+          gh auth setup-git
+
+          git checkout -q -B "$BRANCH" "$BASE"
+          cp /tmp/versions.txt "$LIST"
+          git commit -q -a -F - <<COMMIT
+          Refresh the list of Rubies Heroku can deploy
+
+          Probed from the same S3 bucket a deploy reads. Renovate reads
+          this file as a custom datasource and decides what, if
+          anything, to propose.
+
+          Signed-off-by: ${GIT_AUTHOR}
+          COMMIT
+          git push -q --force origin "$BRANCH"
+
+          if [ -n "$(gh pr list --repo "$REPO" --head "$BRANCH" \
+                       --state open --json number --jq '.[].number')" ]; then
+            echo 'Updated the pull request that was already open.'
+            exit 0
+          fi
+
+          gh pr create --repo "$REPO" --head "$BRANCH" --base "$BASE" \
+            --title 'Refresh the list of Rubies Heroku can deploy' \
+            --body 'Heroku has published or withdrawn a Ruby.
+
+          Renovate reads this file as a custom datasource, so merging it is
+          what lets Renovate notice. The upgrade proposals themselves arrive
+          separately, as their own pull requests, to be judged on their own.
+
+          Probed from the same S3 bucket a deploy reads, the way Heroku'"'"'s
+          own buildpack does. **Merging this changes no version we run.**'

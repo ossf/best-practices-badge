@@ -7,9 +7,10 @@
 # rubocop:disable Metrics/ClassLength
 class Criteria
   include ActiveModel::Model
+  include LevelConversion # Shared level name/number conversion
 
   ACCESSORS = %i[
-    name category level future
+    name category level future obsolete
     rationale autofill
     met_suppress na_suppress unmet_suppress
     met_justification_required met_url_required met_url
@@ -43,7 +44,8 @@ class Criteria
     def active(level)
       instantiate if @criteria.blank?
       @active ||= {}
-      @active[level] ||= @criteria[level].values.reject(&:future?)
+      @active[level] ||=
+        @criteria[level].values.reject { |c| c.future? || c.obsolete? }
     end
 
     # Returns all unique criteria names across all levels.
@@ -53,11 +55,17 @@ class Criteria
       @criteria.values.map(&:keys).flatten.uniq
     end
 
+    # Iterates over each [level, criteria_hash] pair.
+    # @yield [Array(String, Hash)] level key and its criteria hash
+    # @return [void]
     def each
       instantiate if @criteria.blank?
       @criteria.each { |level| yield level }
     end
 
+    # Iterates over each level's criteria hash.
+    # @yield [Hash] criteria hash for one level
+    # @return [void]
     def each_value
       instantiate if @criteria.blank?
       @criteria.each_value { |level_data| yield level_data }
@@ -92,15 +100,22 @@ class Criteria
       end
     end
 
+    # Returns all level keys defined in the criteria.
+    # @return [Array<String>] level keys, e.g. ['passing', 'silver', 'gold']
     def keys
       instantiate if @criteria.blank?
       @criteria.keys
     end
 
+    # Returns the raw CriteriaHash used to populate criteria instances.
+    # @return [Hash] the underlying criteria data hash
     def to_h
       CriteriaHash
     end
 
+    # Returns criteria data formatted for JavaScript consumption,
+    # with locale-keyed translations merged into each criterion's fields.
+    # @return [Hash] criteria hash with translated fields per available locale
     # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
     def for_js
       CriteriaHash.deep_dup.each do |level, criteria_set|
@@ -108,7 +123,9 @@ class Criteria
           fields.delete_if { |k, _v| k.in? FIELDS_TO_OMIT }
           translations = {}
           I18n.available_locales.each do |locale|
-            I18n.t(".criteria.#{level}.#{criterion}").each_key do |k|
+            # Get criterion keys; works with flat and nested I18n backends
+            criterion_keys = get_criterion_keys(level, criterion, locale)
+            criterion_keys.each do |k|
               next if k.to_s.in? FIELDS_TO_OMIT
 
               translations[k.to_s] = {} unless translations.key?(k.to_s)
@@ -121,6 +138,26 @@ class Criteria
       end
     end
     # rubocop:enable Metrics/AbcSize,Metrics/MethodLength
+
+    # Get list of field keys for a criterion.
+    # Works with both nested and flat backends.
+    # @param level [String] the criteria level
+    # @param criterion [String] the criterion name
+    # @param locale [Symbol] the locale to query
+    # @return [Array<Symbol>] list of field keys
+    def get_criterion_keys(level, criterion, locale = :en)
+      path = "criteria.#{level}.#{criterion}"
+      # Try traditional nested backend approach first
+      result = I18n.t(".#{path}", locale: locale, default: nil)
+      return result.keys if result.is_a?(Hash)
+
+      # For flat backends, use the backend's nested_hash method
+      backend = I18n.backend
+      return [] unless backend.respond_to?(:nested_hash)
+
+      nested = backend.nested_hash(locale, path)
+      nested ? nested.keys.sort : []
+    end
   end
 
   # Returns the localized description for this criterion.
@@ -149,10 +186,21 @@ class Criteria
     future == true
   end
 
+  # Checks if this criterion is marked as obsolete (retired from upstream).
+  # @return [Boolean] true if criterion has been retired
+  def obsolete?
+    obsolete == true
+  end
+
   # Creates a new Criteria instance and freezes it for immutability.
   # @param parameters [Array] initialization parameters
   def initialize(*parameters)
     super
+    # Precompute symbol names before freezing (performance optimization)
+    @status_symbol = :"#{name}_status"
+    @justification_symbol = :"#{name}_justification"
+    # Precompute string representation to avoid repeated allocations
+    @to_s = name.to_s.freeze
     freeze
   end
 
@@ -168,31 +216,56 @@ class Criteria
     met_justification_required == true
   end
 
+  # Checks if Met status requires either justification text or a URL.
+  # @return [Boolean] true if justification or URL is required for Met status
   def met_justification_or_url_required?
     met_justification_required? || met_url_required?
   end
 
+  # Checks if this criterion has MUST-level obligation.
+  # @return [Boolean] true if category is 'MUST'
   def must?
     category == 'MUST'
   end
 
+  # Checks if N/A is a permitted status for this criterion.
+  # @return [Boolean] true if N/A status is allowed
   def na_allowed?
     na_allowed == true
   end
 
+  # Checks if justification text is required when status is N/A.
+  # @return [Boolean] true if justification is required for N/A status
   def na_justification_required?
     na_justification_required == true
   end
 
+  # Checks if this criterion has SHOULD-level obligation.
+  # @return [Boolean] true if category is 'SHOULD'
   def should?
     category == 'SHOULD'
   end
 
+  # Checks if this criterion has SUGGESTED-level obligation.
+  # @return [Boolean] true if category is 'SUGGESTED'
   def suggested?
     category == 'SUGGESTED'
   end
 
-  delegate :to_s, to: :name
+  # Returns the database field symbol for this criterion's status
+  # Precomputed at initialization to avoid per-render string concatenation
+  # @return [Symbol] e.g., :description_good_status
+  attr_reader :status_symbol
+
+  # Returns the database field symbol for this criterion's justification
+  # Precomputed at initialization to avoid per-render string concatenation
+  # @return [Symbol] e.g., :description_good_justification
+  attr_reader :justification_symbol
+
+  # Returns the string representation of this criterion's name
+  # Precomputed during initialization to avoid repeated allocations
+  # @return [String] frozen string representation
+  attr_reader :to_s
 
   private
 
@@ -205,7 +278,8 @@ class Criteria
     return unless field.in? LOCALE_ACCESSORS
 
     Criteria.get_levels(name).reverse_each do |l|
-      next if l.to_i > level.to_i
+      # Compare levels using mapping, not .to_i
+      next if level_higher?(l, level)
 
       t_key = "criteria.#{l}.#{name}.#{field}"
       # Disable HTML output safety. I18n translations are internal data
@@ -215,6 +289,13 @@ class Criteria
       # rubocop:enable Rails/OutputSafety
     end
     nil
+  end
+
+  # Returns true if level1 is higher than level2
+  def level_higher?(level1, level2)
+    level_num1 = level_to_number(level1)
+    level_num2 = level_to_number(level2)
+    level_num1 > level_num2
   end
 end
 # rubocop:enable Metrics/ClassLength

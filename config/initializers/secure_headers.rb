@@ -17,6 +17,11 @@ SecureHeaders::Configuration.default do |config|
   config.x_xss_protection = '1; mode=block'
   config.x_download_options = 'noopen'
   config.x_permitted_cross_domain_policies = 'none'
+  # The login page overrides this to same-origin via <meta name="referrer">
+  # (app/views/sessions/new.html.erb) so that return_to values are not sent
+  # to GitHub in the Referer header.  Do not weaken that override to
+  # no-referrer — it causes browsers to send "Origin: null" on the OAuth POST,
+  # which breaks Rails CSRF protection and makes GitHub login fail entirely.
   config.referrer_policy = 'no-referrer-when-downgrade'
   # Configure CSP
   config.csp = {

@@ -48,6 +48,8 @@ AllCops:
     - '**/Rakefile'
   Exclude:
     - 'tmp/**/*'
+    - 'temp/**/*'
+    - '**/,*'
     - 'lib/.git/**/*'
     - 'db/**/*'
     - 'db/migrate/**'
@@ -79,6 +81,16 @@ Style/RescueStandardError:
     # many possible problems, and we don't care - if there's
     # an error getting evidence, we treat it as no evidence.
     - 'app/lib/evidence.rb'
+Style/TrailingCommaInHashLiteral:
+  # Disable an unwise check.
+  # We want to *encourage* having a comma after the last item of a hash.
+  # Having those extra comma reduces the likelihood of error if something
+  # is added later, and makes the resulting "diffs" cleaner since we don't
+  # have to change the previous line merely to add a following line.
+  Enabled: false
+Style/TrailingCommaInArrayLiteral:
+  # Disable an unwise check.
+  Enabled: false
 Metrics/AbcSize:
   Max: 20
   Exclude:
@@ -122,6 +134,10 @@ Style/Send:
 # without incident, so there's no reason to limit comments to ASCII.
 #
 Style/AsciiComments:
+  Enabled: false
+# Using `== 0` is clearer than `.zero?` in refinements, especially for
+# comparing status values where the comparison is semantic, not numeric.
+Style/NumericPredicate:
   Enabled: false
 #
 # The following are newer cops which have disabled because
@@ -276,3 +292,13 @@ Rails/WhereRange:
 # comment, to avoid the risk of later re-enabling it.
 Performance/ArraySemiInfiniteRangeSlice:
   Enabled: false # Do NOT enable this
+
+# Chaining .freeze to a single-line block like `->(n) { ... }.freeze` is
+# idiomatic Ruby. Forcing a line break makes the code harder to read.
+Layout/SingleLineBlockChain:
+  Enabled: false
+
+# Chaining .freeze to do...end blocks is common and idiomatic for
+# creating frozen data structures at initialization time.
+Style/MethodCalledOnDoEndBlock:
+  Enabled: false

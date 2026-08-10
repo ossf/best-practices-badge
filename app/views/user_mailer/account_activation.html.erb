@@ -1,5 +1,5 @@
 <%= t 'user_mailer.account_activation.before_html' %>
 <%= link_to t('.activate'),
-            edit_account_activation_url(id: @user.activation_token,
+            edit_account_activation_url(token: @user.activation_token,
                                         email: @user.email,
                                         locale: locale) %>

@@ -40,6 +40,7 @@ es:
     login_html: Iniciar sesión
     footer_text_html:
     toggle_navigation:
+    translation_disclaimer_html:
   admin_only:
   account_activations:
     activated: "¡Cuenta activada!"
@@ -49,6 +50,7 @@ es:
       one:
       few:
       other:
+      many:
   password_resets:
     forgot_password:
     reset_password:
@@ -91,8 +93,8 @@ es:
       p2_html: >-
         M&aacute;s informaci&oacute;n acerca del programa que
         confiere la insignia de Mejores Pr&aacute;cticas, incluyendo
-        sus antecedentes y <a href='https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/criteria.md'>criterios</a>
-        aplicables se puede encontrar en <a href='https://github.com/coreinfrastructure/best-practices-badge'>GitHub</a>.
+        sus antecedentes y <a href='https://github.com/ossf/best-practices-badge/blob/main/docs/criteria.md'>criterios</a>
+        aplicables se puede encontrar en <a href='https://github.com/ossf/best-practices-badge'>GitHub</a>.
         <a href="/es/project_stats">Las estad&iacute;sticas del
         proyecto</a> y las <a href="/es/criteria_stats">estad&iacute;sticas
         de los criterios</a> tambi&eacute;n están disponibles.
@@ -156,6 +158,7 @@ es:
       future:
       project_stats_html:
       see_actual_criteria:
+      obsolete:
     error_409:
       heading:
       conflict:
@@ -176,6 +179,8 @@ es:
       inadequate_privileges:
       notification_emails:
       notification_emails_help:
+      important_notifications:
+      important_notifications_help:
     update:
       profile_updated:
     show:
@@ -279,20 +284,26 @@ es:
       post_delay_warning:
       new_badge:
       may_select_html:
-      new_badge_or:
       select_one_github:
-      submit_github:
       project_already_exists:
       url_of_homepage:
       placeholder_of_homepage:
       url_of_repo:
       placeholder_of_repo:
-      submit_urls:
       final_text_html:
       sign_in_first:
       original_repos:
       fork_repos:
       tell_us:
+      reminder_email_html:
+      github_repo_label:
+      github_reconnect_html:
+      github_reconnect_link:
+      submit:
+      badge_series:
+      badge_series_description:
+      badge_series_metal:
+      badge_series_baseline:
     delete_form:
       info_html:
       rationale_placeholder:
@@ -313,6 +324,29 @@ es:
       submit_cdla_permissive_20_html:
       new_owner:
       new_owner_repeat:
+      current_owner:
+      ownership_edit_hint:
+      not_authorized:
+      save_and_continue_tooltip:
+      automation:
+        aria_automated:
+        aria_overridden:
+        automated_tooltip:
+        overridden_tooltip:
+        aria_divergent:
+        overridden_detail:
+        overridden_old_justification_part:
+        overridden_explanation_part:
+        divergent_detail:
+        divergent_justification_part:
+        divergent_proposed_value:
+        chief_overrode:
+          one:
+          other:
+        override_detail:
+        analysis_failed:
+          one:
+          other:
     show:
       edit:
       delete:
@@ -326,6 +360,7 @@ es:
       cc_by_3plus_html:
       cc_by_3only_html:
       cdla_permissive_20_html:
+      section_selector:
     form_early:
       badge_intro:
         description:
@@ -353,7 +388,7 @@ es:
           genérico, en lugar de ser un razonamiento de que la
           situación es aceptable, comience el bloque de texto
           con '//' seguido de un espacio. Los comentarios son
-          bienvenidos a través del <a href="https://github.com/coreinfrastructure/best-practices-badge">sitio
+          bienvenidos a través del <a href="https://github.com/ossf/best-practices-badge">sitio
           de GitHub mediante "issues" o "pull requests"</a>. También
           hay una <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">lista
           de correo electrónico para el tema principal</a>.<br/><br/>Con
@@ -368,12 +403,23 @@ es:
         1_html:
         '2':
         2_html:
+        baseline-1:
+        baseline-1_html:
+        baseline-2:
+        baseline-2_html:
+        baseline-3:
+        baseline-3_html:
       got_badge:
         description_1:
         badge_alt:
         description_2:
         details_html:
         editing_description_html:
+      got_baseline_badge:
+        description_1:
+        badge_alt:
+        description_2:
+        details_html:
     form_basics:
       project_name:
         description:
@@ -406,6 +452,9 @@ es:
         details_html:
         placeholder:
         title:
+      entry_locale:
+        description:
+        details:
     misc:
       in_javascript:
         collapse_all_title:
@@ -449,8 +498,20 @@ es:
       reminder_notification_note:
         title:
         description_html:
+      obsolete_header_html:
+      obsolete_criterion:
     delete:
       done:
+    choose_edit:
+      title:
+      instructions:
+      proposals_note:
+    choose_show:
+      title:
+      instructions:
+    baseline_version_notice:
+      current:
+      transition:
   report_mailer:
     subject_achieved_passing:
     subject_no_longer_passing:
@@ -473,6 +534,8 @@ es:
     ending:
     unsubscribe_notice_html:
     unsubscribe_notice_text:
+    subject_warned_level:
+    warned_level_message:
   user_mailer:
     account_activation:
       before_html:
@@ -952,6 +1015,203 @@ es:
         description:
       dynamic_analysis_enable_assertions:
         description:
+    baseline-1:
+      osps_ac_01_01:
+        description:
+        details:
+      osps_ac_02_01:
+        description:
+        details:
+      osps_ac_03_01:
+        description:
+        details:
+      osps_ac_03_02:
+        description:
+        details:
+      osps_br_01_01:
+        description:
+        details:
+      osps_br_01_02:
+        description:
+      osps_br_03_01:
+        description:
+        details:
+      osps_br_03_02:
+        description:
+        details:
+      osps_br_07_01:
+        description:
+        details:
+      osps_do_01_01:
+        description:
+        details:
+      osps_do_02_01:
+        description:
+        details:
+      osps_gv_02_01:
+        description:
+        details:
+      osps_gv_03_01:
+        description:
+        details:
+      osps_le_02_01:
+        description:
+        details:
+      osps_le_02_02:
+        description:
+        details:
+      osps_le_03_01:
+        description:
+        details:
+      osps_le_03_02:
+        description:
+        details:
+      osps_qa_01_01:
+        description:
+        details:
+      osps_qa_01_02:
+        description:
+        details:
+      osps_qa_02_01:
+        description:
+        details:
+      osps_qa_04_01:
+        description:
+        details:
+      osps_qa_05_01:
+        description:
+        details:
+      osps_qa_05_02:
+        description:
+        details:
+      osps_vm_02_01:
+        description:
+        details:
+      osps_br_01_03:
+        description:
+        details:
+    baseline-2:
+      osps_ac_04_01:
+        description:
+        details:
+      osps_br_02_01:
+        description:
+        details:
+      osps_br_04_01:
+        description:
+        details:
+      osps_br_05_01:
+        description:
+        details:
+      osps_br_06_01:
+        description:
+        details:
+      osps_do_06_01:
+        description:
+        details:
+      osps_gv_01_01:
+        description:
+        details:
+      osps_gv_01_02:
+        description:
+        details:
+      osps_gv_03_02:
+        description:
+        details:
+      osps_le_01_01:
+        description:
+        details:
+      osps_qa_03_01:
+        description:
+        details:
+      osps_qa_06_01:
+        description:
+        details:
+      osps_sa_01_01:
+        description:
+        details:
+      osps_sa_02_01:
+        description:
+        details:
+      osps_sa_03_01:
+        description:
+        details:
+      osps_vm_01_01:
+        description:
+        details:
+      osps_vm_03_01:
+        description:
+        details:
+      osps_vm_04_01:
+        description:
+        details:
+      osps_do_07_01:
+        description:
+        details:
+    baseline-3:
+      osps_ac_04_02:
+        description:
+        details:
+      osps_br_02_02:
+        description:
+        details:
+      osps_br_07_02:
+        description:
+        details:
+      osps_do_03_01:
+        description:
+        details:
+      osps_do_03_02:
+        description:
+        details:
+      osps_do_04_01:
+        description:
+        details:
+      osps_do_05_01:
+        description:
+        details:
+      osps_gv_04_01:
+        description:
+        details:
+      osps_qa_02_02:
+        description:
+        details:
+      osps_qa_04_02:
+        description:
+        details:
+      osps_qa_06_02:
+        description:
+        details:
+      osps_qa_06_03:
+        description:
+        details:
+      osps_qa_07_01:
+        description:
+        details:
+      osps_sa_03_02:
+        description:
+        details:
+      osps_vm_04_02:
+        description:
+        details:
+      osps_vm_05_01:
+        description:
+        details:
+      osps_vm_05_02:
+        description:
+        details:
+      osps_vm_05_03:
+        description:
+        details:
+      osps_vm_06_01:
+        description:
+        details:
+      osps_vm_06_02:
+        description:
+        details:
+      osps_br_01_04:
+        description:
+        details:
   headings:
     Accessibility and internationalization:
     Analysis:
@@ -996,6 +1256,9 @@ es:
     Vulnerability report process: Proceso de informe de vulnerabilidad
     Warning flags: Banderas de advertencia
     Working build system:
+    Controls:
+    General:
+    General_project_info:
   criterion_status:
     Met:
     Unmet:
@@ -1027,6 +1290,7 @@ es:
     na_justification_required:
     met_justification_required:
     met_url_required:
+    obsolete:
   criteria_discussion:
     intro_p01_html:
     intro_p02_html:
@@ -1104,3 +1368,57 @@ es:
     missing_parameters:
     invalid_parameters:
     error:
+  do_not_translate_this:
+  test_pluralization_only_one:
+    one:
+  detectives:
+    github:
+      repo_public:
+      repo_track:
+      repo_distributed:
+      contribution:
+      discussion:
+      osps_gv_02_01:
+      osps_do_02_01:
+      osps_ac_01_01:
+      osps_qa_01_01:
+      osps_qa_01_02:
+      name:
+      description:
+      license:
+      implementation_languages:
+    floss_license:
+      osi_approved:
+      osi_approved_repository:
+      not_in_osi_list:
+    hardened_sites:
+      all_headers_found:
+      headers_missing:
+    name_from_url:
+      domain_suggests:
+      tail_suggests:
+      repo_tail_suggests:
+    project_sites_https:
+      given_http:
+      official_http:
+      url_uses_http:
+      given_https:
+    repo_files:
+      no_file_found:
+      file_found:
+      contribution_documented:
+      license_found:
+      license_not_found:
+      license_not_in_releases:
+    subdir_files:
+      no_files_found:
+      no_folder_found:
+      some_contents_found:
+    test_forced:
+      test_automation:
+    repo_json:
+      field_from_file:
+    security_insights:
+      field_value:
+      array_match:
+      comment_suffix:

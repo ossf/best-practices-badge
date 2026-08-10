@@ -1,4 +1,23 @@
-            <div class="hidable-text-entry">
+<%# IMPORTANT: This view uses selective field loading for performance.
+    The @project object only has fields listed in projects_controller.rb:
+    - PROJECT_BASE_FIELDS (for show/edit pages)
+    - HTML_INDEX_FIELDS (for project listings)
+    - FEED_DISPLAY_FIELDS (for Atom feeds)
+    If you add a new field to this view, ensure it's in the appropriate list! %>
+            <%
+              # Compute highlight class and icon for each non-criteria field.
+              # Returns [css_class, icon_html]: orange (overridden), yellow (automated), or nil.
+              name_class, name_icon = non_criteria_automation_display(:name)
+              description_class, description_icon = non_criteria_automation_display(:description)
+              license_class, license_icon = non_criteria_automation_display(:license)
+              implementation_languages_class, implementation_languages_icon =
+                non_criteria_automation_display(:implementation_languages)
+              cpe_class, cpe_icon = non_criteria_automation_display(:cpe)
+              general_comments_class, general_comments_icon =
+                non_criteria_automation_display(:general_comments)
+            %>
+            <div class="hidable-text-entry <%= name_class %>">
+            <%= name_icon %>
             <span><%= f.label :name, t('projects.form_basics.project_name.description') %></span>
             <%= render(partial: "details", locals: {
                        criterion: "project_name",
@@ -8,13 +27,14 @@
                              skip_label: true,
                              placeholder: t('projects.form_basics.project_name.placeholder'),
                              spellcheck: false,
-                             disabled: is_disabled %>
+                             disabled: view_only %>
             </div>
 
-            <div class="hidable-text-entry">
+            <div class="hidable-text-entry <%= description_class %>">
+            <%= description_icon %>
             <span><%= f.label :description, t('projects.form_basics.description.description') %></span>
-            <% if is_disabled %>
-              <div class="discussion-markdown" id="project_description" id="en">
+            <% if view_only %>
+              <div class="discussion-markdown" id="project_description" lang="<%= project.entry_locale %>">
                 <%= markdown(project[:description]) %>
               </div>
             <% else %>
@@ -25,27 +45,40 @@
             <%= f.text_area :description, class:"form-control",
                             skip_label: true,
                             placeholder: t('projects.form_basics.description.placeholder'),
-                            lang: 'en', spellcheck: true,
-                            disabled: is_disabled %>
+                            lang: project.entry_locale, spellcheck: true,
+                            disabled: view_only %>
             <% end %>
             </div>
 
+            <% unless view_only %>
+              <div class="hidable-text-entry">
+                <span><label><%= t('projects.form_basics.entry_locale.description') %></label></span>
+                <%= render(partial: "details", locals: {
+                           criterion: "entry_locale",
+                           details: t('projects.form_basics.entry_locale.details')
+                }) %>
+                <%= f.select :entry_locale,
+                             Rails.application.config.locale_select_options[I18n.locale.to_s],
+                             {skip_label: true}, {class: 'form-control'} %>
+              </div>
+            <% end %>
+
             <div class="hidable-text-entry">
             <span><%= f.label :homepage_url, t('projects.form_basics.homepage_url.description') %></span>
-            <% if is_disabled %>
+            <% if view_only %>
               <div class="discussion-markdown" id="project_homepage_url">
                  <%= link_to_if project.contains_url?(project.homepage_url), project.homepage_url, project.homepage_url, rel: 'nofollow ugc' %>
               </div>
             <% else %>
               <%= f.text_field :homepage_url, skip_label: true, class: "form-control",
                                placeholder: t('projects.form_basics.homepage_url.placeholder'),
-                               disabled: is_disabled %>
+                               disabled: view_only %>
             <% end %>
             </div>
 
             <div class="hidable-text-entry">
             <span><%= f.label :repo_url, t('projects.form_basics.repo_url.description') %></span>
-            <% if is_disabled %>
+            <% if view_only %>
               <div class="discussion-markdown" id="project_repo_url">
                  <%= link_to_if project.contains_url?(project.repo_url), project.repo_url, project.repo_url, rel: 'nofollow ugc' %>
               </div>
@@ -53,6 +86,239 @@
               <%= f.text_field :repo_url, class:"form-control",
                                skip_label: true,
                                placeholder:t('projects.form_basics.repo_url.placeholder'),
-                               disabled: is_disabled %>
+                               disabled: view_only %>
+            <% end %>
+            </div>
+
+            <div class="hidable-text-entry <%= license_class %>">
+            <%= license_icon %>
+            <span><%= f.label :license, t('projects.form_basics.license.description_html') %></span>
+            <%= render(partial: 'details',
+                       locals: {
+                         criterion: 'license',
+                         details:
+                           t('projects.form_basics.license.details_html')
+                       }) %>
+            <%=
+                # "Pattern" here is not a rigorous check of SPDX syntax.
+                # It only checks to ensure that only legal characters are
+                # allowed. Still, this can prevent some problems we've seen
+                # in some submissions, while permitting legal expressions like
+                # "(GPL-2.0+ WITH Bison-exception-2.2)".  See:
+                # https://spdx.org/spdx-specification-21-web-version
+                # Errors here do not cause *security* issues, so we're not
+                # too strict, but we want to check inputs so that our
+                # data is much more likely to be accurate.
+                f.text_field :license,
+                             class: 'form-control', skip_label: true,
+                             pattern: '[\(\)A-Za-z0-9\-.+ ]*',
+                             title:
+                               t('projects.form_basics.license.title'),
+                             placeholder:
+                               t('projects.form_basics.license.placeholder'),
+                             list: 'license_list', disabled: view_only %>
+           <!-- Some examples from http://wiki.spdx.org/view/FileNoticeExamples -->
+           <datalist class="hidden" id="license_list">
+              <option value="AGPL-3.0-only">AGPL-3.0-only {GNU Affero General Public License 3.0 only}</option>
+              <option value="AGPL-3.0-or-later">AGPL-3.0-or-later {GNU Affero General Public License 3.0 or later}</option>
+              <option value="Apache-2.0">Apache-2.0 {Apache License 2.0}</option>
+              <option value="Artistic-1.0">Artistic-1.0 {Artistic License 1.0}</option>
+              <option value="Artistic-1.0-Perl">Artistic-1.0-Perl {Artistic License 1.0, Perl}</option>
+              <option value="Artistic-1.0-cl8">Artistic-1.0-cl8 {Artistic License 1.0 with clause 8}</option>
+              <option value="Artistic-2.0">Artistic-2.0 {Artistic License 2.0}</option>
+              <option value="BSD-3-Clause">BSD-3-Clause {BSD 3-clause "New" or "Revised" License}</option>
+              <option value="BSD-2-Clause">BSD-2-Clause {BSD 2-clause "Simplified" License}</option>
+              <option value="BSD-2-Clause-FreeBSD">BSD-2-Clause-FreeBSD {BSD 2-clause FreeBSD License}</option>
+              <option value="BSL-1.0">BSL-1.0 {Boost Software License 1.0}</option>
+              <option value="CC0-1.0">CC0-1.0 {Creative Commons Zero v1.0 Universal}</option>
+              <option value="CC-BY-3.0">CC-BY-3.0 {Creative Commons Attribution 3.0}</option>
+              <option value="CC-BY-3.0+">CC-BY-3.0+ {Creative Commons Attribution 3.0 or later}</option>
+              <option value="CC-BY-4.0">CC-BY-4.0 {Creative Commons Attribution 4.0}</option>
+              <option value="CC-BY-4.0+">CC-BY-4.0+ {Creative Commons Attribution 4.0 or later}</option>
+              <option value="CC-BY-SA-3.0">CC-BY-SA-3.0 {Creative Commons Attribution ShareAlike 3.0}</option>
+              <option value="CC-BY-SA-3.0+">CC-BY-SA-3.0+ {Creative Commons Attribution ShareAlike 3.0 or later}</option>
+              <option value="CC-BY-SA-4.0">CC-BY-SA-4.0 {Creative Commons Attribution ShareAlike 4.0}</option>
+              <option value="CC-BY-SA-4.0+">CC-BY-SA-4.0+ {Creative Commons Attribution ShareAlike 4.0 or later}</option>
+              <option value="CDDL-1.0">CDDL-1.0 {Common Development and Distribution License 1.0}</option>
+              <option value="CDDL-1.1">CDDL-1.1 {Common Development and Distribution License 1.1}</option>
+              <option value="CPL-1.0">CPL-1.0 {Common Public License 1.0}</option>
+              <option value="CECILL-B">CECILL-B {CeCILL-B Free Software License Agreement}</option>
+              <option value="EPL-1.0">EPL-1.0 {Eclipse Public License 1.0}</option>
+              <option value="EPL-2.0">EPL-2.0 {Eclipse Public License 2.0}</option>
+              <option value="GPL-2.0-only">GPL-2.0-only {GNU General Public License version 2.0 only}</option>
+              <option value="GPL-2.0-or-later">GPL-2.0-or-later {GNU General Public License version 2.0 or later}</option>
+              <option value="GPL-3.0-only">GPL-3.0-only {GNU General Public License version 3.0 only}</option>
+              <option value="GPL-3.0-or-later">GPL-3.0-or-later {GNU General Public License version 3.0 or later}</option>
+              <option value="ISC">ISC {ISC license}</option>
+              <option value="LGPL-2.1-only">LGPL-2.1-only {GNU Lesser General Public License version 2.1 only}</option>
+              <option value="LGPL-2.1-or-later">LGPL-2.1-or-later {GNU Lesser General Public License version 2.1 or later}</option>
+              <option value="LGPL-3.0-only">LGPL-3.0-only {GNU Lesser General Public License version 3.0 only}</option>
+              <option value="LGPL-3.0-or-later">LGPL-3.0-or-later {GNU Lesser General Public License version 3.0 or later}</option>
+              <option value="MS-PL">MS-PL {Microsoft Public License}</option>
+              <option value="MIT">MIT</option>
+              <option value="MPL-1.0">MPL-1.0 {Mozilla Public License 1.0}</option>
+              <option value="MPL-1.1">MPL-1.1 {Mozilla Public License 1.0}</option>
+              <option value="MPL-2.0">MPL-2.0 {Mozilla Public License 2.0}</option>
+              <option value="MPL-2.0-no-copyleft-exception">MPL-2.0-no-copyleft-exception {Mozilla Public License 2.0, no copyleft exception}</option>
+              <option value="Unlicense">Unlicense {The Unlicense}</option>
+              <option value="Zlib">Zlib {zlib License}</option>
+              <option value="zlib-acknowledgement">zlib-acknowledgement {zlib/libpng License with Acknowledgement}</option>
+              <option value="(GPL-3.0-or-later WITH Bison-Exception)">(GPL-3.0-or-later WITH Bison-Exception)</option>
+              <option value="(LGPL-2.1-or-later AND AML)">(LGPL-2.1-or-later AND AML) {must meet both the GNU Lesser General Public License version 2.1 or later AND the Apple MIT License}</option>
+              <option value="(MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later)">(MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later)</option>
+              <option value="(Ruby OR BSD-2-Clause)">(Ruby OR BSD-2-Clause)</option>
+           </datalist>
+            </div>
+
+            <div class="hidable-text-entry <%= implementation_languages_class %>">
+            <%= implementation_languages_icon %>
+            <span><%= f.label :implementation_languages, t('projects.form_basics.implementation_languages.description') %></span>
+            <%= render(partial: "details", locals: {
+              criterion: "implementation_languages",
+              details:
+                t('projects.form_basics.implementation_languages.details') }) %>
+            <%= f.text_field :implementation_languages,
+                             skip_label: true, class:"form-control",
+                             placeholder:
+                               t('projects.form_basics.' +
+                                 'implementation_languages.placeholder'),
+                             spellcheck: false,
+                             list: 'implementation_language_list',
+                             disabled: view_only %>
+           <!-- Some examples from http://wiki.spdx.org/view/FileNoticeExamples -->
+           <datalist class="hidden" id="implementation_language_list">
+              <option value="-">- (None)</option>
+              <option value="4th Dimension/4D">4th Dimension/4D</option>
+              <option value="ABAP">ABAP</option>
+              <option value="ABC">ABC</option>
+              <option value="ActionScript">ActionScript</option>
+              <option value="Ada">Ada</option>
+              <option value="Alice">Alice</option>
+              <option value="Apex">Apex</option>
+              <option value="APL">APL</option>
+              <option value="Assembly language">Assembly language</option>
+              <option value="AutoLISP">AutoLISP</option>
+              <option value="Awk">Awk</option>
+              <option value="Bash">Bash (bash-specific)</option>
+              <option value="bc">bc</option>
+              <option value="BlitzMax">BlitzMax</option>
+              <option value="Bourne shell">Bourne shell (portable)</option>
+              <option value="C">C</option>
+              <option value="C#">C#</option>
+              <option value="C++">C++</option>
+              <option value="CFML">CFML</option>
+              <option value="cg">cg</option>
+              <option value="Clojure">Clojure</option>
+              <option value="CL (OS/400)">CL (OS/400)</option>
+              <option value="COBOL">COBOL</option>
+              <option value="Common Lisp">Common Lisp</option>
+              <option value="Crystal">Crystal</option>
+              <option value="C shell">C shell</option>
+              <option value="D">D</option>
+              <option value="Dart">Dart</option>
+              <option value="Delphi">Delphi</option>
+              <option value="Eiffel">Eiffel</option>
+              <option value="Elixir">Elixir</option>
+              <option value="Elm">Elm</option>
+              <option value="Emacs Lisp">Emacs Lisp</option>
+              <option value="Erlang">Erlang</option>
+              <option value="F#">F#</option>
+              <option value="Factor">Factor</option>
+              <option value="Forth">Forth</option>
+              <option value="Fortran">Fortran</option>
+              <option value="FoxPro">FoxPro</option>
+              <option value="Go">Go</option>
+              <option value="Groovy">Groovy</option>
+              <option value="Hack">Hack</option>
+              <option value="Haskell">Haskell</option>
+              <option value="Icon">Icon</option>
+              <option value="IDL">IDL</option>
+              <option value="Inform 6">Inform 6</option>
+              <option value="Inform 7">Inform 7</option>
+              <option value="Io">Io</option>
+              <option value="J">J</option>
+              <option value="Java">Java</option>
+              <option value="JavaScript">JavaScript</option>
+              <option value="Julia">Julia</option>
+              <option value="Korn shell">Korn shell</option>
+              <option value="Kotlin">Kotlin</option>
+              <option value="LabVIEW">LabVIEW</option>
+              <option value="Ladder Logic">Ladder Logic</option>
+              <option value="Lisp">Lisp (other than Common Lisp, Scheme, Emacs Lisp, or Clojure)</option>
+              <option value="Logo">Logo</option>
+              <option value="Lua">Lua</option>
+              <option value="Maple">Maple</option>
+              <option value="MATLAB">MATLAB</option>
+              <option value="ML">ML</option>
+              <option value="MQL4">MQL4</option>
+              <option value="NATURAL">NATURAL</option>
+              <option value="NXT-G">NXT-G</option>
+              <option value="Objective-C">Objective-C</option>
+              <option value="OCaml">OCaml</option>
+              <option value="OpenCL">OpenCL</option>
+              <option value="Oz">Oz</option>
+              <option value="Perl">Perl</option>
+              <option value="PHP">PHP</option>
+              <option value="PL/I">PL/I</option>
+              <option value="PL/SQL">PL/SQL</option>
+              <option value="PostScript">PostScript</option>
+              <option value="PowerShell">PowerShell</option>
+              <option value="Prolog">Prolog</option>
+              <option value="Python">Python</option>
+              <option value="Q">Q</option>
+              <option value="R">R</option>
+              <option value="REXX">REXX</option>
+              <option value="RPG (OS/400)">RPG (OS/400)</option>
+              <option value="Ruby">Ruby</option>
+              <option value="Rust">Rust</option>
+              <option value="SAS">SAS</option>
+              <option value="Scala">Scala</option>
+              <option value="Scheme">Scheme</option>
+              <option value="Scratch">Scratch</option>
+              <option value="Simulink">Simulink</option>
+              <option value="Smalltalk">Smalltalk</option>
+              <option value="SPARK">SPARK</option>
+              <option value="SPSS">SPSS</option>
+              <option value="Standard ML">Standard ML</option>
+              <option value="Stata">Stata</option>
+              <option value="Swift">Swift</option>
+              <option value="Tcl">Tcl</option>
+              <option value="Transact-SQL">Transact-SQL</option>
+              <option value="VBScript">VBScript</option>
+              <option value="Verilog ">Verilog </option>
+              <option value="VHDL">VHDL</option>
+              <option value="Visual Basic">Visual Basic (not .NET)</option>
+              <option value="Visual Basic .NET">Visual Basic .NET</option>
+           </datalist>
+            </div>
+
+            <div class="hidable-text-entry <%= cpe_class %>">
+            <%= cpe_icon %>
+            <span><%= f.label :cpe, t('projects.form_basics.cpe.description_html') %></span>
+            <%= render(partial: "details",
+                       locals: {
+                         criterion: "cpe",
+                         details:
+                           t('projects.form_basics.cpe.details_html')}) %>
+            <%= f.text_field :cpe,
+                  skip_label: true, class:"form-control",
+                  placeholder: t('projects.form_basics.cpe.placeholder'),
+                  spellcheck: false, disabled: view_only %>
+            </div>
+
+            <div class="hidable-text-entry <%= general_comments_class %>">
+            <%= general_comments_icon %>
+            <span><%= f.label :general_comments, t('projects.misc.general_comments.description') %></span>
+            <% if view_only %>
+              <div class="discussion-markdown" id="project_general_comments">
+                <%= markdown(project[:general_comments]) %>
+              </div>
+            <% else %>
+              <%= f.text_area :general_comments,
+                              class:"form-control", skip_label: true,
+                              lang: project.entry_locale, spellcheck: true,
+                              placeholder:
+                                t('projects.misc.general_comments.placeholder'),
+                              disabled: view_only %>
             <% end %>
             </div>

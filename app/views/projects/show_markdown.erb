@@ -1,14 +1,17 @@
 <%-
   # @criteria_level should always be a string, but handle nil gracefully.
+  # Normalize to always use text forms for consistency in URLs
   if @criteria_level.blank? then
-    criteria_levels = Criteria.keys # All levels
+    criteria_levels = Criteria.keys.map { |key| normalize_criteria_level(key) }
   else
     criteria_levels = [@criteria_level]
   end
 
   def criterion_to_checkbox(value)
+    # Convert integer status value to markdown checkbox
+    # Database stores: 0=?, 1=Unmet, 2=N/A, 3=Met
     case value
-    when 'Met', 'N/A'
+    when CriterionStatus::MET, CriterionStatus::NA
       '[x]'
     else
       '[ ]'
@@ -19,23 +22,24 @@
 # <%= @project.name %>
 
 <%- criteria_levels.each do |criteria_level| -%>
+<%- internal_level = criteria_level_to_internal(criteria_level) -%>
 
-## [<%= t("projects.form_early.level.#{criteria_level}")
+## [<%= t("projects.form_early.level.#{internal_level}")
     %>](https://www.bestpractices.dev/projects/<%= @project.id
   %>?criteria_level=<%= criteria_level %>)
 
-<%- FullCriteriaHash[criteria_level].each do |major, major_info| -%>
+<%- FullCriteriaHash[internal_level].each do |major, major_info| -%>
 - **<%= t("headings.#{major}") %>**
 <%-   major_info.each do |minor, minor_info| -%>
   - *<%= t("headings.#{minor}") %>*
 <%-     minor_info.each do |criterion, criterion_info| -%>
     - <%= criterion_to_checkbox(@project["#{criterion}_status".to_sym])
       %> <%=
-        t("criteria.#{criteria_level}.#{criterion}.description").html_safe
+        t("criteria.#{internal_level}.#{criterion}.description").html_safe
       %><%=
         # Only add a "details" tag with details if there *are* any details
         # "Details" and the other strings here are from trusted sources.
-        details = I18n.t("criteria.#{criteria_level}.#{criterion}.details",
+        details = I18n.t("criteria.#{internal_level}.#{criterion}.details",
                          default: '')
         if details.present?
           '<details><summary> '.html_safe

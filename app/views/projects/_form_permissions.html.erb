@@ -1,0 +1,190 @@
+<%# Permissions form for managing project ownership and collaborators %>
+<%# This form is separate from badge criteria forms (passing/silver/gold) %>
+<% @project ||= project %>
+
+<div>
+  <span id="project_entry_form"></span>
+</div>
+
+<p class="no-padding padding-right main-subtext">
+<%= t('projects.edit.permissions_description',
+      default: 'Manage project permissions, including ownership transfer and collaborator access.') %>
+</p>
+
+<%# Badge level navigation - permissions is not a badge level %>
+<%
+  # Generate path-based URLs for badge levels (not query parameters)
+  # Rails auto-generates project_section_path and edit_project_section_path from routes
+  passing_path = view_only ? project_section_path(project, 'passing') : edit_project_section_path(project, 'passing')
+  silver_path = view_only ? project_section_path(project, 'silver') : edit_project_section_path(project, 'silver')
+  gold_path = view_only ? project_section_path(project, 'gold') : edit_project_section_path(project, 'gold')
+%>
+<br>
+<p>
+  <%= t('projects.edit.badge_levels_label', default: 'Badge Levels:') %>
+  <a href='<%= passing_path %>' title='<%= t('projects.form_early.level.0') %>'><%= image_tag('passing.svg', size: '53x20', alt: t('projects.form_early.level.0')) %></a>
+  <a href='<%= silver_path %>' title='<%= t('projects.form_early.level.1') %>'><%= image_tag('silver.svg', size: '41x20', alt: t('projects.form_early.level.1')) %></a>
+  <a href='<%= gold_path %>' title='<%= t('projects.form_early.level.2') %>'><%= image_tag('gold.svg', size: '35x20', alt: t('projects.form_early.level.2')) %></a>
+</p>
+
+<%# End column started outside parent %>
+</div>
+
+<div class="col-sm-3">
+</div>
+<%# end row started outside parent %>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div>
+      <% if view_only %>
+        <%# Read-only view of permissions %>
+        <br>
+        <div class="panel-group well well-lg well-color">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <h2 class="panel-title">
+                <%= t('projects.edit.permissions_panel_title', default: 'Permissions') %>
+              </h2>
+            </div>
+            <div class="panel-collapse collapse in">
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <h3><%= t('projects.edit.ownership_transfer', default: 'Ownership Transfer') %></h3>
+                  <p>
+                    <strong><%= t('projects.edit.current_owner', default: 'Current owner ID:') %></strong>
+                    <%= project.user_id %>
+                  </p>
+                  <p class="text-muted">
+                    <%= t('projects.edit.ownership_edit_hint',
+                          default: '(Ownership can be transferred when editing this section.)') %>
+                  </p>
+                </li>
+                <li class="list-group-item">
+                  <h3><%= t('projects.edit.collaborator_management', default: 'Collaborator Management') %></h3>
+                  <p><strong><%= t('projects.form_basics.additional_rights_changes.description',
+                        current_rights: project.additional_rights_to_s) %></strong></p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <%# Editable form %>
+        <%= bootstrap_form_for project, url: update_project_path(project, section: 'permissions') do |f| %>
+        <%= render 'shared/error_messages', object: f.object %>
+        <%= f.hidden_field :lock_version %>
+
+        <br>
+
+        <div class="panel-group well well-lg well-color">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <h2 class="panel-title">
+                <a data-toggle="collapse" href="#permissions" class="collapse-link">
+                  <%= t('projects.edit.permissions_panel_title', default: 'Permissions') %>
+                </a>
+              </h2>
+            </div>
+            <div class="panel-collapse collapse in">
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <h3 id="section_permissions"><%= t('projects.edit.permissions_title', default: 'Project Permissions') %></h3>
+
+                  <p><%= t('projects.edit.permissions_intro', default: 'Manage ownership and collaborator access for this project.') %></p>
+
+                  <%# Show ownership transfer for admins and project owners %>
+                  <% if current_user.present? && project.present? &&
+                        (current_user.admin? || current_user.id == project.user_id) %>
+
+                    <%# Ownership Transfer Section %>
+                    <div class="row">
+                      <div class="col-xs-12">
+                        <h4><%= t('projects.edit.ownership_transfer', default: 'Ownership Transfer') %></h4>
+                        <p class="text-muted">
+                          <%= t('projects.edit.ownership_description',
+                                default: 'To transfer ownership to another user, enter their user ID in both fields below.') %>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-xs-12">
+                        <br>
+                        <%= t 'projects.edit.new_owner' %>:
+                        <%= f.text_field :user_id,
+                                         hide_label: true, class:"form-control",
+                                         placeholder: nil,
+                                         spellcheck: false %><br>
+                      </div>
+                      <div class="col-xs-12">
+                        <br>
+                        <%= t 'projects.edit.new_owner_repeat' %>:
+                        <%# The user must provide the same value here as user_id to
+                            cause an ownership change.
+                            The client-side pattern here prevents some mistakes.
+                            Since it's client-side we don't depend on it for security.
+                        %>
+                        <input type="text" name="project[user_id_repeat]"
+                               id="project_user_id_repeat" class="form-control"
+                               value="" spellcheck="false" pattern="^(|\d+)$"
+                               placeholder="">
+                      </div>
+                    </div>
+
+                    <br><br>
+
+                  <% end # admin or owner check %>
+
+                  <%# Reminder Notifications Section %>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <br>
+                      <div class="alert alert-info">
+                        <strong><%= t('projects.misc.reminder_notification_note.title') %></strong>
+                        <%= t('projects.misc.reminder_notification_note.description_html', user_id: current_user&.id) %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <%# Collaborator Management Section %>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <h4><%= t('projects.edit.collaborator_management', default: 'Collaborator Management') %></h4>
+                      <%= t 'projects.form_basics.additional_rights_changes.description',
+                            current_rights: project.additional_rights_to_s %>
+                      <%= render(partial: "details", locals: {
+                        criterion: "additional_rights_changes",
+                        details:
+                          t('projects.form_basics.additional_rights_changes.details_html') })
+                      %>
+                      <%# text_field_tag isn't flexible enough, so create this directly.
+                          The client-side pattern here prevents some mistakes,
+                          but since it's client-side we don't depend on it for security. %>
+                      <input type="text" name="additional_rights_changes"
+                             id="additional_rights_changes" class="form-control"
+                             value="" spellcheck="false"
+                             pattern="^(| *[+-] *(\d+( *, *\d+)*)+)$"
+                             placeholder="<%= t('projects.form_basics.additional_rights_changes.placeholder')%>">
+                    </div>
+                  </div>
+
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <%# Submit Button %>
+        <div class="row">
+          <div class="col-xs-12">
+            <%= f.primary t('helpers.submit.update', model: 'Project'), class: 'btn btn-primary' %>
+          </div>
+        </div>
+
+        <% end # bootstrap_form_for %>
+      <% end # if view_only / else %>
+    </div>
+  </div>
+</div>

@@ -26,7 +26,7 @@ zh-CN:
     login_html: 登录
     footer_text_html: >-
       <small> <strong>需要帮助？有疑问？发现问题？请 <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">发送邮件</a>
-      或 <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      或 <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">提出问题</a></em>.</strong> ©
       2015-2017 <a href="https://openssf.org/" target="_blank"
       rel="noopener">Open Source Security Foundation （核心基础设施计划）</a>,
@@ -37,6 +37,7 @@ zh-CN:
     account: 帐户
     choose_locale: 选择区域设置
     toggle_navigation: 切换可折叠导航
+    translation_disclaimer_html:
   sessions:
     login_header: 登录
     login_with_github_html: 使用GitHub账户登录
@@ -100,6 +101,8 @@ zh-CN:
       inadequate_privileges: 抱歉，您不能这样做。
       notification_emails:
       notification_emails_help:
+      important_notifications:
+      important_notifications_help:
   project_stats:
     index:
       project_stats_header: 项目统计
@@ -182,24 +185,30 @@ zh-CN:
       new_badge: 新徽章
       may_select_html: 您可以从GitHub仓库中选择<em>或</em>提供其他有关项目的信息。
       select_one_github: 从GitHub仓库中选择
-      submit_github: 提交GitHub仓库
       url_of_homepage: 项目主页的URL （项目整体的）？以 http(s):// 开头 （很多字符不允许，包含
         "?"）
       placeholder_of_homepage: http(s)://... 项目主页 URL
       url_of_repo: 版本控制仓库的URL （可以和项目主页相同）？ 以 http(s):// 开头（很多字符不允许，包含
         "?"）
       placeholder_of_repo: http(s)://... 项目仓库 URL
-      submit_urls: 提交网址
       sign_in_first: 请登录以添加项目！
       thanks_adding: 感谢您添加项目！请填写其余信息以获取徽章。
       project_already_exists: 这个项目已经存在！
       final_text_html: 注意 - 如果您的存储库URL位于GitHub上，则任何可以提交到存储库的人都可以编辑徽章信息。
-      new_badge_or: 或
       original_repos: "=>原始GitHub仓库"
       fork_repos: "=> 分支GitHub仓库"
       tell_us: >-
         请告诉我们您的自由/自由/开源软件（FLOSS）项目。这<b>必须</b>是FLOSS项目；别无其他。请<b>不要</b>添加无关的网站，试图提高网站的搜索引擎优化（SEO）。禁止这种垃圾邮件发送是因为它危害用户，并且无论如何都不会帮助SEO（所有超链接都标记为<tt>ugc</tt>和<tt>nofollow</tt>
         ）。
+      reminder_email_html:
+      github_repo_label:
+      github_reconnect_html:
+      github_reconnect_link:
+      submit:
+      badge_series:
+      badge_series_description:
+      badge_series_metal:
+      badge_series_baseline:
     show:
       edit: 编辑
       delete: 删除
@@ -222,6 +231,7 @@ zh-CN:
       last_lost_html: 最后在%{when}丢失通过徽章。
       last_achieved_html: 最后在 %{when} 获得通过徽章。
       cdla_permissive_20_html:
+      section_selector:
     edit:
       submit_cc_by_3plus_html: >-
         通过提交有关该项目的数据，您同意至少在<a href="https://creativecommons.org/licenses/by/3.0/us"
@@ -243,6 +253,29 @@ zh-CN:
       submit_cdla_permissive_20_html:
       new_owner:
       new_owner_repeat:
+      current_owner:
+      ownership_edit_hint:
+      not_authorized:
+      save_and_continue_tooltip:
+      automation:
+        aria_automated:
+        aria_overridden:
+        automated_tooltip:
+        overridden_tooltip:
+        aria_divergent:
+        overridden_detail:
+        overridden_old_justification_part:
+        overridden_explanation_part:
+        divergent_detail:
+        divergent_justification_part:
+        divergent_proposed_value:
+        chief_overrode:
+          one:
+          other:
+        override_detail:
+        analysis_failed:
+          one:
+          other:
     form_basics:
       project_name:
         description: 项目的人类可读的名称是什么？
@@ -283,12 +316,15 @@ zh-CN:
           大多数项目应忽略此字段。项目徽章条目可以由徽章条目所有者（创建者），BadgeApp管理员以及任何可以提交给GitHub存储库（如果在GitHub上）的人员进行编辑。如果您希望其他人能够编辑此徽章条目，并且您已具有此项目徽章条目的编辑权限，则可以为其他用户提供编辑权限。只需输入“+”，后跟一个逗号分隔的整数用户ID列表。那么这些用户也将被允许编辑此项目条目。如果您是徽章条目的所有者或BadgeApp管理员，则可以通过输入“
           - ”，后跟逗号分隔的整数用户ID列表，从该列表中删除用户。如果多个用户尝试同时编辑，此应用程序使用乐观锁定机制来防止保存过期数据。只有此项目条目的所有者和BadgeApp管理员才能更改此字段。
         placeholder: 更改使用+或 - 后跟逗号分隔的用户标识列表
+      entry_locale:
+        description:
+        details:
     form_early:
       badge_intro:
         description: 遵循以下最佳实践的项目将能够自愿的自我认证，并显示他们已经实现了核心基础设施计划（OpenSSF）徽章。
         details_html: >-
           没有一套可以保证软件永远不会有缺陷或漏洞的做法；如果规范或假设是错误的，即使合适的方法也可能失败。也没有哪些做法可以保证一个项目能够维持健康和运作良好的开发者社区。但是，遵循最佳做法可以帮助改善项目的成果。例如，一些做法可以在发布之前进行多人评估，这可以帮助您找到其他难以找到的技术漏洞，并帮助建立信任，并希望不同公司的开发人员之间进行重复的交互。要获得徽章，必须满足所有“必须”和“禁止”的条款，满足所有“应该”条款或有合适的理由，<em>和</em>所有“建议”条款必须满足或未满足（至少希望考虑）。欢迎通过<a
-          href="https://github.com/coreinfrastructure/best-practices-badge">
+          href="https://github.com/ossf/best-practices-badge">
           GitHub网站创建问题或提出请求</a>进行反馈。另外还有一个<a href ="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">一般讨论邮件列表</a>。<br/>
           <br/>
       got_badge:
@@ -300,7 +336,7 @@ zh-CN:
         editing_description_html: >-
           <strong>请经常提交</strong>保存您的工作（您可以随时返回并编辑更多内容）。 <br> <br>如果您需要帮助，有疑问或发现问题，请<em><a
           href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">发送邮件</a>
-          </em>或者 <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          </em>或者 <em><a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">提交问题</a></em>。
         badge_alt: 项目%{id}的徽章级别为%{level}
       level:
@@ -310,6 +346,17 @@ zh-CN:
         '0': 通过
         '1': 白银
         '2': 黄金
+        baseline-1:
+        baseline-1_html:
+        baseline-2:
+        baseline-2_html:
+        baseline-3:
+        baseline-3_html:
+      got_baseline_badge:
+        description_1:
+        badge_alt:
+        description_2:
+        details_html:
     misc:
       disabled_reminders: "（高级）禁用不活动提醒（我们建议您取消选中此选项）"
       general_comments:
@@ -355,6 +402,8 @@ zh-CN:
       reminder_notification_note:
         title:
         description_html:
+      obsolete_header_html:
+      obsolete_criterion:
     delete:
       done: 项目已成功删除。
     delete_form:
@@ -364,6 +413,16 @@ zh-CN:
       delete_action: 永久性删除该项目的徽章项！
       too_short: 必须至少有20个字符。
       more_non_whitespace: 必须至少有15个非空白字符。
+    choose_edit:
+      title:
+      instructions:
+      proposals_note:
+    choose_show:
+      title:
+      instructions:
+    baseline_version_notice:
+      current:
+      transition:
   user_mailer:
     account_activation:
       before_html: |-
@@ -434,6 +493,7 @@ zh-CN:
       one: 作为一种反垃圾邮件措施，您必须在激活后等待一小时才能登录。
       few: 作为一种反垃圾邮件措施，您必须在激活后等待%{count}小时才能登录。
       other: 作为一种反垃圾邮件措施，您必须在激活后等待%{count}小时才能登录。
+      many: 作为一种反垃圾邮件措施，您必须在激活后等待%{count}小时才能登录。
   password_resets:
     forgot_password: 忘记密码
     reset_password: 重设密码
@@ -458,7 +518,7 @@ zh-CN:
       有问题，或者需要帮助，请联系：
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       或者提交问题：
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       （点击“new issue”）。
       </p>
       <p>
@@ -472,7 +532,7 @@ zh-CN:
       有问题，或者需要帮助，请联系：
       cii-badges-questions-owner@lists.coreinfrastructure.org
       或者提交问题：
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       （点击“new issue”）。
       感谢您的时间投入。
     in_markdown_add: 在markdown标记文本中，您可以添加：
@@ -495,12 +555,12 @@ zh-CN:
       我们强烈建议您添加或改进理由陈述，
       包括添加指向更多信息的URL。
       如果您有关于如何改进条款或徽章网络应用程序的建议，请提出问题：
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       如果您对项目进行了更改以获得徽章，请通过电子邮件通知我们：cii-badges-questions@lists.coreinfrastructure.org。
       我们的目标之一是鼓励项目进行持续性的改进。
       我们把这些报告放在公共维基上；
       如果您不想公开发布更改，请告诉我们：
-      https://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
       谢谢。恭喜！
     lost_level_message: |-
       很抱歉，您的项目不再具有“%{old_level}”徽章
@@ -533,7 +593,7 @@ zh-CN:
       如果您有疑问，或者需要帮助，请联系
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       或者在该链接创建问题：
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (点击 "new issue")。
       </p>
       <p>
@@ -567,7 +627,7 @@ zh-CN:
       如果您有疑问，或者需要帮助，请联系
       cii-badges-questions-owner@lists.coreinfrastructure.org
       或者在该链接创建问题：
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (点击 "new issue").
       如果您持续的更新徽章记录，我们将不会发送提醒邮件，
       并且我们估计30~60天才会发送一次。当然，
@@ -579,6 +639,8 @@ zh-CN:
       感谢您的时间。
     unsubscribe_notice_html:
     unsubscribe_notice_text:
+    subject_warned_level:
+    warned_level_message:
   project_name_unknown: "(未知名称)"
   locale_name:
     en: 英文
@@ -1167,7 +1229,7 @@ zh-CN:
           一个保证案例是“一个文献记录的证据体系，提供了一个有说服力和有效的论据，指出一组关于系统属性的关键权利要求在给定环境中给定应用程序是充分合理的”（<a
           href ="http://nvlpubs.nist.gov/nistpubs/ir/2009/ir7608.pdf">使用结构化保证案例模型的软件保证，Thomas
           Rhodes等人，NIST机构间报告7608）。信任边界是数据或执行改变其信任级别的边界，例如，典型Web应用程序中的服务器边界。常见做法是列出安全设计原则（例如Saltzer和Schroeer）和常见的实施安全漏洞（例如OWASP前10名或CWE
-          / SANS前25名），并显示每个方案如何抵御。 <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">
+          / SANS前25名），并显示每个方案如何抵御。 <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">
           BadgeApp保证案例</a>可能是一个有用的例子。本条款与documentation_security，documentation_architecture和implement_secure_design等条款有关。
       achieve_passing:
         description: 项目必须拥有通过徽章。
@@ -1257,6 +1319,203 @@ zh-CN:
         description: 项目应该在其生成的软件中包含许多运行时断言，并在动态分析期间检查这些断言。
       achieve_silver:
         description: 该项目必须拥有银级徽章。
+    baseline-1:
+      osps_ac_01_01:
+        description:
+        details:
+      osps_ac_02_01:
+        description:
+        details:
+      osps_ac_03_01:
+        description:
+        details:
+      osps_ac_03_02:
+        description:
+        details:
+      osps_br_01_01:
+        description:
+        details:
+      osps_br_01_02:
+        description:
+      osps_br_03_01:
+        description:
+        details:
+      osps_br_03_02:
+        description:
+        details:
+      osps_br_07_01:
+        description:
+        details:
+      osps_do_01_01:
+        description:
+        details:
+      osps_do_02_01:
+        description:
+        details:
+      osps_gv_02_01:
+        description:
+        details:
+      osps_gv_03_01:
+        description:
+        details:
+      osps_le_02_01:
+        description:
+        details:
+      osps_le_02_02:
+        description:
+        details:
+      osps_le_03_01:
+        description:
+        details:
+      osps_le_03_02:
+        description:
+        details:
+      osps_qa_01_01:
+        description:
+        details:
+      osps_qa_01_02:
+        description:
+        details:
+      osps_qa_02_01:
+        description:
+        details:
+      osps_qa_04_01:
+        description:
+        details:
+      osps_qa_05_01:
+        description:
+        details:
+      osps_qa_05_02:
+        description:
+        details:
+      osps_vm_02_01:
+        description:
+        details:
+      osps_br_01_03:
+        description:
+        details:
+    baseline-2:
+      osps_ac_04_01:
+        description:
+        details:
+      osps_br_02_01:
+        description:
+        details:
+      osps_br_04_01:
+        description:
+        details:
+      osps_br_05_01:
+        description:
+        details:
+      osps_br_06_01:
+        description:
+        details:
+      osps_do_06_01:
+        description:
+        details:
+      osps_gv_01_01:
+        description:
+        details:
+      osps_gv_01_02:
+        description:
+        details:
+      osps_gv_03_02:
+        description:
+        details:
+      osps_le_01_01:
+        description:
+        details:
+      osps_qa_03_01:
+        description:
+        details:
+      osps_qa_06_01:
+        description:
+        details:
+      osps_sa_01_01:
+        description:
+        details:
+      osps_sa_02_01:
+        description:
+        details:
+      osps_sa_03_01:
+        description:
+        details:
+      osps_vm_01_01:
+        description:
+        details:
+      osps_vm_03_01:
+        description:
+        details:
+      osps_vm_04_01:
+        description:
+        details:
+      osps_do_07_01:
+        description:
+        details:
+    baseline-3:
+      osps_ac_04_02:
+        description:
+        details:
+      osps_br_02_02:
+        description:
+        details:
+      osps_br_07_02:
+        description:
+        details:
+      osps_do_03_01:
+        description:
+        details:
+      osps_do_03_02:
+        description:
+        details:
+      osps_do_04_01:
+        description:
+        details:
+      osps_do_05_01:
+        description:
+        details:
+      osps_gv_04_01:
+        description:
+        details:
+      osps_qa_02_02:
+        description:
+        details:
+      osps_qa_04_02:
+        description:
+        details:
+      osps_qa_06_02:
+        description:
+        details:
+      osps_qa_06_03:
+        description:
+        details:
+      osps_qa_07_01:
+        description:
+        details:
+      osps_sa_03_02:
+        description:
+        details:
+      osps_vm_04_02:
+        description:
+        details:
+      osps_vm_05_01:
+        description:
+        details:
+      osps_vm_05_02:
+        description:
+        details:
+      osps_vm_05_03:
+        description:
+        details:
+      osps_vm_06_01:
+        description:
+        details:
+      osps_vm_06_02:
+        description:
+        details:
+      osps_br_01_04:
+        description:
+        details:
   static_pages:
     home:
       badge_program: OpenSSF 最佳实践徽章计划
@@ -1272,8 +1531,8 @@ zh-CN:
       p2_html: |-
         关于OpenSSF 最佳实践徽章计划的更多信息，
         包括背景以及
-        <a href='https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/criteria.md'>标准</a>, 可以访问
-        <a href='https://github.com/coreinfrastructure/best-practices-badge'>GitHub 项目</a>.
+        <a href='https://github.com/ossf/best-practices-badge/blob/main/docs/criteria.md'>标准</a>, 可以访问
+        <a href='https://github.com/ossf/best-practices-badge'>GitHub 项目</a>.
         <a href="/zh-CN/project_stats">项目统计数据</a> 和
         <a href="/zh-CN/criteria_stats">标准统计数据</a> 也同时提供。
         <a href="/zh-CN/projects">项目页面</a> 展示所有参与的项目，
@@ -1336,6 +1595,7 @@ zh-CN:
       met_justification_required: 需要满足理由
       met_justification_or_url_required: 满足理由或需要URL
       see_actual_criteria: 您可能还会看到实际标准。
+      obsolete:
     error_409:
       heading: 错误409：冲突
       conflict: 抱歉，多个条目与请求匹配，从而导致冲突。
@@ -1377,6 +1637,9 @@ zh-CN:
     Identification: 识别
     Prerequisites: 先决条件
     FLOSS license: FLOSS许可证
+    Controls:
+    General:
+    General_project_info:
   last_entry: 最后翻译条目
   admin_only: 仅限管理员。
   criterion_status:
@@ -1426,6 +1689,7 @@ zh-CN:
     na_justification_required:
     met_justification_required:
     met_url_required:
+    obsolete:
   criteria_discussion:
     intro_p01_html:
     intro_p02_html:
@@ -1508,3 +1772,57 @@ zh-CN:
     missing_parameters:
     invalid_parameters:
     error:
+  do_not_translate_this:
+  test_pluralization_only_one:
+    one:
+  detectives:
+    github:
+      repo_public:
+      repo_track:
+      repo_distributed:
+      contribution:
+      discussion:
+      osps_gv_02_01:
+      osps_do_02_01:
+      osps_ac_01_01:
+      osps_qa_01_01:
+      osps_qa_01_02:
+      name:
+      description:
+      license:
+      implementation_languages:
+    floss_license:
+      osi_approved:
+      osi_approved_repository:
+      not_in_osi_list:
+    hardened_sites:
+      all_headers_found:
+      headers_missing:
+    name_from_url:
+      domain_suggests:
+      tail_suggests:
+      repo_tail_suggests:
+    project_sites_https:
+      given_http:
+      official_http:
+      url_uses_http:
+      given_https:
+    repo_files:
+      no_file_found:
+      file_found:
+      contribution_documented:
+      license_found:
+      license_not_found:
+      license_not_in_releases:
+    subdir_files:
+      no_files_found:
+      no_folder_found:
+      some_contents_found:
+    test_forced:
+      test_automation:
+    repo_json:
+      field_from_file:
+    security_insights:
+      field_value:
+      array_match:
+      comment_suffix:

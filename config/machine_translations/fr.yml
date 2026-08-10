@@ -1,0 +1,374 @@
+---
+fr:
+  unsubscribe:
+    header: Se désabonner
+    description: Nous sommes désolés que vous ne souhaitiez plus recevoir de notifications. Si vous êtes certain, veuillez confirmer votre demande de désabonnement des notifications.
+    email_label: Adresse e-mail
+    issued_label: Date d'émission
+    token_label: Jeton de désabonnement
+    submit: Se désabonner
+    confirm_message: Êtes-vous sûr de vouloir vous désabonner de toutes les notifications ?
+    processing: Traitement en cours...
+    success: Vous avez été désabonné avec succès de nos notifications.
+    invalid_token: Jeton de désabonnement invalide. Veuillez vérifier le jeton de votre courriel.
+    no_matching_accounts: Aucun compte correspondant trouvé avec les notifications par courriel activées.
+    missing_parameters: 'Paramètres requis manquants : adresse courriel, jeton de désabonnement et date d''émission.'
+    invalid_parameters: Paramètres invalides fournis.
+    error: Une erreur s'est produite lors du traitement de votre demande. Veuillez réessayer plus tard.
+  users:
+    edit:
+      notification_emails: Notifications par courriel
+      notification_emails_help: Recevoir des notifications par courriel concernant vos projets
+      important_notifications: Notifications importantes
+      important_notifications_help: Recevoir des notifications importantes telles que la perte d'un badge en raison de critères modifiés
+  projects:
+    edit:
+      new_owner: Identifiant du propriétaire (un entier positif), modifier pour changer la propriété
+      new_owner_repeat: Identifiant du nouveau propriétaire répété (pour confirmer un changement de propriétaire)
+      current_owner: 'Identifiant du propriétaire actuel :'
+      ownership_edit_hint: "(La propriété peut être transférée lors de la modification de cette section.)"
+      submit_cdla_permissive_20_html: En soumettant ces données concernant le projet, vous acceptez de les publier sous au moins la licence <a href="https://cdla.dev/permissive-2-0/" >Community Data License Agreement – Permissive, Version 2.0</a>. Cela signifie qu'un destinataire de données peut partager les données, avec ou sans modifications, à condition que le destinataire de données rende disponible le texte de cet accord avec les données partagées. Cet accord n'impose <i>aucune</i> restriction ou obligation concernant l'utilisation, la modification ou le partage des résultats. Vous conservez les droits d'auteur (le cas échéant), et la licence du projet n'est pas affectée.<br><br>
+      not_authorized: Vous n'êtes pas autorisé à modifier ce projet.
+      automation:
+        aria_automated: Ce champ a été rempli automatiquement
+        aria_overridden: La valeur de ce champ a été corrigée par l'automatisation
+        automated_tooltip: Nous avons rempli ceci en utilisant l'analyse automatisée du projet
+        overridden_tooltip: Nous avons corrigé cette valeur en utilisant l'analyse automatisée du projet
+        chief_overrode:
+          one: 'Nous avons corrigé 1 champ sur la base de l''analyse du projet :'
+          other: 'Nous avons corrigé %{count} champs sur la base de l''analyse du projet :'
+        override_detail: "« %{criterion} » modifié de « %{old} » à « %{new} » — %{explanation}"
+        analysis_failed:
+          one: 'Avertissement : L''analyse automatisée a échoué pour 1 champ (%{fields}). Vos autres modifications ont été enregistrées.'
+          other: 'Avertissement : L''analyse automatisée a échoué pour %{count} champs (%{fields}). Vos autres modifications ont été enregistrées.'
+        aria_divergent: L'automatisation a donné une réponse différente
+        overridden_detail: 'Valeur précédente : %{old_status}.%{old_justification_part}%{explanation_part}'
+        overridden_old_justification_part: " Justification précédente : %{old_justification}"
+        overridden_explanation_part: " Motif de l'automatisation : %{explanation}"
+        divergent_detail: L'automatisation a déterminé à la place %{status}.%{justification_part}
+        divergent_justification_part: " %{justification}"
+        divergent_proposed_value: 'Suggestion de l''automatisation : %{proposed_value}'
+      save_and_continue_tooltip: Exécute l'automatisation pour remplir les valeurs inconnues
+      automation_hint_html: Vous pouvez utiliser des outils et des systèmes d'IA pour proposer des modifications via une URL simple, par exemple <tt>https://%{badge_hostname}/%{app_locale}/projects/%{project_id}/choose/edit?osps_ac_01_01_status=Met&amp;osps_ac_01_01_justification=GitHub+enforced</tt>. Consultez notre <a href="%{automation_proposals_url}">système de propositions d'automatisation</a> pour savoir comment procéder.
+    show:
+      section_selector: Section
+      cdla_permissive_20_html: Ces données sont disponibles sous la licence <a href="https://cdla.dev/permissive-2-0/" >Community Data License Agreement – Permissive, Version 2.0 (CDLA-Permissive-2.0)</a>. Cela signifie qu'un destinataire de données peut partager les données, avec ou sans modifications, à condition que le destinataire de données rende disponible le texte de cet accord avec les données partagées. Veuillez créditer %{user} et les contributeurs du badge des meilleures pratiques de la OpenSSF.<br><br>
+    form_early:
+      got_baseline_badge:
+        description_1: 'Si c''est votre projet, veuillez afficher votre statut de badge de référence sur la page de votre projet ! Le statut du badge de référence ressemble à ceci :'
+        badge_alt: Le niveau du badge de référence pour le projet %{id} est %{level}
+        description_2: 'Voici comment intégrer le badge de référence :'
+        details_html: Vous pouvez afficher votre statut de badge de référence en incorporant ceci dans votre fichier markdown :<br /> %{markdown_embedding}<br /> ou en incorporant ceci dans votre HTML :<br /> %{html_embedding}<br />
+      level:
+        baseline-1: Niveau de référence 1
+        baseline-1_html: Voici les critères du niveau de référence 1.
+        baseline-2: Niveau de référence 2
+        baseline-2_html: Voici les critères du niveau de référence 2.
+        baseline-3: Niveau de référence 3
+        baseline-3_html: Voici les critères du niveau de référence 3.
+    misc:
+      reminder_notification_note:
+        title: Paramètres de notification par email
+        description_html: Si vous êtes le propriétaire de cette entrée de badge et souhaitez désactiver les emails de rappel d'inactivité, veuillez modifier vos <a href="/users/%{user_id}/edit">paramètres de profil utilisateur</a>. Ce paramètre s'applique à tous vos projets.
+      obsolete_header_html: Ce sont des critères qui étaient auparavant requis mais qui ont été retirés de la ligne de base en amont. Ils sont présentés à titre de référence et ne sont <em>pas</em> requis pour un badge.
+      obsolete_criterion: Critère obsolète
+    form_basics:
+      entry_locale:
+        description: Quelle langue est utilisée pour la description et les justifications de cette soumission de badge ?
+        details: Sélectionnez la langue utilisée pour la description du projet et le texte de justification des critères. Cela aide les outils de traduction du navigateur à identifier correctement la langue de ce contenu. La plupart des projets utilisent l'anglais.
+    new:
+      reminder_email_html: Si votre projet n'a pas obtenu de badge et que vous n'avez apporté aucune modification pendant au moins 30 jours, nous vous enverrons un e-mail de rappel (vous pouvez désactiver les rappels à tout moment si vous le souhaitez).
+      github_repo_label: Sélectionner un dépôt GitHub (optionnel)
+      submit: Soumettre le projet
+      badge_series: Série de badges
+      badge_series_description: Vous pouvez choisir avec quelle série de badges commencer. La série baseline est une liste de contrôle plus minimale se concentrant uniquement sur les exigences de sécurité DOIT et est dérivée en partie de réglementations et cadres de cybersécurité mondiaux. La série metal est un ensemble plus large de critères qui inclut des suggestions et des problèmes de qualité qui impactent la sécurité, et est dérivée en partie des expériences de projets FLOSS sécurisés. Les deux se concentrent sur la sécurité, et nous encourageons les projets à éventuellement faire les deux ; vous choisissez par où commencer.
+      badge_series_metal: Métal (basique, argent, or)
+      badge_series_baseline: Baseline (baseline-1, baseline-2, baseline-3)
+      github_reconnect_html: Nous n'avons pas pu charger vos dépôts GitHub. Votre session GitHub a peut-être expiré.
+      github_reconnect_link: Se reconnecter à GitHub
+    baseline_version_notice:
+      current: Il s'agit des critères version %{version}.
+      transition: Ces critères proviennent de la version de référence %{current_version} avec le texte des critères mis à jour depuis la version %{new_version}. Les critères nouveaux dans la version %{new_version} sont étiquetés « futur » et commenceront à être appliqués à partir du %{enforce_date}. Veuillez fournir des réponses aux critères « futur » avant cette date.
+    choose_edit:
+      title: Choisir une section à modifier
+      instructions: Sélectionnez une section à modifier.
+      proposals_note: Toute modification proposée sera appliquée à la section sélectionnée.
+    choose_show:
+      title: Choisir une section à afficher
+      instructions: Sélectionnez une section à afficher.
+  report_mailer:
+    unsubscribe_notice_html: 'Pour vous désabonner de ces notifications par email, veuillez visiter : <a href="%{unsubscribe_url}">%{unsubscribe_url}</a>'
+    unsubscribe_notice_text: 'Pour vous désabonner de ces notifications par email, veuillez visiter : %{unsubscribe_url}'
+    subject_warned_level: Votre badge de bonnes pratiques pourrait perdre le statut "%{old_level}"
+    warned_level_message: |-
+      Ceci est un avis préalable que le badge "%{old_level}" de votre projet pourrait être perdu le %{effective_date} lors de l'entrée en vigueur des critères mis à jour.
+      Veuillez consulter votre entrée de badge à l'URL suivante avant cette date :
+  criteria:
+    baseline-1:
+      osps_ac_01_01:
+        description: Lorsqu'un utilisateur tente de lire ou de modifier une ressource sensible dans le dépôt faisant autorité du projet, le système DOIT exiger que l'utilisateur termine un processus d'authentification multi-facteurs.
+        details: Imposer l'authentification multi-facteurs pour le système de contrôle de version du projet, exigeant des collaborateurs qu'ils fournissent une seconde forme d'authentification lors de l'accès aux données sensibles ou de la modification des paramètres du dépôt. Les passkeys sont acceptables pour ce contrôle.
+      osps_ac_02_01:
+        description: Lorsqu'un nouveau collaborateur est ajouté, le système de contrôle de version DOIT exiger une attribution manuelle de permissions, ou restreindre les permissions du collaborateur aux privilèges disponibles les plus bas par défaut.
+        details: La plupart des systèmes de contrôle de version publics sont configurés de cette manière. Assurez-vous que le système de contrôle de version du projet attribue toujours les permissions les plus basses disponibles aux collaborateurs par défaut lorsqu'ils sont ajoutés, accordant des permissions supplémentaires uniquement lorsque cela est nécessaire.
+      osps_ac_03_01:
+        description: Lorsqu'un commit direct est tenté sur la branche principale du projet, un mécanisme d'application DOIT empêcher la modification d'être appliquée.
+        details: Si le VCS est centralisé, définissez une protection de branche sur la branche principale dans le VCS du projet. Alternativement, utilisez une approche décentralisée, comme celle du noyau Linux, où les modifications sont d'abord proposées dans un autre dépôt, et la fusion des modifications dans le dépôt principal nécessite un acte distinct spécifique.
+      osps_ac_03_02:
+        description: Lorsqu'une tentative est faite de supprimer la branche principale du projet, le système de contrôle de version DOIT traiter cela comme une activité sensible et exiger une confirmation explicite de l'intention.
+        details: Définissez une protection de branche sur la branche principale dans le système de contrôle de version du projet pour empêcher la suppression.
+      osps_br_01_01:
+        description: Lorsqu'un pipeline CI/CD accepte un paramètre d'entrée, ce paramètre DOIT être assaini et validé avant d'être utilisé dans le pipeline.
+        details: Les pipelines CI/CD doivent assainir (mettre entre guillemets, échapper ou quitter pour les valeurs attendues) toutes les entrées de métadonnées correspondant à des sources non fiables. Cela inclut des données telles que les noms de branches, les messages de commit, les tags, les titres des pull requests et les informations sur l'auteur.
+      osps_br_01_02:
+        description: Lorsqu'un pipeline CI/CD utilise un nom de branche dans sa fonctionnalité, cette valeur de nom DOIT être assainie et validée avant d'être utilisée dans le pipeline.
+      osps_br_03_01:
+        description: Lorsque le projet liste un URI comme canal officiel du projet, cet URI DOIT être exclusivement fourni en utilisant des canaux chiffrés.
+        details: Configurez les sites Web et les systèmes de contrôle de version du projet pour utiliser des canaux chiffrés tels que SSH ou HTTPS pour la transmission de données. Assurez-vous que tous les outils et domaines référencés dans la documentation du projet ne peuvent être accessibles que via des canaux chiffrés.
+      osps_br_03_02:
+        description: Lorsque le projet liste un URI comme canal de distribution officiel, cet URI DOIT être exclusivement fourni en utilisant des canaux chiffrés.
+        details: Configurez le pipeline de publication du projet pour récupérer uniquement les données des sites Web, réponses API et autres services qui utilisent des canaux chiffrés tels que SSH ou HTTPS pour la transmission de données.
+      osps_br_07_01:
+        description: Le projet DOIT empêcher le stockage involontaire de données sensibles non chiffrées, telles que des secrets et des informations d'identification, dans le système de contrôle de version.
+        details: Configurez .gitignore ou équivalent pour exclure les fichiers susceptibles de contenir des informations sensibles. Utilisez des hooks de pré-commit et des outils d'analyse automatisés pour détecter et empêcher l'inclusion de données sensibles dans les commits.
+      osps_do_01_01:
+        description: Lorsque le projet a effectué une publication, la documentation du projet DOIT inclure des guides utilisateur pour toutes les fonctionnalités de base.
+        details: Créez des guides utilisateur ou de la documentation pour toutes les fonctionnalités de base du projet, en expliquant comment installer, configurer et utiliser les fonctionnalités du projet. S'il existe des actions dangereuses ou destructrices connues disponibles, incluez des avertissements très visibles.
+      osps_do_02_01:
+        description: Lorsque le projet a effectué une publication, la documentation du projet DOIT inclure un guide pour signaler les défauts.
+        details: Il est recommandé que les projets utilisent le suivi de problèmes par défaut de leur VCS. Si une source externe est utilisée, assurez-vous que la documentation du projet et le guide de contribution expliquent clairement et visiblement comment utiliser le système de signalement. Il est recommandé que la documentation du projet établisse également des attentes quant à la manière dont les défauts seront triés et résolus.
+      osps_gv_02_01:
+        description: Tant qu'il est actif, le projet DOIT avoir un ou plusieurs mécanismes pour des discussions publiques sur les modifications proposées et les obstacles d'utilisation.
+        details: Établissez un ou plusieurs mécanismes pour des discussions publiques au sein du projet, tels que des listes de diffusion, de la messagerie instantanée ou des systèmes de suivi de problèmes, pour faciliter une communication et des retours ouverts.
+      osps_gv_03_01:
+        description: Tant qu'il est actif, la documentation du projet DOIT inclure une explication du processus de contribution.
+        details: Créez un fichier CONTRIBUTING.md ou un répertoire CONTRIBUTING/ pour décrire le processus de contribution, y compris les étapes pour soumettre des modifications et interagir avec les mainteneurs du projet.
+      osps_le_02_01:
+        description: Tant qu'il est actif, la licence du code source DOIT répondre à la définition de l'Open Source de l'OSI ou à la définition du logiciel libre de la FSF.
+        details: Ajoutez un fichier LICENSE au dépôt du projet avec une licence qui est une licence approuvée par l'Open Source Initiative (OSI), ou une licence libre approuvée par la Free Software Foundation (FSF). Des exemples de telles licences incluent MIT, BSD 2-clause, BSD 3-clause révisée, Apache 2.0, Lesser GNU General Public License (LGPL) et GNU General Public License (GPL). Publier dans le domaine public répond à ce contrôle s'il n'y a pas d'autres restrictions telles que des brevets.
+      osps_le_02_02:
+        description: Tant qu'il est actif, la licence des ressources logicielles publiées DOIT répondre à la définition de l'Open Source de l'OSI ou à la définition du logiciel libre de la FSF.
+        details: Si une licence différente est incluse avec les ressources logicielles publiées, assurez-vous qu'il s'agit d'une licence approuvée par l'Open Source Initiative (OSI), ou d'une licence libre approuvée par la Free Software Foundation (FSF). Des exemples de telles licenses incluent MIT, BSD 2-clause, BSD 3-clause révisée, Apache 2.0, Lesser GNU General Public License (LGPL) et GNU General Public License (GPL). Notez que la licence des ressources logicielles publiées peut être différente de celle du code source.
+      osps_le_03_01:
+        description: Tant qu'il est actif, la licence du code source DOIT être maintenue dans le fichier LICENSE, le fichier COPYING ou le répertoire LICENSE/ du dépôt correspondant.
+        details: Incluez la licence du code source du projet dans le fichier LICENSE, le fichier COPYING ou le répertoire LICENSE/ du projet pour fournir visibilité et clarté sur les termes de la licence. Le nom de fichier PEUT avoir une extension. Si le projet a plusieurs dépôts, assurez-vous que chaque dépôt inclut le fichier de licence.
+      osps_le_03_02:
+        description: Tant qu'il est actif, la licence des ressources logicielles publiées DOIT être incluse dans le code source publié, ou dans un fichier LICENSE, un fichier COPYING ou un répertoire LICENSE/ aux côtés des ressources de publication correspondantes.
+        details: Incluez la licence des ressources logicielles publiées du projet dans le code source publié, ou dans un fichier LICENSE, un fichier COPYING ou un répertoire LICENSE/ aux côtés des ressources de publication correspondantes pour fournir visibilité et clarté sur les termes de la licence. Le nom de fichier PEUT avoir une extension. Si le projet a plusieurs dépôts, assurez-vous que chaque dépôt inclut le fichier de licence.
+      osps_qa_01_01:
+        description: Pendant son activité, le référentiel de code source du projet DOIT être publiquement lisible à une URL statique.
+        details: Utilisez un VCS commun tel que GitHub, GitLab ou Bitbucket. Assurez-vous que le référentiel est publiquement lisible. Évitez la duplication ou la mise en miroir de référentiels à moins qu'une documentation très visible ne clarifie la source principale. Évitez les changements fréquents du référentiel qui affecteraient l'URL du référentiel. Assurez-vous que le référentiel est public.
+      osps_qa_01_02:
+        description: Le système de contrôle de version DOIT contenir un enregistrement publiquement lisible de toutes les modifications apportées, qui les a apportées et quand elles ont été apportées.
+        details: Utilisez un VCS commun tel que GitHub, GitLab ou Bitbucket pour maintenir un historique de commits publiquement lisible. Évitez de fusionner ou de réécrire les commits d'une manière qui obscurcirait l'auteur de tout commit.
+      osps_qa_02_01:
+        description: Lorsque le système de gestion de paquets le prend en charge, le référentiel de code source DOIT contenir une liste de dépendances qui tient compte des dépendances directes du langage.
+        details: Cela peut prendre la forme d'un fichier de gestionnaire de paquets ou de dépendances de langage qui énumère toutes les dépendances directes telles que package.json, Gemfile ou go.mod.
+      osps_qa_04_01:
+        description: Pendant son activité, la documentation du projet DOIT contenir une liste de tous les codes sources qui sont considérés comme des sous-projets.
+        details: Documentez tous les référentiels de code de sous-projets supplémentaires produits par le projet et compilés dans une version. Cette documentation doit inclure l'état et l'intention du code source respectif.
+      osps_qa_05_01:
+        description: Pendant son activité, le système de contrôle de version NE DOIT PAS contenir d'artefacts exécutables générés.
+        details: Supprimez les artefacts exécutables générés dans le système de contrôle de version du projet. Il est recommandé que tout scénario où un artefact exécutable généré apparaît critique pour un processus tel que les tests, il devrait plutôt être généré au moment de la compilation ou stocké séparément et récupéré lors d'une étape de pipeline spécifique bien documentée.
+      osps_qa_05_02:
+        description: Pendant son activité, le système de contrôle de version NE DOIT PAS contenir d'artefacts binaires non révisables.
+        details: N'ajoutez aucun artefact binaire non révisable au système de contrôle de version du projet. Cela inclut les binaires d'applications exécutables, les fichiers de bibliothèque et les artefacts similaires. Cela n'inclut pas les ressources telles que les images graphiques, les fichiers sonores ou musicaux et le contenu similaire généralement stocké dans un format binaire.
+      osps_vm_02_01:
+        description: Pendant son activité, la documentation du projet DOIT contenir des contacts de sécurité.
+        details: Créez un fichier security.md (ou portant un nom similaire) qui contient les contacts de sécurité pour le projet.
+      osps_br_01_03:
+        description: Lorsqu'un pipeline CI/CD opère sur des instantanés de code non fiables, il DOIT empêcher l'accès aux identifiants et aux ressources privilégiés du CI/CD.
+        details: Les pipelines CI/CD doivent isoler les instantanés de code non fiables des identifiants et des ressources privilégiés. En particulier, les projets doivent veiller à ce que les workflows qui compilent ou exécutent du code avant examen par un collaborateur n'aient pas accès aux identifiants CI/CD.
+    baseline-2:
+      osps_ac_04_01:
+        description: Lorsqu'une tâche CI/CD est exécutée sans permissions spécifiées, le système CI/CD DOIT par défaut définir les permissions de la tâche aux permissions les plus faibles accordées dans le pipeline.
+        details: Configurez les paramètres du projet pour attribuer les permissions les plus faibles disponibles aux nouveaux pipelines par défaut, en accordant des permissions supplémentaires uniquement lorsque cela est nécessaire pour des tâches spécifiques.
+      osps_br_02_01:
+        description: Lorsqu'une version officielle est créée, cette version DOIT se voir attribuer un identifiant de version unique.
+        details: Attribuez un identifiant de version unique à chaque version produite par le projet, en suivant une convention de nommage ou un schéma de numérotation cohérent. Les exemples incluent SemVer, CalVer ou l'ID de commit git.
+      osps_br_04_01:
+        description: Lorsqu'une version officielle est créée, cette version DOIT contenir un journal descriptif des modifications fonctionnelles et de sécurité.
+        details: 'Assurez-vous que toutes les versions incluent un journal des modifications descriptif. Il est recommandé de s''assurer que le journal des modifications est lisible par l''homme et inclut des détails au-delà des messages de commit, tels que des descriptions de l''impact sur la sécurité ou la pertinence pour différents cas d''utilisation. Pour garantir la lisibilité par la machine, placez le contenu sous un en-tête markdown tel que « ## Changelog ».'
+      osps_br_05_01:
+        description: Lorsqu'un pipeline de construction et de publication ingère des dépendances, il DOIT utiliser des outils standardisés lorsqu'ils sont disponibles.
+        details: Utilisez un outil commun pour votre écosystème, tel que des gestionnaires de paquets ou des outils de gestion des dépendances pour ingérer les dépendances au moment de la construction. Cela peut inclure l'utilisation d'un fichier de dépendances, d'un fichier de verrouillage ou d'un manifeste pour spécifier les dépendances requises, qui sont ensuite intégrées par le système de construction.
+      osps_br_06_01:
+        description: Lorsqu'une version officielle est créée, cette version DOIT être signée ou comptabilisée dans un manifeste signé incluant les hachages cryptographiques de chaque ressource.
+        details: Signez toutes les ressources logicielles publiées au moment de la construction avec une signature cryptographique ou des attestations, telles qu'une signature GPG ou PGP, des signatures Sigstore, une provenance SLSA ou des VSA SLSA. Incluez les hachages cryptographiques de chaque ressource dans un manifeste signé ou un fichier de métadonnées.
+      osps_do_06_01:
+        description: Lorsque le projet a publié une version, la documentation du projet DOIT inclure une description de la façon dont le projet sélectionne, obtient et suit ses dépendances.
+        details: Il est recommandé de publier ces informations aux côtés de la documentation technique et de conception du projet sur une ressource publiquement accessible telle que le dépôt de code source, le site Web du projet ou un autre canal.
+      osps_gv_01_01:
+        description: Lorsqu'il est actif, la documentation du projet DOIT inclure une liste des membres du projet ayant accès aux ressources sensibles.
+        details: Documentez les participants au projet et leurs rôles à travers des artefacts tels que members.md, governance.md, maintainers.md ou un fichier similaire dans le dépôt de code source du projet. Cela peut être aussi simple que d'inclure des noms ou des identifiants de compte dans une liste de mainteneurs, ou plus complexe selon la gouvernance du projet.
+      osps_gv_01_02:
+        description: Lorsqu'il est actif, la documentation du projet DOIT inclure des descriptions des rôles et des responsabilités pour les membres du projet.
+        details: Documentez les participants au projet et leurs rôles à travers des artefacts tels que members.md, governance.md, maintainers.md ou un fichier similaire dans le dépôt de code source du projet.
+      osps_gv_03_02:
+        description: Lorsqu'il est actif, la documentation du projet DOIT inclure un guide pour les contributeurs de code qui inclut les exigences pour les contributions acceptables.
+        details: Étendez le contenu de CONTRIBUTING.md ou CONTRIBUTING/ dans la documentation du projet pour décrire les exigences pour les contributions acceptables, y compris les normes de codage, les exigences de test et les directives de soumission pour les contributeurs de code. Il est recommandé que ce guide soit la source de vérité pour les contributeurs et les approbateurs.
+      osps_le_01_01:
+        description: Lorsqu'il est actif, le système de contrôle de version DOIT exiger que tous les contributeurs de code affirment qu'ils sont légalement autorisés à effectuer les contributions associées sur chaque commit.
+        details: Incluez un DCO dans le dépôt du projet, exigeant que les contributeurs de code affirment qu'ils sont légalement autorisés à valider les contributions associées sur chaque commit. Utilisez un contrôle de statut pour assurer que l'affirmation est faite. Un CLA satisfait également cette exigence. Certains systèmes de contrôle de version, tels que GitHub, peuvent inclure cela dans les conditions d'utilisation de la plateforme.
+      osps_qa_03_01:
+        description: Lorsqu'un commit est effectué sur la branche principale, tous les contrôles de statut automatisés pour les commits DOIVENT réussir ou être contournés manuellement.
+        details: Configurez le système de contrôle de version du projet pour exiger que tous les contrôles de statut automatisés réussissent ou nécessitent une reconnaissance manuelle avant qu'un commit puisse être fusionné dans la branche principale. Il est recommandé que tous les contrôles de statut facultatifs ne soient PAS configurés comme une exigence de réussite ou d'échec que les approbateurs pourraient être tentés de contourner.
+      osps_qa_06_01:
+        description: Avant qu'un commit ne soit accepté, les pipelines CI/CD du projet DOIVENT exécuter au moins une suite de tests automatisée pour s'assurer que les modifications répondent aux attentes.
+        details: Les tests automatisés devraient être exécutés avant chaque fusion dans la branche principale. La suite de tests devrait être exécutée dans un pipeline CI/CD et les résultats devraient être visibles pour tous les contributeurs. La suite de tests devrait être exécutée dans un environnement cohérent et devrait être exécutée de manière à permettre aux contributeurs d'exécuter les tests localement. Des exemples de suites de tests incluent les tests unitaires, les tests d'intégration et les tests de bout en bout.
+      osps_sa_01_01:
+        description: Lorsque le projet a publié une version, la documentation du projet DOIT inclure une documentation de conception démontrant toutes les actions et acteurs au sein du système.
+        details: Incluez des conceptions dans la documentation du projet qui expliquent les actions et les acteurs. Les acteurs incluent tout sous-système ou entité qui peut influencer un autre segment du système. Assurez-vous que cela est mis à jour pour les nouvelles fonctionnalités ou les modifications importantes.
+      osps_sa_02_01:
+        description: Lorsque le projet a fait une version, la documentation du projet DOIT inclure les descriptions de toutes les interfaces logicielles externes des actifs logiciels publiés.
+        details: Documentez toutes les interfaces logicielles (APIs) des actifs logiciels publiés, en expliquant comment les utilisateurs peuvent interagir avec le logiciel et quelles données sont attendues ou produites. Assurez-vous que ceci est mis à jour pour les nouvelles fonctionnalités ou les changements majeurs.
+      osps_sa_03_01:
+        description: Lorsque le projet a fait une version, le projet DOIT effectuer une évaluation de sécurité pour comprendre les problèmes de sécurité potentiels les plus probables et les plus impactants qui pourraient se produire dans le logiciel.
+        details: Effectuer une évaluation de sécurité informe à la fois les membres du projet ainsi que les consommateurs en aval que le projet comprend quels problèmes pourraient survenir dans le logiciel. Comprendre quelles menaces pourraient se réaliser aide le projet à gérer et traiter le risque. Cette information est utile aux consommateurs en aval pour démontrer la compétence et les pratiques de sécurité du projet. Assurez-vous que ceci est mis à jour pour les nouvelles fonctionnalités ou les changements majeurs.
+      osps_vm_01_01:
+        description: Lorsqu'il est actif, la documentation du projet DOIT inclure une politique pour la divulgation coordonnée de vulnérabilités (CVD), avec un délai clair pour la réponse.
+        details: Créez un fichier SECURITY.md à la racine du répertoire, décrivant la politique du projet pour la divulgation coordonnée de vulnérabilités. Incluez une méthode pour signaler les vulnérabilités. Définissez les attentes sur la façon dont le projet répondra et traitera les problèmes signalés.
+      osps_vm_03_01:
+        description: Lorsqu'il est actif, la documentation du projet DOIT fournir un moyen de signaler les vulnérabilités de façon privée directement aux contacts de sécurité du projet.
+        details: Fournissez un moyen pour les chercheurs de sécurité de signaler les vulnérabilités de manière privée au projet. Cela peut être une adresse email dédiée, un formulaire web, des outils spécialisés du système de gestion de version, des adresses email pour les contacts de sécurité, ou d'autres méthodes.
+      osps_vm_04_01:
+        description: Lorsqu'il est actif, la documentation du projet DOIT publier publiquement les données sur les vulnérabilités découvertes.
+        details: Fournissez des informations sur les vulnérabilités connues dans un canal public prévisible, tel qu'une entrée CVE, un article de blog ou un autre moyen. Dans la mesure du possible, ces informations doivent inclure la ou les version(s) affectée(s), comment un consommateur peut déterminer s'il est vulnérable, et des instructions pour l'atténuation ou la correction.
+      osps_do_07_01:
+        description: La documentation du projet DOIT inclure des instructions sur la façon de compiler le logiciel, y compris les bibliothèques, les frameworks, les SDK et les dépendances requis.
+        details: Il est recommandé de publier ces informations aux côtés de la documentation destinée aux contributeurs du projet, par exemple dans CONTRIBUTING.md ou d'autres documentations de tâches pour les développeurs. Ces informations peuvent également être documentées à l'aide de cibles Makefile ou d'autres scripts d'automatisation.
+    baseline-3:
+      osps_ac_04_02:
+        description: Lorsqu'une tâche se voit attribuer des permissions dans un pipeline CI/CD, le code source ou la configuration DOIT attribuer uniquement les privilèges minimaux nécessaires pour l'activité correspondante.
+        details: Configurez les pipelines CI/CD du projet pour attribuer les permissions les plus basses disponibles aux utilisateurs et services par défaut, en élevant les permissions seulement lorsque nécessaire pour des tâches spécifiques. Dans certains systèmes de gestion de version, cela peut être possible au niveau de l'organisation ou du dépôt. Sinon, définissez les permissions au niveau supérieur du pipeline.
+      osps_br_02_02:
+        description: Lorsqu'une version officielle est créée, tous les actifs de cette version DOIVENT être clairement associés à l'identifiant de version ou un autre identifiant unique pour l'actif.
+        details: Attribuez un identifiant de version unique à chaque actif logiciel produit par le projet, en suivant une convention de nommage ou un schéma de numérotation cohérent. Les exemples incluent SemVer, CalVer, ou l'id de commit git.
+      osps_br_07_02:
+        description: Le projet DOIT définir une politique pour gérer les secrets et informations d'identification utilisés par le projet. La politique devrait inclure des directives pour stocker, accéder et faire tourner les secrets et informations d'identification.
+        details: Documentez comment les secrets et informations d'identification sont gérés et utilisés dans le projet. Cela devrait inclure des détails sur la façon dont les secrets sont stockés (par exemple, en utilisant un outil de gestion de secrets), comment l'accès est contrôlé, et comment les secrets sont renouvelés ou mis à jour. Assurez-vous que les informations sensibles ne sont pas codées en dur dans le code source ou stockées dans les systèmes de gestion de version.
+      osps_do_03_01:
+        description: Lorsque le projet a fait une version, la documentation du projet DOIT contenir des instructions pour vérifier l'intégrité et l'authenticité des actifs de la version.
+        details: Les instructions dans le projet devraient contenir des informations sur la technologie utilisée, les commandes à exécuter et la sortie attendue. Lorsque cela est possible, évitez de stocker cette documentation au même endroit que le pipeline de construction et de publication pour éviter qu'une seule violation ne compromette à la fois le logiciel et la documentation pour vérifier l'intégrité du logiciel.
+      osps_do_03_02:
+        description: Lorsque le projet a fait une version, la documentation du projet DOIT contenir des instructions pour vérifier l'identité attendue de la personne ou du processus créant la version logicielle.
+        details: L'identité attendue peut être sous la forme d'identifiants de clés utilisés pour signer, d'émetteur et d'identité d'un certificat sigstore, ou d'autres formes similaires. Lorsque cela est possible, évitez de stocker cette documentation au même endroit que le pipeline de construction et de publication pour éviter qu'une seule violation ne compromette à la fois le logiciel et la documentation pour vérifier l'intégrité du logiciel.
+      osps_do_04_01:
+        description: Quand le projet a publié une version, la documentation du projet DOIT inclure une déclaration descriptive sur la portée et la durée du support pour chaque version.
+        details: Afin de communiquer la portée et la durée du support pour les actifs logiciels publiés par le projet, le projet devrait avoir un fichier SUPPORT.md, une section « Support » dans SECURITY.md, ou toute autre documentation expliquant le cycle de vie du support, y compris la durée prévue du support pour chaque version, les types de support fournis (par exemple, corrections de bugs, mises à jour de sécurité), et toutes politiques ou procédures pertinentes pour obtenir du support.
+      osps_do_05_01:
+        description: Quand le projet a publié une version, la documentation du projet DOIT fournir une déclaration descriptive sur le moment où les versions ne recevront plus de mises à jour de sécurité.
+        details: Afin de communiquer la portée et la durée du support pour les corrections de sécurité, le projet devrait avoir un fichier SUPPORT.md ou autre documentation expliquant la politique du projet pour les mises à jour de sécurité.
+      osps_gv_04_01:
+        description: Pendant que le projet est actif, la documentation du projet DOIT avoir une politique selon laquelle les collaborateurs de code sont examinés avant d'accorder des permissions élevées aux ressources sensibles.
+        details: Publiez une politique applicable dans la documentation du projet qui exige que les collaborateurs de code soient examinés et approuvés avant de se voir accorder des permissions élevées aux ressources sensibles, telles que l'approbation de fusion ou l'accès aux secrets. Il est recommandé que l'examen comprenne l'établissement d'une lignée d'identité justifiable, comme la confirmation de l'association du contributeur avec une organisation de confiance connue.
+      osps_qa_02_02:
+        description: Quand le projet a publié une version, tous les actifs logiciels compilés publiés DOIVENT être livrés avec une nomenclature logicielle.
+        details: Il est recommandé de générer automatiquement les SBOM au moment de la compilation en utilisant un outil dont la précision a été vérifiée. Cela permet aux utilisateurs d'ingérer ces données de manière standardisée aux côtés d'autres projets dans leur environnement.
+      osps_qa_04_02:
+        description: Quand le projet a publié une version comprenant plusieurs dépôts de code source, tous les sous-projets DOIVENT appliquer des exigences de sécurité aussi strictes ou plus strictes que la base de code principale.
+        details: Tous les dépôts de code de sous-projets supplémentaires produits par le projet et compilés dans une version doivent appliquer des exigences de sécurité selon le statut et l'objectif de la base de code respective. En plus de suivre les exigences Baseline OSPS correspondantes, cela peut inclure l'exigence d'un examen de sécurité, garantir qu'il est exempt de vulnérabilités et garantir qu'il est exempt de problèmes de sécurité connus.
+      osps_qa_06_02:
+        description: Pendant que le projet est actif, la documentation du projet DOIT clairement documenter quand et comment les tests sont exécutés.
+        details: Ajoutez une section à la documentation de contribution qui explique comment exécuter les tests localement et comment exécuter les tests dans le pipeline CI/CD. La documentation devrait expliquer ce que les tests testent et comment interpréter les résultats.
+      osps_qa_06_03:
+        description: Pendant que le projet est actif, la documentation du projet DOIT inclure une politique selon laquelle tous les changements majeurs au logiciel produit par le projet doivent ajouter ou mettre à jour les tests de la fonctionnalité dans une suite de tests automatisée.
+        details: Ajoutez une section à la documentation de contribution qui explique la politique d'ajout ou de mise à jour des tests. La politique devrait expliquer ce qui constitue un changement majeur et quels tests doivent être ajoutés ou mis à jour.
+      osps_qa_07_01:
+        description: Quand un commit est effectué vers la branche principale, le système de contrôle de version du projet DOIT exiger au moins une approbation humaine non auteur des changements avant la fusion.
+        details: Configurez le système de contrôle de version du projet pour exiger au moins une approbation humaine non auteur des changements avant la fusion dans la branche de publication ou principale. Cela peut être réalisé en exigeant qu'une pull request soit examinée et approuvée par au moins un autre collaborateur avant qu'elle puisse être fusionnée.
+      osps_sa_03_02:
+        description: Quand le projet a publié une version, le projet DOIT effectuer une modélisation des menaces et une analyse de la surface d'attaque pour comprendre et se protéger contre les attaques sur les chemins de code critiques, les fonctions et les interactions au sein du système.
+        details: La modélisation des menaces est une activité où le projet examine la base de code, les processus et l'infrastructure associés, les interfaces, les composants clés et « pense comme un pirate » et réfléchit à la manière dont le système pourrait être cassé ou compromis. Chaque menace identifiée est répertoriée afin que le projet puisse ensuite réfléchir à la manière d'éviter ou de combler de manière proactive toute lacune ou vulnérabilité qui pourrait survenir. Assurez-vous que cela est mis à jour pour les nouvelles fonctionnalités ou les changements majeurs.
+      osps_vm_04_02:
+        description: Pendant que le projet est actif, toutes les vulnérabilités dans les composants logiciels n'affectant pas le projet DOIVENT être comptabilisées dans un document VEX, complétant le rapport de vulnérabilité avec des détails de non-exploitabilité.
+        details: Établissez un flux VEX communiquant le statut d'exploitabilité des vulnérabilités connues, y compris les détails d'évaluation ou toute mesure d'atténuation en place empêchant l'exécution du code vulnérable.
+      osps_vm_05_01:
+        description: Pendant qu'il est actif, la documentation du projet DOIT inclure une politique qui définit un seuil pour la résolution des résultats SCA liés aux vulnérabilités et aux licences.
+        details: Documentez une politique dans le projet qui définit un seuil pour la résolution des résultats SCA liés aux vulnérabilités et aux licences. Incluez le processus pour identifier, prioriser et résoudre ces résultats.
+      osps_vm_05_02:
+        description: Pendant qu'il est actif, la documentation du projet DOIT inclure une politique pour traiter les violations SCA avant toute publication.
+        details: Documentez une politique dans le projet pour traiter les résultats applicables de l'analyse de composition du logiciel avant toute publication, et ajoutez des vérifications de statut qui vérifient la conformité avec cette politique avant la publication.
+      osps_vm_05_03:
+        description: Pendant qu'il est actif, toutes les modifications apportées à la base de code du projet DOIVENT être automatiquement évaluées par rapport à une politique documentée pour les dépendances malveillantes et les vulnérabilités connues dans les dépendances, puis bloquées en cas de violations, sauf lorsqu'elles sont déclarées et supprimées comme non exploitables.
+        details: Créez une vérification de statut dans le système de contrôle de version du projet qui exécute un outil d'analyse de composition du logiciel sur toutes les modifications apportées à la base de code. Exigez que la vérification de statut réussisse avant que les modifications puissent être fusionnées.
+      osps_vm_06_01:
+        description: Pendant qu'il est actif, la documentation du projet DOIT inclure une politique qui définit un seuil pour la résolution des résultats SAST.
+        details: Documentez une politique dans le projet qui définit un seuil pour la résolution des résultats des tests de sécurité des applications statiques (SAST). Incluez le processus pour identifier, prioriser et résoudre ces résultats.
+      osps_vm_06_02:
+        description: Pendant qu'il est actif, toutes les modifications apportées à la base de code du projet DOIVENT être automatiquement évaluées par rapport à une politique documentée pour les faiblesses de sécurité et bloquées en cas de violations, sauf lorsqu'elles sont déclarées et supprimées comme non exploitables.
+        details: Créez une vérification de statut dans le système de contrôle de version du projet qui exécute un outil de test de sécurité des applications statiques (SAST) sur toutes les modifications apportées à la base de code. Exigez que la vérification de statut réussisse avant que les modifications puissent être fusionnées.
+      osps_br_01_04:
+        description: Les pipelines CI/CD qui acceptent des entrées de collaborateurs de confiance DOIVENT assainir et valider ces entrées avant de les utiliser dans le pipeline.
+        details: Les pipelines CI/CD doivent assainir (mettre entre guillemets, échapper ou quitter pour les valeurs attendues) toutes les entrées des collaborateurs lors des exécutions explicites de workflows. Bien que les collaborateurs soient généralement de confiance, les entrées manuelles dans un workflow ne peuvent pas être revues et pourraient être détournées par une prise de contrôle de compte ou une menace interne.
+  headings:
+    Controls: Contrôles
+    General: Général
+    General_project_info: Général
+  activerecord:
+    errors:
+      messages:
+        comma_separated_list: " doit être une liste séparée par des virgules de noms utilisant uniquement des caractères ASCII"
+        begin_with_cpe: " doit commencer par « cpe: »"
+  layouts:
+    translation_disclaimer_html: Cette traduction peut contenir des erreurs. En cas de conflit, la version anglaise originale fait foi.
+  account_activations:
+    delay:
+      many: En tant que mesure anti-spam, vous devez attendre %{count} heures après l'activation avant de pouvoir vous connecter.
+  detectives:
+    github:
+      repo_public: Dépôt sur GitHub, qui fournit des dépôts git publics avec des URLs.
+      repo_track: Dépôt sur GitHub, qui utilise git. git peut suivre les modifications, qui les a faites et quand elles ont été faites.
+      repo_distributed: Dépôt sur GitHub, qui utilise git. git est distribué.
+      contribution: Les projets sur GitHub utilisent par défaut les problèmes (issues) et les pull requests, comme encouragé par la documentation telle que <https://guides.github.com/activities/contributing-to-open-source/>.
+      discussion: GitHub supporte les discussions sur les problèmes (issues) et les pull requests.
+      osps_gv_02_01: GitHub supporte les discussions publiques sur les modifications proposées (via les pull requests) et les obstacles d'utilisation (via les problèmes).
+      osps_do_02_01: GitHub fournit par défaut des mécanismes de signalement de défauts (via les problèmes).
+      osps_ac_01_01: GitHub exige l'authentification à deux facteurs (2FA) depuis mars 2023.
+      osps_qa_01_01: Le dépôt est publiquement disponible sur GitHub.
+      osps_qa_01_02: Les métadonnées git du dépôt sont publiquement disponibles sur GitHub.
+      name: nom GitHub
+      description: description GitHub
+      license: analyse de licence de l'API GitHub
+      implementation_languages: analyse des langages d'implémentation de l'API GitHub
+    floss_license:
+      osi_approved: La licence %{license} est approuvée par l'Open Source Initiative (OSI).
+      osi_approved_repository: La licence %{license} pour le contenu du dépôt est approuvée par l'Open Source Initiative (OSI).
+      not_in_osi_list: La licence n'a pas été trouvée dans la liste OSI.
+    hardened_sites:
+      all_headers_found: Tous les en-têtes de durcissement de sécurité requis ont été trouvés.
+      headers_missing: 'En-têtes de durcissement de sécurité requis manquants : '
+      nosniff_not_set: X-Content-Type-Options n'était pas défini à "nosniff".
+    name_from_url:
+      domain_suggests: Le nom de domaine de l'URL du projet suggère cela.
+      tail_suggests: La fin de l'URL du projet suggère cela.
+      repo_tail_suggests: La fin de l'URL du dépôt suggère cela.
+    project_sites_https:
+      given_http: 'URL http : fournie.'
+      official_http: Les URL du projet listent http (et non https) comme officiel.
+      url_uses_http: On nous a fourni une URL qui utilise http (et non https).
+      given_https: 'Seules les URL https : ont été fournies.'
+    repo_files:
+      no_file_found: Aucun fichier %{description} trouvé.
+      file_found: 'Fichier %{description} non trivial dans le dépôt : <%{url}>.'
+      contribution_documented: Processus de contribution documenté dans le dépôt.
+      license_found: Fichier de licence trouvé dans le dépôt.
+      license_not_found: Fichier de licence introuvable dans le dépôt.
+      license_not_in_releases: Fichier de licence introuvable dans le dépôt (probablement non inclus dans les versions).
+    subdir_files:
+      no_files_found: Aucun fichier %{description} trouvé.
+      no_folder_found: Aucun dossier approprié trouvé pour %{description}.
+      some_contents_found: Certains contenus de fichier %{description} trouvés.
+    test_forced:
+      test_automation: Automatisation des tests (confiance %{confidence})
+    repo_json:
+      field_from_file: Valeur provenant du fichier JSON bestpractices du projet
+    security_insights:
+      field_value: 'Selon %{location} : %{field}=%{value}'
+      array_match: 'Selon %{location} : %{field} %{match}'
+      comment_suffix: 'Le commentaire indique : "%{comment}".'
+  static_pages:
+    criteria_stats:
+      obsolete: Obsolète
+  criteria_overall:
+    obsolete: "{Obsolète}"

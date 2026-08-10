@@ -1,4 +1,4 @@
-<% cache locale do %>
+<% cache_frozen locale do %>
 <div class="row"><div class="col-md-12">
   <h1 class="center"><%= t '.criteria' %></h1>
   <!-- This page quickly shows some information about the Criteria. -->
@@ -16,12 +16,13 @@
       <th><%= t '.details' %></th>
       <th><%= t '.new_this_level' %></th>
       <th><%= t '.future' %></th>
+      <th><%= t '.obsolete' %></th>
     </tr>
     <% previous_criteria = [] # For counting "new this level"
        Project::LEVEL_IDS.each do |level| %>
       <tr>
-        <% future_criteria, active_criteria =
-             Criteria[level].values.partition(&:future?) %>
+        <% future_criteria, rest = Criteria[level].values.partition(&:future?)
+           obsolete_criteria, active_criteria = rest.partition(&:obsolete?) %>
         <td><%= t "projects.form_early.level.#{level}" %></td>
         <td><%= active_criteria.count %></td>
         <td><%= active_criteria.count(&:must?) %></td>
@@ -39,6 +40,7 @@
           new_criteria.length %></td>
         <% previous_criteria += new_criteria %>
         <td><%= future_criteria.count %></td>
+        <td><%= obsolete_criteria.count %></td>
       </tr>
     <% end %>
   </table>

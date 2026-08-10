@@ -1,0 +1,103 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge contributors
+# SPDX-License-Identifier: MIT
+#
+# Download the SBOM for a given commit from GitHub Releases.
+# Usage: script/get-sbom COMMIT_SHA [production|staging]
+# Requires: ruby (standard library only -- no gh CLI needed)
+#
+# The production branch is the default because its SBOMs are the closest
+# equivalent to release SBOMs for this project.
+#
+# Release tags use the form: sbom-BRANCH-YYYYMMDD-SHA8
+# The deployment date is extracted from the tag and displayed before download.
+
+require 'json'
+require 'net/http'
+require 'uri'
+
+REPO = 'ossf/best-practices-badge'
+MAX_PAGES = 5 # 100 releases/page * 5 = 500 releases searched
+
+# Perform an HTTPS GET request, setting GitHub API headers.
+def make_request(uri)
+  Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+    req = Net::HTTP::Get.new(uri)
+    req['Accept'] = 'application/vnd.github+json'
+    req['X-GitHub-Api-Version'] = '2022-11-28'
+    http.request(req)
+  end
+end
+
+# Follow redirects and return response body, or exit on error.
+def https_get(url, redirects_left: 5)
+  resp = make_request(URI(url))
+  return resp.body if resp.is_a?(Net::HTTPSuccess)
+  if resp.is_a?(Net::HTTPRedirection) && redirects_left.positive?
+    return https_get(resp['location'], redirects_left: redirects_left - 1)
+  end
+
+  warn "ERROR: HTTP #{resp.code} fetching #{url}"
+  exit 1
+end
+
+if ARGV.empty? || ARGV.length > 2
+  warn "Usage: #{$PROGRAM_NAME} COMMIT_SHA [production|staging]"
+  exit 1
+end
+
+commit_sha = ARGV.first
+branch = ARGV[1] || 'production'
+
+# Use a case statement to avoid Array#exclude?, which is ActiveSupport-only.
+case branch
+when 'production', 'staging' then nil # valid
+else
+  warn "ERROR: Branch must be 'production' or 'staging', not: #{branch}"
+  exit 1
+end
+
+short_sha = commit_sha[0, 8].downcase
+unless short_sha.match?(/\A[0-9a-f]{8}\z/)
+  warn "ERROR: COMMIT_SHA must be at least 8 hex digits, got: #{commit_sha}"
+  exit 1
+end
+
+puts "Searching releases: branch=#{branch} commit=#{short_sha} ..."
+
+prefix = "sbom-#{branch}-"
+suffix = "-#{short_sha}"
+found = nil
+
+MAX_PAGES.times do |i|
+  url = "https://api.github.com/repos/#{REPO}/releases?per_page=100&page=#{i + 1}"
+  releases = JSON.parse(https_get(url))
+  break if releases.empty?
+
+  found = releases.find { |r| r['tag_name'].start_with?(prefix) && r['tag_name'].end_with?(suffix) }
+  break if found
+end
+
+unless found
+  warn "No SBOM found for #{branch} commit #{short_sha}."
+  warn "Browse releases at: https://github.com/#{REPO}/releases"
+  exit 1
+end
+
+tag = found['tag_name']
+date_part = tag.delete_prefix(prefix).delete_suffix(suffix)
+puts "Found: #{tag}  (deployed #{date_part})"
+
+asset = found['assets'].find { |a| a['name'].end_with?('.spdx.json') }
+unless asset
+  warn "ERROR: No .spdx.json asset in release #{tag}"
+  exit 1
+end
+
+filename = asset['name']
+download_url = asset['browser_download_url']
+puts "Downloading #{filename} ..."
+File.binwrite(filename, https_get(download_url))
+puts "Downloaded: #{filename}"

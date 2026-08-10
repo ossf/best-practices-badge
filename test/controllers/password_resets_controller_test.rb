@@ -9,6 +9,7 @@ require 'test_helper'
 # rubocop: disable Metrics/ClassLength
 class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
   def setup
+    super
     ActionMailer::Base.deliveries.clear
     @user = users(:test_user)
   end
@@ -92,7 +93,7 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     put "/en/password_resets/#{@user.reset_token}", params: {
       email: @user.email
     }
-    assert @response.body.include?('Password Password can&#39;t be empty')
+    assert @response.body.include?('Password can&#39;t be empty')
 
     # A "user" value without a password - reject it.
     # This could cause a nil dereference,
@@ -142,6 +143,16 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
   end
   # rubocop:enable Metrics/BlockLength
 
+  test 'password reset silently skipped for unactivated account' do
+    unactivated = users(:test_user_not_active)
+    post '/en/password_resets',
+         params: { password_reset: { email: unactivated.email } }
+    assert_equal 0, ActionMailer::Base.deliveries.size
+    assert_redirected_to root_url
+    follow_redirect!
+    assert_includes @response.body, 'Email sent with password reset'
+  end
+
   test 'expired token' do
     get '/en/password_resets/new'
     assert_response :success
@@ -165,6 +176,17 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     }
     assert_response :redirect
     assert_redirected_to password_resets_path(locale: 'en')
+  end
+
+  # Security/robustness: a crafted request can send the nested `password_reset`
+  # key as a scalar instead of a hash. That must not raise an unhandled
+  # exception (previously NoMethodError -> 500) on this public, unauthenticated
+  # endpoint; it should be treated as an absent email and reply normally.
+  test 'password reset create with scalar param does not error' do
+    assert_no_difference 'ActionMailer::Base.deliveries.size' do
+      post '/en/password_resets', params: { password_reset: 'foo' }
+    end
+    assert_redirected_to root_url
   end
 end
 # rubocop: enable Metrics/ClassLength

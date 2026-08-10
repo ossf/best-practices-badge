@@ -25,6 +25,14 @@ class ProjectStat < ApplicationRecord
   end.freeze
   # rubocop:enable Style/MethodCalledOnDoEndBlock
 
+  # Badge level identifiers as integers (0=passing, 1=silver, 2=gold)
+  # Derived from Sections::METAL_LEVEL_NAMES so adding a level auto-propagates.
+  BADGE_LEVELS = (0..(Sections::METAL_LEVEL_NAMES.length - 1))
+
+  # Baseline badge level identifiers (1=baseline-1, 2=baseline-2, 3=baseline-3)
+  # Derived from Sections::BASELINE_LEVEL_NAMES; new levels auto-propagate.
+  BASELINE_BADGE_LEVELS = (1..Sections::BASELINE_LEVEL_NAMES.length)
+
   # NOTE: The constants below are for clarity.  Don't just change them,
   # or trend lines will be recording different cutoffs.
   # See below for their meaning.
@@ -33,7 +41,10 @@ class ProjectStat < ApplicationRecord
 
   before_create :stamp
 
-  # Stamp (fill in) the current values into a ProjectStat. Uses database.
+  # Stamps (fills in) current aggregate values into this ProjectStat record.
+  # Called automatically via before_create; wraps all DB reads in a transaction
+  # to ensure a consistent snapshot.
+  # @return [ProjectStat] self, to support method chaining
   # rubocop:disable Metrics/AbcSize, Metrics/MethodLength, Metrics/BlockLength
   def stamp
     # Use a transaction to get values from a single consistent point in time.
@@ -48,6 +59,7 @@ class ProjectStat < ApplicationRecord
         public_send :"percent_2_ge_#{completion}=",
                     Project.where(badge_percentage_2: completion.to_i..).count
       end
+      stamp_baseline_stats
       self.projects_edited = Project.where('created_at < updated_at').count
 
       # These use 1.day.ago, so a create or updates in 24 hours + fractional
@@ -178,5 +190,62 @@ class ProjectStat < ApplicationRecord
     end
   end
   # rubocop:enable Metrics/MethodLength
+
+  # Return the name of the field for a given baseline level 1..3
+  # and percentage (as an integer: 25, 50, 75, 90, or 100).
+  # E.g., given level 2 and percentage 50, return "percent_baseline_2_ge_50".
+  def self.baseline_percent_field_name(level, percentage)
+    "percent_baseline_#{level.to_i}_ge_#{percentage}"
+  end
+
+  # Return human-readable name of the baseline field for a given level 1..3
+  # and percentage. Not internationalized (used in system reports).
+  # rubocop:disable Metrics/MethodLength
+  def self.baseline_percent_field_description(level, percentage)
+    level_i = level.to_i
+    percentage_i = percentage.to_i
+    if BASELINE_BADGE_LEVELS.exclude?(level_i)
+      return "Bad baseline level #{level}"
+    end
+
+    level_name = I18n.t("projects.form_early.level.baseline-#{level_i}")
+    if percentage_i == 100
+      "#{level_name} Projects"
+    elsif level_i == 1
+      "#{percentage}%+ to #{level_name}"
+    else
+      prev_name = I18n.t("projects.form_early.level.baseline-#{level_i - 1}")
+      "#{prev_name} Projects, #{percentage}%+ to #{level_name}"
+    end
+  end
+  # rubocop:enable Metrics/MethodLength
+
+  private
+
+  # Stamp baseline badge statistics for all three baseline levels.
+  # For partial percentages (<100%), counts are independent per level.
+  # For 100%, we require all lower baseline levels to also be at 100%,
+  # since a project shouldn't count as completing baseline-3 without
+  # having completed baseline-1 and baseline-2.
+  def stamp_baseline_stats
+    BASELINE_BADGE_LEVELS.each do |bl|
+      STAT_VALUES_GT0.each do |completion|
+        public_send :"percent_baseline_#{bl}_ge_#{completion}=",
+                    baseline_count(bl, completion.to_i)
+      end
+    end
+  end
+
+  # Count projects at or above a threshold for a given baseline level.
+  # At 100%, also requires all lower baseline levels to be at 100%.
+  def baseline_count(level, threshold)
+    query = Project.where("badge_percentage_baseline_#{level}": threshold..)
+    if threshold >= 100
+      (1...level).each do |lower|
+        query = query.where("badge_percentage_baseline_#{lower}": 100..)
+      end
+    end
+    query.count
+  end
 end
 # rubocop:enable Metrics/ClassLength

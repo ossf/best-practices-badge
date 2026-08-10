@@ -18,25 +18,25 @@
    </aside>
   <div class="col-md-12">
 
-  <% if @user.projects.any? %>
+  <% if @projects.any? %>
     <br><br>
     <h2><%= t '.projects_owned' %></h2>
-    <%= render 'projects/table', projects: @projects %>
-    <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>
+    <%= render 'projects/table', projects: @projects, locale: I18n.locale %>
+    <%= render 'shared/pagination', pagy: @pagy %>
   <% end %>
 
   <% if @projects_additional_rights.present? %>
     <br>
     <h2><%= t '.projects_additional_rights' %></h2>
     <br>
-    <%= render 'projects/table', projects: @projects_additional_rights %>
+    <%= render 'projects/table', projects: @projects_additional_rights, locale: I18n.locale %>
   <% end %>
 
   <% if @edit_projects.present? %>
     <br>
     <h2><%= t '.other_projects_edit' %></h2>
     <br>
-    <%= render 'projects/table', projects: @edit_projects %>
+    <%= render 'projects/table', projects: @edit_projects, locale: I18n.locale %>
   <% end %>
 
   <br><br>

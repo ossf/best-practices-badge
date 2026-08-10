@@ -1,0 +1,461 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-02-27T13:00:19-05:00",
+  "mappings": [
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_ac_01_01",
+      "database_field": "osps_ac_01_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_ac_02_01",
+      "database_field": "osps_ac_02_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_ac_03_01",
+      "database_field": "osps_ac_03_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_ac_03_02",
+      "database_field": "osps_ac_03_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_br_01_01",
+      "database_field": "osps_br_01_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_br_01_02",
+      "database_field": "osps_br_01_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_br_03_01",
+      "database_field": "osps_br_03_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_br_03_02",
+      "database_field": "osps_br_03_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_br_07_01",
+      "database_field": "osps_br_07_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_do_01_01",
+      "database_field": "osps_do_01_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_do_02_01",
+      "database_field": "osps_do_02_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_gv_02_01",
+      "database_field": "osps_gv_02_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_gv_03_01",
+      "database_field": "osps_gv_03_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_le_02_01",
+      "database_field": "osps_le_02_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_le_02_02",
+      "database_field": "osps_le_02_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_le_03_01",
+      "database_field": "osps_le_03_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_le_03_02",
+      "database_field": "osps_le_03_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_qa_01_01",
+      "database_field": "osps_qa_01_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_qa_01_02",
+      "database_field": "osps_qa_01_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_qa_02_01",
+      "database_field": "osps_qa_02_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_qa_04_01",
+      "database_field": "osps_qa_04_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_qa_05_01",
+      "database_field": "osps_qa_05_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_qa_05_02",
+      "database_field": "osps_qa_05_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_vm_02_01",
+      "database_field": "osps_vm_02_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_ac_04_01",
+      "database_field": "osps_ac_04_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_br_02_01",
+      "database_field": "osps_br_02_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_br_04_01",
+      "database_field": "osps_br_04_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_br_05_01",
+      "database_field": "osps_br_05_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_br_06_01",
+      "database_field": "osps_br_06_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_do_06_01",
+      "database_field": "osps_do_06_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_gv_01_01",
+      "database_field": "osps_gv_01_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_gv_01_02",
+      "database_field": "osps_gv_01_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_gv_03_02",
+      "database_field": "osps_gv_03_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_le_01_01",
+      "database_field": "osps_le_01_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_qa_03_01",
+      "database_field": "osps_qa_03_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_qa_06_01",
+      "database_field": "osps_qa_06_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_sa_01_01",
+      "database_field": "osps_sa_01_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_sa_02_01",
+      "database_field": "osps_sa_02_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_sa_03_01",
+      "database_field": "osps_sa_03_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_vm_01_01",
+      "database_field": "osps_vm_01_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_vm_03_01",
+      "database_field": "osps_vm_03_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_vm_04_01",
+      "database_field": "osps_vm_04_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_ac_04_02",
+      "database_field": "osps_ac_04_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_br_02_02",
+      "database_field": "osps_br_02_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_br_07_02",
+      "database_field": "osps_br_07_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_do_03_01",
+      "database_field": "osps_do_03_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_do_03_02",
+      "database_field": "osps_do_03_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_do_04_01",
+      "database_field": "osps_do_04_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_do_05_01",
+      "database_field": "osps_do_05_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_gv_04_01",
+      "database_field": "osps_gv_04_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_qa_02_02",
+      "database_field": "osps_qa_02_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_qa_04_02",
+      "database_field": "osps_qa_04_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_qa_06_02",
+      "database_field": "osps_qa_06_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_qa_06_03",
+      "database_field": "osps_qa_06_03",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_qa_07_01",
+      "database_field": "osps_qa_07_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_sa_03_02",
+      "database_field": "osps_sa_03_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_vm_04_02",
+      "database_field": "osps_vm_04_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_vm_05_01",
+      "database_field": "osps_vm_05_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_vm_05_02",
+      "database_field": "osps_vm_05_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_vm_05_03",
+      "database_field": "osps_vm_05_03",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_vm_06_01",
+      "database_field": "osps_vm_06_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_vm_06_02",
+      "database_field": "osps_vm_06_02",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-1",
+      "criterion_key": "osps_br_01_03",
+      "database_field": "osps_br_01_03",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-2",
+      "criterion_key": "osps_do_07_01",
+      "database_field": "osps_do_07_01",
+      "baseline_id": null,
+      "category": "MUST"
+    },
+    {
+      "level": "baseline-3",
+      "criterion_key": "osps_br_01_04",
+      "database_field": "osps_br_01_04",
+      "baseline_id": null,
+      "category": "MUST"
+    }
+  ]
+}

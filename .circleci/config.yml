@@ -1,57 +1,480 @@
 version: 2.1
 # This CircleCI config.yml file uses PINNED dependencies as required by
-# OpenSSF Scorecard. You can see the hash pins on the various "image:"
-# values. That prevents downloading of later subversions AND of later
-# updates. When you *DO* want to update, you can easily find out the hash
-# of a given docker container via:
-# https://hub.docker.com/r/cimg/postgres/tags
-# For more info: https://circleci.com/developer/images/image/cimg/postgres
-# You could also run something like:
-# > docker pull circleci/postgres:13.14
+# OpenSSF Scorecard. Every "image:" below is written as
+#     repository:tag@sha256:digest
+# and BOTH halves matter. The digest is what actually gets pulled, and
+# is what makes the pin a pin. The tag is not decoration and not a
+# comment: it is the only part a tool can read to know what the digest
+# is *of*, and so what a newer version would even mean.
 #
-orbs:
-  browser-tools: circleci/browser-tools@1.4.9
-  codecov: codecov/codecov@3.2.4
-  dscar-brakeman: naokikimura/dscar-brakeman@0.9.0
+# Do not move the tag into a trailing "# pin :tag" comment, which is how
+# this file used to read. Renovate's circleci manager hands each image
+# string to its Dockerfile parser, which splits on "@" and then on ":".
+# With no tag in the reference itself it records no current version, and
+# a dependency with a digest and no tag is resolved against "latest" --
+# so a comment-only tag would have quietly produced PostgreSQL major
+# version upgrades. See docs/build-environment-staleness.md.
+#
+# Writing both also makes the pair self-checking: Docker verifies the
+# digest against the tag, so a tag and digest that drift apart fail
+# ("manifest verification failed") instead of silently disagreeing.
+#
+# To find the digest for a tag:
+# > docker manifest inspect cimg/postgres:16.4
+# Tags are listed at https://hub.docker.com/r/cimg/postgres/tags and
+# https://circleci.com/developer/images/image/cimg/postgres
+#
+# We now use NO orbs at all, and if one is ever added it must be
+# CircleCI-certified (the "circleci/*" namespace). The previous
+# codecov/codecov and naokikimura/dscar-brakeman orbs are uncertified
+# public orbs: loading them would require enabling the org-wide "Allow
+# uncertified public orbs" setting, which lets ANY community orb run in
+# ANY pipeline across the org -- a supply-chain risk we decline to
+# accept. Instead, Codecov upload is run natively below (pinned +
+# hash-verified CLI), and Brakeman now runs as a GitHub Actions check
+# gating the main branch (see .github/workflows/brakeman.yml). Because
+# staging and production are only ever advanced from main, gating main
+# is sufficient for this static analyzer. The last orb,
+# circleci/browser-tools, went when Chrome moved into its own container.
+
+# Cache keys are mostly automatic: {{ checksum ".ruby-version" }} and
+# {{ checksum "Gemfile.lock" }} invalidate the cache when Ruby or the
+# gems change, so those need no manual bumping.
+#
+# The environment part is automatic too: a step writes the user, $HOME
+# and OS release to a file and the key hashes it, because CircleCI
+# stores cache paths as ABSOLUTE paths and a cache saved under one $HOME
+# cannot be restored under another. Nothing here needs bumping by hand,
+# including on a stack upgrade. See the restore step for what happened
+# when the key did not capture this.
+
+# Reusable executors - define Docker images once, use them multiple times
+executors:
+  ruby-postgres:
+    docker:
+      # Primary image - the SAME stack image production builds on.
+      #
+      # This is Heroku's own published image, not one of ours, which is
+      # the point. Our previous test image sat nineteen months out of
+      # date because rebuilding it was a manual chore; the way to stop
+      # that is not a better rebuild procedure but not having an image
+      # to rebuild. Ruby and Node are installed by a step below in about
+      # fourteen seconds, and this image is then just another pinned
+      # dependency that Renovate proposes upgrades for, exactly like the
+      # PostgreSQL and Chrome images beside it.
+      #
+      # It also closes finding 4: production builds on Heroku-24, and so
+      # now does CI, rather than on the Ubuntu 22.04 that every
+      # cimg/ruby:3.4.x is stuck on.
+      #
+      # It runs as uid 1000 "heroku" with no sudo, so every step below
+      # must work unelevated. That is why Ruby goes in $HOME.
+      - image: heroku/heroku:24-build@sha256:a6e743f508a2f37f90ddd551587c3a0776529219ae427296db8836fa9a680275
+        environment:
+          PG_HOST: localhost
+          PG_USER: ubuntu
+          RAILS_ENV: test
+          RACK_ENV: test
+          # This image leaves LANG unset, which gives LC_CTYPE=POSIX and
+          # therefore a US-ASCII default external encoding. We serve six
+          # languages, so that would corrupt non-ASCII text in ways that
+          # surface far from the cause. C.utf8 exists in the image.
+          LANG: C.UTF-8
+          # Drive Chrome in the selenium container below rather than a
+          # Chrome installed beside the tests. Secondary containers share
+          # this container's network, which is the same fact that lets
+          # PG_HOST be "localhost". See docs/testing.md for the other
+          # ways to run system tests, and
+          # docs/build-environment-staleness.md for why.
+          SELENIUM_REMOTE_URL: http://127.0.0.1:4444
+          # On a system test failure Rails photographs the browser by
+          # itself; this also saves the page's HTML beside the image.
+          # Headless does not mean blind: the screenshot is a full render,
+          # fonts and images and all. But for a selector or layout failure
+          # the DOM usually says more than the picture, and it is the DOM
+          # *after* JavaScript, which the server response cannot show you.
+          # Both land in tmp/capybara, which is already an artifact path
+          # below, so this costs one variable and no plumbing. Rails
+          # requires exactly "1".
+          RAILS_SYSTEM_TESTING_SCREENSHOT_HTML: '1'
+      # Secondary image - PostgreSQL for database
+      - image: cimg/postgres:16.4@sha256:2e4f1a965bdd9ba77aa6a0a7b93968c07576ba2a8a7cf86d5eb7b31483db1378
+        environment:
+          POSTGRES_USER: ubuntu
+          POSTGRES_DB: circle_ruby_test
+      # Secondary image - Chrome, for system tests.
+      #
+      # The tag names the Chrome version, and chromedriver inside the
+      # image is matched to it by construction, so the pair can never
+      # drift the way a separately-installed driver can. Because this is
+      # an image pinned in this file, Renovate proposes Chrome upgrades
+      # as ordinary pull requests, with no mechanism of our own.
+      #
+      # One session at a time is enough: system tests run serially, see
+      # the "test:optimized" comment in lib/tasks/default.rake.
+      #
+      # The image ships a whole desktop so that a person can watch a test
+      # over VNC: Xvfb, x11vnc, fluxbox, and noVNC. Headless Chrome needs
+      # none of it, and every container in this job shares one memory
+      # budget, so turn it off. Measured, not guessed: idle memory falls
+      # from 233MB to 174MB and the peak during the system tests from
+      # 816MB to 719MB, with the suite passing identically (23 tests, 199
+      # assertions).
+      #
+      # Do NOT also set SE_JAVA_OPTS to cap the heap. -Xmx256m looks
+      # harmless, saves nothing measurable (the JVM's resident size is
+      # about 145MB either way, and its default maximum is a fraction of
+      # container memory, so it is already self-limiting), and produced
+      # 18 errors of Net::ReadTimeout across the suite. Tested.
+      #
+      # To watch a test in a browser instead, run your own container
+      # without these two variables; see docs/testing.md.
+      - image: selenium/standalone-chrome:150.0.7871.124@sha256:9569014786466376d3e5cf8a7758562368cd9637f783dcd3abdb2eaf3a0d5cd7
+        environment:
+          SE_START_XVFB: "false"
+          SE_START_VNC: "false"
+
+  # The static checks need Ruby and nothing else. Checked, not assumed:
+  # every one of them passes with PGHOST pointed at a dead port, so no
+  # database is involved, and none of them opens a browser.
+  #
+  # Hence its own executor rather than reusing ruby-postgres: that would
+  # start and pay for a PostgreSQL container and a 2.12GB Chrome
+  # container that this job never speaks to.
+  #
+  # The image below is deliberately the same as the primary image above,
+  # and the two must move together. Renovate proposes an upgrade for
+  # each occurrence, so they arrive in one pull request; take both or
+  # neither. If they ever disagree, the static job and the test job are
+  # no longer checking the same environment, which is the whole point of
+  # sharing the prepare_ruby command.
+  ruby-only:
+    docker:
+      - image: heroku/heroku:24-build@sha256:a6e743f508a2f37f90ddd551587c3a0776529219ae427296db8836fa9a680275
+        environment:
+          RAILS_ENV: test
+          RACK_ENV: test
+          # Same reason as above: this image leaves LANG unset, which
+          # gives a US-ASCII default external encoding, and prepare_ruby
+          # asserts UTF-8 rather than letting it corrupt text later.
+          LANG: C.UTF-8
+
+  deploy-only:
+    docker:
+      # The deploy job needs git, node, npm, wget, and openssl, and
+      # nothing else. It runs no Ruby at all: validate_branch_name is a
+      # /bin/sh script, and the database migration runs on the Heroku
+      # dyno via "heroku run", not here.
+      #
+      # So it does *not* share the test executor, which is a full Heroku
+      # stack image and installs a Ruby toolchain it would never use.
+      # This is also the one job holding HEROKU_API_KEY, the one that
+      # can push to production, so carrying less here is worth a second
+      # image.
+      #
+      # Node 24 is the current LTS. The Heroku CLI we install below
+      # requires node >=20.
+      - image: cimg/node:24.19.0@sha256:8966565f07189a67d64d6808a2b127f31dafae566508e3547f55640e1070bfad
+
+commands:
+  prepare_ruby:
+    description: >
+      Everything both jobs need before they can run any Ruby: the
+      cache identity, the restore, Ruby and Node in $HOME, the
+      toolchain check, and the bundle. Defined once because the
+      static job and the test job must agree about the environment
+      exactly; two copies of this would drift, and the drift would
+      show up as one job passing and the other failing on the same
+      commit.
+    steps:
+      # Work out what makes a cache compatible, and let the key say so.
+      #
+      # CircleCI stores cache paths as ABSOLUTE paths, so a cache saved
+      # under one $HOME cannot be written under another. When this job
+      # moved from an image whose user was "circleci" to one whose user is
+      # "heroku", nothing in the key noticed: the restore matched, then
+      # produced 23,404 "permission denied" lines, wasted 27 seconds and
+      # restored nothing.
+      #
+      # So the key carries the three things that decide compatibility, read
+      # from the running container rather than written down by hand: who we
+      # are, where home is, and which OS this is. A stack upgrade therefore
+      # changes the key by itself, which is why no version number appears
+      # anywhere below.
+      #
+      # Why hash a file instead of putting these in the key directly? A
+      # cache key can only interpolate CircleCI's own templates, and
+      # {{ .Environment.X }} is restricted to variables CircleCI exports or
+      # a context supplies, "not any arbitrary environment variable".
+      # {{ checksum }} on a file is the only way to get a runtime value
+      # into a key. The step prints the file so the log stays readable.
+      - run:
+          name: Work out what makes a cache compatible
+          command: |
+            set -euo pipefail
+            . /etc/os-release
+            { id -un; echo "$HOME"; echo "${ID}-${VERSION_ID}"; } \
+              > /tmp/cache-env-id
+            echo 'Cache environment identity:'
+            sed 's/^/  /' /tmp/cache-env-id
+      # Restore BEFORE installing anything, because the cache now carries
+      # ~/ruby, which holds both the interpreter and every installed gem
+      # (Gem.dir is $HOME/ruby/lib/ruby/gems/X). A hit therefore skips the
+      # Ruby download AND most of "bundle install".
+      #
+      # arch comes before the checksums so the looser fallbacks below
+      # cannot cross architectures.
+      - restore_cache:
+          keys:
+          # Exact: this environment, this Ruby, these gems, this branch.
+          - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}-{{ .Branch }}
+          # Same Ruby and gems from any branch. This is what stops every
+          # new branch from starting cold, which it previously did: the old
+          # key ended in {{ .Branch }} with no fallback at all.
+          - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}-
+          # Same Ruby, any gems: the interpreter is still right and
+          # "bundle install" reconciles the difference, which is far
+          # cheaper than building the world.
+          - v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-
+      - run:
+          name: Install Ruby and Node into $HOME
+          command: |
+            set -euo pipefail
+            # Every version comes from whatever already governs it, so
+            # there is no second place to forget.
+            #
+            # The stack is not named here at all: Heroku's own images set
+            # CNB_STACK_ID, so the running container tells us which stack
+            # it is. That makes the executor image pin above the single
+            # source of truth. Change "heroku/heroku:24-build" to
+            # "26-build" and this download, the tests, and the stack the
+            # applications are deployed onto all follow, because the
+            # deploy job is handed this same value; see the workspace
+            # below and "Set the Heroku stack" in the deploy job.
+            STACK="${CNB_STACK_ID:-}"
+            # What counts as a stack name is defined in ONE place, and
+            # this is not it: see script/valid_stack_name. Two copies of
+            # a rule are a rule that disagrees with itself eventually.
+            script/valid_stack_name "$STACK" || {
+              echo 'The primary image should be a heroku/heroku stack'
+              echo 'image, which sets CNB_STACK_ID. Refusing to guess.'
+              exit 1
+            }
+            echo "Stack, from the image itself: ${STACK}"
+            RUBY_VERSION="$(tr -d '[:space:]' < .ruby-version)"
+            NODE_VERSION="$(sed -n 's/.*"node": *"\([^"]*\)".*/\1/p' \
+                            package.json | head -1)"
+            test -n "$RUBY_VERSION"; test -n "$NODE_VERSION"
+
+            # Heroku's own prebuilt Ruby, so the interpreter matches
+            # production and this is a download rather than a compile.
+            # Note the arch segment: S3 answers 403, not 404, when listing
+            # is denied, so a missing object and a forbidden one look
+            # identical and only a 200 means anything.
+            # Skip if the cache already brought it, gems and all. Verify by
+            # running it rather than trusting the directory's existence, so
+            # a truncated or half-restored cache falls back to a download
+            # instead of failing later in a confusing way.
+            if "$HOME/ruby/bin/ruby" -v >/dev/null 2>&1; then
+              echo "Ruby restored from cache: $("$HOME/ruby/bin/ruby" -v)"
+            else
+              echo "Installing Ruby ${RUBY_VERSION} for ${STACK}"
+              rm -rf "$HOME/ruby"
+              curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
+                "https://heroku-buildpack-ruby.s3.us-east-1.amazonaws.com/${STACK}/amd64/ruby-${RUBY_VERSION}.tgz" \
+                | tar xz -C "$HOME" --one-top-level=ruby
+            fi
+
+            # Guard against the cache and .ruby-version disagreeing. The
+            # key includes .ruby-version so this should be impossible;
+            # if it ever happens, say so rather than test the wrong Ruby.
+            got="$("$HOME/ruby/bin/ruby" -e 'print RUBY_VERSION')"
+            if [ "$got" != "$RUBY_VERSION" ]; then
+              echo "ERROR: .ruby-version says ${RUBY_VERSION}, but the Ruby"
+              echo "in \$HOME is ${got}. Refusing to test the wrong one."
+              exit 1
+            fi
+
+            # Node at the version package.json pins, so CI minifies
+            # JavaScript with the interpreter production minifies with.
+            # Verified against nodejs.org's own SHASUMS256.txt: integrity,
+            # not provenance, since both come from the same host, but it
+            # catches a truncated or corrupted download.
+            echo "Installing Node ${NODE_VERSION}"
+            nb="https://nodejs.org/download/release/v${NODE_VERSION}"
+            nt="node-v${NODE_VERSION}-linux-x64.tar.gz"
+            curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
+              "${nb}/${nt}" -o "/tmp/${nt}"
+            curl -sfSL --retry 5 --retry-delay 5 --retry-all-errors \
+              "${nb}/SHASUMS256.txt" -o /tmp/SHASUMS256.txt
+            (cd /tmp && grep " ${nt}\$" SHASUMS256.txt | sha256sum -c -)
+            mkdir -p "$HOME/node"
+            tar xz -C "$HOME/node" --strip-components=1 -f "/tmp/${nt}"
+            rm -f "/tmp/${nt}" /tmp/SHASUMS256.txt
+
+            echo 'export PATH="$HOME/ruby/bin:$HOME/node/bin:$PATH"' \
+              >> "$BASH_ENV"
+      - run:
+          name: Confirm the toolchain, and that it can read UTF-8
+          command: |
+            set -euo pipefail
+            ruby -v
+            node --version
+            echo "CPUs visible: $(nproc)"
+            if [ -r /sys/fs/cgroup/memory.max ]; then
+              echo "memory limit (cgroup v2): $(cat /sys/fs/cgroup/memory.max)"
+            elif [ -r /sys/fs/cgroup/memory/memory.stat ]; then
+              grep hierarchical_memory_limit /sys/fs/cgroup/memory/memory.stat
+            fi
+            # Fail here, with a sentence, rather than in a test that
+            # mangles an accented character three steps later.
+            ruby -e 'raise "default_external is #{Encoding.default_external}" \
+                     unless Encoding.default_external == Encoding::UTF_8'
+      # Implement OSPS-BR-01.02: Validate branch name before use in pipeline
+      # Protect against malicious branch names that could cause cache poisoning
+      # or command injection attacks. Branch names are used in cache keys below.
+      - run:
+          name: Validate branch name
+          command: script/validate_branch_name "$CIRCLE_BRANCH"
+      - run:
+          name: Update bundler to match Gemfile.lock
+          # No sudo: this image has none, and does not need it, because
+          # Ruby lives in $HOME and so its gem directory is already ours.
+          #
+          # --force, not "yes |". Heroku's Ruby tarball ships its own
+          # "bundle" binstub, which belongs to no gem, so RubyGems refuses
+          # with "bundle from bundler conflicts with .../bin/bundle". That
+          # is an error, not a prompt, so piping "yes" cannot answer it;
+          # --force skips the overwrite check. The same is true of any gem
+          # whose binstub collides with the tarball's, "rake" included.
+          command: |
+            set -euo pipefail
+            want="$(tail -1 Gemfile.lock | tr -d '[:space:]')"
+            echo "Gemfile.lock was bundled with ${want}"
+            gem install bundler --no-document --force -v "${want}"
+      - run:
+          name: Bundler Version
+          command: bundle --version
+      - run:
+          name: Install Bundle
+          # Note: --path=vendor/bundle removed, we don't need it.
+          command: >
+            bundle check ||
+            bundle install --jobs=4 --retry=3
+
 jobs:
+  # The checks that are settled by the commit, run beside the tests
+  # rather than in front of them. They took roughly 200 seconds of the
+  # single job they used to share with the suite, and they need nothing
+  # the suite needs: no database, no browser, no test results.
+  #
+  # This job does not exist on the staging and production branches; the
+  # workflow filter at the bottom of this file leaves it out entirely,
+  # because those branches are reached only by fast-forwarding main,
+  # which has already run every check in it. That filter, and not a
+  # conditional inside a step, is what makes "we do not re-check
+  # deploys" true.
+  #
+  # It shares the dependency cache with "build": the keys come from the
+  # same prepare_ruby command, so whichever job runs first warms it for
+  # the other on the next pipeline. Only "build" writes the cache, so
+  # the two never race to save the same key.
+  static:
+    executor: ruby-only
+    working_directory: ~/ossf/best-practices-badge
+    resource_class: medium
+    shell: /bin/bash --login
+    steps:
+      - checkout
+      - prepare_ruby
+      # No database is used, but Rails still wants the file to exist
+      # when it boots. One copy is cheaper than finding out.
+      - run:
+          name: Configure database
+          command: |
+            cd config/
+            cp {database.ci,database}.yml
+      - run:
+          name: Run the checks settled by the commit (rake static_checks)
+          command: CI=true bundle exec rake static_checks
+
   build:
-    working_directory: ~/coreinfrastructure/best-practices-badge
+    executor: ruby-postgres
+    working_directory: ~/ossf/best-practices-badge
     parallelism: 1
     resource_class: medium
     shell: /bin/bash --login
     environment:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
-    docker:
-    # If you update this, update it below.
-    - image: drdavidawheeler/cii-bestpractices@sha256:6bb1268e9f849949263ccaae409a0b336b0ff38e478a99a7979763c45805e69b # pin :3.3.6-browsers
-      environment:
-        PG_HOST: localhost
-        PG_USER: ubuntu
-        RAILS_ENV: test
-        RACK_ENV: test
-    # Pin cimg/postgres:16.
-    - image: cimg/postgres@sha256:2e4f1a965bdd9ba77aa6a0a7b93968c07576ba2a8a7cf86d5eb7b31483db1378 # pin :16.4
-      environment:
-        POSTGRES_USER: ubuntu
-        POSTGRES_DB: circle_ruby_test
     steps:
     - checkout
-    # For more on browser-tools integration with the main image, see:
-    # https://circleci.com/developer/images/image/cimg/ruby
-    # https://circleci.com/developer/orbs/orb/circleci/browser-tools
-    # https://github.com/CircleCI-Public/browser-tools-orb
-    # Chromedriver is finicky. browser-tools-orb version 1.4.2 fixed problems:
-    # https://github.com/CircleCI-Public/browser-tools-orb/issues/75
-    # https://github.com/CircleCI-Public/browser-tools-orb/releases/tag/v1.4.2
-    - browser-tools/install-chromedriver
+    - prepare_ruby
+    # Refresh apt package lists before any apt-based installs.
+    # Ubuntu mirrors occasionally return 404 for stale package versions
+    # that have been replaced by a newer release; apt-get update fetches
+    # current metadata so subsequent installs find the right URLs.
+    #
+    # DISABLED 2026-08-04. Nothing in this job uses apt, so all this did
+    # was print an error on every build. It could not verify Google's
+    # Chrome apt repository: our test image's base
+    # (cimg/ruby:3.4.1-browsers) was built 2025-01-06, and Google created
+    # the signing subkey FD533C07C264648F, which signs that repository
+    # today, on 2025-01-07. Pinning an image by digest freezes its copy
+    # of the keyring too, so that key can never arrive; apt then reports
+    # "NO_PUBKEY FD533C07C264648F". Rebuilding the image would fix it
+    # only until Google rotates the subkey again, which they do about
+    # once a year.
+    #
+    # We checked before disabling this, not just assumed: there is no
+    # "apt-get install" anywhere in this file; browser-tools/install-
+    # chromedriver fetches chromedriver with curl and only apt-installs
+    # on yum-based systems; and nothing "rake default" runs uses apt.
+    #
+    # Restore it if a step is ever added that installs a package with
+    # apt. If you do, restrict it to Ubuntu's own repositories:
+    #     sudo apt-get update -o Dir::Etc::sourceparts=/dev/null
+    # which ignores /etc/apt/sources.list.d, so a third-party repository
+    # we never install from cannot make the step fail.
+    # - run:
+    #     name: Update apt package lists
+    #     command: sudo apt-get update
+    # The browser-tools orb used to install chromedriver here. It is gone
+    # because Chrome now runs in its own container, which carries a
+    # chromedriver matched to it. The orb was in any case redundant:
+    # selenium-webdriver 4.6+ resolves a driver by itself, which is why
+    # a developer machine with no chromedriver on PATH still works.
+    #
+    # CircleCI starts secondary containers but does not wait for what is
+    # inside them to be ready, and the grid takes a few seconds. Without
+    # this, the first system test can race the browser's startup.
+    - run:
+        name: Wait for the Chrome container
+        command: |
+          for i in $(seq 1 60); do
+            if curl -sf --max-time 3 http://127.0.0.1:4444/status |
+                 grep -q '"ready": *true'; then
+              echo "Selenium grid ready after ${i}s"
+              curl -sf --max-time 3 http://127.0.0.1:4444/status |
+                grep -o '"browserVersion": *"[^"]*"' | head -1
+              exit 0
+            fi
+            sleep 1
+          done
+          echo 'ERROR: Selenium grid never became ready'
+          exit 1
     - run: pwd
     - run: ls -l
-    - run: |
-        ruby --version
-        node --version
-        java --version
-        google-chrome --version
+    # There is deliberately no Chrome and no JVM in this image. The
+    # Chrome that matters runs in the selenium container, whose version
+    # the wait step above prints, and nothing we build or test uses
+    # Java. The memory figures printed by the toolchain step exist to
+    # answer a real question: "resource_class: medium" is 4GiB shared by
+    # every container in this job, and "CPUs visible" reports the host's
+    # count rather than our allowance, which is why the Rails test
+    # workers are oversubscribed. See
+    # docs/build-environment-staleness.md before changing either.
+    - run: free -m 2>/dev/null || true
     # Prepare for artifact and test results
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
     # Force cleanup to make deterministic.
@@ -59,36 +482,31 @@ jobs:
     # - run: bundle clean --force
     # Dependencies
     # Restore the dependency cache
-    - restore_cache:
-        keys:
-        # Find the most recently generated cache used
-        # Find a cache corresponding to this particular Gemfile.lock checksum
-        - v7-dep-{{ arch }}-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
     # This would show what we restored
     # - run: find ~/.rubygems || true
-    - run:
-        name: Update bundler to match Gemfile.lock
-        command: >
-          sudo sh -c 'yes | gem install bundler --no-document
-          -v "$(cat Gemfile.lock | tail -1 | tr -d \\\\" \\\\")"'
-    - run:
-        name: Bundler Version
-        command: bundle --version
-    - run:
-        name: Install Bundle
-        # Note: --path=vendor/bundle removed, we don't need it.
-        command: >
-          bundle check ||
-          bundle install --jobs=4 --retry=3
     # Here's how we could show more:
     # - run: find ~/.rubygems || true
     # - run: find ~/.bundle || true
     # - run: find ~ -name "*rack-timeout*" || true
     # Save dependency cache
     - save_cache:
-        key: v7-dep-{{ arch }}-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+        # Must match the primary restore key above, token and all.
+        key: v2-{{ checksum "/tmp/cache-env-id" }}-{{ arch }}-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}-{{ .Branch }}
+        # ~/ruby is the interpreter AND every gem: with Ruby installed
+        # under $HOME, Gem.dir is $HOME/ruby/lib/ruby/gems/X, so one
+        # directory covers both.
+        #
+        # The previous list cached ~/.rubygems and vendor/bundle. Neither
+        # holds anything now: ~/.rubygems was where the old cimg image
+        # put GEM_HOME and does not even exist here, and no --path is
+        # set so nothing is written to vendor/bundle. Caching them meant
+        # every build reinstalled every gem, which is what made "bundle
+        # install" take two minutes on a supposedly warm cache.
+        #
+        # ~/node is deliberately NOT cached: it extracts to 205MB to save
+        # an 8.7 second download, which is a bad trade.
         paths:
-          - ~/.rubygems
+          - ~/ruby
           - ~/.bundle
     - run:
         name: Configure database
@@ -98,13 +516,47 @@ jobs:
     - run:
         name: Create database
         command: bundle exec rake db:setup
+    # Hand the deploy job the stack these tests are about to run on.
+    #
+    # Not a copy of the tag from this file, and not a second opinion
+    # about what the stack ought to be: the value comes from
+    # CNB_STACK_ID inside the image that runs the suite. So "the base we
+    # tested on" and "the base we deploy onto" are the same string by
+    # construction rather than by two things agreeing.
+    - run:
+        name: Record the stack these tests run on
+        command: |
+          set -euo pipefail
+          # Checked at the point of WRITING, not only where it is read.
+          # prepare_ruby has already validated this in the same job, but
+          # that is an ordering nothing enforces: move this step above
+          # it and an empty file would be written in silence.
+          script/valid_stack_name "${CNB_STACK_ID:-}" || exit 1
+          mkdir -p /tmp/workspace
+          printf '%s' "$CNB_STACK_ID" > /tmp/workspace/tested-stack
+          echo "Tested on: $(cat /tmp/workspace/tested-stack)"
+    - persist_to_workspace:
+        root: /tmp/workspace
+        paths:
+          - tested-stack
     # Start testing
     - run:
         name: Check for whitespace issues.
         command: '[[ ! -s "$(git rev-parse --git-dir)/shallow" ]] || git fetch --unshallow'
     - run:
-        name: Run comprehensive checks and tests (rake default)
-        command: CI=true bundle exec rake
+        name: Run the tests and the time-varying checks (rake dynamic_checks)
+        # The same task on every branch, which is a simplification worth
+        # noticing. This used to choose between "rake default" and a
+        # shorter list by branch name, because the code-determined
+        # checks had to run here on pull requests and had to not run
+        # here on deploys. They now run in the "static" job instead, so
+        # this job has one job on every branch and there is nothing to
+        # decide.
+        #
+        # What is left is what a re-run can genuinely tell us: the
+        # tests, and the two checks whose answer moves while the code
+        # stands still. See lib/tasks/default.rake.
+        command: CI=true bundle exec rake dynamic_checks
     # Save test results
     - store_test_results:
         path: /tmp/circleci-test-results
@@ -113,8 +565,11 @@ jobs:
         path: /tmp/circleci-artifacts
     - store_artifacts:
         path: coverage
-    - store_artifacts:
-        path: license_finder_report.html
+    # license_finder_report.html is deliberately absent. Rendering it
+    # re-scans every gem, which doubled the cost of the licence check
+    # for a browsable copy of what 'license_okay' had just decided. The
+    # check still runs; the report is "rake license_finder_report.html"
+    # when someone wants to read it. See lib/tasks/default.rake.
     - store_artifacts:
         path: log/test.log
     - store_artifacts:
@@ -123,56 +578,268 @@ jobs:
         path: test/html_reports
     - store_artifacts:
         path: /tmp/circleci-test-results
-    - codecov/upload:
-        file: coverage/codecov-result.json
-    - dscar-brakeman/analyze
+    # Upload coverage to Codecov using the official Codecov CLI, pinned to a
+    # specific version and verified against a hardcoded SHA-256 hash before
+    # use. This matches the dependency-pinning policy stated at the top of this
+    # file and mirrors the Heroku CLI install in the deploy job: we never run
+    # an unpinned, unverified binary fetched over the network. The coverage
+    # JSON itself is produced by SimpleCov::Formatter::JSONFormatter in the
+    # test:coverage_gaps rake task. --disable-search + --file restrict the upload to
+    # exactly that file, and --plugin noop skips Codecov's coverage-generation
+    # plugins (we already have the report). We do NOT pass --fail-on-error, so
+    # a Codecov outage cannot break an otherwise-green build. The upload token,
+    # if any, is read from the CODECOV_TOKEN project environment variable.
+    #
+    # To upgrade: choose a release from
+    #   https://github.com/codecov/codecov-cli/releases
+    # then record its hash (the value before "  codecov") from
+    #   https://cli.codecov.io/<version>/linux/codecov.SHA256SUM
+    - run:
+        name: Upload coverage to Codecov (pinned, hash-verified CLI)
+        command: |
+          CODECOV_CLI_VERSION="v11.2.8"
+          CODECOV_EXPECTED_SHA256="8930c4bb30254a42f3d8c340706b1be340885e20c0df5160a24efa2e030e662b"
+          echo "** Downloading Codecov CLI ${CODECOV_CLI_VERSION}"
+          curl -fsS -o codecov \
+            "https://cli.codecov.io/${CODECOV_CLI_VERSION}/linux/codecov"
+          echo "** Verifying SHA-256 hash of downloaded CLI"
+          ACTUAL_SHA256="$(sha256sum codecov | cut -d' ' -f1)"
+          if [ "$ACTUAL_SHA256" != "$CODECOV_EXPECTED_SHA256" ]; then
+            echo "ERROR: Codecov CLI hash mismatch - possible supply chain attack"
+            echo "  Expected: $CODECOV_EXPECTED_SHA256"
+            echo "  Actual:   $ACTUAL_SHA256"
+            rm -f codecov
+            exit 1
+          fi
+          echo "** Hash verified. Uploading coverage."
+          chmod +x codecov
+          ./codecov upload-process --disable-search --plugin noop \
+            --file coverage/coverage.json
+          rm -f codecov
 
   # I haven't found a reliable way to calculate HEROKU_APP just once,
   # so it gets recalculated. This approach still greatly reduces
   # duplication.
   deploy:
-    docker:
-    # We have to use an image - let's use the same image as for building
-    - image: drdavidawheeler/cii-bestpractices@sha256:6bb1268e9f849949263ccaae409a0b336b0ff38e478a99a7979763c45805e69b # pin :3.3.6-browsers
-      environment:
-        PG_HOST: localhost
-        PG_USER: ubuntu
-        RAILS_ENV: test
-        RACK_ENV: test
+    executor: deploy-only
     steps:
       - checkout
+      # The stack the tests actually ran on, written by the build job.
+      # Everything about the stack in this job comes from this file, so
+      # what was tested and what is deployed onto cannot disagree.
+      - attach_workspace:
+          at: /tmp/workspace
+      # OSPS-BR-01.02: Validate branch name before use in deployment
+      # Defense in depth - even though workflow filters limit to staging/production,
+      # the code should validate explicitly to prevent accidents or misconfigurations
       - run:
-          # We are downloading these tools from a trusted source, so we *do*
-          # want to use the latest version, not a pinned version.
-          # Heroku doesn't support pinning these anyway.
-          # These aren't included in the final result, nor used
-          # in the process of testing the final result... they're
-          # just tools we use to *transfer* the final result to deployment.
-          # The shell installer loads and installs the actual tool.
-          # We aren't using pipe-to-shell, but downloading and printing a
-          # sha256 of the install program first.
-          # This provides a log to help us notice potential problems.
+          name: Validate branch name format
+          command: script/validate_branch_name "$CIRCLE_BRANCH"
+      - run:
+          name: Validate deployment branch allowlist
+          command: |
+            # Deploy job should ONLY run on staging or production branches
+            # Using POSIX-compliant case statement
+            case "$CIRCLE_BRANCH" in
+              staging|production)
+                echo "Deployment branch validated: $CIRCLE_BRANCH"
+                ;;
+              *)
+                echo "ERROR: Deploy job on invalid branch: $CIRCLE_BRANCH"
+                echo "Deploy is only allowed for: staging, production"
+                exit 1
+                ;;
+            esac
+      - run:
+          name: Pin the Heroku CLI version
+          command: |
+            set -euo pipefail
+            # Single source of truth for the version. The cache key below
+            # hashes this file, so bumping the version invalidates the
+            # cache by itself and nothing needs remembering. The
+            # integrity hash lives beside it so the two cannot drift:
+            # bump one without the other and the SHA-512 check fails
+            # loudly rather than installing something unexpected.
+            echo '11.8.1' > /tmp/heroku-cli-version
+            {
+              echo "export HEROKU_VERSION='$(cat /tmp/heroku-cli-version)'"
+              echo "export HEROKU_INTEGRITY='sha512-FgNpd1CvHXrHDQnr59aK7DNY+1UbtX2QFPTMfEBODAk64WtlLX/d+yrbYowSoDfXxxN2zUCzAzgQdGKBEanrxg=='"
+            } >> "$BASH_ENV"
+      # The CLI is 592KB as a tarball but 381MB and 45,233 files once
+      # npm has installed it, which is why this step took 51 seconds.
+      # Cache it: we use exactly three of its commands.
+      - restore_cache:
+          keys:
+          - heroku-cli-v1-{{ arch }}-{{ checksum "/tmp/heroku-cli-version" }}
+      - run:
+          # Install the Heroku CLI at a pinned version with an independently
+          # hardcoded SHA-512 hash for integrity verification.
+          #
+          # We download the tarball directly from the npm registry, verify
+          # its SHA-512 against the hash we recorded when we set this pin,
+          # and only install if the hash matches.  This protects against:
+          #   - MITM attacks on the download
+          #   - A compromised npm registry that changes both the package
+          #     *and* the hash it reports (which a simple `npm install`
+          #     would not catch, since it trusts the registry's own hash)
+          #
+          # To upgrade the Heroku CLI:
+          #   1. Find the new version at https://github.com/heroku/cli/releases
+          #   2. Get its integrity hash:
+          #      npm view heroku@NEW_VERSION dist.integrity
+          #   3. Update HEROKU_VERSION and HEROKU_INTEGRITY below.
+          #
+          # These tools are only used to *transfer* the final build artifact
+          # to Heroku; they are not part of the deployed application.
           # See: https://devcenter.heroku.com/articles/heroku-cli
-          name: Download Heroku CLI tools (to easily control maintenance mode)
+          name: Install Heroku CLI tools (to easily control maintenance mode)
           command: |
-            echo "** PATH=$PATH"
-            # verifies the right Node.js version is in the environment
+            set -uo pipefail
+            # Export for later steps, and also set it here: the CLI's
+            # own update check spawns "heroku" from PATH, so running it
+            # by absolute path logs "[ENOENT] Error: spawn heroku
+            # ENOENT". Harmless, but it looks like a real failure in a
+            # deploy log, which is the last place to put noise.
+            echo 'export PATH="$HOME/heroku-cli/bin:$PATH"' >> "$BASH_ENV"
+            export PATH="$HOME/heroku-cli/bin:$PATH"
+            # Skip everything below if the cache already delivered a
+            # working CLI at the version we asked for. Check by running
+            # it, not by testing for the directory, so a half-restored
+            # cache falls back to a clean install instead of failing
+            # later in a confusing way.
+            if [ -x "$HOME/heroku-cli/bin/heroku" ] && \
+               "$HOME/heroku-cli/bin/heroku" --version 2>/dev/null \
+                 | grep -q "heroku/${HEROKU_VERSION} "; then
+              echo "Heroku CLI ${HEROKU_VERSION} restored from cache."
+              exit 0
+            fi
             echo "** Node version:"
-            node -v # should print `v22.12.0`
-            # verifies the right npm version is in the environment
-            echo "** Getting installer"
-            rm -f install.sh
-            wget https://cli-assets.heroku.com/install.sh
-            echo "** Computing SHA-256 of installer"
-            sha256sum install.sh
-            echo "** Running installer"
-            chmod a+x install.sh
-            sh install.sh
+            node -v
+            echo "** npm version:"
+            npm -v
+            # Heroku CLI 10.x declared "engines: node 20.x", which would
+            # have tied this job to a Node release that is now end of
+            # life. 11.x declares ">=20", so we can track the current
+            # Node LTS instead. The commands we use here (git:remote,
+            # maintenance:on/off, run) are unchanged across that bump.
+            HEROKU_TARBALL_URL="https://registry.npmjs.org/heroku/-/heroku-${HEROKU_VERSION}.tgz"
+            # HEROKU_VERSION and HEROKU_INTEGRITY come from the pin step
+            # above. Obtain a new hash via:
+            #   npm view heroku@VERSION dist.integrity
+            # Strip the "sha512-" prefix to get the raw base64-encoded hash.
+            HEROKU_EXPECTED_HASH="${HEROKU_INTEGRITY#sha512-}"
+            echo "** Downloading Heroku CLI ${HEROKU_VERSION}"
+            wget -q "$HEROKU_TARBALL_URL" -O heroku.tgz
+            echo "** Verifying SHA-512 hash of downloaded tarball"
+            ACTUAL_HASH=$(openssl dgst -sha512 -binary heroku.tgz | openssl base64 -A)
+            if [ "$ACTUAL_HASH" != "$HEROKU_EXPECTED_HASH" ]; then
+              echo "ERROR: Heroku CLI tarball hash mismatch - possible supply chain attack"
+              echo "  Expected: $HEROKU_EXPECTED_HASH"
+              echo "  Actual:   $ACTUAL_HASH"
+              rm -f heroku.tgz
+              exit 1
+            fi
+            echo "** Hash verified. Installing Heroku CLI."
+            npm install -g --prefix ~/heroku-cli ./heroku.tgz
+            rm -f heroku.tgz
+            echo "** Heroku CLI version:"
+            "$HOME/heroku-cli/bin/heroku" --version
+      - save_cache:
+          key: heroku-cli-v1-{{ arch }}-{{ checksum "/tmp/heroku-cli-version" }}
+          paths:
+            - ~/heroku-cli
       - run:
-          name: Deploy to Heroku
-          # export PATH="$PATH:$(pwd)/heroku/bin"
+          name: Decide whether this deploy needs maintenance mode
           command: |
-            export PATH="$PATH:/usr/local/bin:/usr/local/bin"
+            # Maintenance mode stops users meeting a database that is
+            # being migrated underneath them. It costs about two minutes
+            # of downtime, nearly all of it waiting for Heroku to build
+            # the slug, during which the old release serves normally and
+            # nothing touches the database. Heroku offers no hook
+            # between the build and the release phase, so the window
+            # cannot be narrowed; it can only be skipped, per deploy,
+            # when this deploy migrates nothing. Most do not.
+            #
+            # ANSWER FIRST, THEN LOOK FOR REASONS TO KEEP IT. The file
+            # says "yes" before a single check runs, so a crash, a
+            # timeout, a kill or an unreadable API all leave the deploy
+            # taking the window. It becomes "no" only at the very end,
+            # once every check below has had its say. A needless
+            # maintenance window costs a slower deploy; a missing one
+            # costs users a half-migrated database.
+            echo 'yes' > /tmp/needs-maintenance
+
+            keep() { echo "Maintenance mode: YES, $1"; exit 0; }
+
+            # Staging replaces its whole database from production's
+            # backup in the next step.
+            [ "$CIRCLE_BRANCH" != 'staging' ] ||
+              keep 'staging restores its database below.'
+
+            HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
+
+            # A stack change rebuilds the application on a different
+            # operating system. It touches no data, so the migration
+            # argument above does not apply, but it changes enough
+            # underneath a running dyno that going quiet for it is the
+            # safer default. Stack changes are rare, so this costs
+            # almost nothing.
+            tested_stack="$(cat /tmp/workspace/tested-stack 2>/dev/null \
+              || true)"
+            [ -n "$tested_stack" ] ||
+              keep 'the tested stack is unknown; see the build job.'
+            live_stack="$(script/heroku_app_field stack.name \
+              "$HEROKU_APP" || true)"
+            [ -n "$live_stack" ] ||
+              keep "could not read ${HEROKU_APP}'s current stack."
+            echo "Stack: tested on ${tested_stack}, app runs ${live_stack}"
+            [ "$tested_stack" = "$live_stack" ] ||
+              keep "this deploy moves ${HEROKU_APP} to ${tested_stack}."
+
+            # Which commit is live? Ask for several releases, because
+            # changing a config var also makes one and its description
+            # is not a deploy. Descriptions read "Deploy 09446ffe", and
+            # this JSON is pretty-printed, so allow the space after the
+            # colon; see the baseline check below for that lesson.
+            live="$(curl -sfS --max-time 30 \
+              "https://api.heroku.com/apps/${HEROKU_APP}/releases" \
+              -H 'Accept: application/vnd.heroku+json; version=3' \
+              -H "Authorization: Bearer ${HEROKU_API_KEY}" \
+              -H 'Range: version ..; order=desc,max=25;' \
+              | grep -oE '"description": *"Deploy [0-9a-f]{7,40}' \
+              | sed -n 1p | grep -oE '[0-9a-f]{7,40}$' || true)"
+            [ -n "$live" ] || keep 'could not read the deployed commit.'
+            echo "Currently deployed commit: ${live}"
+
+            # A shallow clone means the live commit is absent, not
+            # wrong. Only deepen if it is actually missing: unshallowing
+            # this repository is not cheap enough to do every deploy.
+            if ! git cat-file -e "${live}^{commit}" 2>/dev/null; then
+              [ ! -s "$(git rev-parse --git-dir)/shallow" ] ||
+                git fetch --unshallow || true
+            fi
+            git cat-file -e "${live}^{commit}" 2>/dev/null ||
+              keep "commit ${live} is not in this clone."
+
+            # db/schema.rb as well as db/migrate is belt and braces:
+            # only a migration can migrate, so this can only err toward
+            # downtime, which is the safe way to be wrong.
+            changed="$(git diff --name-only "$live" HEAD \
+              -- db/migrate/ db/schema.rb || true)"
+            [ -z "$changed" ] || {
+              echo 'Maintenance mode: YES, this deploy changes:'
+              printf '%s\n' "$changed" | sed 's/^/  /'
+              exit 0
+            }
+
+            # Nothing above objected, so this deploy migrates nothing.
+            echo 'no' > /tmp/needs-maintenance
+            echo "Maintenance mode: NO. Nothing under db/migrate or"
+            echo "db/schema.rb has changed since ${live}, so this"
+            echo 'deploy migrates nothing and users need not notice.'
+      - run:
+          name: Set up Heroku access, and maintenance mode if needed
+          command: |
             export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
             # Set file .netrc so "git push heroku ..." will work later.
             # Heroku uses HEROKU_API_KEY, but git only knows about ~/.netrc.
@@ -183,32 +850,600 @@ jobs:
             echo "Set git remote heroku for $HEROKU_APP"
             heroku git:remote -a "$HEROKU_APP"
             git remote get-url heroku
-            echo "Switching to maintenance mode in $HEROKU_APP"
-            heroku maintenance:on --app "$HEROKU_APP"
-            # Give production site a few seconds to complete ongoing work.
-            [ "$HEROKU_APP" != 'production-bestpractices' ] || sleep 10
+            # Default to yes if the file is somehow missing, which is
+            # the behaviour this job had before the check existed.
+            if [ "$(cat /tmp/needs-maintenance 2>/dev/null || echo yes)" \
+                 = 'yes' ]; then
+              echo "Switching to maintenance mode in $HEROKU_APP"
+              heroku maintenance:on --app "$HEROKU_APP"
+              # Give production site a few seconds to complete ongoing work.
+              [ "$HEROKU_APP" != 'production-bestpractices' ] || sleep 10
+            else
+              echo "Not entering maintenance mode: $HEROKU_APP keeps"
+              echo 'serving throughout, because this deploy migrates'
+              echo 'nothing. See the previous step for the reasoning.'
+            fi
+      - run:
+          name: Set the Heroku stack to the one the tests ran on
+          command: |
+            export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
+
+            # The base we tested on becomes the base we deploy onto.
+            # This value came from CNB_STACK_ID inside the image that ran
+            # the suite, carried here through the workspace, so it is the
+            # same string rather than a second opinion. Changing
+            # "heroku/heroku:24-build" in the executor above is therefore
+            # the whole of a stack upgrade: the tests move first, and if
+            # they pass, the application follows.
+            #
+            # Before the push, deliberately: stack:set only changes what
+            # the NEXT build uses, so it must be set while there is still
+            # a push to come.
+            tested_stack="$(cat /tmp/workspace/tested-stack)"
+            # Same definition as the build job uses, because it is the
+            # same file rather than a second copy of the rule. Checked
+            # here as well because this value is about to be handed to
+            # "heroku stack:set" against production, and an argument
+            # that reconfigures production is worth checking wherever it
+            # arrives from.
+            script/valid_stack_name "$tested_stack" || {
+              echo 'Refusing to deploy: the tested stack, carried from'
+              echo 'the build job, is not a stack name.'
+              exit 1
+            }
+
+            # build_stack, not stack: the first is what the next build
+            # will use, the second what the dynos run now. They differ
+            # exactly between a stack:set and the rebuild that follows,
+            # which is this moment, so comparing the wrong one would set
+            # the stack again on every deploy.
+            build_stack="$(script/heroku_app_field build_stack.name \
+              "$HEROKU_APP" || true)"
+            if [ -z "$build_stack" ]; then
+              echo "ERROR: could not read ${HEROKU_APP}'s build stack."
+              echo 'Refusing to deploy: this deploy might silently build'
+              echo 'on a different operating system from the tested one.'
+              exit 1
+            fi
+
+            if [ "$build_stack" = "$tested_stack" ]; then
+              echo "Stack already ${tested_stack}; nothing to change."
+            else
+              echo "Moving ${HEROKU_APP} from ${build_stack} to" \
+                   "${tested_stack}, which is what the tests ran on."
+              heroku stack:set "$tested_stack" --app "$HEROKU_APP"
+            fi
+      - run:
+          name: Restore production's latest backup over staging
+          command: |
+            # Staging is meant to be production-like, so it gets a copy
+            # of production's data before the new code lands on it. This
+            # used to run from a developer's laptop, inside "rake
+            # deploy_staging", which meant it needed the Heroku CLI and
+            # an interactive login there. Here it runs on HEROKU_API_KEY,
+            # which never needs a browser.
+            #
+            # It also now runs UNDER maintenance mode. On a laptop it ran
+            # against a live staging site.
+            #
+            # FOUR separate things must all agree before this runs, and
+            # each is an exact match, never a pattern or a prefix:
+            #
+            #   1. The workflow filter below admits only the exact branch
+            #      names "staging" and "production". CircleCI treats a
+            #      plain string as a branch name; a regular expression
+            #      would have to be written between slashes and match the
+            #      entire string.
+            #   2. The job's allowlist re-checks that with a case
+            #      statement, so the filter is not the only thing
+            #      standing between us and a deploy.
+            #   3. This step tests CIRCLE_BRANCH for exact equality with
+            #      "staging" and does nothing otherwise. A branch called
+            #      "staging2" or "my-staging" does not match.
+            #   4. Both application names are literals below. Nothing is
+            #      derived from the branch name, so no branch name can
+            #      redirect the restore or choose its source.
+            #
+            # And underneath all of that: reaching any of it requires the
+            # right to push to this repository's "staging" branch, which
+            # is what branch protection is for. Someone who cannot push
+            # there cannot start this, whatever they call their branch.
+            if [ "$CIRCLE_BRANCH" != 'staging' ]; then
+              echo "Branch is '${CIRCLE_BRANCH}', not exactly 'staging'."
+              echo 'Not refreshing any database.'
+              exit 0
+            fi
+
+            SOURCE_APP='production-bestpractices'
+            TARGET_APP='staging-bestpractices'
+
+            # Refuse rather than trust the two literals above. This is
+            # the check that would matter if someone later "simplified"
+            # them into variables derived from the branch.
+            if [ "$TARGET_APP" = "$SOURCE_APP" ]; then
+              echo 'ERROR: refusing to restore an app over itself.'
+              exit 1
+            fi
+            if [ "$TARGET_APP" != 'staging-bestpractices' ]; then
+              echo "ERROR: refusing to overwrite '${TARGET_APP}'."
+              echo 'Only staging-bestpractices may be overwritten here.'
+              exit 1
+            fi
+
+            # The most recent EXISTING backup, deliberately: capturing a
+            # fresh one would put load on production for no real gain, so
+            # staging can come up with data up to a day old.
+            # Restore by backup IDENTIFIER, never by signed URL.
+            #
+            # "pg:backups:url" hands back a signed, publicly fetchable
+            # link to production's dump, and this project's CircleCI
+            # logs can be read by anyone. Anybody who saw that link
+            # could download the production database until the
+            # signature expired. The emails inside are encrypted;
+            # nothing else is. Heroku's documented cross-application
+            # form takes an identifier instead, so no secret exists at
+            # all:
+            #   https://devcenter.heroku.com/articles/heroku-postgres-backups
+            #
+            # Pick the newest COMPLETED backup rather than simply the
+            # newest. A backup that is still running, or that failed,
+            # appears at the top of this list and would otherwise be
+            # chosen. Identifiers are not all "b123": scheduled backups
+            # are lettered "a", manual ones "b", so match a letter
+            # followed by digits rather than assuming the letter.
+            #
+            # awk's default field splitting handles any run of spaces
+            # or tabs, so the exact column widths do not matter.
+            echo "Restoring ${SOURCE_APP}'s latest backup over ${TARGET_APP}"
+            backup_row="$(heroku pg:backups --app "$SOURCE_APP" \
+              | awk '
+                  # Track which section we are in. The command prints
+                  # Backups, then Restores, then Copies, and restore
+                  # and copy rows look just like backup rows: c3221 is
+                  # a copy, r002 a restore, both "Completed". Without
+                  # this, an empty or all-running Backups section would
+                  # fall through and hand a copy identifier to a
+                  # restore. Wrong, and silently so.
+                  /^[[:space:]]*===/ { in_backups = ($0 ~ /Backups/); next }
+                  !in_backups { next }
+                  # Match the status as a whole word anywhere on the
+                  # line rather than by column number, so a change to
+                  # the "Created at" format cannot shift it out from
+                  # under us. Heroku says "Finished" in its published
+                  # example and "Completed" in the output we see, so
+                  # accept both.
+                  $1 ~ /^[a-z][0-9]+$/ &&
+                    $0 ~ /(^|[[:space:]])(Completed|Finished)([[:space:]]|$)/ {
+                      print; exit
+                    }' || true)"
+            # Two awk calls, and NOT bash's "read x y z" fed by a
+            # here-string, however much tidier one read would look.
+            #
+            # A here-string starts with a DOUBLED LESS-THAN sign, and
+            # CircleCI reads that pair as the opening of one of its own
+            # parameter expressions. It then scans for the closing
+            # doubled greater-than that never comes and rejects the
+            # WHOLE config file: "Expressions must be less than 2048
+            # characters", reported against the top of this step, which
+            # is nowhere near the actual character. Here-documents open
+            # the same way and are the same trap.
+            #
+            # Nothing else in this file uses that pair, including in
+            # comments, because a comment inside a command block is
+            # still part of the string CircleCI parses. Keep it so.
+            backup_id="$(printf '%s\n' "$backup_row" | awk '{print $1}')"
+            if ! printf '%s' "$backup_id" | grep -qE '^[a-z][0-9]+$'; then
+              echo "ERROR: found no completed backup for ${SOURCE_APP}."
+              echo 'Refusing to restore. Check "heroku pg:backups".'
+              exit 1
+            fi
+
+            # Report how old the backup is, because "newest completed"
+            # says nothing about recent. We deliberately restore the
+            # latest EXISTING backup rather than capturing a fresh one,
+            # so if production's scheduled backups ever stop, this step
+            # would keep succeeding while quietly restoring older and
+            # older data. Nothing else would notice: the restore itself
+            # succeeds, and staging then looks merely out of date.
+            #
+            # Unlike the status, "Created at" cannot be matched as a
+            # whole word, so it has to be taken by column position.
+            # Validate its shape rather than trusting it: a changed
+            # layout then says it could not read the date instead of
+            # printing whatever happened to sit in those fields.
+            created_at="$(printf '%s\n' "$backup_row" |
+              awk '{print $2, $3, $4}')"
+            age_days=''
+            if printf '%s' "$created_at" | grep -qE \
+              '^[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2} [-+][0-9]{4}$'
+            then
+              # Guarded anyway: under "-e" an unparsable date would
+              # otherwise abort the deploy over a diagnostic.
+              created_epoch="$(date -d "$created_at" +%s 2>/dev/null \
+                || true)"
+              if [ -n "$created_epoch" ]; then
+                age_days=$(( ($(date +%s) - created_epoch) / 86400 ))
+              fi
+            else
+              created_at=''
+            fi
+
+            if [ -n "$age_days" ]; then
+              units='days'
+              if [ "$age_days" -eq 1 ]; then units='day'; fi
+              echo "Using backup ${backup_id}, created ${created_at}" \
+                   "(${age_days} ${units} old)"
+            elif [ -n "$created_at" ]; then
+              echo "Using backup ${backup_id}, created ${created_at}"
+            else
+              echo "Using backup ${backup_id}; could not read its date"
+              echo "  row: ${backup_row}"
+            fi
+
+            # Scheduled backups run daily, so more than a couple of days
+            # means the schedule has stopped. Report it loudly rather
+            # than refusing: a stale copy of production is still a more
+            # useful staging database than whatever is there now, and a
+            # deploy is a bad moment to discover a backup problem by
+            # being blocked. Two days, not one, so that ordinary drift
+            # in when the schedule runs is not reported as a fault.
+            if [ -n "$age_days" ] && [ "$age_days" -gt 2 ]; then
+              echo "WARNING: that backup is ${age_days} days old."
+              echo 'WARNING: check that production still backs up daily:'
+              echo "WARNING:   heroku pg:backups:schedules" \
+                   "--app ${SOURCE_APP}"
+            fi
+
+            # The redaction stays even though we pass no URL: the CLI
+            # may resolve the identifier to one internally and print it.
+            # It keeps host and path, which help when debugging, and
+            # drops the query string, where the signature lives.
+            heroku pg:backups:restore "${SOURCE_APP}::${backup_id}" \
+              DATABASE_URL --app "$TARGET_APP" --confirm "$TARGET_APP" 2>&1 \
+              | sed -E 's#(https?://[^ ]*)\?[^ ]*#\1?[signature redacted]#g'
+            echo 'Restore complete; migrations run in the release phase.'
+      - run:
+          name: Deploy to Heroku
+          command: |
+            # Each step is a fresh shell, so re-derive this here.
+            export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
+            # Record the newest release version BEFORE pushing. The
+            # wait step below must not mistake the release that is
+            # already live for the one this deploy creates.
+            #
+            # Release list endpoint and the Range header that orders it:
+            #   https://devcenter.heroku.com/articles/platform-api-reference#release
+            #   https://devcenter.heroku.com/articles/platform-api-reference#ranges
+            # "sed -n 1p" rather than "head -1": head exits early,
+            # which can leave grep with SIGPIPE, and pipefail would then
+            # fail the pipeline on a successful match. sed reads its
+            # whole input, so it cannot.
+            #
+            # NOT "grep -m1": that caps matching LINES, and -o would
+            # still emit every match on whichever lines it allows.
+            #
+            # The " *" matters. The Heroku API pretty-prints its
+            # JSON, so this arrives as '"version": 845', not
+            # '"version":845'. A pattern without the space matched
+            # nothing, and that failed a real staging deploy.
+            #
+            # Use [0-9][0-9]* rather than [0-9]* for a related reason.
+            # The star form matches zero digits, so grep reports
+            # success while capturing nothing, which turns a parse
+            # error into what looks like an empty response.
+            #
+            # "|| true" because grep exits 1 on no match, which under
+            # this job's -eo pipefail would abort with no message.
+            HEROKU_API='https://api.heroku.com'
+            baseline_body="$(curl -sfS --max-time 30 \
+              "${HEROKU_API}/apps/${HEROKU_APP}/releases" \
+              -H 'Accept: application/vnd.heroku+json; version=3' \
+              -H "Authorization: Bearer ${HEROKU_API_KEY}" \
+              -H 'Range: version ..; order=desc,max=1;' || true)"
+            prev="$(printf '%s' "$baseline_body" \
+              | grep -o '"version": *[0-9][0-9]*' | sed -n 1p \
+              | grep -o '[0-9][0-9]*' || true)"
+            # Do NOT fall back to 0 here. Zero would make the release
+            # that is already live look newer than the baseline, so the
+            # check after the push would accept it and report success
+            # for a deploy that never released anything.
+            case "$prev" in ''|*[!0-9]*) prev='' ;; esac
+            if [ -z "$prev" ]; then
+              echo 'ERROR: could not read the current release version.'
+              echo 'Refusing to deploy: the check after the push could'
+              echo 'not then tell a new release from the live one.'
+              # Say what came back, so this is diagnosable from the log
+              # rather than by guessing. Truncated, and with anything
+              # resembling an address masked, because release objects
+              # carry the deploying user.
+              echo '--- first 200 bytes of the response ---'
+              printf '%s' "$baseline_body" | head -c 200 \
+                | sed 's/[A-Za-z0-9._%+-]*@[A-Za-z0-9.-]*/[redacted]/g'
+              echo
+              exit 1
+            fi
+            echo "$prev" > /tmp/pre-deploy-release-version
+            echo "Newest release before deploy: v${prev}"
             echo "Deploying to $HEROKU_APP"
             # Switching from "master" here requires additional work, see:
             # https://stackoverflow.com/questions/10451330/clean-git-repo-on-heroku
             # https://stackoverflow.com/questions/36111040/error-message-after-successfully-pushing-to-heroku
-            GIT_CURL_VERBOSE=1 GIT_TRACE=1 git push heroku "$CIRCLE_BRANCH:master"
+            # GIT_CURL_VERBOSE=1 GIT_TRACE=1 used to be set here. They
+            # arrived with "Fix git push to heroku (#1798)" in March
+            # 2022 as debugging aids for a problem long since fixed, and
+            # stayed for four years, logging every HTTP header and git
+            # operation and burying the Heroku build output that
+            # actually matters. Set them temporarily if a push
+            # misbehaves; do not leave them on.
+            git push heroku "$CIRCLE_BRANCH:master"
       # - run:
       #       # This may no longer be necessary
       #       name: Setup Heroku
       #       command: bash .circleci/setup-heroku.sh
       - run:
-          name: Migrate DB
+          name: Wait for the release, then leave maintenance mode
           command: |
-            export PATH="$PATH:$(pwd)/heroku/bin"
             export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
-            heroku run --app "$HEROKU_APP" -- bundle exec rails db:migrate
+            # Migrations now run in the release phase; see Procfile.
+            #
+            # Do NOT infer success from "git push heroku". Heroku
+            # documents that a build can succeed while its release
+            # fails, does not document the push's exit status for that
+            # case, and says outright that for "real-time detection
+            # during CI/CD pipelines, you would need to use the
+            # Platform API rather than rely solely on the git push exit
+            # code":
+            #   https://devcenter.heroku.com/articles/release-phase
+            #
+            # So ask the API. Release.status is a documented enum of
+            # failed, pending, succeeded and expired; the values here
+            # come from the machine-readable schema rather than prose:
+            #   https://devcenter.heroku.com/articles/platform-api-reference#release
+            #   curl -H 'Accept: application/vnd.heroku+json; version=3' \
+            #     https://api.heroku.com/schema
+            # (that URL returns 400 without the Accept header, so it is
+            # not dead if you paste it into a browser)
+            #
+            # Ordering and limiting of the list come from:
+            #   https://devcenter.heroku.com/articles/platform-api-reference#ranges
+            # Do NOT default this to 0 if the file is missing. Zero
+            # would make the release already live look newer than the
+            # baseline, so the loop below would accept it and report
+            # success for a deploy that released nothing. The Deploy
+            # step writes this file and fails if it cannot, so a
+            # missing file means something is wrong: say so.
+            if [ ! -s /tmp/pre-deploy-release-version ]; then
+              echo 'ERROR: no pre-deploy release baseline was recorded.'
+              echo 'Cannot tell a new release from the one already live.'
+              exit 1
+            fi
+            prev="$(cat /tmp/pre-deploy-release-version)"
+            api="https://api.heroku.com/apps/${HEROKU_APP}/releases"
+            # Only this flag may conclude success. Do not infer it from
+            # $status: while we are skipping the release that was
+            # already live, $status holds ITS value, which is normally
+            # "succeeded", and a loop that never sees a new release
+            # would then report success. Tested; it did exactly that.
+            deployed=
+            # 240 * 15s = 1 hour, matching the release phase cap.
+            for i in $(seq 1 240); do
+              body="$(curl -sfS --max-time 30 "$api" \
+                -H 'Accept: application/vnd.heroku+json; version=3' \
+                -H "Authorization: Bearer ${HEROKU_API_KEY}" \
+                -H 'Range: version ..; order=desc,max=1;')" || {
+                  echo "Release query failed; retrying."; sleep 15; continue; }
+              # PARSED WITH node, NOT grep, so that only the TOP-LEVEL
+              # fields of the newest release can be read. A grep for
+              # '"status"' takes the first match anywhere in the body,
+              # including inside a nested object, and Heroku's release
+              # object could gain one: today "app" is {id, name}, so
+              # there is nothing to trip over, but a schema addition
+              # would have this job reporting a nested value as the
+              # release status. Verified against a body carrying
+              # "app": {"status": "nonsense"}: grep returned "nonsense",
+              # node returned the real status.
+              #
+              # node is already required here; this job prints "node -v"
+              # and installs the Heroku CLI with npm, so a missing node
+              # breaks the job long before this line.
+              #
+              # readFileSync(0) reads stdin synchronously, which keeps
+              # this to two lines instead of node's async stream dance.
+              # An unparseable body makes node exit non-zero, so "|| true"
+              # still yields the empty string the guards below expect:
+              # this job runs under -eo pipefail, and without it a body
+              # without these fields would abort the step silently
+              # instead of retrying. An unknown status is passed straight
+              # through, so it still reaches the "unexpected release
+              # status" arm immediately rather than waiting out the loop.
+              release_field() {
+                printf '%s' "$body" | node -e '
+                  const r = JSON.parse(require("fs").readFileSync(0, "utf8"))
+                  process.stdout.write(String((r[0] || {})[process.argv[1]]
+                                              ?? ""))
+                ' "$1" 2>/dev/null || true
+              }
+              version="$(release_field version)"
+              status="$(release_field status)"
+              # Insist on a bare integer: this also catches a
+              # multi-line value, which is what a body holding more
+              # than one release would produce, rather than letting it
+              # crash the comparison below.
+              case "$version" in
+                ''|*[!0-9]*)
+                  echo 'Could not parse a single release version; retrying.'
+                  sleep 15; continue ;;
+              esac
+              if [ -z "$status" ]; then
+                echo 'Could not parse the release status; retrying.'
+                sleep 15; continue
+              fi
+              # Ignore the release that was already live.
+              if [ "$version" -le "$prev" ]; then
+                echo "Waiting for a new release (newest is still v${version})."
+                sleep 15; continue
+              fi
+              case "$status" in
+                succeeded)
+                  echo "Release v${version} succeeded; migrations ran."
+                  deployed=yes
+                  break ;;
+                failed|expired)
+                  echo "ERROR: release v${version} ${status}."
+                  echo 'The new code was NOT deployed and the previous'
+                  echo 'release is still serving. Maintenance mode is'
+                  echo 'left ON deliberately: look before clearing it.'
+                  exit 1 ;;
+                pending)
+                  echo "Release v${version} pending (check ${i})." ;;
+                *)
+                  echo "ERROR: unexpected release status '${status}'."
+                  exit 1 ;;
+              esac
+              sleep 15
+            done
+            if [ "$deployed" != 'yes' ]; then
+              echo 'ERROR: no new release reached "succeeded" in time.'
+              echo "The newest release is still v${version:-unknown}."
+              exit 1
+            fi
             if [ -f '.recalculate' ] ; then
                 echo 'Recalculation marker found, performing recalculation.'
                 heroku run --app "$HEROKU_APP" -- rake update_all_badge_percentages
                 rm -f '.recalculate'
             fi
-            heroku maintenance:off --app "$HEROKU_APP"
+            # Only leave maintenance mode if this job entered it. Turning
+            # it off unconditionally would clear a maintenance window
+            # somebody else had put up by hand, and would report success
+            # for having done so. Default to yes if the file is missing,
+            # because the worse failure here is a site left dark.
+            if [ "$(cat /tmp/needs-maintenance 2>/dev/null || echo yes)" \
+                 = 'yes' ]; then
+              heroku maintenance:off --app "$HEROKU_APP"
+            else
+              echo 'Maintenance mode was never entered; leaving it alone.'
+            fi
           no_output_timeout: 20m
+      - run:
+          name: Confirm the deployed stack is the tested one
+          command: |
+            export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
+            tested_stack="$(cat /tmp/workspace/tested-stack)"
+
+            # "stack", not "build_stack", now: the release has happened,
+            # so what the dynos actually run is the question. If these
+            # disagree, the application is live on an operating system
+            # the suite never ran on, which is the one thing this whole
+            # mechanism exists to prevent.
+            #
+            # Retried rather than judged on one read. "stack" follows the
+            # release rather than leading it, so on the very deploy that
+            # moves the stack it may briefly still report the old one.
+            # Failing immediately would be a false alarm at exactly the
+            # moment this check matters most.
+            for i in $(seq 1 6); do
+              live_stack="$(script/heroku_app_field stack.name \
+                "$HEROKU_APP" || true)"
+              if [ "$live_stack" = "$tested_stack" ]; then
+                echo "${HEROKU_APP} runs ${live_stack}, as tested."
+                exit 0
+              fi
+              echo "Attempt ${i}: reads '${live_stack}', waiting for" \
+                   "'${tested_stack}'."
+              sleep 5
+            done
+            echo "ERROR: ${HEROKU_APP} runs '${live_stack}' but the"
+            echo "tests ran on '${tested_stack}'."
+            echo 'The application is live on an operating system the'
+            echo 'suite never ran on. Check "heroku stack".'
+            exit 1
+      - run:
+          name: Smoke test the live site
+          command: |
+            export HEROKU_APP="$CIRCLE_BRANCH"-bestpractices
+
+            # The release phase already proved the application LOADS on
+            # this stack: it ran "rails db:migrate" on a one-off dyno
+            # using the run image, which loads every gem including the
+            # twenty with native extensions, and a failure there stops
+            # the release reaching the dyno formation. What it never did
+            # is start Puma. So this asks for one real page.
+            #
+            # THROUGH THE CDN, because there is no way round it and
+            # there should not be. ApplicationController's
+            # verify_origin_shielding answers 403 to any request whose
+            # last X-Forwarded-For hop is not a trusted Fastly edge, so
+            # https://<app>.herokuapp.com/... is forbidden by design.
+            # That is cloud-piercing protection working; a smoke test is
+            # no reason to want a hole in it.
+            #
+            # The hostname comes from the application itself rather than
+            # being written here, so staging and production each answer
+            # for themselves and nothing has to be kept in step.
+            # config:get names ONE variable: plain "heroku config"
+            # would print every secret the application holds into a log
+            # anyone can read.
+            host="$(heroku config:get PUBLIC_HOSTNAME --app "$HEROKU_APP")"
+            if [ -z "$host" ]; then
+              echo "ERROR: ${HEROKU_APP} has no PUBLIC_HOSTNAME set, so"
+              echo 'there is no address to smoke test. Refusing to guess.'
+              exit 1
+            fi
+
+            # An inert query parameter, different on EVERY ATTEMPT, so
+            # each request asks Fastly for an object it cannot already
+            # hold. The CDN varies on the query string, so this reaches
+            # the origin.
+            #
+            # Per attempt rather than per build, which matters: with one
+            # URL for the whole loop, an early 502 from a dyno still
+            # starting could itself be cached and then re-served to
+            # every retry, turning a passing state into a guaranteed
+            # failure. The value carries the build and attempt number so
+            # it can be found in the logs, plus $RANDOM so two runs
+            # cannot collide.
+            #
+            # The parameter is unused by the application. /projects/:id
+            # ignores query parameters it does not know; nothing here
+            # sets action_on_unpermitted_parameters to raise.
+            echo "Smoke testing https://${host}/projects/1.json"
+            for i in $(seq 1 12); do
+              # Four independent sources of variation, because this
+              # line has to keep working when something about it stops
+              # being true. CIRCLE_BUILD_NUM is empty off CircleCI; the
+              # attempt number repeats between runs; $RANDOM is not
+              # available in every shell. The clock changes every
+              # second, and attempts are five seconds apart.
+              buster="build${CIRCLE_BUILD_NUM:-none}-try${i}"
+              buster="${buster}-$(date +%s)-${RANDOM}"
+              url="https://${host}/projects/1.json?useless_parameter=${buster}"
+              body="$(curl -sfL --max-time 20 -D /tmp/smoke-headers \
+                "$url" || true)"
+              # Require the digit to END: '"id": *1' alone also
+              # matches "id":10, so a response about some other project
+              # would pass. Zero or more spaces after the colon because
+              # the answer may be compact or pretty-printed.
+              if printf '%s' "$body" | grep -q '"id": *1[,}]'; then
+                echo "Site answered with project 1 after ${i} attempts."
+                # Printed, not asserted. A MISS proves the answer came
+                # from the application; a HIT would mean the CDN served
+                # a query string it had somehow seen before, which is
+                # worth seeing but is no reason to fail a good deploy.
+                # From THIS request's headers, not a second one:
+                # asking again for the same URL would report a hit on
+                # the cache entry the request above had just created,
+                # which is a diagnostic that lies in the ordinary case.
+                grep -iE '^(x-cache|age):' /tmp/smoke-headers || true
+                exit 0
+              fi
+              echo "Attempt ${i}: no usable answer yet; dynos may still" \
+                   'be starting.'
+              sleep 5
+            done
+            echo "ERROR: ${url} never returned project 1."
+            echo 'The release is LIVE and may be serving badly. Look at'
+            echo '"heroku logs --app '"${HEROKU_APP}"'" first.'
+            exit 1
       # Not reliable enough:
       # - run:
           # name: Test Fastly
@@ -217,8 +1452,33 @@ workflows:
   version: 2
   build-deploy:
     jobs:
+      # "build" and "static" have no "requires", so CircleCI starts them
+      # at the same time. That is the entire point: they are independent
+      # work, and the wall clock is now the longer of the two rather
+      # than their sum.
       - build
+      - static:
+          # Not on the deploy branches. Everything this job runs is
+          # settled by the commit, and staging and production are
+          # reached only by fast-forwarding main, which has already run
+          # all of it. Leaving the job out of the workflow entirely is
+          # better than a conditional inside it: there is no step to
+          # misread, and the absent job is visible in the pipeline.
+          #
+          # "ignore" rather than "only" so a new branch is checked more
+          # rather than less. CircleCI treats a plain string as an exact
+          # branch name; a regular expression would have to be written
+          # between slashes.
+          filters:
+            branches:
+              ignore:
+                - staging
+                - production
+      # Deploying requires the tests, and deliberately not "static":
+      # that job does not exist on these two branches, and a job cannot
+      # require one that was filtered out of the workflow.
       - deploy:
+          context: bestpractices-heroku-deploy
           requires:
             - build
           filters:

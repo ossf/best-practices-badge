@@ -79,8 +79,16 @@ CORS_ALLOWED_METHODS = %i[get options].freeze
 # and there's no way to express priority.
 # With regular expressions we can express the patterns unambiguously.
 
+# Build criteria level pattern from canonical lists defined in
+# config/initializers/01_section_names.rb
+# This ensures CORS patterns stay in sync with routing constraints
+# Sections::VALID_NAMES includes all canonical and obsolete section names
+CRITERIA_LEVEL_PATTERN = Sections::VALID_NAMES.join('|')
+
 CORS_DIFFERENTIATED_RESOURCE_PATTERNS = [
-  %r{\A/([a-z]{2}(-[A-Z]{2})?/)?projects(/[1-9][0-9]*(/[1-9][0-9]*)?)?\z},
+  # Match projects with optional ID and optional criteria level (numeric or named)
+  # Pattern auto-updates when new levels are added to routes.rb canonical lists
+  %r{\A/([a-z]{2}(-[A-Z]{2})?/)?projects(/[1-9][0-9]*(/(#{CRITERIA_LEVEL_PATTERN})(/edit)?)?)?\z},
   %r{\A/([a-z]{2}(-[A-Z]{2})?/)?project_stats\z},
   %r{\A/([a-z]{2}(-[A-Z]{2})?/)?users/[1-9][0-9]*\.json\z}
 ].freeze
@@ -107,7 +115,7 @@ CORS_DIFFERENTIATED_RESOURCE_PATTERNS = [
 # that would just produce useless "/badge" and "/badge.json" and so on.
 
 CORS_UNDIFFERENTIATED_RESOURCE_PATTERNS = [
-  %r{\A/([a-z]{2}(-[A-Z]{2})?/)?projects/[1-9][0-9]*/badge\z},
+  %r{\A/([a-z]{2}(-[A-Z]{2})?/)?projects/[1-9][0-9]*/badge(\.json)?\z},
   %r{\A/([a-z]{2}(-[A-Z]{2})?/)?projects(/[1-9][0-9]*)?\.json\z},
   %r{\A/([a-z]{2}(-[A-Z]{2})?/)?project_stats(/[a-z0-9_]+)?\.json\z},
   %r{\A/assets/([A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*)\z}

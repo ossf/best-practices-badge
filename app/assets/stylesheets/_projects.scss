@@ -1,0 +1,247 @@
+// Place all the styles related to the Projects controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+// The progress bar is displayed in the header navbar. Thus, the
+// progress bar styling is defined in the _header file.
+
+@import "variables";
+
+// We use "word-wrap: break-word;" to be compatible with IE and Edge,
+// even though word-wrap was renamed to overflow-wrap in CSS3. See:
+// https://makandracards.com/makandra/47957-html-making-browsers-wrap-long-words
+td.website {
+  word-wrap: break-word;
+  max-width: 150px;
+}
+td.license {
+  word-wrap: break-word;
+  max-width: 150px;
+}
+td.project_name {
+  word-wrap: break-word;
+}
+
+.criteria-desc {
+}
+
+.criteria-radio {
+  margin-top: -10px;
+  padding-left: 20px;
+}
+
+.criteria-radio label {
+  font-family: Arial;
+  font-size: 1em;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.justification-markdown {
+  background-color: #eeeeee;
+  p {
+    padding-left: 5px;
+  }
+  blockquote {
+    padding: 5px 5px;
+    font-size: 13px;
+    margin: 0 0 10px;
+  }
+}
+
+.discussion-markdown {
+  background-color: #eeeeee;
+  p {
+    padding-left: 5px;
+  }
+}
+
+.badge-progress {
+  min-width: 5em;
+}
+
+// Project badge logo (shown on show/edit/delete pages)
+.main-badge-ques {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  width: 140px;
+  height: 140px;
+  background: image-url('openssf_bestpracticesbadge.svg') no-repeat top left;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .main-badge-ques {
+    background: image-url('openssf_bestpracticesbadge.svg') no-repeat top left;
+    background-size: 140px 140px;
+  }
+}
+
+@media only screen and (max-width: $screen-xs-max) {
+  .main-badge-ques {
+    position: relative;
+    top: 20px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+    width: 100px;
+    height: 100px;
+    background: image-url('openssf_bestpracticesbadge.svg') no-repeat top left;
+    background-size: 80px 80px;
+  }
+}
+
+// Button styles for project page controls
+.btn-simple {
+  border: thin solid #ccc;
+  background-color: white;
+  border-radius: 0;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.btn-xs {
+  margin-top: 2px;
+  margin-right: 1px;
+}
+
+@media only screen and (max-width: 480px) {
+  .btn-stack {
+    display: block;
+    float: none;
+    width: 100%;
+  }
+}
+
+// Submit button styling
+.btn-submit {
+  width: 40%
+}
+
+// Subtext styling for project forms
+.main-subtext {
+  padding-top: 15px;
+}
+
+// Progress bar wrapper (Bootstrap provides the styling)
+.progress {
+}
+
+// Progress bar subtext
+.progress-subtext {
+  color: #999;
+  font-size: 1.2em;
+  text-transform: capitalize;
+}
+
+// Automation highlighting for first-edit
+// Orange: Chief overrode a non-'?' value (needs attention)
+.highlight-overridden {
+  border-left: 6px solid #e65c00 !important; // Strong orange
+  background-color: #ffe0b2; // Clearly orange background (Material Orange 100)
+  padding-left: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  animation: pulse-orange 2s ease-in-out 3; // Pulse 3 times
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #ffcc80; // Darker orange on hover (Material Orange 200)
+  }
+}
+
+@keyframes pulse-orange {
+  0%, 100% {
+    background-color: #ffe0b2;
+    border-left-width: 6px;
+  }
+  50% {
+    background-color: #ffcc80;
+    border-left-width: 8px;
+  }
+}
+
+// Yellow: Chief filled in a '?' value (helpful suggestion)
+.highlight-automated {
+  border-left: 4px solid #ffcc00 !important; // Gold
+  background-color: #ffffed; // Very light yellow
+  padding-left: 14px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+
+  &:hover {
+    background-color: #ffffcc; // Slightly darker on hover
+  }
+}
+
+// Blue: automation disagreed with the user's answer (informational, non-alarming)
+.highlight-divergent {
+  border-left: 6px solid #1a5fa8 !important; // Strong blue
+  background-color: #cce0f5; // Clear light blue (was nearly white)
+  padding-left: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+
+  &:hover {
+    background-color: #b8d4ee; // Slightly darker on hover
+  }
+}
+
+// Icons for automation indicators
+.automation-icon, .override-icon {
+  display: inline-block;
+  font-size: 0.9em;
+  margin-right: 0.25em; // Small space after icon
+  vertical-align: middle;
+}
+
+.override-icon {
+  opacity: 0.9; // ⚠️ slightly prominent
+}
+
+.automation-icon {
+  opacity: 0.7; // 🤖 more subtle
+}
+
+
+// Full-width automation detail blocks (override ⚠️ and divergent ≠).
+// Used as col-xs-12 siblings in criterion rows and as block elements in _form_basics.
+details.override-detail-block,
+details.divergent-detail-block {
+  margin-bottom: 4px;
+
+  > summary {
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker { display: none; }
+    &::after { content: ' \25BE'; vertical-align: middle; } // ▾ closed
+  }
+
+  &[open] > summary::after { content: ' \25B4'; vertical-align: middle; } // ▴ open
+}
+
+details.override-detail-block > summary { font-size: 1.1em; }
+
+details.divergent-detail-block > summary {
+  color: #1a5fa8;
+  font-size: 1.3em;
+  font-weight: bold;
+}
+
+.override-detail-body {
+  padding: 6px 8px;
+  background-color: #ffe0b2;
+  border-left: 3px solid #e65c00;
+  border-radius: 2px;
+  margin-top: 4px;
+}
+
+.divergent-detail-body {
+  padding: 6px 8px;
+  background-color: #e8f0fa;
+  border-left: 3px solid #5b9bd5;
+  border-radius: 2px;
+  margin-top: 4px;
+}

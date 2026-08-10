@@ -7,7 +7,10 @@ image you are using.
 
 To upgrade the docker image you must have an account on DockerHub and docker
 installed on your computer (Install instructions are
-[here](https://docs.docker.com/install/). You can then run the following steps.
+[here](https://docs.docker.com/install/).
+
+See [how-to-create-image.md](how-to-create-image.md) for detailed
+instructions. Here are the highlights:
 
 1. Create a new directory and copy an existing Dockerfile into the new
    directory as described above.

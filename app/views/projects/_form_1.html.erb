@@ -4,30 +4,29 @@
 <% badge_hostname = (ENV['PUBLIC_HOSTNAME'] || 'localhost') %>
 <%# TODO: Use badge_percentage_1 %>
 <% provide :insert_progress_bar do %>
-  <div id="progress-mobile" class="progress">
-    <div id="badge-progress"
-         class="progress-bar progress-bar-success badge-progress"
+  <div class="progress-mobile progress">
+    <div class="progress-bar progress-bar-success badge-progress"
          role="progressbar" aria-valuenow="<%= project.badge_percentage_1 %>"
          aria-valuemin="0" aria-valuemax="100">
       <%= project.badge_percentage_1 %>%
     </div>
   </div>
 <% end %>
-<%# The badge URL has one value for some time after the project entry
-   is edited, and then changes. To handle that gracefully, we
-   expire the cache after a period of time. %>
-<% cache_if is_disabled, [project, locale], expires_in: 12.hours do %>
 <%= render(partial: 'form_early',
            locals:
              {
-               project: project, is_disabled: is_disabled,
-               criteria_level: '1', badge_hostname: badge_hostname
+               project: project, view_only: view_only,
+               criteria_level: criteria_level, badge_hostname: badge_hostname
              }) %>
 
 <div class="row">
   <div class="col-md-12">
  <div>
-  <%= bootstrap_form_for project, url: project_path(project, criteria_level: '1') do |f| %>
+  <%# In view_only mode the form is for display only and is never submitted,
+      so suppress the per-request authenticity_token. This keeps anonymous
+      show pages byte-identical (and free of a useless session-CSRF write) so
+      the CDN can share one cached object. See docs/cdn-cache-not-logged-in.md. %>
+  <%= bootstrap_form_for project, url: edit_project_section_path(project, criteria_level), authenticity_token: (false if view_only) do |f| %>
     <%= render 'shared/error_messages', object: f.object %>
     <%= f.hidden_field :lock_version %>
 
@@ -45,13 +44,13 @@
              }) %>
       <div class="panel-collapse collapse in">
         <ul class="list-group">
-          <li class="list-group-item"><h3 id="section_identification"><%= t('headings.Identification') %></h3>
+          <li class="list-group-item"><h3 id="section_general_project_info"><%= t('headings.General_project_info') %></h3>
             <%= render(partial: 'form_basics',
                  locals:
                    {
-                     project: project, is_disabled: is_disabled,
+                     project: project, view_only: view_only,
                      badge_hostname: badge_hostname, f: f,
-                     criteria_level: '1'
+                     criteria_level: criteria_level
                    }) %>
           </li>
           <%# Prerequisites is always disabled %>
@@ -60,28 +59,29 @@
               ) %>
           <%= render_minor_status(
                 '1', 'Basics', 'Basic project website content',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
-                '1', 'Basics', 'Project oversight', f, project, is_disabled
+                '1', 'Basics', 'Project oversight', f, project, view_only
               ) %>
           <%= render_minor_status(
-                '1', 'Basics', 'Documentation', f, project, is_disabled
+                '1', 'Basics', 'Documentation', f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Basics', 'Accessibility and internationalization',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
-                '1', 'Basics', 'Other', f, project, is_disabled
+                '1', 'Basics', 'Other', f, project, view_only
               ) %>
           </ul>
 
-      <% unless is_disabled %>
+      <% unless view_only %>
         <div class="panel-footer text-center">
-          <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-          <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'changecontrol', class:"btn btn-success btn-submit" %>
+          <%= render 'form_submit_notice', project: project %>
+          <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'changecontrol', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
           <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
         </div>
       <% end %>
@@ -102,14 +102,15 @@
         <ul class="list-group">
           <%= render_minor_status(
                 '1', 'Change Control', 'Previous versions',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'reporting', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'reporting', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -129,18 +130,19 @@
         <ul class="list-group">
           <%= render_minor_status(
                 '1', 'Reporting', 'Bug-reporting process',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Reporting', 'Vulnerability report process',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'quality', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'quality', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -159,37 +161,38 @@
       <div class="panel-collapse collapse in remove-in">
         <ul class="list-group">
           <%= render_minor_status(
-                '1', 'Quality', 'Coding standards', f, project, is_disabled
+                '1', 'Quality', 'Coding standards', f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Quality', 'Working build system',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Quality', 'Installation system',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Quality', 'Externally-maintained components',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Quality', 'Automated test suite',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Quality', 'New functionality testing',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
-                '1', 'Quality', 'Warning flags', f, project, is_disabled
+                '1', 'Quality', 'Warning flags', f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'security', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'security', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -209,16 +212,18 @@
         <ul class="list-group">
           <%= render_minor_status(
                 '1', 'Security', 'Secure development knowledge',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
-          <li class="list-group-item"><h3 id="section_use_basic_good_cryptographic_practices"><%=
+          <li class="list-group-item">
+            <% cache_frozen ['crypto_section_header', '1', locale, view_only] do %>
+            <h3 id="section_use_basic_good_cryptographic_practices"><%=
             t('Use basic good cryptographic practices',
               scope: :headings) %></h3>
 
             <span class="criteria-desc">
               <%= t('projects.misc.some_not_crypto_html') %>
             </span>
-            <% if (!is_disabled) %>
+            <% if (!view_only) %>
               <br><br>
               <button class="btn btn-default hidden-print"
                       type="button" id='all_crypto_na'>
@@ -226,25 +231,27 @@
               </button>
               <br>
             <% end %>
+            <% end # cache crypto_section_header %>
             <%= render_minor_status(
                   '1', 'Security', 'Use basic good cryptographic practices',
-                  f, project, is_disabled, false
+                  f, project, view_only, false
                 ) %>
           </li>
           <%= render_minor_status(
                 '1', 'Security', 'Secure release',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Security', 'Other security issues',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'analysis', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'analysis', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -264,18 +271,19 @@
         <ul class="list-group">
           <%= render_minor_status(
                 '1', 'Analysis', 'Static code analysis',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '1', 'Analysis', 'Dynamic code analysis',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'future', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'future', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -285,13 +293,14 @@
   </div>
       <br>
       <div class="center">
-      <% if is_disabled %>
+      <% if view_only %>
         <%= t "projects.show.#{project.data_license_field}",
               user: project.user_display_name %>
       <% else %>
-        <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-        <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-          value: 'Save', class:"btn btn-success btn-submit" %>
+        <%= render 'form_submit_notice', project: project %>
+        <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'Save', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
         <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
       <% end %>
       </div>
@@ -299,4 +308,3 @@
   </div>
 </div>
 </div>
-<% end %>

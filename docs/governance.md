@@ -143,25 +143,39 @@ Those with commit rights can make changes
 (typically pull requests) submitted by others.
 These changes include changes to the process and contribution requirements.
 
-## Committers
+## Escalated permissions policy
+
+No collaborator is granted escalated permissions to sensitive resources
+(such as commit rights, web application admin rights, or access to
+secrets) without prior review and approval by the TSC or technical lead.
+The specific criteria and processes for each type of escalated permission
+are described in the sections below.
+
+### Committers
 
 Committers are those with authority to directly make changes
 to the main branch of the code.
-The TSC and technical lead can add or revoke commit privilege
-(the TSC overrides the technical lead in case of a conflict).
+Commit privilege is only granted after review and approval by the
+TSC or technical lead.
+The TSC overrides the technical lead in case of a conflict.
+This privilege is never granted without prior review.
+
+The TSC and technical lead can also revoke commit privilege
+(again, the TSC can override the technical lead).
 Committers can accept contributions from contributors.
 
-## Contributors
+### Contributors
 
 Contributors are those who choose to contribute to the project.
 See [CONTRIBUTING](../CONTRIBUTING.md).
 
-## Web application admin
+### Web application admin
 
 A very few people have been granted the admin privilege within the
 web application. In general, the TSC and/or technical lead initiates
 inviting someone to have this admin privilege, it's usually not granted
 on request.
+
 Admin privilege is only considered for those who have consistently demonstrated
 (1) trustworthiness, (2) support for the badge project, and
 (3) need for this privilege (e.g., through repeated reasonable requests
@@ -174,16 +188,37 @@ data and who made the change, even for admins.
 
 The purpose of granting admin privilege is to
 enable that individual to immediately fix *any* of the issues
-in the badges or users. We recommend that admins fix projects so that
+in the badges or users.
+We recommend that admins fix projects so that
 individual projects can fix their own problems in the future.
 
-Admin is a position of high trust. In particular, admins must not
+This position also enables us to fulfill
+GDPR requests about accounts (e.g., to determine if an account exists,
+fix data about it, or delete it).
+
+Web admin is a position of high trust. In particular, admins must not
 abuse their access to the email addresses of every user (which are
 private).  We don't want to have many admins.
 However, we also don't want any one person to be a bottleneck.
 
 Note that web application admin is not the same as having direct
 access/control over the underlying database or container.
+
+See [admin](./admin.md) for more information about being a
+web application administrator.
+
+### Hosting/Fastly admin
+
+People with these permissions have the power to control the host system and
+Fastly CDN. This is generally the technical lead, backstopped by
+Linux Foundation IT. The TSC and technical lead determine who have
+these rights, but at least one person in Linux Foundation IT must have these
+privileges so that they can implement the will of the TSC.
+
+These privileges are necessary to fix problems in
+these areas. Like web admin, people with these permissions
+are in positions of high trust, and
+so these privileges are only granted to a few.
 
 ## Process
 
@@ -271,8 +306,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 

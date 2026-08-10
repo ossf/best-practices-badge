@@ -1,0 +1,13 @@
+# retired_baseline_version: The version in which the criterion was retired.
+# removed_from_display: The date on which the criterion was removed from the active criteria file.
+# original_id: The ID of the criterion in the upstream baseline source.
+
+osps_br_01_02:
+  original_id: OSPS-BR-01.02
+  retired_baseline_version: 'v2026.02.19'
+  removed_from_display: '2026-06-01'
+  description: >-
+    When a CI/CD pipeline uses a branch name in its functionality,
+    that name value MUST be sanitized and validated prior to use
+    in the pipeline.
+  details: ''

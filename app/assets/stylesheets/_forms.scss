@@ -1,0 +1,70 @@
+// frozen_string_literal: true
+
+// Global form styles
+// Moved from static_pages.scss during CSS reorganization
+// NOTE: Mixins and Bootstrap variables available via application.scss import context
+
+input, textarea, select, .discussion-markdown, .uneditable-input {
+  border: 1px solid #bbb;
+  width: 100%;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+form.project_search input {
+  width: auto;
+}
+
+form.project_search select {
+  width: auto;
+}
+
+input {
+  height: auto !important;
+}
+
+input[type=checkbox] {
+  width: initial;
+}
+
+#error_explanation {
+  color: red;
+  ul {
+    color: red;
+    margin: 0 0 30px 0;
+  }
+}
+
+.field_with_errors {
+  @extend .has-error !optional;
+  .form-control {
+    color: #a94442;
+  }
+}
+
+label.required:after {
+  content:" *";
+}
+
+input[type=radio] {
+  width: 15px;
+}
+
+.checkbox {
+  margin-top: -10px;
+  margin-bottom: 10px;
+  span {
+    margin-left: 20px;
+    font-weight: normal;
+  }
+}
+
+// Status chooser table
+.borderless tbody tr td, .borderless tbody tr td label, .borderless tbody tr th, .borderless thead tr th, .borderless {
+  border: none;
+  padding: 0px 5px 0px 5px;
+}
+
+.required-data {
+  background-color: yellow;
+}

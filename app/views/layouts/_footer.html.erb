@@ -1,9 +1,9 @@
-<% cache locale do -%>
+<% cache_frozen locale do -%>
 <footer class="footer">
   <div class="container">
     <div class="row">
       <div class="col-xs-12 col-md-6">
-        <%= t :footer_text_html, scope: :layouts %></div>
+        <%= t :footer_text_html, scope: :layouts %><% if I18n.locale != :en %><small> <%= t :translation_disclaimer_html, scope: :layouts %></small><% end %></div>
     <div class="col-xs-12 col-md-6">
       <nav>
         <ul>

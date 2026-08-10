@@ -15,6 +15,10 @@ class BlankDetective < Detective
   INPUTS = [].freeze  # Input Hash required for Search
   OUTPUTS = [].freeze # Output Hash required to set database values.  Please see
   # database schema for allowed values to be set.
+
+  # This detective provides no outputs - cannot override
+  OVERRIDABLE_OUTPUTS = [].freeze
+
   # Setup and major work goes here.  Do not attempt to return anything from this
   # part of the code as it causes crashes.
 

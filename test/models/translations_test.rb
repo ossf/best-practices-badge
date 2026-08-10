@@ -13,7 +13,7 @@ class TranslationsTest < ActiveSupport::TestCase
 
   test 'Translations.for_js has same keys as projects.misc.in_javascript' do
     I18n.available_locales.each do |l|
-      assert_equal I18n.t('.projects.misc.in_javascript').keys.sort,
+      assert_equal Translations.js_translation_keys.sort,
                    Translations.for_js[l].keys.sort
     end
   end
@@ -115,8 +115,8 @@ class TranslationsTest < ActiveSupport::TestCase
     # Do a sanity check of locale key values in the English translation and
     # that they match I18n.available_locales.
     _skip = I18n.t(:hello) # Force load of translations
-    en_hash = I18n.backend.send(:translations)[:en] # Load English text
-    en_locale_names = en_hash[:locale_name].keys
+    # Get locale names - works with both nested and flat backends
+    en_locale_names = Translations.get_translation_keys('locale_name')
     # Check if locale okay, e.g., "en" or "zh-CN".
     en_locale_names.each do |loc|
       assert_match(/\A[a-z]{2}(-[A-Z]{2})?\z/,

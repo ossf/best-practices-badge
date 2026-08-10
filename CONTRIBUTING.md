@@ -21,16 +21,16 @@ Here's help on how to make contributions, divided into the following sections:
 ## General information
 
 For specific proposals, please provide them as
-[pull requests](https://github.com/coreinfrastructure/best-practices-badge/pulls)
+[pull requests](https://github.com/ossf/best-practices-badge/pulls)
 or
-[issues](https://github.com/coreinfrastructure/best-practices-badge/issues)
+[issues](https://github.com/ossf/best-practices-badge/issues)
 via our
-[GitHub site](https://github.com/coreinfrastructure/best-practices-badge).
+[GitHub site](https://github.com/ossf/best-practices-badge).
 For general discussion, feel free to use the
 [cii-badges mailing list](https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges).
 
 We use GitHub. You may find
-[GitHub CLI (`gh`)](https://github.com/coreinfrastructure/best-practices-badge.git)
+[GitHub CLI (`gh`)](https://github.com/ossf/best-practices-badge.git)
 helpful if you're using the command line.
 It supports commands like `gh auth login` (login) and
 `gh pr create` (create a new pull request
@@ -39,7 +39,9 @@ with the current branch).
 The "docs/" directory has information you may find helpful, for example:
 
 -   [governance.md](docs/governance.md) describes our governance model
-    (how we decide things)
+    (how we decide things), including the
+    [escalated permissions policy](docs/governance.md#escalated-permissions-policy)
+    covering commit rights and admin access
 -   [implementation.md](docs/implementation.md) provides implementation details
 -   [background.md](docs/background.md) provides background info on criteria
 
@@ -50,7 +52,7 @@ locally (highly recommended if you're going to make code changes).
 It also provides a quick start guide.
 
 If you're new to the project (or FLOSS in general), the
-[Up-for-grabs](https://github.com/coreinfrastructure/best-practices-badge/labels/up-for-grabs)
+[Up-for-grabs](https://github.com/ossf/best-practices-badge/labels/up-for-grabs)
 issues are smaller tasks that may typically take 1-3 days.
 You are welcome aboard!
 The [roadmap.md](docs/roadmap.md) file provides an overview of future plans.
@@ -73,8 +75,8 @@ and
 ### How we handle proposals
 
 We use GitHub to track proposed changes via its
-[issue tracker](https://github.com/coreinfrastructure/best-practices-badge/issues) and
-[pull requests](https://github.com/coreinfrastructure/best-practices-badge/pulls).
+[issue tracker](https://github.com/ossf/best-practices-badge/issues) and
+[pull requests](https://github.com/ossf/best-practices-badge/pulls).
 Specific changes are proposed using those mechanisms.
 Issues are assigned to an individual, who works it and then marks it complete.
 If there are questions or objections, the conversation area of that
@@ -311,6 +313,29 @@ That includes any generated HTML.
 That way we can use CSP entries
 that harden the program against security attacks.
 
+### Database Migrations and Assets
+
+**Database migrations:** The test environment maintains a separate database.
+After creating or running a migration, you must migrate BOTH environments:
+
+```bash
+rails db:migrate                    # Development
+RAILS_ENV=test rails db:migrate     # Test
+```
+
+Note: If you forget, test_helper.rb will detect pending migrations and halt
+with instructions before any confusing errors occur.
+
+**Asset precompilation:** After modifying assets (JavaScript, CSS, images),
+you must recompile:
+
+```bash
+rake assets:precompile
+```
+
+Note: If you forget, test_helper.rb will detect stale assets and halt
+with instructions before running tests.
+
 Below are guidelines for specific languages.
 
 ### Ruby
@@ -379,6 +404,33 @@ You may use the safe navigation operator '&amp;.' added in
 [Ruby version 2.3.0](https://www.ruby-lang.org/en/news/2015/12/25/ruby-2-3-0-released/).
 Our static analysis tools' parsers can now handle this syntax.
 This means that this application *requires* Ruby version 2.3.0 or later to run.
+
+**Method Documentation**: All public methods in classes and modules should
+include inline documentation using YARD (Yet Another Ruby Documentation) format.
+This helps developers understand the purpose, parameters, and return values
+at a glance. Use these YARD tags:
+
+* `@param name [Type] description` - Documents a parameter
+* `@return [Type] description` - Documents the return value
+* `@raise [ExceptionClass] description` - Documents exceptions that may be raised
+
+Example:
+
+~~~~ruby
+# Calculates badge percentage for a specific level.
+# Iterates through all criteria for the level and determines what
+# percentage of MUST and SHOULD criteria are satisfied.
+# @param level [String] the badge level ('passing', 'silver', 'gold', etc.)
+# @return [Integer] percentage from 0-100
+# @raise [ArgumentError] if level is invalid
+def calculate_badge_percentage(level)
+  # method implementation
+end
+~~~~
+
+You don't need to document every private helper method, but any method
+that could be called from another class/module should be documented.
+Focus documentation on methods that aren't immediately obvious.
 
 When making new tests, if you need to modify the setup or teardown methods for a
 test class, please use callbacks instead of overwrites; i.e.  use "setup do"
@@ -547,8 +599,9 @@ check the software:
     to look for Ruby on Rails security vulnerabilities
 *   *license_okay* - runs license_finder to check the
     OSS licenses of gem dependencies (transitively).
-    A separate dependency on file 'license_finder_report.html' generates
-    a detailed license report in HTML format.
+    A detailed HTML report is *not* generated by "rake default", because
+    rendering it re-scans every gem and doubles the cost of the check.
+    Run "rake license_finder_report.html" when you want to read one.
 *   *whitespace_check* - runs "git diff --check" to detect
     trailing whitespace in latest diff
     *yaml_syntax_check* - checks syntax of YAML (.yml) files.
@@ -617,7 +670,7 @@ into the default "rake" checking task:
   developer tools / audits.  This runs a variety of tests and checks,
   including some security checks of the code delivered to the browser.
   Note that not all reports are relevant.
-* [Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low)
+* [Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low)
 * JSCS (JavaScript style checker) using the Node.js format.
 * JSHint (JavaScript error detector)
 * W3C link checker <https://validator.w3.org/checklink>
@@ -657,7 +710,7 @@ RAILS_ENV=production rake assets:precompile
 ### Testing during continuous integration
 
 Note that we also use
-[CircleCI](https://circleci.com/gh/coreinfrastructure/best-practices-badge)
+[CircleCI](https://circleci.com/gh/ossf/best-practices-badge)
 for continuous integration tools to check changes
 after they are checked into GitHub; if they find problems, please fix them.
 These run essentially the same set of checks as the default rake task.
@@ -790,8 +843,8 @@ Most software licensed using the GPL version 2.0 is actually
 GPL-2.0+ (GPL version 2 or later), and GPL version 3 is known to be
 compatible with the Apache 2.0 license, so this is not a common problem.
 For more on license decisions see docs/dependency_decisions.yml;
-you can also run 'rake' and see the generated report
-license_finder_report.html.
+you can also run 'rake license_finder_report.html' and read the
+report it generates.
 Once you've checked, you can approve a library and its license with the
 this command (this quickly modifies docs/dependency_decisions.yml;
 you can edit the file as well):
@@ -868,6 +921,20 @@ gem version and also update all of its transitive dependencies:
 ~~~~
 bundle update GEM_NAME && rake
 ~~~~
+
+You may see an error like this:
+
+~~~~
+WARN: Unresolved or ambiguous specs during Gem::Specification.reset:
+      stringio (>= 0)
+      Available/installed versions of this gem:
+      - 3.1.7
+      - 3.1.1
+WARN: Clearing out unresolved specs. Try 'gem cleanup <gem>'
+~~~~
+
+Ignore that, it's a side-effect of how we currently install things. Run
+`gem cleanup stringio`.
 
 If that works commit the change with a "git comment -as" with summary
 'Update gem GEM_NAME (OLD_VERSION_NUMBER-&gt;NEW_VERSION_NUMBER)'.
@@ -996,6 +1063,12 @@ warning: please see https://github.com/whitequark/parser#compatibility-with-ruby
 Once the component update has been verified,
 it can be checked in as a new commit.
 
+### Getting a Software Bill of Materials (SBOM)
+
+For more information on getting a
+Software Bill of Materials (SBOM) in SPDX format, see
+[docs/sbom.md](docs/sbom.md).
+
 ## Keeping up with the main branch
 
 The installer adds a git remote named 'upstream'.
@@ -1006,7 +1079,7 @@ You can reset this, if something has happened to it, using:
 
 ~~~~sh
 git remote add upstream \
-    https://github.com/coreinfrastructure/best-practices-badge.git
+    https://github.com/ossf/best-practices-badge.git
 ~~~~
 
 If the version of Ruby has changed (in the Gemfile),
@@ -1035,6 +1108,19 @@ git fetch origin
 git branch -u origin/main main
 git remote set-head origin -a
 ~~~~
+
+## Windows OS
+
+We don't normally test this on the Windows OS.
+If you use Windows, we recommend using
+Windows Subsystem for Linux (WSL).
+
+For Windows you should enable creation of symbolic links
+(e.g., for `AGENTS.md`).
+An easy way is to enable "developer mode"
+(Settings > Update & Security > For developers and enable "Developer mode").
+In addition, in git, set `core.symlinks` to true,
+e.g., `git config core.symlinks true`.
 
 ## Governance
 

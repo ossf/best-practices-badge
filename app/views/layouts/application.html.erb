@@ -4,25 +4,44 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <%= csrf_meta_tags %>
+  <%#
+    Only emit the CSRF token when it can actually be used. Emitting it calls
+    form_authenticity_token, which writes session[:_csrf_token] and forces a
+    _BadgeApp_session cookie -- defeating CDN caching for anonymous visitors.
+    Most anonymous read-only pages need no token: form_with embeds its own
+    hidden authenticity_token (so login/signup/reset forms still work).
+    The exception is an anonymous page with a rails-ujs "method:" link, which
+    reads the token from this meta tag -- e.g. the login page's "Log in with
+    GitHub" button (a link_to ... method: 'post'). Such a page must opt in
+    explicitly with `content_for :needs_csrf_meta, 'true'` (the non-block form;
+    a block returning bare `true` outputs nothing, so content_for? stays
+    false), keeping the safe, cacheable default (no token) for other pages. See
+    docs/cdn-cache-not-logged-in.md (Change 1 and Section 9.1).
+  -%>
+  <% if logged_in? || content_for?(:needs_csrf_meta) %><%= csrf_meta_tags %><% end %>
   <%= yield :special_head_values %>
 <%# The following are the same for a given locale, cache for speed -%>
-<% cache locale do # do not cache csrf_meta_tags -%>
+<% cache_frozen locale do # do not cache csrf_meta_tags -%>
   <title>BadgeApp</title>
   <%= favicon_link_tag %>
   <%= stylesheet_link_tag    'application', media: 'all' %>
   <%= javascript_include_tag 'application', defer: true %>
-  <link rel="preload" href="<%=
-    stylesheet_path('application') %>" as="stylesheet" type="text/css">
-  <link rel="preload" href="<%=
-    javascript_path('application') %>" as="script"
-    type="application/javascript">
-  <%# This preloads only the "regular" Font Awesome fonts. %>
-  <link rel="preload" href="<%=
-    font_path('fa-regular-400.woff2') %>" as="font"
-    type="font/woff2" crossorigin>
-  <link rel="preload" href="<%=
-    image_path('cci-logo-header.png') %>" as="image" type="image/png">
+  <%# Preload resources for faster loading. We don't do this in development;
+    there the debug assets have different names, so preload won't help, and
+    the browser will show misleading warnings about these not being used. %>
+  <% if !Rails.env.development? %>
+    <link rel="preload" href="<%=
+      stylesheet_path('application') %>" as="style" type="text/css">
+    <link rel="preload" href="<%=
+      javascript_path('application') %>" as="script"
+      type="application/javascript">
+    <%# This preloads only the "regular" Font Awesome fonts. %>
+    <link rel="preload" href="<%=
+      font_path('fa-regular-400.woff2') %>" as="font"
+      type="font/woff2" crossorigin>
+    <link rel="preload" href="<%=
+      image_path('cci-logo-header.png') %>" as="image" type="image/png">
+  <% end %>
   <link rel="alternate" type="application/atom+xml" title="<%= t('feed_title') %>" href="/<%= I18n.locale %>/feed" />
   <link rel="publisher" href="https://www.linuxfoundation.org/" />
 <% end # cache for this locale -%>
@@ -31,15 +50,12 @@
 <%# https://searchengineland.com/ -%>
 <%# the-ultimate-guide-to-multilingual-and-multiregional-seo-157838 -%>
 <%# We use original_fullpath so that query strings are included. -%>
-<%# Fullpaths and locales are always distinct, so don't need cache name -%>
-<% cache request.original_fullpath do -%>
 <%   I18n.available_locales.each do |loc| -%>
        <link rel="alternate" hreflang="<%= loc %>" href="<%=
-             force_locale_url(request.original_url, loc) %>" />
+             safe_localized_internal_url(request.original_url, loc) %>" />
 <%   end # each locale -%>
        <link rel="alternate" hreflang="x-default" href="<%=
-             force_locale_url(request.original_url, nil) %>" />
-<% end # cache of links to "alternates" for each locale -%>
+             safe_localized_internal_url(request.original_url, nil) %>" />
 </head>
 <body>
 <%= render 'layouts/header' -%>

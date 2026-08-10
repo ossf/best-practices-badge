@@ -10,6 +10,10 @@ class NameFromUrlDetective < Detective
   INPUTS = %i[repo_url homepage_url].freeze
   OUTPUTS = [:name].freeze
 
+  # This detective suggests names but should not override user input
+  # (confidence level 1 - suggestion only)
+  OVERRIDABLE_OUTPUTS = [].freeze
+
   # rubocop:disable Metrics/MethodLength
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
@@ -28,7 +32,7 @@ class NameFromUrlDetective < Detective
         @results[:name] =
           {
             value: finding[2], confidence: 1,
-            explanation: "The project URL's domain name suggests this."
+            explanation: I18n.t('detectives.name_from_url.domain_suggests')
           }
       else
         finding = name_in_url_tail.match(homepage_url)
@@ -36,7 +40,7 @@ class NameFromUrlDetective < Detective
           @results[:name] =
             {
               value: finding[1], confidence: 1,
-              explanation: "The project URL's tail suggests this."
+              explanation: I18n.t('detectives.name_from_url.tail_suggests')
             }
         end
       end
@@ -47,7 +51,7 @@ class NameFromUrlDetective < Detective
         @results[:name] =
           {
             value: finding[1], confidence: 1,
-            explanation: "The repo URL's tail suggests this."
+            explanation: I18n.t('detectives.name_from_url.repo_tail_suggests')
           }
       end
     end

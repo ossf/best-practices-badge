@@ -8,11 +8,11 @@ require 'application_system_test_case'
 
 class RobotsContentsTest < ApplicationSystemTestCase
   test 'robots.txt on nonproduction site' do
-    # The tests never seet ENV['PUBLIC_HOSTNAME'] to the production site value.
+    # The tests never set ENV['PUBLIC_HOSTNAME'] to the production site value.
     visit '/robots.txt'
-    assert has_content? 'User-Agent: *'
+    assert_text 'User-Agent: *'
     assert_not has_content? 'Allow: /'
-    assert has_content? 'Disallow: /'
+    assert_text 'Disallow: /'
   end
 end
 
@@ -39,16 +39,16 @@ end
 #
 #   scenario 'robots.txt on production site' do
 #     visit '/robots.txt'
-#     assert has_content? 'User-Agent: *'
-#     assert has_content? 'Allow: /'
-#     assert has_content? 'Disallow: /users'
+#     assert_text 'User-Agent: *'
+#     assert_text 'Allow: /'
+#     assert_text 'Disallow: /users'
 #     # Directly check for locales used by EU countries, ensure they're there
-#     assert has_content? 'Disallow: /en/users'
-#     assert has_content? 'Disallow: /fr/users'
-#     assert has_content? 'Disallow: /de/users'
+#     assert_text 'Disallow: /en/users'
+#     assert_text 'Disallow: /fr/users'
+#     assert_text 'Disallow: /de/users'
 #     # Loop through all locales (make sure we didn't miss one)
 #     I18n.available_locales.each do |loc|
-#       assert has_content? "Disallow: /#{loc}/users"
+#       assert_text "Disallow: /#{loc}/users"
 #     end
 #   end
 # end

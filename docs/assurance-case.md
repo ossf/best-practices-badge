@@ -36,11 +36,8 @@ He provided a number of helpful comments and provided a lot of feedback
 in how to convert its notation from the
 Claims, Arguments, and Evidence (CAE) notation to
 Structured Assurance Case Metamodel (SACM) notation.
-For his initial work in converting this assurance case to SACM notation,
-see
-<a href="https://www.researchgate.net/publication/351854207_BadgeApp_Assurance_Case_in_SACM_Notation"
-><i>BadgeApp Assurance Case in SACM Notation</i> by T. Scott Ankrum,
-The MITRE Corporation, May 2021</a>.
+For his initial work in converting this assurance case to SACM notation, see
+[*BadgeApp Assurance Case in SACM Notation* by T. Scott Ankrum, The MITRE Corporation, May 2021](https://www.researchgate.net/publication/351854207_BadgeApp_Assurance_Case_in_SACM_Notation).
 
 ## Assurance case summary
 
@@ -178,7 +175,7 @@ ship to production unless tests pass, so there is usually no reason to
 see the test results unless a test fails.
 That said, the test results for the master branch
 are available if desired at:
-https://app.circleci.com/pipelines/github/coreinfrastructure/best-practices-badge?branch=master
+https://app.circleci.com/pipelines/github/ossf/best-practices-badge?branch=master
 
 (Note to editors: to edit the figures above, edit the .odg file, then
 export to .png so that it can viewed on GitHub.)
@@ -1040,11 +1037,14 @@ was to *not* use libraries like Devise, because they were not mature at
 the time. Such libraries have become much more mature, but as of yet
 there hasn't been a good reason to change.
 
-The key code for authentication is the "sessions" controller file
-`app/controllers/sessions_controller.rb`.
+The key code for initial authentication is the "sessions" controller file
+`app/controllers/sessions_controller.rb`, and ongoing management is
+performed by the application controller and the session helper.
 In this section we only consider the login mechanism
 built into the BadgeApp.  Heroku has its own login mechanisms, which must
 be carefully controlled but are out of scope here.
+
+##### Initial login
 
 A user who views "/login" will be routed to GET sessions#new, which returns
 the login page.  From there:
@@ -1106,8 +1106,90 @@ the user exits the entire browser, because the cookie for login
 is only a session cookie).
 The "remember me" box was originally implemented
 in commit e79decec67.
+Note that GitHub users cannot use "remember me" tokens - they can only
+authenticate using OAuth. This is enforced both in the user interface
+(the "remember me" checkbox only appears in the local login form)
+and in the code (the `User#remember` method raises an `ArgumentError`
+if called on a GitHub user, and `try_remember_token_login` explicitly
+rejects GitHub users even if they somehow have a remember cookie).
+This separation is important because GitHub authentication requires
+a fresh OAuth token, which cannot be stored in the database for
+security reasons (OAuth tokens are session-scoped).
+
+##### Managing sessions after login
 
 A session is created for each user who successfully logs in.
+Session data is stored in encrypted cookies managed by Rails.
+
+Session state is managed through a two-tier architecture that
+optimizes performance while maintaining security:
+
+**Session Extraction and Validation** (`setup_authentication_state`):
+On every request, before any controller action that uses data runs, the
+`ApplicationController#setup_authentication_state` `before_action`
+extracts and validates authentication state from the encrypted session cookie.
+This is the *only* place where session authentication data is extracted.
+It performs these critical security checks:
+
+1. Extracts `session[:user_id]` and `session[:time_last_used]` from the
+   encrypted session cookie (decrypting the cookie only once per request)
+2. Validates the session timestamp - if missing or older than 48 hours
+   (`SESSION_TTL`), the session is rejected and reset to prevent session
+   tampering and enforce timeout
+3. If no valid session exists, attempts to restore login using a
+   remember token cookie (only for local users, as explained above)
+4. Stores the validated authentication state in instance variables:
+   `@session_user_id`, `@session_timestamp`, `@session_user_token`
+   (GitHub OAuth token, if applicable), and `@session_github_name`
+
+The `setup_authentication_state` method does
+*not* query the database in the normal case,
+making authentication checks extremely fast.
+This is adequate for showing the GUI for logged-in users, as merely
+showing the GUI doesn't give the user any special abilities if the
+user account has since been deleted.
+
+The `SessionsHelper#current_user` method lazily loads the full User record
+from the database only when needed (e.g., to check admin status or
+verify the user still exists).
+It uses `@session_user_id` previously set by `setup_authentication_state` as
+input and memoizes the result in `@current_user`.
+This lazy-loading approach means:
+
+- Simple authentication checks like `logged_in?` (which just checks
+  `@session_user_id.present?`) require no database access
+- Authorization checks that need user details automatically trigger
+  only one database query, cached for the request duration
+- Recently-deleted users are properly handled:
+  their session claims they're logged in,
+  but `current_user` returns nil, and authorization checks fail safely
+
+**Session Timeout and Refresh**:
+After each controller action, the `update_session_timestamp` after_action
+checks if the session timestamp is older than 1 hour (`RESET_SESSION_TIMER`).
+If so, it updates both `session[:time_last_used]` and `@session_timestamp`
+to the current time. This dual update ensures:
+
+1. The session cookie gets a fresh timestamp (preventing timeout)
+2. The cached instance variable stays synchronized (preventing stale data
+   from being used later in the same request)
+
+The 1-hour threshold balances security (regular timestamp updates) with
+performance (avoiding constant session cookie encryption on every request).
+
+This architecture provides:
+
+- **Session tampering prevention**: Sessions without timestamps or with
+  expired timestamps are rejected.
+- **Automatic timeout**: Inactive sessions expire after 48 hours, limiting
+  the window for session hijacking
+- **Minimal database load**: Authentication state is cached in instance
+  variables, and database queries only occur when authorization checks
+  require current user data
+- **Defense in depth**: Multiple layers (session validation, timestamp checks,
+  user existence verification) must all succeed for authorization to proceed
+- **Clear separation**: Session validation in the controller is separated from
+  user lookup in the helper, making the code easier to audit and test
 
 #### Authorization
 
@@ -1779,6 +1861,10 @@ list the additional items added since 2013.
    [SafeBuffers and Rails 3.0](http://yehudakatz.com/2010/02/01/safebuffers-and-rails-3-0/)
    discusses this in more detail.
    This greatly reduces the risk of mistakes leading to XSS vulnerabilities.
+   We do process markdown, but markdown processing always checks to ensure
+   that only specific safe balanced tags are allowed and only specific
+   safe attributes are allowed, and it marks all external hrefs with
+   "nofollow ugc noopener noreferrer" to clearly identify such links.
    In addition, we use a restrictive Content Security Policy (CSP).
    Our CSP, for example, tells web browsers to not execute any JavaScript
    included in HTML (JavaScript must be in separate JavaScript files).
@@ -1935,6 +2021,11 @@ as of 2015-12-14:
    to ensure that clients cannot undetectably change
    these cookies; a changed value created without being re-authenticated
    is thrown away.
+   Session cookies are encrypted with AES-256-GCM (authenticated
+   encryption) using a key derived with SHA-256, providing both
+   confidentiality and integrity protection against tampering.
+   Rotating the `SECRET_KEY_BASE` environment variable immediately
+   invalidates all existing sessions (a useful incident-response tool).
    Logged-in users have their user id stored in this authenticated cookie
    (There is also a `session_id`, not currently used.)
    Session data is intentionally kept small, because of the limited
@@ -1967,6 +2058,12 @@ as of 2015-12-14:
    The application uses relatively few redirects; those that do involve
    the "id", which only works if it can find the value corresponding to
    the id first (which is an allowlist).
+   Additionally, the framework is configured to raise an error on open
+   redirects (`action_controller.action_on_open_redirect = :raise`,
+   from `load_defaults 7.0`) and on relative-path redirects
+   (`action_controller.action_on_path_relative_redirect = :raise`,
+   from `load_defaults 8.1`), providing defense-in-depth at the Rails
+   level against redirect-based attacks.
    File uploads aren't directly supported; the application does
    temporarily load some files (as part of autofill), but those filenames
    and contents are not directly made available to any other user
@@ -2029,6 +2126,10 @@ as of 2015-12-14:
    which can lead to defects (you're supposed to use \A and \Z instead).
    However, Ruby's format validator and the "Brakeman" tool both detect
    this common mistake with regexes, so this should be unlikely.
+   We also set `Regexp.timeout = 1` second (via `load_defaults 8.0`),
+   which limits regular expression evaluation time and provides a
+   defense against ReDoS (Regular Expression Denial of Service) attacks,
+   where specially crafted input causes catastrophic backtracking.
    Since the project data is public, manipulating the 'id' cannot reveal
    private public data.  We don't consider the list of valid users
    private either, so again, manipulating 'id' cannot reveal anything private.
@@ -2043,7 +2144,8 @@ as of 2015-12-14:
    (and also counter SQL injection).
    XSS, CSS injection, and Ajax injection are
    countered using Rails' HTML sanitization
-   (by default strings are escaped when generating HTML).
+   (by default strings are escaped when generating HTML)
+   and our markdown generator.
    The program doesn't call out to the command line or use a routine
    that directly does so, e.g., there's no call
    to system()... so command injection won't work either.
@@ -2184,25 +2286,29 @@ secure=true (which is irrelevant because we always use HTTPS but it
 can't hurt), and SameSite=Lax (which counters CSRF attacks on
 web browsers that support it).
 
-We also use the Rails 5.2 default setting which embeds
-the expiry information in encrypted or signed cookies value to
-improve security.
-Embedding and checking expiration data
-makes it harder to exploit these cookies.
+Session and signed cookies are encrypted with AES-256-GCM
+(authenticated encryption) using SHA-256 key derivation,
+providing confidentiality and integrity protection stronger than
+the AES-256-CBC with SHA-1 used by older Rails applications.
+Expiry information is also embedded in cookie values, making it
+harder to exploit old or captured cookies.
 See
 [expiry in signed or encrypted cookie is now embedded in the cookies values](https://edgeguides.rubyonrails.org/upgrading_ruby_on_rails.html#expiry-in-signed-or-encrypted-cookie-is-now-embedded-in-the-cookies-values).
 
 #### CSRF token hardening
 
 We use two additional CSRF token hardening techniques
-to further harden the system against CSRF attacks.
-Both of these techniques are Rails 5 additions:
+to further harden the system against CSRF attacks,
+both enabled as framework defaults via `config.load_defaults`:
 
-* We enable per-form CSRF tokens
-  (`Rails.application.config.action_controller.` `per_form_csrf_tokens`).
-* We enable origin-checking CSRF mitigation
-  (`Rails.application.config.action_controller.`
-  `forgery_protection_origin_check`).
+* Per-form CSRF tokens
+  (`action_controller.per_form_csrf_tokens`):
+  each form gets a unique token bound to that specific action,
+  so a token captured from one form cannot be replayed against another.
+* Origin-header CSRF check
+  (`action_controller.forgery_protection_origin_check`):
+  the HTTP `Origin` request header is validated against the host,
+  providing an additional layer of CSRF defense independent of the token.
 
 These help counter CSRF, in addition to our other measures.
 
@@ -2515,7 +2621,7 @@ One area where we may *appear* to be vulnerable, but we
 believe we are not, involves nokogiri, libxml2, and
 [CVE-2016-9318](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-9318).
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 Here is our analysis justifying why we believe our use of
 nokogiri and libxml2 are not a vulnerability in our application.
 
@@ -2554,7 +2660,7 @@ The "erubis" module was identified as potentially vulnerable to
 cross-site scripting (XSS) as introduced through
 `pronto-rails_best_practices`.
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 
 However, rails_best_practices is only run in development and test,
 where the environment and input data are trusted,
@@ -2605,7 +2711,7 @@ The "actioncable" module was identified as potentially vulnerable to
 information exposure.
 This module is introduced by rails and traceroute.
 This was identified as a potential issue in an
-[analysis by Snyk](https://snyk.io/test/github/coreinfrastructure/best-practices-badge?severity=high&severity=medium&severity=low).
+[analysis by Snyk](https://snyk.io/test/github/ossf/best-practices-badge?severity=high&severity=medium&severity=low).
 
 Actioncable structures channels over a single WebSocket connection,
 however, there is
@@ -2725,7 +2831,7 @@ and how it helps make the software more secure:
   In practice our autoamted test suite coverage is much higher; it has achieved
   100% statement coverage for a long time.
   You can verify this by looking at the "CodeCov" value at the
-  [BadgeApp repository](https://github.com/coreinfrastructure/best-practices-badge).
+  [BadgeApp repository](https://github.com/ossf/best-practices-badge).
   This strong test suite
   makes it easier to update components (e.g., if a third-party component
   has a publicly disclosed vulnerability).
@@ -2842,8 +2948,8 @@ would, so combining these approaches has its advantages.
 
 This is a [12 factor app](https://12factor.net/); as such,
 events are streamed to standard out for logging.
-We use the "rails_12factor" to ensure that all Rails logs go to
-standard out, and then use standard Heroku logging mechanisms.
+Rails is configured to send all logs to
+standard out, and we use standard logging mechanisms.
 The logs then go out to other components for further analysis.
 
 System logs are expressly *not* publicly available.
@@ -3112,6 +3218,208 @@ and does *not* have direct access to the real-world data.
 Thus, if someone can see the data available on the test environment,
 that does *not* mean that they will have access to the protected data.
 
+### CI/CD pipeline input validation and sanitization
+
+Our CI/CD pipelines implement baseline security requirements to prevent
+injection attacks through pipeline parameters and branch names.
+Specifically, we implement:
+
+* **OSPS-BR-01.01** (Input parameter sanitization): Our CI/CD pipelines
+  do not accept explicit user-provided input parameters. All inputs come
+  from trusted sources (CI/CD system context variables, environment
+  variables from secure contexts, or hardcoded configuration values).
+  This is implemented in `.circleci/config.yml` (CircleCI) and
+  `.github/workflows/*.yml` (GitHub Actions).
+
+* **OSPS-BR-01.02** (Branch name sanitization and validation): Before using
+  branch names in any pipeline operations, we validate them using the
+  centralized script `script/validate_branch_name`, which uses
+  POSIX-compliant shell code to ensure they contain only safe characters
+  (alphanumeric, hyphens, underscores, dots, plus signs, and forward slashes)
+  and have an appropriate length (more than 0, no more than 200 characters).
+  We also reject branch names starting with `-` (hyphen) because they could
+  be confused as command-line option flags, and reject branch names containing
+  `..` to prevent directory traversal attempts.
+  This prevents command injection and cache poisoning attacks.
+  The validation script is called from:
+
+    * `.circleci/config.yml`: Validates branch names in both the build job
+      (which runs on all branches) and the deploy job (which also validates
+      against a staging/production allow-list)
+    * `.github/workflows/main.yml`: Validates branch names in the main CI workflow
+    * `.github/workflows/codespell.yml`: Validates branch names in the
+      codespell workflow
+    * `.github/workflows/scorecard.yml`: Branch name validation is
+      intentionally omitted here. Scorecard's `publish_results: true` mode
+      prohibits `run:` steps in the workflow (only approved actions may be
+      used). This is acceptable because this workflow does not use branch
+      names in any shell commands, so there is no injection risk.
+
+These validations provide defense in depth by ensuring that even if
+workflow-level filters were bypassed or misconfigured, the pipeline
+would fail fast and refuse to execute with potentially malicious input.
+The use of POSIX-compliant code (avoiding bash-specific extensions)
+ensures maximum portability and standards compliance.
+
+### GitHub Actions workflow hardening
+
+Our GitHub Actions workflows implement multiple layers of defense
+against supply chain attacks and privilege abuse:
+
+* **No dangerous triggers**: All workflows use the `pull_request` trigger
+  (or `push`/`schedule`), never `pull_request_target`.
+  The `pull_request_target` trigger runs with repository secrets and
+  elevated write permissions and can execute code from untrusted forks —
+  a primary vector for supply chain compromise. We do not use it.
+
+* **All third-party actions pinned to commit SHAs**: Every GitHub Action
+  referenced in our three workflows (`main.yml`, `scorecard.yml`,
+  `codespell.yml`) uses a full commit SHA rather than a mutable tag name
+  (e.g., `@v2`). Tags can be silently moved to point to different commits,
+  including malicious ones; a commit SHA is immutable.
+  Each pinned SHA is annotated with the corresponding human-readable
+  version tag in a comment for maintainability.
+
+* **Explicit minimal `permissions:` on every workflow**: All three
+  workflows declare explicit `permissions:` blocks at the workflow level,
+  restricting `GITHUB_TOKEN` to the minimum required access.
+  Any permission not explicitly listed is set to `none`.
+  No workflow grants write access to `contents`, `pull-requests`, or
+  `packages` beyond what is strictly necessary.
+
+* **`step-security/harden-runner`**: The main CI workflow uses
+  `step-security/harden-runner` (pinned by SHA) with
+  `egress-policy: audit`, which monitors and logs all outbound network
+  connections during the workflow. This provides visibility into
+  unexpected network calls (e.g., credential exfiltration attempts)
+  and can be tightened to `block` mode once the expected egress
+  pattern is fully characterized.
+
+* **`persist-credentials: false`**: The `scorecard.yml` workflow sets
+  `persist-credentials: false` during checkout, preventing the
+  `GITHUB_TOKEN` from being stored in the git credential store
+  where it could be accessed by subsequent steps.
+
+* **No user-controlled data in shell commands**: None of our workflows
+  interpolate user-controlled values (PR titles, branch names in
+  untrusted contexts, issue body text) directly into shell commands
+  or action inputs, preventing script injection attacks.
+
+### Mandatory review for security-sensitive changes
+
+We use `.github/CODEOWNERS` to enforce mandatory review by designated
+security-focused maintainers before any pull request that touches
+security-sensitive files can be merged into the main branch.
+The following paths require explicit approval from the designated
+code owners:
+
+* `.github/workflows/` — CI/CD pipeline definitions; changes here
+  determine what code runs during automated workflows and what
+  credentials are accessible
+* `.circleci/` — CircleCI pipeline configuration and deployment scripts
+* `SECURITY.md` — security policy and vulnerability disclosure process
+* `docs/assurance-case.md` — this security assurance case
+* `.github/dependabot.yml` — dependency update automation configuration
+* `Gemfile` and `Gemfile.lock` — Ruby dependency declarations and
+  lockfile
+
+This requirement, combined with GitHub branch protection rules that
+enforce "Require review from Code Owners" on the `main` branch, ensures
+that no single contributor can unilaterally modify these files without
+security-focused review.
+
+### Heroku CLI supply chain protection
+
+The CircleCI deployment pipeline uses the Heroku CLI to control
+maintenance mode and securely push the application to Heroku.
+
+The Heroku CLI is installed by downloading the tarball directly from
+the npm registry at a pinned version and verifying its SHA-512 hash
+against a value hardcoded in the CI configuration before installation
+proceeds.
+This provides two independent protections:
+
+* **Version pin**: only the exact pinned release is accepted.
+* **Hardcoded SHA-512 hash**: the SRI-format SHA-512 of the tarball
+  is recorded in the CI config at the time the pin is set, from a
+  registry we currently trust.
+  Even if the npm registry were later compromised and replaced both
+  the tarball *and* its own recorded hash in the manifest, our
+  independently-stored hash would detect the mismatch and fail the
+  build loudly.
+  A plain `npm install` trusts only the registry's own hash and
+  would not catch this scenario.
+
+When the Heroku CLI is upgraded, both the version pin and the
+hardcoded hash are updated together as a deliberate code change,
+which is subject to code review enforced by CODEOWNERS on the
+`.circleci/` path.
+
+Node.js (and therefore npm) is guaranteed to be present in the
+CircleCI Docker image: the image is tagged as a browsers variant
+with Node.js 22, and `node -v` is verified at the start of the
+deploy step. npm is bundled with every official Node.js distribution
+and cannot be absent when Node.js is available.
+
+This CLI is used only as a deployment tool to transfer the final
+build artifact to Heroku; it is not part of the deployed application
+itself, which limits the impact of any hypothetical compromise.
+
+### Deployment credential isolation
+
+This section documents how we satisfy
+**OSPS-BR-01.03**: *"When a CI/CD pipeline operates on untrusted code
+snapshots, it MUST prevent access to privileged CI/CD credentials and
+assets."*
+
+The primary privileged credential in our pipeline is `HEROKU_API_KEY`,
+which authorizes pushes to the Heroku staging and production
+environments.
+We isolate it from untrusted code through several interlocking controls:
+
+* **Credential stored in a scoped CircleCI context, not a
+  project-level variable.**
+  `HEROKU_API_KEY` is stored exclusively in the CircleCI context named
+  `heroku-deploy`.
+  Project-level environment variables in CircleCI are injected into
+  every job; context variables are only injected into jobs that
+  explicitly reference the context by name.
+  Because the credential is not a project-level variable, the `build`
+  job has no access to it whatsoever.
+
+* **Context referenced only by the `deploy` job.**
+  In `.circleci/config.yml`, the `context: heroku-deploy` key appears
+  only on the `deploy` job in the workflow definition.
+  The `build` job carries no `context:` key and therefore never
+  receives the credential, even though the `build` job runs on every
+  branch including unreviewed pull requests.
+
+* **Deploy job restricted to protected branches.**
+  The workflow filter `branches: only: [staging, production]` prevents
+  the `deploy` job from running on any other branch.
+  Code reaches the `staging` or `production` branches only through a
+  reviewed and approved pull request; it cannot arrive there directly
+  from an untrusted contributor.
+
+* **An explicit allowlist check inside the deploy job itself.**
+  As defense in depth, the `deploy` job contains a shell-level
+  `case` statement that exits with an error if `$CIRCLE_BRANCH` is
+  anything other than `staging` or `production`.
+  This catches any accidental misconfiguration of the workflow-level
+  filter.
+
+* **CI/CD configuration protected by CODEOWNERS.**
+  The `/.circleci/` path is covered by `.github/CODEOWNERS`, so any
+  change to the pipeline configuration — including any attempt to add
+  `context: heroku-deploy` to the `build` job or widen the branch
+  filter — requires explicit approval from designated code owners
+  before it can be merged.
+
+Together these controls ensure that `HEROKU_API_KEY` is never present
+in the environment of any job that executes unreviewed code, and that
+the configuration enforcing this isolation cannot itself be changed
+without security-focused review.
+
 ## Human resource management  (people)
 
 ISO/IEC/IEEE 12207 has a "human resource management" process;
@@ -3200,7 +3508,7 @@ This is evidence that the BadgeApp application is
 applying practices expected in a well-run FLOSS project.
 
 You can see the
-[CII Best Practices Badge entry for the BadgeApp](https://bestpractices.coreinfrastructure.org/en/projects/1/0).
+[CII Best Practices Badge entry for the BadgeApp](https://www.bestpractices.dev/en/projects/1/0).
 Note that we achieve a gold badge.
 
 ### Organizational Controls
@@ -3532,8 +3840,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 

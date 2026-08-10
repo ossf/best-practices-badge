@@ -13,6 +13,10 @@ class HowAccessRepoFilesDetective < Detective
   INPUTS = [:repo_url].freeze
   OUTPUTS = [:repo_files].freeze # Ask :repo_files.get("FILENAME") for files.
 
+  # This detective provides data access, not user-facing criteria values
+  # Cannot override user input
+  OVERRIDABLE_OUTPUTS = [].freeze
+
   GITHUB_REPO = %r{https?://github.com/([\w\.-]*)/([\w\.-]*)(.git|/)?}
   def analyze(_evidence, current)
     repo_url = current[:repo_url]

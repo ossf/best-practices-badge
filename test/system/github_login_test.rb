@@ -18,10 +18,10 @@ class GithubLoginTest < ApplicationSystemTestCase
 
     VCR.use_cassette('github_login', allow_playback_repeats: true) do
       visit '/en'
-      assert has_content? 'OpenSSF Best Practices Badge Program'
+      assert_text 'OpenSSF Best Practices Badge Program'
       click_on 'Login'
       assert_equal login_path(locale: :en), current_path
-      assert has_content? 'Log in with GitHub'
+      assert_text 'Log in with GitHub'
       num = ActionMailer::Base.deliveries.size
       click_link 'Log in with GitHub'
 
@@ -38,16 +38,16 @@ class GithubLoginTest < ApplicationSystemTestCase
       if page.has_content?('Test BadgeApp (not for production use)')
         click_on 'Authorize dankohn'
       end
-      assert has_content? 'Logged in!'
+      assert_text 'Logged in!'
       assert_equal '/en', current_path
       assert_equal num + 1, ActionMailer::Base.deliveries.size
       # Check a user can edit a project they can edit on Github
       # This particular check requires GitHub interaction so we do it here
       # We use a "find" to disambiguate requests
       find('#projects_page').click
-      assert has_content? 'Justified perfect project'
+      assert_text 'Justified perfect project'
       click_on 'Justified perfect project'
-      assert has_content? 'Edit'
+      assert_text 'Edit'
       # Check a user cannot edit a Github project they CAN'T push to.
       find('#projects_page').click
       click_on 'Unjustified perfect project'

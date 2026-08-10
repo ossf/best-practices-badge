@@ -2,5 +2,5 @@ SPDXVersion: SPDX-2.0
 DataLicense: CC0-1.0
 PackageName: best-practices-badge
 PackageOriginator: Linux Foundation
-PackageHomePage: https://github.com/coreinfrastructure/best-practices-badge
+PackageHomePage: https://github.com/ossf/best-practices-badge
 PackageLicenseDeclared: MIT

@@ -6,6 +6,7 @@
 
 require 'test_helper'
 
+# rubocop:disable Metrics/ClassLength
 class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:test_user)
@@ -22,7 +23,7 @@ class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
     assert_match 'This is not the production system', response.body
     assert_template 'projects/new'
 
-    repo_url = 'https://github.com/coreinfrastructure/best-practices-badge'
+    repo_url = 'https://github.com/ossf/best-practices-badge'
 
     VCR.use_cassette('users_manipulate_test') do
       post '/en/projects', params: {
@@ -113,7 +114,7 @@ class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
 
   test 'logged-in user adds assimilation-official' do
     # Regression test, see:
-    # https://github.com/coreinfrastructure/best-practices-badge/issues/160
+    # https://github.com/ossf/best-practices-badge/issues/160
     # Go to login_path to initialize the session
     get login_path(locale: :en)
     log_in_as @user
@@ -169,4 +170,27 @@ class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
       assert_select(+'#project_name[value=?]', 'sendmail')
     end
   end
+
+  test 'user updates project with final Save button' do
+    # This test ensures that the final "Save (and continue)" button
+    # (with value='Save') works correctly. Save-and-continue now renders
+    # the edit form directly (no redirect) with flash.now[:info].
+    get login_path(locale: :en)
+    log_in_as @user
+
+    project = projects(:one)
+    get "/en/projects/#{project.id}/passing/edit"
+    assert_response :success
+
+    # Update project with final save button (continue='Save')
+    patch edit_project_section_path(project, 'passing'), params: {
+      project: { name: 'Updated Project Name' },
+      continue: 'Save'
+    }
+
+    # Should render edit directly (not redirect)
+    assert_response :success
+    assert_nil response.location
+  end
 end
+# rubocop:enable Metrics/ClassLength

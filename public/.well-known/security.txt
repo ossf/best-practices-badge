@@ -1,10 +1,10 @@
 # Security risk contact information, per https://securitytxt.org/
-Contact: https://github.com/coreinfrastructure/best-practices-badge/blob/master/CONTRIBUTING.md#vulnerability-reporting-security-issues
-Acknowledgments: https://github.com/coreinfrastructure/best-practices-badge/blob/master/CREDITS
+Contact: https://github.com/ossf/best-practices-badge/blob/master/CONTRIBUTING.md#vulnerability-reporting-security-issues
+Acknowledgments: https://github.com/ossf/best-practices-badge/blob/master/CREDITS
 Preferred-Languages: en
 Canonical: https://bestpractices.coreinfrastructure.org/.well-known/security.txt
 #
 # We try hard to keep the badge application secure. If you find a vulnerability,
 # please let us know so that we can fix it!  For a broader context on how we
 # try to keep this software secure, see its assurance case here:
-# https://github.com/coreinfrastructure/best-practices-badge/blob/master/doc/security.md
+# https://github.com/ossf/best-practices-badge/blob/master/doc/security.md

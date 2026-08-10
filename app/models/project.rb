@@ -4,6 +4,8 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
+require 'security_utils'
+
 # rubocop:disable Metrics/ClassLength
 class Project < ApplicationRecord
   has_many :additional_rights, dependent: :destroy
@@ -13,10 +15,24 @@ class Project < ApplicationRecord
   # but we don't, because we don't use the other information about those users.
   # We only need the user_ids and the additional_rights table has that.
 
-  using StringRefinements
   using SymbolRefinements
 
   include PgSearch::Model # PostgreSQL-specific text search
+  include LevelConversion # Shared level name/number conversion
+
+  # Cache key for the total (unfiltered) number of projects shown on the
+  # projects index. The count is cached to avoid a COUNT(*) on every
+  # index/pagination request; see ProjectsController and docs/pagy-43.md.
+  INDEX_COUNT_CACHE_KEY = 'projects/index/count'
+
+  # Return the total number of projects, cached for +ttl+ to avoid a COUNT(*)
+  # on every unfiltered index/pagination request (which matters most for
+  # rapid crawler "next page" walks).
+  # @param ttl [ActiveSupport::Duration, Integer] cache lifetime
+  # @return [Integer] total number of projects
+  def self.cached_index_count(ttl)
+    Rails.cache.fetch(INDEX_COUNT_CACHE_KEY, expires_in: ttl) { count }
+  end
 
   # When did we add met_justification_required?
   STATIC_ANALYSIS_JUSTIFICATION_REQUIRED_DATE =
@@ -29,15 +45,50 @@ class Project < ApplicationRecord
   # When did we switch to CDLA-Permissive-2.0?
   ENTRY_LICENSE_CDLA_PERMISSIVE_20_DATE = Time.iso8601('2024-08-23T12:00:00Z')
 
-  STATUS_CHOICE = %w[? Met Unmet].freeze
-  STATUS_CHOICE_NA = (STATUS_CHOICE + %w[N/A]).freeze
+  # Validation accepts ONLY integers - status values are stored as smallint (0-3).
+  # Conversion between integers and strings happens at system boundaries:
+  #
+  # Data flow:
+  # 1. Form submit: User sees 'Met' → submits 'Met' → controller converts to 3 → model stores 3
+  # 2. Form display: Model has 3 → view helper converts to 'Met' → user sees 'Met'
+  # 3. Internal code: Always uses integers (0=?, 1=Unmet, 2=N/A, 3=Met)
+  #
+  # Benefits:
+  # - Simplicity: Validation, business logic, and tests use one type (integers)
+  # - Security: Invalid values fail validation; database constraints provide defense-in-depth
+  # - Performance: Smaller storage (2 bytes vs ~8 bytes), faster comparisons
+  # - Clarity: Internal code matches database schema
+  STATUS_CHOICE_WITHOUT_NA = [
+    CriterionStatus::UNKNOWN, CriterionStatus::MET, CriterionStatus::UNMET
+  ].freeze
+  STATUS_CHOICE_WITH_NA = (STATUS_CHOICE_WITHOUT_NA + [CriterionStatus::NA]).freeze
   MIN_SHOULD_LENGTH = 5
   MAX_TEXT_LENGTH = 8192 # Arbitrary maximum to reduce abuse
   MAX_SHORT_STRING_LENGTH = 254 # Arbitrary maximum to reduce abuse
 
+  IN_STATUS_CHOICE_WITH_NA = { in: STATUS_CHOICE_WITH_NA }.freeze
+  IN_STATUS_CHOICE_WITHOUT_NA = { in: STATUS_CHOICE_WITHOUT_NA }.freeze
+  MAXIMUM_IS_MAX_TEXT_LENGTH = { maximum: MAX_TEXT_LENGTH }.freeze
+  MAXIMUM_IS_MAX_SHORT_STRING_LENGTH = { maximum: MAX_SHORT_STRING_LENGTH }.freeze
+
   # All badge level internal names *including* in_progress
   # NOTE: If you add a new level, modify compute_tiered_percentage
-  BADGE_LEVELS = %w[in_progress passing silver gold].freeze
+  BADGE_LEVELS = (['in_progress'] + Sections::METAL_LEVEL_NAMES).freeze
+
+  # Baseline badge level names indexed by rank (same pattern as BADGE_LEVELS).
+  # BADGE_LEVEL_RANK maps level names to rank integers; these arrays invert
+  # that mapping so rank -> name lookups are O(1).
+  # Index 0 = 'in_progress' (rank 0 = no badge), 1 = 'baseline-1', etc.
+  BASELINE_BADGE_LEVELS = (['in_progress'] + Sections::BASELINE_LEVEL_NAMES).freeze
+
+  # All criteria series (metal and baseline)
+  CRITERIA_SERIES = {
+    metal: Sections::METAL_LEVEL_NAMES,
+    baseline: Sections::BASELINE_LEVEL_NAMES
+  }.freeze
+
+  # All completed badge levels including baseline
+  ALL_BADGE_LEVELS = (CRITERIA_SERIES[:metal] + CRITERIA_SERIES[:baseline]).freeze
 
   # All badge level internal names that indicate *completion*,
   # so COMPLETED_BADGE_LEVELS[0] is 'passing'.
@@ -51,17 +102,172 @@ class Project < ApplicationRecord
   LEVEL_ID_NUMBERS = (0..(COMPLETED_BADGE_LEVELS.length - 1))
   LEVEL_IDS = LEVEL_ID_NUMBERS.map(&:to_s)
 
+  # Mapping from URL-friendly names to internal level IDs
+  # Internal level IDs ('0', '1', '2') are used for:
+  #   - YAML criteria keys (criteria/criteria.yml)
+  #   - I18n translation keys (criteria.0.*, criteria.1.*, etc.)
+  #   - Database field suffixes (badge_percentage_0, badge_percentage_1, etc.)
+  # URL-friendly names ('passing', 'silver', 'gold') are used for:
+  #   - User-facing URLs (/projects/123/passing)
+  #   - Routing and redirects
+  LEVEL_NAME_TO_NUMBER = {
+    'passing' => '0',
+    'silver' => '1',
+    'gold' => '2'
+  }.freeze
+
+  # SECURITY: Helper to bundle sanitization and parameterization.
+  # Defined early so it is available to scopes.
+  def self.prefix_match(column_name, text)
+    safe_text = "#{sanitize_sql_like(text)}%"
+    arel_table[column_name].matches(safe_text)
+  end
+
+  # Reverse mapping: internal level ID to URL-friendly name
+  LEVEL_NUMBER_TO_NAME = {
+    '0' => 'passing',
+    '1' => 'silver',
+    '2' => 'gold',
+    0 => 'passing',
+    1 => 'silver',
+    2 => 'gold'
+  }.freeze
+
+  # IMPORTANT: When adding new fields to this list, you MUST also add them
+  # to the appropriate field selection lists in projects_controller.rb:
+  #   - PROJECT_BASE_FIELDS (for show/edit pages)
+  #   - HTML_INDEX_FIELDS (for projects listing)
+  #   - FEED_DISPLAY_FIELDS (for Atom feeds)
+  #   - BADGE_PROJECT_FIELDS (for badge SVG endpoints)
+  # Without this, views will get nil for the field even though the database has a value.
   PROJECT_OTHER_FIELDS = %i[
     name description homepage_url repo_url cpe implementation_languages
     license general_comments user_id lock_version
-    level additional_rights_changes
+    level additional_rights_changes entry_locale
   ].freeze
   PROJECT_USER_ID_REPEAT = %i[user_id_repeat].freeze # Repeat to change owner
+
   ALL_CRITERIA_STATUS = Criteria.all.map(&:status).freeze
+  # Pre-computed status field names as frozen strings for JSON serialization
+  # Avoids repeated .to_s allocations in hot path (_project.json.jbuilder)
+  ALL_CRITERIA_STATUS_STRINGS = ALL_CRITERIA_STATUS.map(&:to_s).freeze
+
   ALL_CRITERIA_JUSTIFICATION = Criteria.all.map(&:justification).freeze
+  ALL_CRITERIA_JUSTIFICATION_STRINGS =
+    ALL_CRITERIA_JUSTIFICATION.map(&:to_s).freeze
+
+  # Columns that record how *we* run the badging process, as opposed to
+  # anything about the project or its owner.  The published JSON is meant
+  # to describe the project; when we last emailed someone about it, how
+  # many delivery attempts we have made, and which edit form they have
+  # opened are our business, not the reader's.
+  #
+  # Adding a column does NOT normally belong here.  New project data
+  # should appear in the JSON without anyone having to ask, which is why
+  # this is a list of what to withhold rather than a list of what to
+  # publish.  Add to it only when a column answers "what has the badge
+  # application done lately", not "what is this project like".
+  #
+  # A Set built once at startup: the JSON view consults it for every one
+  # of a project's 450 columns, on every cache miss.
+  #
+  # These are also, not by coincidence, the columns whose change cannot
+  # make any cached page stale, since nothing cached shows them.  That
+  # makes this list the natural starting point for deciding which writes
+  # must purge the CDN; see docs/cdn-cache-not-logged-in.md section 11.
+  BOOKKEEPING_FIELDS = (
+    %w[
+      lock_version
+      last_reminder_at disabled_reminders
+      unreported_badge_loss unreported_baseline_badge_loss
+      unreported_badge_warning unreported_baseline_badge_warning
+      last_loss_sent_at last_warning_sent_at
+      loss_send_attempts warning_send_attempts
+      badge_warning_effective_date
+    ] + Sections::LEVEL_SAVED_FLAGS.values.map(&:to_s)
+  ).to_set.freeze
+  # Achievement status fields are internal tracking fields that keep raw integer values
+  # (not converted to/from strings like criteria status fields)
+  ACHIEVEMENT_STATUS_FIELDS = %i[
+    achieve_passing_status achieve_silver_status
+  ].freeze
   PROJECT_PERMITTED_FIELDS = (PROJECT_OTHER_FIELDS + ALL_CRITERIA_STATUS +
                               ALL_CRITERIA_JUSTIFICATION +
                               PROJECT_USER_ID_REPEAT).freeze
+
+  # Pre-computed hash for badge percentage field name lookups (memory optimization)
+  # Maps level names/numbers to their corresponding database field symbols
+  # Computed from existing constants to avoid duplication and stay in sync
+  # Disable cop for do...end with chained .freeze (required for frozen constant)
+  # rubocop:disable Style/MethodCalledOnDoEndBlock
+  BADGE_PERCENTAGE_FIELD_NAMES =
+    {}.tap do |hash|
+      # Add metal level mappings (both name and number forms)
+      LEVEL_NAME_TO_NUMBER.each do |name, number|
+        field_name = :"badge_percentage_#{number}"
+        hash[name] = field_name
+        hash[number] = field_name
+      end
+      # Add baseline level mappings - explicit to match actual field names
+      CRITERIA_SERIES[:baseline].each_with_index do |level, index|
+        hash[level] = :"badge_percentage_baseline_#{index + 1}"
+      end
+    end.freeze
+  # rubocop:enable Style/MethodCalledOnDoEndBlock
+
+  # Pre-computed grouping of criteria by normalized panel names (memory optimization)
+  # Nested hash: level => normalized_panel_name => array of criteria
+  # Normalized panel names are lowercase with spaces removed (e.g., 'changecontrol')
+  # This eliminates repeated string operations and array allocations in get_satisfaction_data
+  # rubocop:disable Style/MethodCalledOnDoEndBlock
+  CRITERIA_BY_PANEL =
+    {}.tap do |hash|
+      # Include metal levels (0, 1, 2)
+      LEVEL_IDS.each do |level|
+        # Group criteria by normalized panel name for this level
+        hash[level] =
+          Criteria[level].values.group_by do |criterion|
+            criterion.major.downcase.delete(' ')
+          end.transform_values(&:freeze).freeze
+      end
+      # Include baseline levels (baseline-1, baseline-2, baseline-3)
+      Sections::BASELINE_LEVEL_NAMES.each do |level|
+        # For baseline levels, group by minor category (not major)
+        hash[level] =
+          Criteria[level].values.group_by do |criterion|
+            criterion.minor.downcase.delete(' ')
+          end.transform_values(&:freeze).freeze
+      end
+    end.freeze
+  # rubocop:enable Style/MethodCalledOnDoEndBlock
+
+  # Returns the database field name for a level's badge percentage
+  # Handles mapping from level names (with hyphens) to valid field names
+  # Uses pre-computed hash for O(1) lookup with fallback for unknown levels
+  # @param level [String] 'passing', 'silver', 'gold', 'baseline-1', etc.
+  # @return [Symbol] field name like :badge_percentage_0 or :badge_percentage_baseline_1
+  def badge_percentage_field_name(level)
+    level_str = level.to_s
+    # Use pre-computed hash for known levels (O(1) lookup)
+    BADGE_PERCENTAGE_FIELD_NAMES[level_str] ||
+      # Fallback: convert hyphen to underscore for unknown baseline levels
+      :"badge_percentage_#{level_str.tr('-', '_')}"
+  end
+
+  # Convenience method to get badge percentage for a level
+  # @param level [String] criteria level name
+  # @return [Integer] percentage value
+  def badge_percentage_for(level)
+    self[badge_percentage_field_name(level)] || 0
+  end
+
+  # Convenience method to set badge percentage for a level
+  # @param level [String] criteria level name
+  # @param value [Integer] percentage value
+  # @return [void]
+  def set_badge_percentage(level, value)
+    self[badge_percentage_field_name(level)] = value
+  end
 
   default_scope { order(:created_at) }
 
@@ -100,17 +306,26 @@ class Project < ApplicationRecord
   )
 
   # prefix query (old search system)
+  # SECURITY: We use Arel .matches here specifically to ensure DB-level
+  # parameterization of user input.
   scope :text_search, (
     lambda do |text|
-      start_text = "#{sanitize_sql_like(text)}%"
       where(
-        Project.arel_table[:name].matches(start_text).or(
-          Project.arel_table[:homepage_url].matches(start_text)
+        Project.prefix_match(:name, text).or(
+          Project.prefix_match(:homepage_url, text)
         ).or(
-          Project.arel_table[:repo_url].matches(start_text)
+          Project.prefix_match(:repo_url, text)
         )
       )
     end
+  )
+
+  # SECURITY: Fail-fast smoke test to ensure SQL parameterization.
+  # This runs once when the class is loaded.
+  # Note: .to_sql is a read-only metadata operation, no DB is called.
+  SecurityUtils.security_assertion(
+    text_search("test' OR 1=1").to_sql.include?("''"),
+    'text_search scope has an SQL injection bypass!'
   )
 
   # Search for exact match on URL
@@ -139,30 +354,42 @@ class Project < ApplicationRecord
   # We'll also record previous versions of information:
   has_paper_trail
 
+  before_validation :normalize_entry_locale
   before_save :update_badge_percentages, unless: :skip_callbacks
 
-  # A project is associated with a user
-  belongs_to :user
+  # Invalidate the cached unfiltered index count whenever a project is added
+  # or removed (edits never change the total). Best-effort per process: with
+  # the production :memory_store this clears the entry only in the process
+  # that runs it, so the cache TTL remains the cross-process bound.
+  after_commit :bust_index_count_cache, on: %i[create destroy]
+
+  # A project is associated with a user (optional: user_id may be NULL in DB)
+  belongs_to :user, optional: true
   delegate :name, to: :user, prefix: true # Support "user_name"
   delegate :nickname, to: :user, prefix: true # Support "user_nickname"
 
   # For these fields we'll have just simple validation rules.
   # We'll rely on Rails' HTML escaping system to counter XSS.
-  validates :name, length: { maximum: MAX_SHORT_STRING_LENGTH }, text: true
-  validates :description, length: { maximum: MAX_TEXT_LENGTH }, text: true
-  validates :license, length: { maximum: MAX_SHORT_STRING_LENGTH }, text: true
+  validates :name, length: MAXIMUM_IS_MAX_SHORT_STRING_LENGTH, text: true
+  validates :description, length: MAXIMUM_IS_MAX_TEXT_LENGTH, text: true
+  validates :license, length: MAXIMUM_IS_MAX_SHORT_STRING_LENGTH, text: true
   validates :general_comments, text: true
+  # NOTE: Use allow_blank (not allow_nil) for form fields. HTML forms submit
+  # empty string ("") for blank inputs, not nil. allow_blank handles both.
+  validates :entry_locale,
+            inclusion: { in: Rails.application.config.valid_locale_strings },
+            allow_blank: true
 
   # We'll do automated analysis on these URLs, which means we will *download*
   # from URLs provided by untrusted users.  Thus we'll add additional
   # URL restrictions to counter tricks like http://ACCOUNT:PASSWORD@host...
   # and http://something/?arbitrary_parameters
 
-  validates :repo_url, url: true, length: { maximum: MAX_SHORT_STRING_LENGTH },
+  validates :repo_url, url: true, length: MAXIMUM_IS_MAX_SHORT_STRING_LENGTH,
                        uniqueness: { allow_blank: true }
   validates :homepage_url,
             url: true,
-            length: { maximum: MAX_SHORT_STRING_LENGTH }
+            length: MAXIMUM_IS_MAX_SHORT_STRING_LENGTH
   validate :need_a_base_url
 
   # Comma-separated list.  This is very generous in what characters it
@@ -175,14 +402,14 @@ class Project < ApplicationRecord
     %r{\A(|-| ([A-Za-z0-9!\#$%'()*+.\/\:;=?@\[\]^~ -]+
         (,\ ?[A-Za-z0-9!\#$%'()*+.\/\:;=?@\[\]^~ -]+)*))\Z}x
   validates :implementation_languages,
-            length: { maximum: MAX_SHORT_STRING_LENGTH },
+            length: MAXIMUM_IS_MAX_SHORT_STRING_LENGTH,
             format: {
               with: VALID_LANGUAGE_LIST,
               message: :comma_separated_list
             }
 
   validates :cpe,
-            length: { maximum: MAX_SHORT_STRING_LENGTH },
+            length: MAXIMUM_IS_MAX_SHORT_STRING_LENGTH,
             format: {
               with: /\A(cpe:.*)?\Z/,
               message: :begin_with_cpe
@@ -197,12 +424,12 @@ class Project < ApplicationRecord
   Criteria.each_value do |criteria|
     criteria.each_value do |criterion|
       if criterion.na_allowed?
-        validates criterion.name.status, inclusion: { in: STATUS_CHOICE_NA }
+        validates criterion.name.status, inclusion: IN_STATUS_CHOICE_WITH_NA
       else
-        validates criterion.name.status, inclusion: { in: STATUS_CHOICE }
+        validates criterion.name.status, inclusion: IN_STATUS_CHOICE_WITHOUT_NA
       end
       validates criterion.name.justification,
-                length: { maximum: MAX_TEXT_LENGTH },
+                length: MAXIMUM_IS_MAX_TEXT_LENGTH,
                 text: true
     end
   end
@@ -255,7 +482,7 @@ class Project < ApplicationRecord
   def contains_url?(text)
     return false if !text || text.start_with?('// ')
 
-    text =~ %r{https?://[^ ]{5}}
+    text =~ %r{https?://[^/. ]+\.[^ ]}
   end
 
   # Returns symbol indicating the status of a particular criterion in this project.
@@ -274,9 +501,9 @@ class Project < ApplicationRecord
   def get_criterion_result(criterion)
     status = self[criterion.name.status]
     justification = self[criterion.name.justification]
-    return :criterion_unknown if status.unknown?
-    return get_met_result(criterion, justification) if status.met?
-    return get_unmet_result(criterion, justification) if status.unmet?
+    return :criterion_unknown if status == CriterionStatus::UNKNOWN
+    return get_met_result(criterion, justification) if status == CriterionStatus::MET
+    return get_unmet_result(criterion, justification) if status == CriterionStatus::UNMET
 
     get_na_result(criterion, justification)
   end
@@ -284,12 +511,12 @@ class Project < ApplicationRecord
   # Returns satisfaction data for a specific level and panel.
   # @param level [String, Integer] the badge level
   # @param panel [String] the panel name to filter criteria
-  # @return [Hash] hash with :text and :color keys for satisfaction display
+  # @return [Hash] hash with :text and :color keys, or nil if no criteria
   def get_satisfaction_data(level, panel)
-    total =
-      Criteria[level].values.select do |criterion|
-        criterion.major.downcase.delete(' ') == panel
-      end
+    # Use precomputed nested hash to avoid string operations and array allocations
+    total = CRITERIA_BY_PANEL.dig(level, panel) || []
+    return if total.empty? # Don't show 0/0
+
     passing = total.count { |criterion| enough?(criterion) }
     {
       text: "#{passing}/#{total.size}",
@@ -311,6 +538,39 @@ class Project < ApplicationRecord
     end
   end
 
+  # Returns the highest currently achieved baseline badge level.
+  # Checks all three baseline levels (3, 2, 1) and returns the highest
+  # with 100% completion, or 'in_progress' if none are complete.
+  # Note: Only current percentage matters; past achievements (achieved_at
+  # timestamps) don't count since badges can be lost if criteria change.
+  # @return [String] 'baseline-3', 'baseline-2', 'baseline-1', or 'in_progress'
+  def baseline_badge_level
+    if badge_percentage_baseline_3 == 100
+      'baseline-3'
+    elsif badge_percentage_baseline_2 == 100
+      'baseline-2'
+    elsif badge_percentage_baseline_1 == 100
+      'baseline-1'
+    else
+      'in_progress'
+    end
+  end
+
+  # Returns the badge value for baseline series.
+  # Similar to badge_value but for the baseline badge.
+  # Returns the highest achieved level, or a percentage badge for in_progress.
+  # @return [String] badge level name ('baseline-1', 'baseline-2', 'baseline-3')
+  #   or 'baseline-pct-XX' for in_progress
+  def baseline_badge_value
+    level = baseline_badge_level
+    if level == 'in_progress'
+      pct = badge_percentage_for('baseline-1')
+      "baseline-pct-#{pct}"
+    else
+      level
+    end
+  end
+
   # Returns this project's image src URL for its badge image (SVG).
   # - If project entry changed recently: returns /badge_static value for immediate accuracy
   # - If project entry NOT changed recently: returns /projects/:id/badge for correct README usage
@@ -324,6 +584,19 @@ class Project < ApplicationRecord
     end
   end
 
+  # Returns this project's image src URL for its baseline badge image (SVG).
+  # - If project entry changed recently: returns /badge_static value for immediate accuracy
+  # - If project entry NOT changed recently: returns /projects/:id/baseline for correct README usage
+  # This ensures users see correct results while encouraging proper URL usage.
+  # @return [String] URL path for the baseline badge image
+  def baseline_badge_src_url
+    if updated_at > 24.hours.ago
+      "/badge_static/#{baseline_badge_value}"
+    else
+      "/projects/#{id}/baseline"
+    end
+  end
+
   # Checks if user should be notified to update static_analysis criterion.
   # Flashes message if user is updating for the first time since we added
   # met_justification_required to that criterion.
@@ -333,7 +606,7 @@ class Project < ApplicationRecord
     status = self[Criteria[level][:static_analysis].name.status]
     result = get_criterion_result(Criteria[level][:static_analysis])
     updated_at < STATIC_ANALYSIS_JUSTIFICATION_REQUIRED_DATE &&
-      status.met? && result == :criterion_justification_required
+      status == CriterionStatus::MET && result == :criterion_justification_required
   end
 
   # Sends owner an email when they add a new project.
@@ -380,10 +653,9 @@ class Project < ApplicationRecord
   # @param current_time [Time] the current time for timestamp updates
   # @return [void]
   def update_badge_percentage(level, current_time)
-    old_badge_percentage = self[:"badge_percentage_#{level}"]
-    update_prereqs(level) if level.to_i.nonzero?
-    self[:"badge_percentage_#{level}"] =
-      calculate_badge_percentage(level)
+    old_badge_percentage = badge_percentage_for(level)
+    update_prereqs(level) if level_to_number(level).nonzero?
+    set_badge_percentage(level, calculate_badge_percentage(level))
     update_passing_times(level, old_badge_percentage, current_time)
   end
 
@@ -406,16 +678,48 @@ class Project < ApplicationRecord
     self.tiered_percentage = compute_tiered_percentage
   end
 
+  # Computes the baseline 'tiered percentage' value 0..300.
+  # Gives partial credit, but only if you've completed a previous level.
+  # - 0-99: working on baseline-1
+  # - 100-199: passed baseline-1, working on baseline-2
+  # - 200-299: passed baseline-1 & 2, working on baseline-3
+  # - 300: completed all three baseline levels
+  # @return [Integer] baseline tiered percentage (0-300)
+  def compute_baseline_tiered_percentage
+    pct1 = badge_percentage_baseline_1 || 0
+    pct2 = badge_percentage_baseline_2 || 0
+    pct3 = badge_percentage_baseline_3 || 0
+    if pct1 < 100
+      pct1
+    elsif pct2 < 100
+      pct2 + 100
+    else
+      pct3 + 200
+    end
+  end
+
+  # Updates the baseline_tiered_percentage field with computed value.
+  # @return [Integer] the updated baseline tiered percentage
+  def update_baseline_tiered_percentage
+    self.baseline_tiered_percentage = compute_baseline_tiered_percentage
+  end
+
   # Updates the badge percentages for all levels.
   # Creates a single datetime value for consistency across all level updates.
   # @return [void]
   def update_badge_percentages
     # Create a single datetime value so that they are consistent
     current_time = Time.now.utc
+    # Update metal series (passing, silver, gold)
     Project::LEVEL_IDS.each do |level|
       update_badge_percentage(level, current_time)
     end
-    update_tiered_percentage # Update the 'tiered_percentage' number 0..300
+    # Update baseline series (baseline-1, baseline-2, baseline-3)
+    Project::CRITERIA_SERIES[:baseline].each do |level|
+      update_badge_percentage(level, current_time)
+    end
+    update_tiered_percentage # Update metal 'tiered_percentage' (0..300)
+    update_baseline_tiered_percentage # Update baseline 'baseline_tiered_percentage' (0..300)
   end
 
   # Returns owning user's name for display purposes.
@@ -424,40 +728,375 @@ class Project < ApplicationRecord
     user_name || user_nickname
   end
 
-  # Updates badge percentages for all project entries and sends emails
-  # for any project where this causes loss or gain of a badge.
+  # Updates badge percentages for all project entries.
   # Use this after badging rules have changed. We precalculate and store
   # percentages in the database for speed, but rule changes don't automatically
+  # Batch size for the whole-table recalc loops below. A `projects` row is
+  # extremely wide (>400 columns, about half of them text: every criterion's status
+  # and justification across all levels), so each loaded Project object is
+  # large. find_each's default batch of 1000 keeps ~1000 of these giants alive
+  # at once, peaking over 1GB and OOM-killing a standard 512MB dyno (R14/R15,
+  # SIGKILL/exit 137) -- which silently aborts these migrations. A small batch
+  # bounds the working set so the recalc fits in a normal dyno.
+  BULK_RECALC_BATCH_SIZE = 100
+
   # update the precalculated values.
+  # NOTE: No emails are sent to badge losers or gainers — email notification
+  # only happens through the controller's normal save flow.
   # @param levels [Array<String>] array of levels to update
   # @raise [TypeError] if levels is not an Array
   # @raise [ArgumentError] if any level is invalid
   # @return [void]
-  # rubocop:disable Metrics/MethodLength
-  def self.update_all_badge_percentages(levels)
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  def self.update_all_badge_percentages(levels, notify_losses: true)
     raise TypeError, 'levels must be an Array' unless levels.is_a?(Array)
 
     levels.each do |l|
       raise ArgumentError, "Invalid level: #{l}" unless l.in? Criteria.keys
     end
     Project.skip_callbacks = true
-    Project.find_each do |project|
+    changed = 0
+    Project.find_each(batch_size: BULK_RECALC_BATCH_SIZE) do |project|
+      modified = false
       project.with_lock do
+        # Snapshot current badge levels before recalculation so we can
+        # record any losses for later notification.
+        old_metal_level = project.badge_level
+        old_baseline_level = project.baseline_badge_level
         # Create a single datetime value so that they are consistent
         current_time = Time.now.utc
         levels.each do |level|
           project.update_badge_percentage(level, current_time)
         end
         project.update_tiered_percentage
-        project.save!(touch: false)
+        project.update_baseline_tiered_percentage
+        if notify_losses
+          record_pending_losses(project, old_metal_level, old_baseline_level)
+        end
+        # Ask before writing; afterward the record reports no changes.
+        # Most projects in a typical recalculation are untouched, and
+        # writing nothing is both faster and one less CDN purge.
+        # Bookkeeping columns do not count toward "modified": nothing
+        # cached shows them, so a project whose only change was a
+        # pending-notification flag has nothing stale to purge.
+        pending_changes = project.changes.transform_values(&:last)
+        modified =
+          pending_changes.keys.any? { |c| BOOKKEEPING_FIELDS.exclude?(c) }
+        # Everything we write here we computed ourselves; none of it came
+        # from the owner.  So write it as bookkeeping rather than with
+        # save, which would bump lock_version and make an owner who has
+        # the edit form open fail with "changed since you started
+        # editing".  Nothing is lost by not blocking them: their save
+        # recomputes these same percentages from their own answers.
+        #
+        # This also means no paper_trail version, which is what we want.
+        # A version records who changed an entry; a recalculation is not
+        # a person, and on a wide projects row each version stores a copy
+        # of the old record, so a large criteria change would have
+        # written thousands of them.  send_reminders already suppressed
+        # versioning for the same reason.
+        unless pending_changes.empty?
+          write_bookkeeping_columns(project, pending_changes)
+        end
       end
+      # Only once with_lock has committed.  Purging while the old value
+      # is still the one a reader would get invites the CDN to cache it
+      # again, and nothing would come along afterward to correct it.
+      next unless modified
+
+      changed += 1
+      purge_project_cdn_data(project)
     end
     Project.skip_callbacks = false
+    # Say what we did.  purge_all logged nothing on success, so its
+    # effect could never be confirmed from the log afterward; see
+    # docs/warning_failures.md.
+    Rails.logger.info(
+      "Recalculation changed #{changed} projects and purged each from " \
+      'the CDN.'
+    )
   end
-  # rubocop:enable Metrics/MethodLength
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+  # Purge one project's cached data from the CDN, now and again shortly
+  # afterward.
+  #
+  # One key does for all of it: `record_key` is `projects/<id>`, and the
+  # badge, baseline badge, and JSON responses all carry it as a
+  # surrogate key (see set_surrogate_key_header).
+  #
+  # The repeat closes the race the controller documents at length around
+  # its own saves. A response that was already in flight when we
+  # committed can reach the CDN just after the purge and cache the old
+  # badge again, where it then sits until it expires. The whole-cache
+  # purge this replaces did not have that problem, because it ran at the
+  # end of the recalculation, long after most projects had committed;
+  # purging each project as soon as it is saved brings the race back, so
+  # it has to be closed the same way.
+  #
+  # Both are jobs, not direct calls, so a purge that fails is retried
+  # with backoff rather than swallowed, which is what `purge_all` does.
+  # That retry is also why there is no "too many changed, purge
+  # everything instead" fallback here. Fastly answers a rate limit with
+  # an unsuccessful response, `purge_by_key` returns false, the job
+  # raises and backs off, so a large recalculation purges more slowly
+  # rather than losing purges. Dropping the whole cache of a site this
+  # busy to avoid going slowly would be the worse trade.
+  #
+  # @param project [Project] project whose cached data is now stale
+  # @return [void]
+  def self.purge_project_cdn_data(project)
+    key = project.record_key
+    PurgeCdnProjectJob.perform_later(key)
+    # The one source of truth for this delay lives on the controller;
+    # config/puma.rb reaches for it the same way.
+    PurgeCdnProjectJob
+      .set(wait: ApplicationController::BADGE_PURGE_DELAY.seconds)
+      .perform_later(key)
+  end
+  private_class_method :purge_project_cdn_data
+
+  # Note any badge level +project+ has just lost, so the daily task can
+  # notify its owner in a rate-limited batch.  We always overwrite with
+  # the most recent loss; the daily task handles clearing.
+  #
+  # Assigns rather than writes: the caller saves.  That is safe here
+  # because the record came from find_each and is fully loaded, unlike
+  # the notification loop's tight SELECT.
+  #
+  # Resetting loss_send_attempts is the reason this is worth its own
+  # method.  A project that exhausted its attempts on an earlier loss
+  # would otherwise be permanently unnotifiable, and the next genuine
+  # loss would be dropped without a word.  See docs/warning_failures.md.
+  #
+  # @param project [Project] project just recalculated, not yet saved
+  # @param old_metal [String] metal level before recalculation
+  # @param old_baseline [String] baseline level before recalculation
+  # @return [void]
+  def self.record_pending_losses(project, old_metal, old_baseline)
+    ranks = Sections::BADGE_LEVEL_RANK
+    metal_lost = Sections.badge_level_lost?(old_metal,
+                                            project.badge_level)
+    baseline_lost = Sections.badge_level_lost?(
+      old_baseline, project.baseline_badge_level
+    )
+    return unless metal_lost || baseline_lost
+
+    project.unreported_badge_loss = ranks[old_metal] if metal_lost
+    if baseline_lost
+      project.unreported_baseline_badge_loss = ranks[old_baseline]
+    end
+    project.loss_send_attempts = 0
+  end
+  private_class_method :record_pending_losses
+
+  # Preview or record which projects will lose a badge when criteria change.
+  #
+  # Call this BEFORE running update_all_badge_percentages so that owners can
+  # be warned in advance.  The method recalculates badge levels in memory
+  # (same logic as update_all_badge_percentages) but never writes the new
+  # percentages back — only the warning columns are touched.
+  #
+  # @param levels [Array<String>] criteria level keys to recalculate
+  # @param effective_date [Date] date the criteria change takes effect
+  # @param report [Boolean] when true, print a human-readable report to
+  #   stdout instead of writing to the database (default: false)
+  # @return [void]
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  def self.update_all_badge_warnings(levels, effective_date:, report: false)
+    raise TypeError, 'levels must be an Array' unless levels.is_a?(Array)
+
+    levels.each do |l|
+      raise ArgumentError, "Invalid level: #{l}" unless l.in? Criteria.keys
+    end
+    # No skip_callbacks here: we never call project.save!, so the
+    # before_save callback cannot fire.  update_columns bypasses callbacks
+    # unconditionally, making skip_callbacks both unnecessary and risky
+    # (an exception would leave it true for the process lifetime).
+    Project.find_each(batch_size: BULK_RECALC_BATCH_SIZE) do |project|
+      apply_badge_warning_for_project(project, levels,
+                                      effective_date: effective_date,
+                                      report: report)
+    end
+  end
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+  # Recalculates badge levels for one project and either prints a warning
+  # report line (report: true) or writes warning columns to the DB.
+  # Private helper for update_all_badge_warnings.
+  # @param project [Project] the project to check
+  # @param levels [Array<String>] criteria level keys to recalculate
+  # @param effective_date [Date] date the criteria change takes effect
+  # @param report [Boolean] print instead of writing to DB
+  # @return [void]
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  def self.apply_badge_warning_for_project(
+    project,
+    levels,
+    effective_date:,
+    report:
+  )
+    old_metal_level    = project.badge_level
+    old_baseline_level = project.baseline_badge_level
+    current_time = Time.now.utc
+    levels.each { |level| project.update_badge_percentage(level, current_time) }
+    project.update_tiered_percentage
+    project.update_baseline_tiered_percentage
+    new_metal_level    = project.badge_level
+    new_baseline_level = project.baseline_badge_level
+
+    metal_lost    = Sections.badge_level_lost?(old_metal_level, new_metal_level)
+    baseline_lost = Sections.badge_level_lost?(old_baseline_level,
+                                               new_baseline_level)
+    return unless metal_lost || baseline_lost
+
+    if report
+      print_warning_report_lines(project, metal_lost, baseline_lost,
+                                 old_metal_level, new_metal_level,
+                                 old_baseline_level, new_baseline_level)
+    else
+      save_warning_columns(project, effective_date, metal_lost, baseline_lost,
+                           old_metal_level, old_baseline_level)
+    end
+  end
+  private_class_method :apply_badge_warning_for_project
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+  # Prints admin report lines for one project's pending badge warning.
+  # @param project [Project] the project (full object needed for name)
+  # @return [void]
+  # rubocop:disable Metrics/ParameterLists
+  def self.print_warning_report_lines(
+    project,
+    metal_lost,
+    baseline_lost,
+    old_metal_level,
+    new_metal_level,
+    old_baseline_level,
+    new_baseline_level
+  )
+    user = User.select('id, name, encrypted_email, encrypted_email_iv')
+               .find(project.user_id)
+    email = user.email_if_decryptable
+    prefix = "Project #{project.id} \"#{project.name}\" | " \
+             "User #{user.id} #{user.name} <#{email}>"
+    # rubocop:disable Rails/Output
+    if metal_lost
+      $stdout.puts "#{prefix} | #{old_metal_level} -> #{new_metal_level}"
+    end
+    return unless baseline_lost
+
+    $stdout.puts "#{prefix} | " \
+                 "#{old_baseline_level} -> #{new_baseline_level} (baseline)"
+
+    # rubocop:enable Rails/Output
+  end
+  private_class_method :print_warning_report_lines
+  # rubocop:enable Metrics/ParameterLists
+
+  # Writes warning columns to the DB for one project.
+  # @return [void]
+  # rubocop:disable Rails/SkipsModelValidations, Metrics/ParameterLists
+  def self.save_warning_columns(
+    project,
+    effective_date,
+    metal_lost,
+    baseline_lost,
+    old_metal_level,
+    old_baseline_level
+  )
+    # Reset the attempt count: this is a new warning, and a project that
+    # exhausted its attempts on an earlier one must not be left
+    # permanently unwarnable.  Unconditional because the caller reaches
+    # here only when a level is at risk.  See docs/warning_failures.md.
+    ranks = Sections::BADGE_LEVEL_RANK
+    cols = {
+      badge_warning_effective_date: effective_date,
+      warning_send_attempts: 0
+    }
+    cols[:unreported_badge_warning] = ranks[old_metal_level] if metal_lost
+    if baseline_lost
+      cols[:unreported_baseline_badge_warning] = ranks[old_baseline_level]
+    end
+    project.update_columns(cols)
+  end
+  private_class_method :save_warning_columns
+  # rubocop:enable Rails/SkipsModelValidations, Metrics/ParameterLists
 
   # The following configuration options are trusted.  Set them to
   # reasonable numbers or accept the defaults.
+
+  # Maximum number of loss-notification emails to send per day.
+  # Start small until we are confident the code is correct; the pending
+  # queue will drain over subsequent days even with a small cap.
+  MAX_BADGE_LOSS_NOTIFICATIONS =
+    (ENV['BADGEAPP_MAX_BADGE_LOSS_NOTIFICATIONS'] || 10).to_i
+
+  # Maximum number of warning-notification emails to send per day.
+  MAX_BADGE_WARNING_NOTIFICATIONS =
+    (ENV['BADGEAPP_MAX_BADGE_WARNING_NOTIFICATIONS'] || 10).to_i
+
+  # How many times to try delivering one notification before giving up.
+  # At a nightly cadence this is five days to ride out an outage.  The
+  # bound is what stops "retry tomorrow" becoming "retry forever": a
+  # permanently rejected address would otherwise fail every night
+  # indefinitely, which is this incident again with a different cause.
+  MAX_NOTIFICATION_ATTEMPTS =
+    (ENV['BADGEAPP_MAX_NOTIFICATION_ATTEMPTS'] || 5).to_i
+
+  # How we tell "try again later" from "this will never work".  The
+  # split lives here as an explicit list rather than in a reviewer's
+  # head, because it decides whether an owner eventually hears from us.
+  #
+  # These constants come from net/smtp, which the mail gem loads at
+  # boot.  If that ever stopped being true this file would fail to load
+  # outright, which is a loud failure and the right kind.
+  TRANSIENT_SEND_ERRORS = [
+    Net::SMTPServerBusy, # 4xx, the server is asking us to wait
+    Net::OpenTimeout, Net::ReadTimeout,
+    Errno::ECONNRESET, Errno::ECONNREFUSED,
+    IOError
+  ].freeze
+
+  # 5xx and friends.  These do not improve overnight, so retrying only
+  # delays the report and wastes the attempt budget.
+  PERMANENT_SEND_ERRORS = [
+    Net::SMTPFatalError, Net::SMTPSyntaxError,
+    Net::SMTPAuthenticationError
+  ].freeze
+
+  # Columns selected for the loss-notification project query.  Tight list so
+  # we avoid pulling criteria status/justification data into memory.
+  # tiered_percentage and badge_percentage_baseline_* are small integers
+  # needed to compute the current badge level for the "now at X" email line.
+  #
+  # CAREFUL.  Trimming these two lists for memory is exactly how this
+  # code broke: omitting lock_version made every clear silently match no
+  # row.  Anything the notification path reads or writes must be listed,
+  # including the *_send_attempts counters, and anything a mail template
+  # comes to use, since deliver_now renders from the record as loaded.
+  # Omissions raise ActiveModel::MissingAttributeError rather than
+  # failing quietly, so add columns here before using them.
+  LOSS_NOTIFY_PROJECT_FIELDS =
+    'id, user_id, updated_at, unreported_badge_loss, ' \
+    'unreported_baseline_badge_loss, loss_send_attempts, ' \
+    'tiered_percentage, badge_percentage_baseline_1, ' \
+    'badge_percentage_baseline_2, badge_percentage_baseline_3'
+
+  # Columns selected for the warning-notification project query.
+  # Includes badge_warning_effective_date so the email can state the deadline.
+  WARN_NOTIFY_PROJECT_FIELDS =
+    'id, user_id, updated_at, unreported_badge_warning, ' \
+    'unreported_baseline_badge_warning, warning_send_attempts, ' \
+    'badge_warning_effective_date, tiered_percentage, ' \
+    'badge_percentage_baseline_1, badge_percentage_baseline_2, ' \
+    'badge_percentage_baseline_3'
+
+  # Columns selected when loading a user for loss/warning notification sending.
+  # Tight list; the loop loads at most MAX_BADGE_*_NOTIFICATIONS users.
+  LOSS_NOTIFY_USER_FIELDS =
+    'id, important_notifications, encrypted_email, encrypted_email_iv, ' \
+    'preferred_locale'
 
   # Maximum number of reminders to send by email at one time.
   # We want a rate limit to avoid being misinterpreted as a spammer,
@@ -476,7 +1115,7 @@ class Project < ApplicationRecord
   LAST_SENT_REMINDER = (ENV['BADGEAPP_LAST_SENT_REMINDER'] || 60).to_i
 
   # Returns projects that should be reminded to work on their badges.
-  # See: https://github.com/coreinfrastructure/best-practices-badge/issues/487
+  # See: https://github.com/ossf/best-practices-badge/issues/487
   # Selects in-progress projects that are inactive, not recently reminded,
   # have valid email, and owner accepts emails. Uses single database query.
   # @return [ActiveRecord::Relation] projects eligible for reminders
@@ -496,9 +1135,14 @@ class Project < ApplicationRecord
     #   and inactive and not_recently_reminded and valid_email
     #   and owner_accepts_emails.
     # where these terms are defined as:
-    #   in_progress = badge_percentage less than 100%.
-    #   not_recently_lost_badge = lost_passing_at IS NULL OR
-    #     less than LOST_PASSING_REMINDER (30) days ago
+    #   in_progress = badge_percentage_0 (passing) less than 100% AND
+    #     badge_percentage_baseline_1 is NULL or less than 100%.
+    #     A project that has completed either passing or baseline-1
+    #     is not considered "in progress" for reminder purposes.
+    #   not_recently_lost_badge = (lost_passing_at IS NULL OR
+    #     less than LOST_PASSING_REMINDER days ago) AND
+    #     (lost_baseline_1_at IS NULL OR less than
+    #     LOST_PASSING_REMINDER days ago)
     #   inactive = updated_at is LAST_UPDATED_REMINDER (30) days ago or more
     #   not_recently_reminded = last_reminder_at IS NULL OR
     #     more than 60 days ago. Notice that if recently_reminded is null
@@ -533,9 +1177,16 @@ class Project < ApplicationRecord
     # (e.g., one that does the coalescing).
     Project
       .select('projects.*, users.encrypted_email as user_encrypted_email')
-      .where('badge_percentage_0 < 100')
-      .where('lost_passing_at IS NULL OR lost_passing_at < ?',
-             LOST_PASSING_REMINDER.days.ago)
+      .where(
+        'badge_percentage_0 < 100 AND ' \
+        '(badge_percentage_baseline_1 IS NULL OR ' \
+        'badge_percentage_baseline_1 < 100)'
+      )
+      .where(
+        '(lost_passing_at IS NULL OR lost_passing_at < ?) AND ' \
+        '(lost_baseline_1_at IS NULL OR lost_baseline_1_at < ?)',
+        LOST_PASSING_REMINDER.days.ago, LOST_PASSING_REMINDER.days.ago
+      )
       .where(projects: { updated_at: ...LAST_UPDATED_REMINDER.days.ago })
       .where('last_reminder_at IS NULL OR last_reminder_at < ?',
              LAST_SENT_REMINDER.days.ago)
@@ -548,8 +1199,554 @@ class Project < ApplicationRecord
   end
   # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
-  # Return which projects should be announced as getting badges in the
-  # month target_month with level (as a number, 0=passing)
+  # Returns projects with a pending badge-loss notification (either series).
+  # Selects only the columns needed for notification — no criteria data.
+  # Ordered by updated_at DESC so recently-active projects are notified first.
+  # @return [ActiveRecord::Relation]
+  def self.projects_with_pending_loss_notifications
+    Project
+      .select(LOSS_NOTIFY_PROJECT_FIELDS)
+      .where('unreported_badge_loss > 0 OR unreported_baseline_badge_loss > 0')
+      .reorder('updated_at DESC')
+  end
+  private_class_method :projects_with_pending_loss_notifications
+
+  # Write bookkeeping columns for one project: clearing a pending
+  # notification flag, stamping a delivery, counting a failed attempt,
+  # recording when we last sent a reminder, storing a recalculated
+  # percentage, or any combination the caller names.
+  #
+  # Use this for anything that is *our* record of what the application
+  # did, as opposed to what the project's owner told us.  Owner content
+  # must go through a normal save, so that optimistic locking can catch
+  # two people editing the same entry.  Bookkeeping must not, because
+  # bumping lock_version tells an owner in mid-edit that their entry
+  # "changed since you started editing" when nothing of theirs did.
+  #
+  # This issues plain parameterized SQL rather than going through the ORM,
+  # deliberately.  Both ORM paths carry hidden behavior that has already
+  # broken this exact code once each:
+  #
+  #   update_columns adds lock_version to the WHERE clause, so a record
+  #   loaded through a tight SELECT that omits that column sends
+  #   "AND lock_version = 0", matches no row for any project that has ever
+  #   been edited, and returns false without raising.  That is the defect
+  #   that re-sent the same emails nightly for five weeks.
+  #
+  #   update_all adds "lock_version = lock_version + 1" to the SET clause,
+  #   which would make a project owner's in-flight edit fail with
+  #   StaleObjectError, telling them their entry "changed since you started
+  #   editing" when only our bookkeeping columns had moved.
+  #
+  # A literal UPDATE touches exactly the columns named, leaves lock_version
+  # alone by never mentioning it, ignores default_scope, and stays correct
+  # across ORM upgrades.  See docs/warning_failures.md.
+  #
+  # SECURITY: values are bound parameters.  Column names are interpolated,
+  # so they are first checked against the real schema; callers pass literal
+  # symbols, never user input.
+  #
+  # Going around the ORM also means going around its type serialization,
+  # so values are quoted as the database adapter sees them.  That is
+  # correct for every column `projects` has, since they are all plain
+  # scalars: boolean, date, datetime, integer, string, and text.  If
+  # someone ever adds a jsonb, array, or custom-typed column, do not
+  # write it through here without checking that it round-trips.
+  #
+  # @param project [Project] project whose bookkeeping should be written
+  # @param columns [Hash] columns and values to write
+  # @return [Boolean] true if exactly one row was updated
+  # @raise [ArgumentError] if asked to write something that is not a column
+  # This is a command that reports whether it succeeded, not a predicate;
+  # a trailing "?" would wrongly suggest it has no side effects.
+  # rubocop:disable Naming/PredicateMethod
+  def self.write_bookkeeping_columns(project, columns)
+    rows_updated = update_one_project(project.id, columns)
+    return true if rows_updated == 1
+
+    report_failed_bookkeeping_write(project, columns, rows_updated)
+    false
+  end
+  # rubocop:enable Naming/PredicateMethod
+
+  # Set the given columns on exactly one project, by parameterized SQL.
+  # See write_bookkeeping_columns for why this does not use the ORM.
+  # @param id [Integer] project id
+  # @param columns [Hash] columns and values to write
+  # @return [Integer] number of rows updated
+  # @raise [ArgumentError] if asked to write something that is not a column
+  def self.update_one_project(id, columns)
+    unknown = columns.keys.map(&:to_s) - column_names
+    raise ArgumentError, "Not projects columns: #{unknown}" if unknown.any?
+
+    assignments = columns.keys.map { |column| "#{column} = ?" }.join(', ')
+    sql = sanitize_sql_array(
+      [
+        "UPDATE projects SET #{assignments} WHERE id = ?",
+        *columns.values, id
+      ]
+    )
+    with_connection { |conn| conn.update(sql) }
+  end
+  private_class_method :update_one_project
+
+  # Report a bookkeeping write that did not affect exactly one row.
+  # Silence here is precisely what let duplicate emails go out nightly for
+  # five weeks, so this must be noisy even though it cannot be recovered
+  # from automatically.
+  # @param project [Project] the project we failed to update
+  # @param columns [Hash] the columns we tried to write
+  # @param rows_updated [Integer] how many rows actually changed
+  # @return [void]
+  def self.report_failed_bookkeeping_write(project, columns, rows_updated)
+    message =
+      "Bookkeeping write affected #{rows_updated} rows (expected 1) " \
+      "for project #{project.id}, columns #{columns.keys.join(', ')}. " \
+      'Whatever this recorded did not get recorded, so a task that ' \
+      'depends on it may repeat work it has already done.'
+    Rails.logger.error(message)
+    # No-op unless Sentry is configured (SENTRY_DSN set).
+    Sentry.capture_message(message)
+  end
+  private_class_method :report_failed_bookkeeping_write
+
+  # Everything that differs between the four notification kinds: two
+  # series, loss and warning, each with a metal kind and a baseline kind.
+  # send_notifications below is driven entirely by these entries, so
+  # adding a kind is a data change rather than another copy of the loop.
+  # :flag names the column holding the rank of the level involved,
+  # :levels turns that rank back into a level name, and :suffix picks the
+  # badge series for the email.  Kinds are listed in the order they send.
+  NOTIFICATION_SERIES = {
+    loss: {
+      sent_at: :last_loss_sent_at,
+      attempts: :loss_send_attempts,
+      kinds: [
+        {
+          flag: :unreported_badge_loss,
+          levels: BADGE_LEVELS, suffix: 'badge'
+        },
+        {
+          flag: :unreported_baseline_badge_loss,
+          levels: BASELINE_BADGE_LEVELS, suffix: 'baseline'
+        }
+      ]
+    },
+    warning: {
+      sent_at: :last_warning_sent_at,
+      attempts: :warning_send_attempts,
+      kinds: [
+        {
+          flag: :unreported_badge_warning,
+          levels: BADGE_LEVELS, suffix: 'badge'
+        },
+        {
+          flag: :unreported_baseline_badge_warning,
+          levels: BASELINE_BADGE_LEVELS, suffix: 'baseline'
+        }
+      ]
+    }
+  }.freeze
+
+  # What one notification attempt did.  This is the vocabulary the block
+  # given to send_notifications answers in.
+  #
+  #   :sent               mail was delivered
+  #   :not_relevant       the notification no longer means anything, so
+  #                       there is nothing to send and nothing to keep
+  #   :suppressed         we chose not to send: the owner has opted out
+  #                       of important notifications, or has no usable
+  #                       address
+  #   :transient_failure  delivery failed in a way that may work later
+  #   :permanent_failure  delivery failed in a way that will not
+  #
+  # The old Boolean could express none of this: everything but "sent"
+  # was "false", and treating those cases alike is what discarded a
+  # suppressed owner's notification permanently.  Each now gets the
+  # handling it deserves in record_outcome.  See
+  # docs/warning_failures.md.
+  NOTIFICATION_OUTCOMES = %i[
+    sent not_relevant suppressed transient_failure permanent_failure
+  ].freeze
+
+  # Confirm that a notification block answered in the agreed vocabulary.
+  # A block still returning the old +true+ would otherwise be read as
+  # "not sent", quietly undercounting mail and, once the outcomes drive
+  # clearing, quietly mishandling the flag.  Fail loudly instead.
+  # @param outcome [Symbol] what the block returned
+  # @return [Symbol] the same outcome, if it is a known one
+  # @raise [ArgumentError] if the outcome is not in NOTIFICATION_OUTCOMES
+  def self.checked_outcome(outcome)
+    return outcome if NOTIFICATION_OUTCOMES.include?(outcome)
+
+    raise ArgumentError, "Unknown notification outcome: #{outcome.inspect}"
+  end
+  private_class_method :checked_outcome
+
+  # Try to deliver one notification, turning a delivery failure into an
+  # outcome instead of letting it end the run.  Only the send itself is
+  # rescued: checked_outcome runs outside, so a block answering outside
+  # the vocabulary still fails loudly rather than being mistaken for a
+  # transient network problem.
+  #
+  # @param project [Project] project to notify about
+  # @param user [User] the project owner, already loaded
+  # @param kind [Hash] one entry of a series' :kinds
+  # @param rank [Integer] rank of the level this notification concerns
+  # @return [Symbol] one of NOTIFICATION_OUTCOMES
+  def self.attempt_notification(project, user, kind, rank)
+    result =
+      begin
+        yield(project, user, kind[:levels][rank], kind[:suffix])
+      rescue StandardError => e
+        classify_send_error(e, project, kind)
+      end
+    checked_outcome(result)
+  end
+  private_class_method :attempt_notification
+
+  # Decide whether a delivery failure is worth trying again.
+  # @param error [StandardError] what the delivery raised
+  # @param project [Project] project we were notifying about
+  # @param kind [Hash] one entry of a series' :kinds
+  # @return [Symbol] :transient_failure or :permanent_failure
+  def self.classify_send_error(error, project, kind)
+    Rails.logger.error(
+      "Notification #{kind[:flag]} for project #{project.id} failed: " \
+      "#{error.class}: #{error.message}"
+    )
+    return :permanent_failure if error_matches?(PERMANENT_SEND_ERRORS, error)
+    return :transient_failure if error_matches?(TRANSIENT_SEND_ERRORS, error)
+
+    # We could not classify it, which is a gap in those two lists and
+    # deserves attention now rather than in five nights' time.  Treat it
+    # as transient anyway: the attempt bound caps the cost of guessing
+    # wrong in that direction, while guessing "permanent" would drop the
+    # notification silently, with no bound and no signal.
+    Sentry.capture_exception(error)
+    :transient_failure
+  end
+  private_class_method :classify_send_error
+
+  # @param classes [Array<Class>] exception classes to test against
+  # @param error [StandardError] the error to classify
+  # @return [Boolean] true if +error+ is one of +classes+
+  def self.error_matches?(classes, error)
+    classes.any? { |klass| error.is_a?(klass) }
+  end
+  private_class_method :error_matches?
+
+  # Record what one notification attempt did.
+  #
+  #   :sent               clear the flag and stamp the delivery time
+  #   :not_relevant       clear the flag; nothing was delivered, so
+  #                       nothing is stamped
+  #   :suppressed         leave it pending, for a run when we can send
+  #   :transient_failure  count the attempt; give up once they run out
+  #   :permanent_failure  give up now, it will not improve tomorrow
+  #
+  # Only :sent writes the sent-at column.  Those columns are the record
+  # of delivery now that mail goes out synchronously, so stamping them
+  # when nothing was delivered would recreate the misleading state that
+  # made this incident so hard to diagnose.
+  #
+  # @param project [Project] project we were notifying about
+  # @param kind [Hash] one entry of a series' :kinds
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @param outcome [Symbol] one of NOTIFICATION_OUTCOMES
+  # @param now [Time] time to record as the delivery time
+  # @return [Boolean] true if this notification is still pending, which
+  #   report_stuck_queue needs so that a deliberate deferral is not
+  #   mistaken for a queue that has stopped draining
+  def self.record_outcome(project, kind, series, outcome, now)
+    case outcome
+    when :sent, :not_relevant
+      columns = { kind[:flag] => 0 }
+      columns[series[:sent_at]] = now if outcome == :sent
+      write_bookkeeping_columns(project, columns)
+      false
+    when :transient_failure, :permanent_failure
+      handle_send_failure(project, kind, series, outcome)
+    else
+      # :suppressed writes nothing at all, deliberately.  Clearing here
+      # would mean an owner who re-enables notifications gets nothing,
+      # since no new flag is raised unless the badge changes level
+      # again.  It stays pending, on purpose.
+      true
+    end
+  end
+  private_class_method :record_outcome
+
+  # A delivery failed.  Count the attempt, and stop trying once the
+  # count runs out, so that "retry tomorrow" cannot quietly become
+  # "retry forever" and recreate this incident with a different cause.
+  # @param project [Project] project we were notifying about
+  # @param kind [Hash] one entry of a series' :kinds
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @param outcome [Symbol] :transient_failure or :permanent_failure
+  # @return [Boolean] true if the notification is still pending
+  # Writes to the database, so it is a command that answers a question,
+  # not a predicate; a trailing "?" would suggest it has no effect.
+  # rubocop:disable Naming/PredicateMethod
+  def self.handle_send_failure(project, kind, series, outcome)
+    attempts = project[series[:attempts]] + 1
+    if outcome == :transient_failure &&
+       attempts < MAX_NOTIFICATION_ATTEMPTS
+      # Leave the flag set so that a later run tries again.
+      write_bookkeeping_columns(project, series[:attempts] => attempts)
+      true
+    else
+      abandon_notification(project, kind, series, outcome, attempts)
+      false
+    end
+  end
+  # rubocop:enable Naming/PredicateMethod
+  private_class_method :handle_send_failure
+
+  # Give up on a notification.  Clear the flag so it stops being
+  # retried, keep the attempt count as the record of why it stopped, and
+  # say so loudly: the owner will not hear this message, which is the
+  # price of not mailing the same person forever, and that price must
+  # not be paid in silence.
+  # @param project [Project] project we were notifying about
+  # @param kind [Hash] one entry of a series' :kinds
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @param outcome [Symbol] why we are giving up
+  # @param attempts [Integer] attempts made, recorded as the reason
+  # @return [void]
+  def self.abandon_notification(project, kind, series, outcome, attempts)
+    message =
+      "Abandoning #{kind[:flag]} notification for project " \
+      "#{project.id} after #{attempts} attempt(s): #{outcome}."
+    Rails.logger.error(message)
+    # No-op unless Sentry is configured (SENTRY_DSN set).
+    Sentry.capture_message(message)
+    write_bookkeeping_columns(
+      project, kind[:flag] => 0, series[:attempts] => attempts
+    )
+  end
+  private_class_method :abandon_notification
+
+  # Check, after a run that examined everything, that the queue actually
+  # drained.
+  #
+  # This re-reads the database rather than trusting what the writes above
+  # reported, which is the whole point of it.  The defect this repair
+  # exists for reported eleven emails sent and eleven flags cleared, and
+  # left eleven flags set; every layer said it had worked.  An
+  # end-to-end count is the one check that does not take their word for
+  # it.
+  #
+  # +expected+ is the number of projects we deliberately left pending:
+  # owners we cannot mail, and notifications waiting on a retry. Without
+  # that subtraction this would cry wolf every night, and a nightly
+  # false alarm is exactly the habit that let the original defect run
+  # for five weeks.
+  #
+  # @param pending [ActiveRecord::Relation] the pending-notification scope
+  # @param expected [Integer] projects deliberately left pending
+  # @return [void]
+  def self.report_stuck_queue(pending, expected)
+    # reselect: the caller's tight column list would become a syntax
+    # error inside COUNT().
+    remaining = pending.reselect('projects.id').count
+    return if remaining <= expected
+
+    message =
+      "Notification queue did not drain: #{remaining} projects still " \
+      'pending after a run that finished under its cap, of which ' \
+      "#{expected} were deliberately deferred. Flags may not be " \
+      'clearing; see docs/warning_failures.md.'
+    Rails.logger.error(message)
+    # No-op unless Sentry is configured (SENTRY_DSN set).
+    Sentry.capture_message(message)
+  end
+  private_class_method :report_stuck_queue
+
+  # Send one series of notification emails in a rate-limited batch.
+  # Only mail actually sent counts toward +cap+; notifications drained
+  # without sending do not.  Stops as soon as the cap is hit.  What each
+  # outcome does to the pending flag is in record_outcome.
+  #
+  # Mail is delivered synchronously (deliver_now), as
+  # ProjectsController.send_reminders already does at a larger volume, so
+  # that the outcome of delivery is known here.  With deliver_later the
+  # loop learned only that a job had been enqueued, which is why
+  # last_loss_sent_at and last_warning_sent_at could not honestly claim to
+  # record deliveries.  The cost is that SMTP latency now sits in the
+  # nightly task, bounded by +cap+.
+  #
+  # @param pending [ActiveRecord::Relation] projects with a pending flag
+  # @param cap [Integer] most emails to send in this run
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @yieldparam project [Project] project to notify about
+  # @yieldparam user [User] the project owner, already loaded
+  # @yieldparam old_level [String] level the notification concerns
+  # @yieldparam badge_suffix [String] 'badge' or 'baseline'
+  # @yieldreturn [Symbol] one of NOTIFICATION_OUTCOMES
+  # @return [Integer] number of emails sent
+  def self.send_notifications(pending, cap, series, &block)
+    emails_sent = 0
+    deferred = 0
+    pending.each do |project|
+      break if emails_sent >= cap
+
+      sent, still_pending =
+        notify_project(project, series, cap - emails_sent, &block)
+      emails_sent += sent
+      deferred += 1 if still_pending
+    end
+    # Reaching the cap leaves work behind legitimately and means we did
+    # not look at the rest, so there is nothing to conclude.  A run that
+    # examined everything and still landed exactly on the cap skips the
+    # check too; that costs one night's alarm at worst, and is far
+    # cheaper than a flag tracking which of two breaks we took.
+    report_stuck_queue(pending, deferred) if emails_sent < cap
+    emails_sent
+  end
+  private_class_method :send_notifications
+
+  # Send whatever +project+ has pending in this series, up to +allowed+
+  # more emails.
+  #
+  # @param project [Project] project to notify about
+  # @param series [Hash] one entry of NOTIFICATION_SERIES
+  # @param allowed [Integer] emails this project may still send
+  # @yieldparam project [Project] project to notify about
+  # @yieldparam user [User] the project owner, already loaded
+  # @yieldparam old_level [String] level the notification concerns
+  # @yieldparam badge_suffix [String] 'badge' or 'baseline'
+  # @yieldreturn [Symbol] one of NOTIFICATION_OUTCOMES
+  # @return [Array(Integer, Boolean)] emails sent, and whether anything
+  #   is still pending for this project afterward
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  def self.notify_project(project, series, allowed, &block)
+    # Tight SELECT: only the fields needed for sending or skipping.
+    # Bounded by the cap, so N+1 cost is minimal.
+    user = User.select(LOSS_NOTIFY_USER_FIELDS).find(project.user_id)
+    # deliverable_email? is the mailers' own test, so what we count as
+    # sent and what they will actually send cannot drift apart.
+    can_email = user.important_notifications? && user.deliverable_email?
+    now = Time.now.utc
+    sent = 0
+    still_pending = false
+    series[:kinds].each do |kind|
+      break if sent >= allowed
+
+      rank = project[kind[:flag]]
+      next if rank <= 0
+
+      outcome =
+        if can_email
+          attempt_notification(project, user, kind, rank, &block)
+        else
+          :suppressed
+        end
+      sent += 1 if outcome == :sent
+      still_pending ||= record_outcome(project, kind, series, outcome, now)
+    end
+    [sent, still_pending]
+  end
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  private_class_method :notify_project
+
+  # Send badge-loss notification emails in a rate-limited daily batch.
+  # @return [Integer] number of emails sent
+  def self.send_loss_notifications
+    send_notifications(
+      projects_with_pending_loss_notifications,
+      MAX_BADGE_LOSS_NOTIFICATIONS, NOTIFICATION_SERIES[:loss]
+    ) do |project, user, level, suffix|
+      send_loss_email(project, user, level, suffix)
+    end
+  end
+
+  # Deliver one loss-notification email if the loss is still current.
+  # Skips silently if the project has since regained the lost level.
+  # @param project [Project] the project whose badge was lost
+  # @param user [User] the project owner (pre-fetched, avoids N+1)
+  # @param old_level [String] the badge level that was lost
+  # @param badge_suffix [String] 'badge' or 'baseline'
+  # @return [Symbol] :sent, or :not_relevant if the level was regained
+  def self.send_loss_email(project, user, old_level, badge_suffix)
+    new_level =
+      if badge_suffix == 'baseline'
+        project.baseline_badge_level
+      else
+        project.badge_level
+      end
+    # The level is back, so there is no loss left to report.
+    unless Sections.badge_level_lost?(old_level, new_level)
+      return :not_relevant
+    end
+
+    ReportMailer.email_owner_with_user(project, user, old_level, new_level,
+                                       true, badge_suffix).deliver_now
+    :sent
+  end
+  private_class_method :send_loss_email
+
+  # Returns projects with a pending badge-warning notification (either series).
+  # Selects only the columns needed for notification — no criteria data.
+  # Ordered by updated_at DESC so recently-active projects are warned first.
+  # @return [ActiveRecord::Relation]
+  def self.projects_with_pending_warning_notifications
+    Project
+      .select(WARN_NOTIFY_PROJECT_FIELDS)
+      .where('unreported_badge_warning > 0 OR ' \
+             'unreported_baseline_badge_warning > 0')
+      .reorder('updated_at DESC')
+  end
+  private_class_method :projects_with_pending_warning_notifications
+
+  # Send badge-warning notification emails in a rate-limited daily batch.
+  # @return [Integer] number of emails sent
+  def self.send_warning_notifications
+    send_notifications(
+      projects_with_pending_warning_notifications,
+      MAX_BADGE_WARNING_NOTIFICATIONS, NOTIFICATION_SERIES[:warning]
+    ) do |project, user, level, suffix|
+      send_warning_email(project, user, level, suffix)
+    end
+  end
+
+  # Deliver one warning-notification email.
+  #
+  # A warning states a deadline, so it stops meaning anything once that
+  # deadline is behind us: the badge has by then been lost or kept, and
+  # either way the message would announce a date in the past.  This is
+  # what the 11 stale flags of 2026-07-31 would have done had they not
+  # been cleared by hand; see docs/warning_failures.md.
+  #
+  # A project with no recorded date is warned rather than skipped.  We
+  # cannot show a deadline has passed when we do not know what it was,
+  # and skipping would discard the notification for good and say
+  # nothing.  save_warning_columns always records a date, so a missing
+  # one is a data fault, and a fault in our bookkeeping is a poor reason
+  # to leave an owner unwarned about their badge.  The template answers
+  # with warned_level_message_no_date, which warns without naming a day,
+  # so the owner gets a true message rather than one with a hole in it.
+  #
+  # @param project [Project] the project at risk of losing its badge
+  # @param user [User] the project owner (pre-fetched, avoids N+1)
+  # @param old_level [String] the badge level that will be lost
+  # @param badge_suffix [String] 'badge' or 'baseline'
+  # @return [Symbol] :sent, or :not_relevant if the deadline has passed
+  def self.send_warning_email(project, user, old_level, badge_suffix)
+    deadline = project.badge_warning_effective_date
+    return :not_relevant if deadline && deadline < Time.zone.today
+
+    ReportMailer.warn_owner_with_user(project, user, old_level,
+                                      badge_suffix).deliver_now
+    :sent
+  end
+  private_class_method :send_warning_email
+
+  # Returns projects that first achieved +level+ during +target_month+.
+  # @param level [Integer] badge level number (0=passing, 1=silver, 2=gold)
+  # @param target_month [Date] any date within the target calendar month
+  # @return [ActiveRecord::Relation, nil] projects ordered by achievement date,
+  #   or nil if level is not a valid LEVEL_ID_NUMBER
   def self.projects_first_in(level, target_month)
     # Defense-in-depth: ensure 'level' is a valid value.
     return unless LEVEL_ID_NUMBERS.member?(level)
@@ -570,6 +1767,10 @@ class Project < ApplicationRecord
       .reorder("achieved_#{name}_at")
   end
 
+  # Returns projects that received a reminder within the past 14 days.
+  # Joins users so the caller can access the encrypted email without an N+1.
+  # @return [ActiveRecord::Relation] projects with last_reminder_at set
+  #   in the past 14 days, ordered by reminder date ascending
   def self.recently_reminded
     Project
       .select('projects.*, users.encrypted_email as user_encrypted_email')
@@ -589,6 +1790,25 @@ class Project < ApplicationRecord
   WHAT_IS_ENOUGH = %i[criterion_passing criterion_barely].freeze
 
   private
+
+  # Clear the cached unfiltered index count (see INDEX_COUNT_CACHE_KEY).
+  # Triggered by after_commit on create/destroy.
+  def bust_index_count_cache
+    Rails.cache.delete(INDEX_COUNT_CACHE_KEY)
+  end
+
+  # Normalize blank entry_locale to 'en' (the expected default)
+  # HTML forms submit empty string ("") for blank selects. We normalize
+  # this to 'en' to match the database default and satisfy NOT NULL constraint.
+  # IMPORTANT: Only normalize if the attribute was actually loaded or assigned.
+  # Due to selective field loading, the attribute might not be present at all.
+  def normalize_entry_locale
+    # Only normalize if attribute is present (was loaded or explicitly set)
+    # has_attribute? returns false if field wasn't in SELECT query
+    return unless has_attribute?(:entry_locale)
+
+    self.entry_locale = 'en' if entry_locale.blank?
+  end
 
   # def all_active_criteria_passing?
   #   Criteria.active.all? { |criterion| enough? criterion }
@@ -672,8 +1892,14 @@ class Project < ApplicationRecord
   # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
   # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
   def update_passing_times(level, old_badge_percentage, current_time)
-    level_name = COMPLETED_BADGE_LEVELS[level.to_i] # E.g., 'passing'
-    current_percentage = self[:"badge_percentage_#{level}"]
+    # Determine level name for field names
+    level_name =
+      if Sections.section_type(level) == :baseline
+        level.to_s.tr('-', '_') # E.g., 'baseline_1'
+      else
+        COMPLETED_BADGE_LEVELS[level.to_i] # E.g., 'passing'
+      end
+    current_percentage = badge_percentage_for(level)
     # If something is wrong, don't modify anything!
     return if current_percentage.blank? || old_badge_percentage.blank?
 
@@ -700,6 +1926,8 @@ class Project < ApplicationRecord
   # When filling in the prerequisites, we do not fill in the justification
   # for them. The justification is only there as it makes implementing this
   # portion of the code simpler.
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+  # rubocop:disable Metrics/MethodLength
   def update_prereqs(level)
     level = level.to_i
     return if level <= 0
@@ -707,15 +1935,23 @@ class Project < ApplicationRecord
     # The following works because BADGE_LEVELS[1] is 'passing', etc:
     achieved_previous_level = :"achieve_#{BADGE_LEVELS[level]}_status"
 
+    # Update achievement status based on percentage (uses integer comparisons)
     if self[:"badge_percentage_#{level - 1}"] >= 100
-      return if self[achieved_previous_level] == 'Met'
+      return if self[achieved_previous_level] == CriterionStatus::MET
 
-      self[achieved_previous_level] = 'Met'
+      self[achieved_previous_level] = CriterionStatus::MET
     else
-      return if self[achieved_previous_level] == 'Unmet'
+      return if self[achieved_previous_level] == CriterionStatus::UNMET
 
-      self[achieved_previous_level] = 'Unmet'
+      self[achieved_previous_level] = CriterionStatus::UNMET
     end
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity
+  # rubocop:enable Metrics/MethodLength
+
+  # Status field conversion happens at the boundaries:
+  # - Input: Controller's convert_status_params converts strings → integers
+  # - Output: View helper status_radio_button converts integers → strings for display
+  # - Internal: Model works exclusively with integers (0,1,2,3)
 end
 # rubocop:enable Metrics/ClassLength

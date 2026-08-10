@@ -25,7 +25,7 @@ class TranslationTest < ActionDispatch::IntegrationTest
       get "/#{my_locale}/projects"
       assert_response :success
 
-      get "/#{my_locale}/projects/#{projects(:one).id}"
+      get "/#{my_locale}/projects/#{projects(:one).id}/passing"
       assert_response :success
 
       get "/#{my_locale}/users/#{users(:test_user).id}"

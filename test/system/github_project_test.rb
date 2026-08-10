@@ -18,10 +18,10 @@ class GithubProjectTest < ApplicationSystemTestCase
 
     VCR.use_cassette('github_project', allow_playback_repeats: true) do
       visit '/en'
-      assert has_content? 'OpenSSF Best Practices Badge Program'
+      assert_text 'OpenSSF Best Practices Badge Program'
       click_on 'Get Your Badge Now!'
       assert_equal new_project_path(locale: :en), current_path
-      assert has_content? 'Log in with GitHub'
+      assert_text 'Log in with GitHub'
       num = ActionMailer::Base.deliveries.size
       click_link 'Log in with GitHub'
 
@@ -46,7 +46,7 @@ class GithubProjectTest < ApplicationSystemTestCase
       assert find(
         "option[value='https://github.com/bestpracticestest/best-practices-badge']"
       )
-      assert has_selector?(
+      assert_selector(
         "option[value='https://github.com/andrewfader/test-repo-shared-2']"
       )
       # Should not see repos that already have existing badge
@@ -56,21 +56,21 @@ class GithubProjectTest < ApplicationSystemTestCase
       # assert has_no_selector?(
       # "option[value='https://github.com/andrewfader/test-repo-shared']"
       # )
-      select 'bestpracticestest/best-practices-badge', from: 'project[repo_url]'
-      click_on 'Submit GitHub Repository'
-      assert has_content? 'Thanks for adding the Project! Please fill out ' \
-                          'the rest of the information to get the Badge.'
+      select 'bestpracticestest/best-practices-badge', from: 'github_repo'
+      click_on 'Submit Project'
+      assert_text 'Thanks for adding the Project! Please fill out ' \
+                  'the rest of the information to get the Badge.'
       assert_equal num + 2, ActionMailer::Base.deliveries.size
       click_on 'Account'
-      assert has_content? 'Profile'
+      assert_text 'Profile'
       click_on 'Profile'
-      assert has_content? 'Best Practices Badge'
+      assert_text 'Best Practices Badge'
       click_on 'Account'
       # Regression test, make sure GitHub users can logout
-      assert has_content? 'Logout'
+      assert_text 'Logout'
       click_on 'Logout'
       # Wait for logout redirect to complete
-      assert has_content? 'Logged out!'
+      assert_text 'Logged out!'
       assert_equal '/en', current_path
     end
     if ENV['GITHUB_PASSWORD'] # revoke OAuth authorization

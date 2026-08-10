@@ -38,8 +38,6 @@ class AdditionalRight < ApplicationRecord
   belongs_to :user
 
   # Validates that both project and user exist and are valid.
-  # NOTE: These explicit validations are required because this application
-  # sets belongs_to_required_by_default = false in its configuration.
   validates :project, presence: true
   validates :user, presence: true
 

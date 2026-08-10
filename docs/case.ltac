@@ -1,0 +1,247 @@
+- Claim Security: The system is adequately secure against moderate threats
+  - Strategy Processes: Security is argued by examining all lifecycle processes
+    - Claim TechProcesses: Technical lifecycle processes implement security
+      - Claim ^Requirements
+      - Claim ^Design
+      - Claim ^Implementation
+      - Claim ^Verification
+      - Claim ^Deployment
+      - Claim ^Maintenance
+    - Claim ^NonTechnical
+  - Claim ^Controls
+
+- Claim Requirements: Security requirements are identified and met
+  - Strategy SecTriad: Security triad (CIA) and access control address the requirements
+    - Claim ^Confidentiality: Confidentiality is maintained
+    - Claim Integrity: Integrity is maintained
+      - Claim DataModAuth: Data modification requires authorization
+        - Evidence DataModAuthEv: before_action guards can_edit_else_redirect and can_control_else_redirect protect all project modifications (../app/controllers/projects_controller.rb)
+      - Claim AppModAuth: Application modification requires authorization
+        - Evidence AppModAuthEv: GitHub repository requires authenticated access; branch protection rules enforce code review before merging to main; governance.md documents the process (../governance.md)
+      - Link DataInMotion
+    - Claim ^Availability: Availability is maintained including limited DDoS resilience
+    - Claim AccessControl: Access control is in place
+      - Claim AuthN: Users must identify and authenticate themselves
+        - Claim LocalAuthN: Local users must supply a password
+          - Evidence LocalAuthNEv: sessions_controller create action authenticates local users by verifying email and bcrypt password hash before establishing session (../app/controllers/sessions_controller.rb)
+        - Claim RemoteAuthN: Remote users are authenticated by a trusted remote service
+          - Evidence OAuthEv: OmniAuth-GitHub middleware authenticates remote users via GitHub OAuth 2.0; callback validates identity before creating local session (../config/initializers/omniauth.rb)
+      - Claim AuthZ: Authorization to resources and actions is controlled
+        - Evidence AuthZEv: can_edit? and can_control? methods implement role-based authorization; all access enforced server-side through controllers (../app/controllers/application_controller.rb)
+  - Claim Assets: Assets & threat actors identified & addressed
+    - Claim AssetsIdentified: Key assets (badge data, user credentials, system availability) have been identified {needssupport}
+    - Claim ThreatsIdentified: Key threat actors (external attackers, bots, insiders, nation-states) have been identified and addressed {needssupport}
+
+- Claim Design: Security in design
+  - Claim SimpleDesign: Economy of mechanism: simple design is used
+    - Evidence SimpleDesignEv: Standard Rails MVC architecture with models, views, and controllers; no microservices or complex distributed patterns; custom code kept minimal (../docs/design.md)
+  - Claim STRIDE: STRIDE threat model has been analyzed
+    - Evidence STRIDEEv: STRIDE threat analysis documented for all major components: web server, controllers/models/views, DBMS, Chief/Detective classes, admin CLI, and i18n service (../docs/case.md)
+  - Claim ^DesignPrinciples: Secure design principles are applied
+  - Claim Scalability: Availability through scalability
+    - Evidence ScalabilityEv: Heroku dyno-based deployment enables horizontal scaling; Fastly CDN offloads static asset and badge requests from origin server (../Procfile)
+  - Claim MemSafe: Memory-safe languages are used
+    - Evidence MemSafeEv: All custom application code is written in Ruby and JavaScript, both memory-managed languages; buffer overflows and memory corruption cannot occur in custom code (../Gemfile)
+
+- Claim Implementation: Security in implementation
+  - Strategy CommonVulns: Most implementation vulnerabilities are due to common types of implementation errors or common misconfigurations, so countering them greatly reduces security risks
+    - Claim ^OWASPClaim: All of the most common important implementation vulnerability types (weaknesses) countered
+    - Claim MisconfigClaim: All of the most common known security-relevant misconfiguration errors countered
+      - Claim RailsGuide: Entire most-relevant security guide applied
+        - Evidence RailsGuideEv: Rails security guide reviewed and countermeasures applied for sessions, CSRF, XSS, injection, and other Rails-specific issues (https://guides.rubyonrails.org/security.html)
+    - Claim ^ReuseSec: Reused software is secure
+  - Strategy HardeningStrat: Hardening can reduce or eliminate the impact of defects in some cases
+    - Claim ^Hardening: Hardening is applied
+  - Claim PubVulns: Public vulnerability information monitored
+    - Evidence PubVulnsBundleEv: bundle-audit checks all gem versions against NVD vulnerability database on every rake run (../Gemfile.lock)
+    - Evidence PubVulnsDependabotEv: GitHub Dependabot alerts and automated pull requests for vulnerable dependencies (../.github/dependabot.yml)
+
+- Claim Verification: Security in integration & verification
+  - Strategy VerifStrat: Static & dynamic verifications are performed and enforced on all integrations, reducing risk
+    - Claim VerifSteps: Verification steps reduce risk
+      - Claim StaticVerif: Static verifications are performed
+        - Claim StyleChecks: Style checks pass
+          - Evidence StyleEv: Style checkers as pronto runners in Gemfile: eslint, rails_best_practices, rubocop (../.circleci/config.yml)
+        - Claim WeaknessAnalysis: Source code analyzed for weaknesses & all issues resolved
+          - Evidence BrakemanEv: Brakeman source code weakness analyzer (../.github/workflows/main.yml)
+        - Claim FLOSSVerif: All reused components are verified as FLOSS
+          - Evidence LicenseFinderEv: license_finder (../.circleci/config.yml)
+          - Evidence FOSSAEv: FOSSA check (https://github.com/ossf/best-practices-badge/settings/)
+      - Claim DynamicVerif: Dynamic verifications are performed
+        - Claim TestCoverage: Automated testing performed with excellent statement coverage
+          - Evidence CITestEv: Automated tests run by CI (https://codecov.io/gh/ossf/best-practices-badge)
+        - Claim NegTests: Negative tests failed as desired
+          - Evidence NegTestsEv: Negative test suite (../test/)
+    - Claim CIRequired: Successful verification required by continuous integration before deployment
+      - Evidence CIConfigEv: CI configuration (../.circleci/config.yml)
+
+- Claim Deployment: Security in transition & operation
+  - Claim DeployProvider: Deployment provider maintains security
+    - Evidence HerokuSecEv: Heroku security policy describes physical and environmental safeguards (https://www.heroku.com/policy/security)
+  - Claim Detection: Threats and anomalies are detected
+    - Claim ExtMonitor: External monitoring is in place
+      - Evidence ExtMonitorEv: UptimeRobot provides external alerting when the website goes down (https://uptimerobot.com/dashboard)
+    - Claim IntLogging: Internal logging and anomaly detection is in place
+      - Evidence IntLoggingEv: filter_parameter_logging.rb excludes passwords from logs; events stream to stdout per 12-factor app (../config/initializers/filter_parameter_logging.rb)
+  - Claim OnlineCheckers: Online security checkers are used
+    - Evidence OnlineCheckersEv: Mozilla Observatory, Security Headers, and similar online tools verify HTTP response headers and flag misconfiguration (https://observatory.mozilla.org/analyze/www.bestpractices.dev)
+  - Claim RecoveryPlan: Recovery plan including backups is in place
+    - Evidence RecoveryPlanEv: Recovery procedures documented including database restoration from Heroku Postgres backups, BADGEAPP_DENY_LOGIN degraded mode, and mass_email and rekey rake tasks (../docs/case.md)
+
+- Claim Maintenance: Security in maintenance
+  - Claim AutoDetect: Vulnerabilities are auto-detected when publicly reported
+    - Evidence AutoDetectBundleEv: bundle-audit checks all gem versions against NVD vulnerability database on every rake run (../Gemfile.lock)
+    - Evidence AutoDetectGitHubEv: GitHub Dependabot alerts and automated pull requests for vulnerable dependencies (../.github/dependabot.yml)
+  - Claim RapidUpdate: Rapid update process is in place
+    - Evidence RapidUpdateEv: Bundler enables library updates in one command; high test coverage enables rapid verify-and-deploy; CI/CD pipeline deploys to Heroku automatically on passing tests (../.circleci/config.yml)
+
+- Claim NonTechnical: Security implemented by other life cycle processes
+  - Claim AgreementProc: Agreement processes implement security
+    - Claim Acquisition: Acquisition process implements security
+      - Claim Contracts: Contracts with deployment and CDN provider address security
+        - Evidence ContractsEv: Heroku Data Processing Addendum and security policy cover deployment environment; Fastly service agreement covers CDN security (https://www.heroku.com/policy/security)
+  - Claim OrgProc: Organizational project-enabling processes implement security
+    - Claim Infrastructure: Infrastructure management implements security
+      - Claim DevEnvSec: Development & test environments are protected from attack
+        - Evidence DevEnvSecEv: Development uses local git repositories; GitHub requires authenticated access; no production secrets stored in development environments; CI/CD pipeline validates branch names before use (../CONTRIBUTING.md)
+      - Claim CINoData: CI automated test environment does not contain protected data
+        - Evidence CINoDataEv: CircleCI environment uses separate test database with no production data; production credentials never present in CI context; test database seeded only with synthetic test fixtures (../.circleci/config.yml)
+    - Claim HumanRes: Human resource management implements security
+      - Claim DevKnowledge: Key developers know how to develop secure software
+        - Evidence DevKnowledgeEv: Key developers have demonstrated expertise in secure software development including creation of OpenSSF Best Practices criteria, academic research on secure programming, and security-focused professional work (../docs/background.md)
+  - Claim TechMgmt: Technical management processes implement security
+    - Claim ProjectPlanning: Project planning addresses security
+      - Evidence ProjectPlanningEv: Project roadmap and governance prioritize security; long-term security maintenance documented as a goal (../governance.md)
+    - Claim RiskMgmt: Risk management addresses security
+      - Evidence RiskMgmtEv: Continuous threat modeling implemented via this assurance case; regular dependency audits, static analysis, and security-focused development practices address identified risks (../docs/case.md)
+    - Claim ConfigMgmt: Configuration management addresses security
+      - Evidence ConfigMgmtEv: Git version control via GitHub with authenticated access; governance documented (../governance.md)
+    - Claim QA: Quality assurance addresses security
+      - Evidence QAEv: CI pipeline runs rubocop, eslint, rails_best_practices, whitespace checks, and full test suite on every commit, enforcing quality and security standards (../.circleci/config.yml)
+
+- Claim Controls: Certifications & controls provide confidence in operating results
+  - Claim CIIBadge: CII Best Practices Badge certification is obtained
+    - Evidence CIIBadgeEv: BadgeApp achieves gold CII Best Practices Badge (https://www.bestpractices.dev/en/projects/1)
+
+- Claim OWASPClaim: All of the most common important implementation vulnerability types (weaknesses) countered
+  - Strategy OWASPStrat: OWASP top 10 represents a broad consensus of the most critical web application security flaws
+    - Claim OWASP1013: All OWASP top 10 (2013 & 2017) countered
+      - Claim OWASP1: Injection (including SQL injection) countered
+        - Evidence OWASP1Ev: ActiveRecord ORM uses parameterized queries by default; direct SQL uses sanitize_sql_like or bound parameters; shell is never used to process untrusted content (../app/models/project.rb)
+      - Claim OWASP2: Broken Authentication and Session Management countered
+        - Evidence OWASP2Ev: Sessions use encrypted signed cookies; has_secure_password enforces bcrypt; remember-me uses bcrypt-stored nonce; session_store.rb configures secure cookie settings (../config/initializers/session_store.rb)
+      - Claim OWASP3: Cross-site scripting (XSS) countered
+        - Evidence OWASP3Ev: Rails SafeBuffer escapes all template output by default; markdown processing whitelists safe tags and attributes; CSP enforced via secure_headers gem (../config/initializers/secure_headers.rb)
+      - Claim OWASP4: Insecure Direct Object References countered
+        - Evidence OWASP4Ev: All project access goes through can_edit? and can_control? authorization checks; no direct object references exposed without authorization (../app/controllers/projects_controller.rb)
+      - Claim OWASP5: Security Misconfiguration countered
+        - Evidence OWASP5Ev: secure_headers gem enforces HTTP security headers; Rails secrets managed via environment variables; CI runs security checks on every commit (../config/initializers/secure_headers.rb)
+      - Claim OWASP6: Sensitive Data Exposure countered
+        - Evidence OWASP6Ev: Email encrypted with AES-256-GCM; passwords stored via bcrypt; all data in transit protected by TLS; filter_parameter_logging excludes sensitive fields from logs (../config/initializers/filter_parameter_logging.rb)
+      - Claim OWASP7: Missing Access Control countered
+        - Evidence OWASP7Ev: can_edit? and can_control? enforced server-side on all mutating actions; no security decisions made client-side (../app/controllers/application_controller.rb)
+      - Claim OWASP8: CSRF countered
+        - Evidence OWASP8Ev: protect_from_forgery with per-form tokens and origin-header check, enabled via load_defaults (../app/controllers/application_controller.rb)
+      - Claim OWASP9: Known Vulnerabilities countered
+        - Evidence OWASP9BundleEv: bundle-audit checks all gems against NVD vulnerability database on every rake run (../Gemfile.lock)
+        - Evidence OWASP9DependabotEv: GitHub Dependabot alerts on vulnerable dependencies and opens PRs to update them (../.github/dependabot.yml)
+      - Claim OWASP10: Unvalidated Redirects and Forwards countered
+        - Evidence OWASP10Ev: Redirect destinations validated against allowlists; no open redirect vulnerabilities; after-login redirect uses stored path validated server-side (../app/controllers/sessions_controller.rb)
+      - Claim OWASP11: XXE countered (2017 A4) ()
+        - Evidence OWASP11Ev: Nokogiri configured to disable external entity processing; XML parsing restricted to safe subset; SpecialAnalysis documents this exception (../docs/case.md)
+      - Claim OWASP12: Insecure Deserialization countered (2017 A8) ()
+        - Evidence OWASP12Ev: Rails session data stored in signed encrypted cookies; no untrusted object deserialization; JSON used for API data (../config/initializers/session_store.rb)
+      - Claim OWASP13: Insufficient Logging and Monitoring countered (2017 A10) ()
+        - Evidence OWASP13Ev: filter_parameter_logging excludes passwords from logs; events stream to stdout per 12-factor app; UptimeRobot monitors availability externally (../config/initializers/filter_parameter_logging.rb)
+
+- Claim Hardening: Hardening is applied
+  - Claim HardenHTTPS: HTTPS use enforced (including by HSTS) ()
+    - Evidence HardenHTTPSEv: config.force_ssl enables TLS redirection, secure cookies, and HSTS; domain in Chrome HSTS preload list (../config/environments/production.rb)
+  - Claim HardenCSP: Outgoing HTTP headers hardened including restrictive CSP
+    - Evidence HardenCSPEv: secure_headers gem enforces CSP and security headers; integration test verifies header values (../test/integration/project_get_test.rb)
+  - Claim HardenCookies: Cookies limited
+    - Evidence HardenCookiesEv: secure_headers gem sets httponly, secure, and SameSite=Lax cookie attributes; session cookies use AES-256-GCM (../Gemfile)
+  - Claim HardenCSRF: CSRF tokens hardened
+    - Evidence HardenCSRFEv: protect_from_forgery with per-form tokens and origin-header check, enabled via load_defaults (../app/controllers/application_controller.rb)
+  - Claim HardenRateIn: Incoming rate limits enforced
+    - Evidence HardenRateInEv: Rack::Attack rate limits on requests, logins, and signups by client IP address (../config/initializers/rack_attack.rb)
+  - Claim HardenRateOut: Outgoing email rate limits enforced
+    - Evidence HardenRateOutEv: projects_to_remind class method and hard limit on outgoing reminder email count (../app/models/project.rb)
+  - Claim HardenEmailEnc: Email addresses encrypted
+    - Evidence HardenEmailEncEv: attr_encrypted and blind_index gems encrypt email addresses with AES-256-GCM and PBKDF2-HMAC-SHA256 index (../app/models/user.rb)
+  - Claim HardenGravatar: Gravatar restricted
+    - Evidence HardenGravatarEv: use_gravatar boolean controls whether gravatar MD5 hash is revealed for each local user (../app/models/user.rb)
+
+- Claim Confidentiality: Confidentiality is maintained
+  - Claim NonPublicData: Non-public data is kept confidential
+    - Claim ConfDataAtRest: Confidential data at rest is protected
+      - Claim Passwords: User passwords stored securely (using bcrypt) ()
+        - Evidence PasswordsEv: has_secure_password in user model stores passwords via bcrypt (../app/models/user.rb)
+      - Claim RememberMe: Remember me token is secured
+        - Evidence RememberMeEv: remember method in user model creates bcrypt-stored nonce; sessions controller and helper manage it; login test verifies cleartext not stored in cookie (../app/controllers/sessions_controller.rb)
+      - Claim EmailSecured: Email addresses are secured (encrypted and only accessible to admin & owner) ()
+        - Evidence EmailSecuredEv: Views, mailers, and controllers restrict email address access to owners and admins; use grep -Ri 'user.*\.email' to verify (../app/views/users/)
+    - Claim DataInMotion: Data in motion encrypted with HTTPS
+      - Evidence DataInMotionEv: config.force_ssl = true enforces HTTPS with TLS redirection and secure cookies in production (../config/environments/production.rb)
+  - Claim UserPrivacy: User privacy is maintained
+    - Claim SelfHostedAssets: All web assets are self-hosted; no third-party transclusions reveal user activity to unrelated sites
+      - Evidence SelfHostedAssetsEv: Content-Security-Policy restricts script-src and style-src to self; application layouts contain no external CDN script or font references (../config/initializers/secure_headers.rb)
+    - Evidence GravatarPrivacyEv: use_gravatar boolean controls whether any MD5 hash is sent to Gravatar, giving each user control over this external disclosure (../app/models/user.rb)
+  - Claim MostDataPublic: Almost all data is not confidential {axiomatic}
+
+- Claim Availability: Availability is maintained including limited DDoS resilience
+  - Claim CDNDDoS: CDN counters DDoS attacks on specific resources
+    - Evidence FastlyCDNEv: Fastly CDN configured as reverse proxy; badge image and static asset requests absorbed by CDN before reaching origin application server (../config/initializers/fastly.rb)
+  - Claim Timeout: Timeout limits maximum request time
+    - Evidence TimeoutEv: Rack::Timeout.service_timeout set in production configuration limits all request times (../config/environments/production.rb)
+  - Claim QuickRecovery: Can return to operation quickly after DDoS ended
+    - Evidence QuickRecoveryEv: Heroku allows rapid dyno restart and redeploy from last known good git commit, restoring service within minutes of an incident (../Procfile)
+  - Claim LoginDisabled: Logon disabled mode mitigates against some vulnerabilities
+    - Evidence LoginDisabledEv: deny_login initializer reads BADGEAPP_DENY_LOGIN env var to disable all logins (../config/initializers/deny_login.rb)
+  - Claim Backups: Data corruption and loss are mitigated by multiple backups
+    - Evidence BackupsEv: Heroku Postgres automated daily backups retained across multiple snapshots; standard Rails and PostgreSQL restore mechanisms enable database recovery (https://devcenter.heroku.com/articles/heroku-postgres-backups)
+  - Claim ScaleUp: Cloud resources can be rapidly increased
+    - Evidence ScaleUpEv: Heroku cloud platform supports on-demand dyno scaling; Fastly CDN reduces origin load during traffic spikes (../Procfile)
+
+- Claim DesignPrinciples: Secure design principles are applied
+  - Claim EconomyMech: Economy of mechanism
+    - Evidence EconomyMechEv: Custom code kept minimal and DRY; standard Rails patterns used; Gemfile shows focused, well-scoped dependency set (../Gemfile)
+  - Claim CompleteMed: Complete mediation
+    - Evidence CompleteMedEv: before_action authorization hooks in ApplicationController run on every request; no client-side access control decisions are made (../app/controllers/application_controller.rb)
+  - Claim FailSafe: Fail-safe defaults
+    - Evidence FailSafeEv: can_edit_else_redirect and can_control_else_redirect redirect unauthenticated or unauthorized requests; default deny enforced server-side (../app/controllers/application_controller.rb)
+  - Claim OpenDesign: Open design
+    - Evidence OpenDesignEv: Full source code publicly available; security does not depend on keeping implementation secret (https://github.com/ossf/best-practices-badge)
+  - Claim SepPriv: Separation of privilege
+    - Evidence SepPrivEv: admin? method in User model separates admin role from normal user; admin-only actions checked explicitly and separately from ownership (../app/models/user.rb)
+  - Claim LeastPriv: Least privilege
+    - Evidence LeastPrivEv: can_edit? grants edit access only to project owner or admins; additional_rights table enables explicit narrow collaborator grants (../app/controllers/application_controller.rb)
+  - Claim LeastCommon: Least common mechanism
+    - Evidence LeastCommonEv: Per-request processing; session state stored in per-user encrypted client-side cookies, not shared server-side sessions (../config/initializers/session_store.rb)
+  - Claim PsychAccept: Psychological acceptability
+    - Evidence PsychAcceptEv: Standard web authentication UX (email/password or GitHub OAuth login); badge criteria presented in plain language; security controls do not impose undue burden on legitimate use (../app/views/projects/)
+  - Claim LimitedAttack: Limited attack surface
+    - Evidence LimitedAttackEv: Restrictive CSP limits script execution sources; routes.rb exposes only necessary endpoints; Rack::Attack blocks abusive IPs (../config/initializers/rack_attack.rb)
+  - Claim InputValid: Input validation with whitelists
+    - Evidence InputValidEv: Project and User models use Rails validators to enforce field constraints; controllers use strong parameters (permit) to whitelist allowed input fields (../app/models/project.rb)
+
+- Claim ReuseSec: Reused software is secure
+  - Strategy ReuseStrat: Reuse is often appropriate and can be done securely
+    - Claim ReuseReview: Reused software is reviewed before use
+      - Evidence ReuseReviewEv: New gem dependencies reviewed for purpose, maintenance, and security before addition; CONTRIBUTING.md documents review expectations (../CONTRIBUTING.md)
+    - Claim ReuseAuth: Reused software is authentic
+      - Evidence ReuseAuthEv: Gemfile.lock records exact versions and SHA-512 checksums for all gems, ensuring reproducible authenticated builds (../Gemfile.lock)
+    - Claim PkgMgr: Package managers used
+      - Evidence PkgMgrEv: Gemfile and Gemfile.lock manage all gem dependencies via bundler (../Gemfile)
+    - Claim SpecialAnalysis: Special analysis justifies exceptions
+      - Claim XXESafe: Nokogiri/libxml2 XXE exception (CVE-2016-9318) poses no risk in our deployment
+        - Evidence XXESafeEv: Nokogiri disables DTD loading and network access by default; we never process incoming XML in production; loofah never opts into DTDLOAD or NONET (../Gemfile.lock)
+      - Claim ErubisSafe: XSS from erubis via pronto-rails_best_practices poses no production risk
+        - Evidence ErubisSafeEv: rails_best_practices and pronto are dev/test-only dependencies; they never execute against untrusted input in production (../Gemfile)
+      - Claim LocalSecretSafe: Checked-in tmp/local_secret.txt secret_key_base value poses no security risk
+        - Evidence LocalSecretSafeEv: The file is only used in development and test; production always uses the SECRET_KEY_BASE environment variable; the checked-in value protects no real secrets (../tmp/local_secret.txt)
+      - Claim ActionCableSafe: ActionCable information-exposure risk is mitigated because ActionCable is not used
+        - Evidence ActionCableSafeEv: ActionCable is a Rails transitive dependency but is never configured or invoked; no sensitive data flows through it (../Gemfile.lock)
+  - Claim KnownVulns: Known vulnerabilities in reused components are detected
+    - Evidence KnownVulnsBundleEv: bundle-audit checks all gem versions against the NVD on every rake run, detecting known CVEs in dependencies (../Gemfile.lock)
+    - Evidence KnownVulnsDependabotEv: GitHub Dependabot automatically alerts on vulnerable gem dependencies and opens PRs with updated versions (../.github/dependabot.yml)

@@ -6,6 +6,7 @@
 
 require 'test_helper'
 
+# rubocop:disable Metrics/ClassLength
 class CriteriaControllerTest < ActionDispatch::IntegrationTest
   # test "the truth" do
   #   assert true
@@ -111,4 +112,39 @@ class CriteriaControllerTest < ActionDispatch::IntegrationTest
     assert_includes @response.body, 'Basique'
     assert_includes @response.body, 'Contenu basique du site Web du projet'
   end
+
+  test 'Get gold criteria level' do
+    get '/en/criteria/gold'
+    assert_response :success
+  end
+
+  test 'Get criteria with invalid level defaults to passing' do
+    get '/en/criteria/invalid_level'
+    assert_response :success
+    # Should default to level 0 (passing)
+  end
+
+  test 'Get criteria with bronze (synonym for passing)' do
+    get '/en/criteria/bronze'
+    assert_response :success
+    assert_includes @response.body, 'Basic project website content'
+  end
+
+  # Security/robustness: non-scalar boolean params (which Rails parses into an
+  # Array or Hash) must not raise an unhandled exception. Previously these
+  # crafted query strings triggered a 500 (NoMethodError) on this public,
+  # unauthenticated page; the toggle should simply fall back to its default.
+  test 'Get criteria with array-valued toggle param does not error' do
+    get '/en/criteria?details[]=1'
+    assert_response :success
+    assert_not_includes @response.body, 'Details:'
+  end
+
+  test 'Get criteria with hash-valued toggle param does not error' do
+    get '/en/criteria?rationale[x]=1&autofill[y]=1'
+    assert_response :success
+    assert_not_includes @response.body, 'Rationale:'
+    assert_not_includes @response.body, 'Autofill:'
+  end
 end
+# rubocop:enable Metrics/ClassLength

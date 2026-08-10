@@ -5,18 +5,20 @@
 # modify other test code that you might expect to be unrelated. The problem
 # is that tests are not reliably cleaned up after running,
 # leading to intermittent failures.  This is issue #397:
-# https://github.com/coreinfrastructure/best-practices-badge/issues/397
+# https://github.com/ossf/best-practices-badge/issues/397
 # To work around this problem, commit 3b87c59b9902dd modified
 # test cases to forcibly reset the test status, but this creates a
 # subtle interdependency on the number of fixtures here.
 
 one:
   user: test_user
+  lock_version: 7
   name: Pathfinder OS
   description: Operating system for Pathfinder rover
   homepage_url: https://www.nasa.gov
   license: MIT
   repo_url: https://www.nasa.gov/pathfinder
+  entry_locale: en
   created_at: '2000-01-01'
   updated_at: '2000-01-01'
   # Precalculated
@@ -25,18 +27,20 @@ one:
   badge_percentage_2: 0
   tiered_percentage: 0
   # Criterion 'static_analysis' is 'met_justification_required'.
-  # Thus, even though it's claimed to be "Met", that will NOT count
+  # Thus, even though it's claimed to be "Met" (3), that will NOT count
   # when we calculate the passing percentage.
-  static_analysis_status: Met
-  maintained_status: Met
+  static_analysis_status: 3 # Met
+  maintained_status: 3 # Met
 
 two:
   user: test_user_melissa
+  lock_version: 3
   name: Mars Ascent Vehicle (MAV)
   description: Operating system for Pathfinder rover
   homepage_url: https://www.nasa.gov
   license: MIT
   repo_url: https://github.com/bestpracticestest/test-repo
+  entry_locale: fr
   created_at: '2023-01-01'
   updated_at: '2023-01-01'
   # Precalculated
@@ -44,10 +48,11 @@ two:
   badge_percentage_1: 0
   badge_percentage_2: 0
   tiered_percentage: 0
-  maintained_status: Met
+  maintained_status: 3 # Met
 
 no_repo:
   user: test_user
+  lock_version: 11
   name: Another Ascent Vehicle (AAV)
   description: Random system for rover
   homepage_url: https://www.nasa.gov
@@ -58,12 +63,13 @@ no_repo:
   badge_percentage_1: 0
   badge_percentage_2: 0
   tiered_percentage: 0
-  maintained_status: Met
+  maintained_status: 3 # Met
 
 # TODO: Generate list of status fields from central location.
 # No justifications means failing status.
 perfect_unjustified:
   user: test_user
+  lock_version: 5
   name: Unjustified perfect project
   description: The perfect project
   homepage_url: https://www.example.org
@@ -76,20 +82,23 @@ perfect_unjustified:
   badge_percentage_2: 4
   tiered_percentage: 87
 <% Criteria['0'].keys.each do |criterion| %>
-  <%= criterion.to_s + '_status' %>: Met
+  <%= criterion.to_s + '_status' %>: 3 # Met
 <% end %>
-  release_notes_status: N/A
-  vulnerability_report_private_status: N/A
-  test_invocation_status: Unmet
-  test_most_status: Unmet
-  crypto_certificate_verification_status: Unmet
-  build_reproducible_status: '?'
-  bus_factor_status: 'Met'
+  release_notes_status: 2 # N/A
+  vulnerability_report_private_status: 2 # N/A
+  test_invocation_status: 1 # Unmet
+  test_most_status: 1 # Unmet
+  crypto_certificate_verification_status: 1 # Unmet
+  build_reproducible_status: 0 # ?/UNKNOWN
+  bus_factor_status: 3 # Met
   bus_factor_justification: 'See https://github.com/ciitest2/test-repo'
+  achieve_passing_status: 1 # Unmet
+  achieve_silver_status: 1 # Unmet
 
 # TODO: Generate list of status fields from central location.
 perfect_passing:
   user: test_user
+  lock_version: 13
   name: Justified perfect passing project
   description: The perfect passing project
   homepage_url: https://www.example.org
@@ -102,13 +111,16 @@ perfect_passing:
   tiered_percentage: 113
   achieved_passing_at: 2015-02-15T12:00:00
 <% Criteria['0'].keys.each do |criterion| %>
-  <%= criterion.to_s + '_status' %>: Met
+  <%= criterion.to_s + '_status' %>: 3 # Met
   <%= criterion.to_s + '_justification' %>: >
     For more information see <https://www.example.org/>
 <% end %>
+  achieve_passing_status: 1 # Unmet
+  achieve_silver_status: 1 # Unmet
 
 perfect_silver:
   user: test_user
+  lock_version: 2
   name: Justified perfect silver project
   description: The perfect silver project
   homepage_url: https://www.example.org
@@ -121,13 +133,16 @@ perfect_silver:
   tiered_percentage: 239
   achieved_passing_at: 2015-02-15T12:00:00
 <% (Criteria['0'].keys + Criteria['1'].keys).each do |criterion| %>
-  <%= criterion.to_s + '_status' %>: Met
+  <%= criterion.to_s + '_status' %>: 3 # Met
   <%= criterion.to_s + '_justification' %>: >
     For more information see <https://www.example.org/>
 <% end %>
+  achieve_passing_status: 3 # Met
+  achieve_silver_status: 1 # Unmet
 
 perfect:
   user: test_user
+  lock_version: 17
   name: Justified perfect project
   description: The perfect project
   homepage_url: https://www.example.org
@@ -140,7 +155,7 @@ perfect:
   tiered_percentage: 300
   achieved_passing_at: 2015-02-15T12:00:00
 <% Project::ALL_CRITERIA_STATUS.each do |criterion_status| %>
-  <%= criterion_status %>: Met
+  <%= criterion_status %>: 3 # Met
 <% end %>
 <% Project::ALL_CRITERIA_JUSTIFICATION.each do |criterion_justification| %>
   <%= criterion_justification %>: For more information see <https://www.example.org/>

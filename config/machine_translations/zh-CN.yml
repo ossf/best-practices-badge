@@ -1,0 +1,422 @@
+---
+zh-CN:
+  unsubscribe:
+    header: 取消订阅
+    description: 很遗憾您不再希望接收通知。如果您确定，请确认您的通知取消订阅请求。
+    email_label: 电子邮件地址
+    issued_label: 发布日期
+    token_label: 取消订阅令牌
+    submit: 取消订阅
+    confirm_message: 您确定要取消订阅所有通知吗？
+    processing: 处理中...
+    success: 您已成功取消订阅我们的通知。
+    invalid_token: 无效的取消订阅令牌。请检查您电子邮件中的令牌。
+    no_matching_accounts: 未找到启用通知电子邮件的匹配账户。
+    missing_parameters: 缺少必需的参数：电子邮件地址、取消订阅令牌和发布日期。
+    invalid_parameters: 提供的参数无效。
+    error: 处理您的请求时发生错误。请稍后再试。
+  users:
+    edit:
+      notification_emails: 电子邮件通知
+      notification_emails_help: 接收有关您项目的电子邮件通知
+      important_notifications: 重要通知
+      important_notifications_help: 接收重要通知，例如因要求变更而失去徽章
+  projects:
+    edit:
+      new_owner: 所有者ID（一个正整数），更改以更改所有权
+      new_owner_repeat: 重复新所有者ID（以确认所有权更改）
+      current_owner: 当前所有者ID：
+      ownership_edit_hint: "（编辑此部分时可以转移所有权。）"
+      submit_cdla_permissive_20_html: 通过提交该项目的相关数据，您同意以<a href="https://cdla.dev/permissive-2-0/" >社区数据许可协议 – 许可性，版本 2.0</a>发布数据。这意味着数据接收方可以共享数据，无论是否经过修改，只要数据接收方在共享数据时提供本协议文本。本协议<i>不会</i>对结果的使用、修改或共享施加任何限制或义务。您保留版权（如有），且项目许可证不受影响。<br><br>
+      not_authorized: 您无权编辑此项目。
+      automation:
+        aria_automated: 此字段已自动填写
+        aria_overridden: 此字段值已由自动化更正
+        automated_tooltip: 我们使用自动项目分析填写了此字段
+        overridden_tooltip: 我们使用自动项目分析更正了此值
+        chief_overrode:
+          one: 我们根据项目分析更正了 1 个字段：
+          other: 我们根据项目分析更正了 %{count} 个字段：
+        override_detail: '"%{criterion}"从"%{old}"更改为"%{new}" — %{explanation}'
+        analysis_failed:
+          one: 警告：1 个字段（%{fields}）的自动分析失败。您的其他更改已保存。
+          other: 警告：%{count} 个字段（%{fields}）的自动分析失败。您的其他更改已保存。
+        aria_divergent: 自动化给出了不同的答案
+        overridden_detail: 之前的值：%{old_status}。%{old_justification_part}%{explanation_part}
+        overridden_old_justification_part: " 之前的说明：%{old_justification}"
+        overridden_explanation_part: " 自动化原因：%{explanation}"
+        divergent_detail: 自动化判断结果为 %{status}。%{justification_part}
+        divergent_justification_part: " %{justification}"
+        divergent_proposed_value: 自动化建议：%{proposed_value}
+      save_and_continue_tooltip: 运行自动化以填充未知值
+      automation_hint_html: 您可以使用工具和AI系统通过简单的URL提交变更建议，例如 <tt>https://%{badge_hostname}/%{app_locale}/projects/%{project_id}/choose/edit?osps_ac_01_01_status=Met&amp;osps_ac_01_01_justification=GitHub+enforced</tt>。请参阅我们的<a href="%{automation_proposals_url}">自动化提案系统</a>，了解具体操作方法。
+    show:
+      section_selector: 部分
+      cdla_permissive_20_html: 该数据可在<a href="https://cdla.dev/permissive-2-0/" >社区数据许可协议 – 许可性，版本 2.0 (CDLA-Permissive-2.0)</a>下获取。这意味着数据接收方可以共享数据，无论是否经过修改，只要数据接收方在共享数据时提供本协议文本。请注明%{user}和OpenSSF最佳实践徽章贡献者。<br><br>
+    form_early:
+      level:
+        baseline-1: 基准等级1
+        baseline-1_html: 这些是基准等级1的标准。
+        baseline-2: 基准等级2
+        baseline-2_html: 这些是基准等级2的标准。
+        baseline-3: 基准等级3
+        baseline-3_html: 这些是基准等级3的标准。
+      got_baseline_badge:
+        description_1: 如果这是您的项目，请在项目页面上显示您的基准徽章状态！基准徽章状态如下所示：
+        badge_alt: 项目%{id}的基准徽章等级为%{level}
+        description_2: 以下是如何嵌入基准徽章：
+        details_html: 您可以通过将其嵌入到Markdown文件中来显示您的基准徽章状态：<br /> %{markdown_embedding}<br /> 或者将其嵌入到HTML中：<br /> %{html_embedding}<br />
+    misc:
+      reminder_notification_note:
+        title: 电子邮件通知设置
+        description_html: 如果您是此徽章条目的所有者，并且想要禁用非活动提醒邮件，请编辑您的<a href="/users/%{user_id}/edit">用户个人资料设置</a>。此设置适用于您的所有项目。
+      obsolete_header_html: 这些是以前要求但已从上游基线中退出的标准。它们仅供参考，<em>不</em>是获得徽章的必要条件。
+      obsolete_criterion: 已废弃标准
+    form_basics:
+      entry_locale:
+        description: 此徽章条目的描述和理由使用什么语言？
+        details: 选择项目描述和标准理由文本所使用的语言。这有助于浏览器翻译工具正确识别此内容的语言。大多数项目使用英语。
+    new:
+      reminder_email_html: 如果您的项目尚未获得徽章且您已至少 30 天未进行任何编辑，我们将向您发送一封提醒邮件（如果您愿意，可以随时禁用提醒）。
+      github_repo_label: 选择一个 GitHub 仓库（可选）
+      submit: 提交项目
+      badge_series: 徽章系列
+      badge_series_description: 您可以选择从哪个徽章系列开始。基线系列是更简化的清单，仅关注必须满足的安全要求，部分源自全球网络安全法规和框架。金属系列是一组更大的标准，包括影响安全性的建议和质量问题，部分源自安全FLOSS项目的经验。两者都关注安全性，我们鼓励项目最终完成这两个系列；您可以选择从哪里开始。
+      badge_series_metal: 金属（passing、silver、gold）
+      badge_series_baseline: 基线（baseline-1、baseline-2、baseline-3）
+      github_reconnect_html: 我们无法加载您的GitHub存储库。您的GitHub会话可能已过期。
+      github_reconnect_link: 重新连接到GitHub
+    baseline_version_notice:
+      current: 这些是标准版本 %{version}。
+      transition: 这些标准来自基准版本 %{current_version}，并包含来自版本 %{new_version} 的更新标准文本。版本 %{new_version} 中新增的标准标记为"未来"，将从 %{enforce_date} 开始强制执行。请在该日期之前提供对"未来"标准的回答。
+    choose_edit:
+      title: 选择要编辑的部分
+      instructions: 选择要编辑的部分。
+      proposals_note: 任何提议的更改将应用于所选部分。
+    choose_show:
+      title: 选择要查看的部分
+      instructions: 选择要查看的部分。
+  report_mailer:
+    unsubscribe_notice_html: 要取消订阅这些电子邮件通知，请访问：<a href="%{unsubscribe_url}">%{unsubscribe_url}</a>
+    unsubscribe_notice_text: 要取消订阅这些电子邮件通知，请访问：%{unsubscribe_url}
+    subject_warned_level: 您的最佳实践徽章可能失去"%{old_level}"状态
+    warned_level_message: |-
+      这是一个提前通知，说明您的项目"%{old_level}"徽章可能在
+      %{effective_date}更新标准生效时失去。
+      请在该日期之前查看以下网址上的徽章条目：
+  criteria:
+    baseline-1:
+      osps_ac_01_01:
+        description: 当用户尝试读取或修改项目权威存储库中的敏感资源时，系统必须要求用户完成多因素认证过程。
+        details: 为项目的版本控制系统强制执行多因素认证，要求协作者在访问敏感数据或修改存储库设置时提供第二种形式的认证。通行密钥对于此控制是可接受的。
+      osps_ac_02_01:
+        description: 当添加新的协作者时，版本控制系统必须要求手动分配权限，或默认将协作者权限限制为可用的最低权限。
+        details: 大多数公共版本控制系统都是这样配置的。确保项目的版本控制系统在添加协作者时始终默认分配最低可用权限,仅在必要时授予额外权限。
+      osps_ac_03_01:
+        description: 当尝试直接提交到项目的主分支时,强制机制必须阻止该更改的应用。
+        details: 如果VCS是集中式的,请在项目的VCS中对主分支设置分支保护。或者,使用去中心化方法,如Linux内核的方法,即先在另一个仓库中提出更改,将更改合并到主仓库需要特定的单独操作。
+      osps_ac_03_02:
+        description: 当尝试删除项目的主分支时,版本控制系统必须将此视为敏感活动,并要求明确确认意图。
+        details: 在项目的版本控制系统中对主分支设置分支保护以防止删除。
+      osps_br_01_01:
+        description: 当CI/CD管道接受输入参数时,该参数必须在管道中使用之前进行清理和验证。
+        details: CI/CD 流水线应对所有来自不可信来源的元数据输入进行清理（引用、转义或在期望值时退出）。这包括分支名称、提交消息、标签、拉取请求标题和作者信息等数据。
+      osps_br_01_02:
+        description: 当CI/CD管道在其功能中使用分支名称时,该名称值必须在管道中使用之前进行清理和验证。
+      osps_br_03_01:
+        description: 当项目将URI列为官方项目渠道时,该URI必须仅通过加密渠道交付。
+        details: 配置项目的网站和版本控制系统使用SSH或HTTPS等加密渠道进行数据传输。确保项目文档中引用的所有工具和域名只能通过加密渠道访问。
+      osps_br_03_02:
+        description: 当项目将URI列为官方分发渠道时,该URI必须仅通过加密渠道交付。
+        details: 配置项目的发布管道,仅从使用SSH或HTTPS等加密渠道进行数据传输的网站、API响应和其他服务获取数据。
+      osps_br_07_01:
+        description: 项目必须防止在版本控制系统中意外存储未加密的敏感数据,例如机密和凭据。
+        details: 配置.gitignore或等效文件以排除可能包含敏感信息的文件。使用预提交钩子和自动扫描工具来检测和防止在提交中包含敏感数据。
+      osps_do_01_01:
+        description: 当项目发布版本后,项目文档必须包含所有基本功能的用户指南。
+        details: 为项目的所有基本功能创建用户指南或文档,说明如何安装、配置和使用项目的功能。如果存在任何已知的危险或破坏性操作,请包含高度可见的警告。
+      osps_do_02_01:
+        description: 当项目发布版本后,项目文档必须包含缺陷报告指南。
+        details: 建议项目使用其VCS默认问题跟踪器。如果使用外部来源,请确保项目文档和贡献指南清晰且明显地解释如何使用报告系统。建议项目文档还设定缺陷将如何分类和解决的期望。
+      osps_gv_02_01:
+        description: 在活跃期间,项目必须有一个或多个机制用于公开讨论提议的更改和使用障碍。
+        details: 在项目中建立一个或多个公开讨论机制,例如邮件列表、即时消息或问题跟踪器,以促进开放的沟通和反馈。
+      osps_gv_03_01:
+        description: 在活跃期间,项目文档必须包含贡献流程的说明。
+        details: 创建一个CONTRIBUTING.md或CONTRIBUTING/目录来概述贡献流程，包括提交更改的步骤以及与项目维护者互动的方式。
+      osps_le_02_01:
+        description: 活跃期间，源代码的许可证必须符合OSI开源定义或FSF自由软件定义。
+        details: 向项目的代码仓库添加一个LICENSE文件，其中包含开放源代码促进会（OSI）批准的许可证，或自由软件基金会（FSF）批准的自由许可证。此类许可证的示例包括MIT、BSD 2-Clause、BSD 3-Clause修订版、Apache 2.0、较宽松GNU通用公共许可证（LGPL）和GNU通用公共许可证（GPL）。如果没有其他限制（如专利），发布到公共领域可以满足此控制要求。
+      osps_le_02_02:
+        description: 活跃期间，已发布软件资产的许可证必须符合OSI开源定义或FSF自由软件定义。
+        details: 如果已发布软件资产包含不同的许可证，请确保它是开放源代码促进会（OSI）批准的许可证，或自由软件基金会（FSF）批准的自由许可证。此类许可证的示例包括MIT、BSD 2-Clause、BSD 3-Clause修订版、Apache 2.0、较宽松GNU通用公共许可证（LGPL）和GNU通用公共许可证（GPL）。请注意，已发布软件资产的许可证可能与源代码的许可证不同。
+      osps_le_03_01:
+        description: 活跃期间，源代码的许可证必须保存在相应仓库的LICENSE文件、COPYING文件或LICENSE/目录中。
+        details: 将项目的源代码许可证包含在项目的LICENSE文件、COPYING文件或LICENSE/目录中，以提供许可条款的可见性和清晰性。文件名可以有扩展名。如果项目有多个仓库，请确保每个仓库都包含许可证文件。
+      osps_le_03_02:
+        description: 活跃期间，已发布软件资产的许可证必须包含在已发布的源代码中，或包含在与相应发布资产一起的LICENSE文件、COPYING文件或LICENSE/目录中。
+        details: 将项目的已发布软件资产许可证包含在已发布的源代码中，或包含在与相应发布资产一起的LICENSE文件、COPYING文件或LICENSE/目录中，以提供许可条款的可见性和清晰性。文件名可以有扩展名。如果项目有多个仓库，请确保每个仓库都包含许可证文件。
+      osps_qa_01_01:
+        description: 活跃期间，项目的源代码仓库必须在静态URL上可公开读取。
+        details: 使用常见的版本控制系统（VCS），如GitHub、GitLab或Bitbucket。确保仓库可公开读取。避免重复或镜像仓库，除非有高度可见的文档说明主要来源。避免频繁更改会影响仓库URL的仓库。确保仓库是公开的。
+      osps_qa_01_02:
+        description: 版本控制系统必须包含所有更改的可公开读取的记录，包括谁进行了更改以及更改的时间。
+        details: 使用常见的版本控制系统（VCS），如GitHub、GitLab或Bitbucket来维护可公开读取的提交历史记录。避免压缩或重写提交，以免掩盖任何提交的作者。
+      osps_qa_02_01:
+        description: 当包管理系统支持时，源代码仓库必须包含一个依赖项列表，该列表涵盖直接的语言依赖项。
+        details: 这可以采用包管理器或语言依赖文件的形式，列举所有直接依赖项，如package.json、Gemfile或go.mod。
+      osps_qa_04_01:
+        description: 活跃期间，项目文档必须包含被视为子项目的任何代码库的列表。
+        details: 记录由项目生成并编译到发布版本中的任何附加子项目代码仓库。此文档应包括相应代码库的状态和意图。
+      osps_qa_05_01:
+        description: 活跃期间，版本控制系统中不得包含生成的可执行工件。
+        details: 删除项目版本控制系统中生成的可执行工件。建议在任何情况下，如果生成的可执行工件对测试等过程至关重要，应该在构建时生成，或单独存储并在特定的、有详细文档记录的管道步骤中获取。
+      osps_qa_05_02:
+        description: 活跃期间，版本控制系统中不得包含无法审查的二进制工件。
+        details: 不要将任何无法审查的二进制工件添加到项目的版本控制系统中。这包括可执行应用程序二进制文件、库文件和类似的工件。这不包括资产，如图形图像、声音或音乐文件以及通常以二进制格式存储的类似内容。
+      osps_vm_02_01:
+        description: 在活动期间，项目文档必须包含安全联系人。
+        details: 创建一个security.md（或类似名称）文件，其中包含项目的安全联系人。
+      osps_br_01_03:
+        description: 当 CI/CD 流水线对不可信代码快照进行操作时，它必须阻止访问特权 CI/CD 凭据和资产。
+        details: CI/CD 流水线应将不可信代码快照与特权凭据和资产隔离。特别是，项目应谨慎确保在协作者审查之前构建或执行代码的工作流无法访问 CI/CD 凭据。
+    baseline-2:
+      osps_ac_04_01:
+        description: 当执行CI/CD任务且未指定权限时，CI/CD系统必须将任务的权限默认为管道中授予的最低权限。
+        details: 配置项目的设置，默认情况下为新管道分配最低可用权限，仅在特定任务需要时才授予额外权限。
+      osps_br_02_01:
+        description: 当创建正式发布时，该发布必须分配一个唯一的版本标识符。
+        details: 为项目生成的每个发布分配一个唯一的版本标识符，遵循一致的命名约定或编号方案。示例包括SemVer、CalVer或git提交id。
+      osps_br_04_01:
+        description: 当创建正式发布时，该发布必须包含功能和安全修改的描述性日志。
+        details: 确保所有发布都包含描述性的变更日志。建议确保变更日志是人类可读的，并且包含超出提交消息的详细信息，例如安全影响的描述或与不同用例的相关性。为确保机器可读性，请将内容放在markdown标题下，例如"## Changelog"。
+      osps_br_05_01:
+        description: 当构建和发布管道摄取依赖项时，它必须使用标准化工具（如果可用）。
+        details: 为您的生态系统使用通用工具，例如包管理器或依赖项管理工具，以在构建时摄取依赖项。这可能包括使用依赖项文件、锁文件或清单来指定所需的依赖项，然后由构建系统拉入。
+      osps_br_06_01:
+        description: 当创建正式发布时，该发布必须进行签名或在包含每个资产加密哈希值的签名清单中进行说明。
+        details: 在构建时使用加密签名或证明（例如GPG或PGP签名、Sigstore签名、SLSA来源或SLSA VSA）对所有发布的软件资产进行签名。在签名清单或元数据文件中包含每个资产的加密哈希值。
+      osps_do_06_01:
+        description: 当项目发布版本后，项目文档必须包含项目如何选择、获取和跟踪其依赖项的描述。
+        details: 建议在可公开查看的资源（如源代码存储库、项目网站或其他渠道）上与项目的技术和设计文档一起发布此信息。
+      osps_gv_01_01:
+        description: 在活动期间，项目文档必须包含有权访问敏感资源的项目成员列表。
+        details: 通过项目源代码存储库中的members.md、governance.md、maintainers.md或类似文件等工件记录项目参与者及其角色。这可以简单到在维护者列表中包含姓名或账户句柄，或者根据项目的治理更复杂。
+      osps_gv_01_02:
+        description: 在活动期间，项目文档必须包含项目成员的角色和责任的描述。
+        details: 通过项目源代码存储库中的members.md、governance.md、maintainers.md或类似文件等工件记录项目参与者及其角色。
+      osps_gv_03_02:
+        description: 在活动期间，项目文档必须包含代码贡献者指南，其中包括可接受贡献的要求。
+        details: 扩展项目文档中的CONTRIBUTING.md或CONTRIBUTING/的内容，以概述可接受的贡献要求，包括编码标准、测试要求和代码贡献者的提交指南。建议将该指南作为贡献者和批准者的真实来源。
+      osps_le_01_01:
+        description: 处于活跃状态时，版本控制系统必须要求所有代码贡献者在每次提交时断言他们有合法授权提交相关的贡献。
+        details: 在项目的代码库中包含一个DCO，要求代码贡献者在每次提交时断言他们有合法授权提交相关贡献。使用状态检查以确保完成此断言。CLA也满足此要求。某些版本控制系统（例如GitHub）可能会在平台服务条款中包含此项。
+      osps_qa_03_01:
+        description: 当向主分支提交时，必须通过或手动绕过提交的任何自动化状态检查。
+        details: 配置项目的版本控制系统，要求所有自动化状态检查通过或在提交合并到主分支之前需要手动确认。建议不要将任何可选状态检查配置为批准者可能会绕过的通过或失败要求。
+      osps_qa_06_01:
+        description: 在接受提交之前，项目的CI/CD管道必须运行至少一个自动化测试套件，以确保更改符合预期。
+        details: 应在每次合并到主分支之前运行自动化测试。测试套件应在CI/CD管道中运行，结果应对所有贡献者可见。测试套件应在一致的环境中运行，并应以允许贡献者在本地运行测试的方式运行。测试套件的示例包括单元测试、集成测试和端到端测试。
+      osps_sa_01_01:
+        description: 当项目发布版本时，项目文档必须包括设计文档，展示系统中的所有操作和参与者。
+        details: 在项目文档中包括说明操作和参与者的设计。参与者包括可以影响系统中另一段的任何子系统或实体。确保为新功能或重大更改更新此文档。
+      osps_sa_02_01:
+        description: 当项目发布版本时，项目文档必须包括对已发布软件资产的所有外部软件接口的描述。
+        details: 记录已发布软件资产的所有软件接口（API），解释用户如何与软件交互以及期望或产生什么数据。确保为新功能或重大更改更新此文档。
+      osps_sa_03_01:
+        description: 当项目发布版本时，项目必须执行安全评估，以了解软件中可能发生的最可能和最具影响力的潜在安全问题。
+        details: 执行安全评估可以告知项目成员和下游消费者，项目了解软件中可能出现的问题。了解可能实现的威胁有助于项目管理和应对风险。此信息对下游消费者很有用，可以证明项目的安全敏锐度和实践。确保为新功能或重大更改更新此文档。
+      osps_vm_01_01:
+        description: 处于活跃状态时，项目文档必须包括协调漏洞披露（CVD）的政策，并有明确的响应时间框架。
+        details: 在目录根目录创建一个SECURITY.md文件，概述项目的协调漏洞披露政策。包括报告漏洞的方法。设定项目将如何响应和处理报告问题的期望。
+      osps_vm_03_01:
+        description: 处于活跃状态时，项目文档必须提供一种方法，用于直接向项目内的安全联系人私下报告漏洞。
+        details: 为安全研究人员提供一种方式，以私下向项目报告漏洞。这可能是专用电子邮件地址、Web表单、VCS专用工具、安全联系人的电子邮件地址或其他方法。
+      osps_vm_04_01:
+        description: 处于活跃状态时，项目文档必须公开发布有关已发现漏洞的数据。
+        details: 在可预测的公共渠道（例如CVE条目、博客文章或其他媒体）中提供有关已知漏洞的信息。在可能的情况下，此信息应包括受影响的版本、消费者如何确定他们是否容易受到攻击以及缓解或修复的说明。
+      osps_do_07_01:
+        description: 项目文档必须包含如何构建软件的说明，包括所需的库、框架、SDK 和依赖项。
+        details: 建议将此信息与项目的贡献者文档一起发布，例如在 CONTRIBUTING.md 或其他开发者任务文档中。也可以使用 Makefile 目标或其他自动化脚本来记录此信息。
+    baseline-3:
+      osps_ac_04_02:
+        description: 当在CI/CD管道中为作业分配权限时，源代码或配置必须仅分配相应活动所需的最低权限。
+        details: 配置项目的CI/CD流水线，默认为用户和服务分配最低可用权限，仅在特定任务需要时才提升权限。在某些版本控制系统中，这可以在组织或代码仓库级别实现。如果不行，请在流水线的顶层设置权限。
+      osps_br_02_02:
+        description: 当创建正式发布版本时，该发布版本中的所有资产必须明确关联到发布标识符或资产的其他唯一标识符。
+        details: 为项目生成的每个软件资产分配唯一的版本标识符，遵循一致的命名约定或编号方案。示例包括SemVer、CalVer或git提交ID。
+      osps_br_07_02:
+        description: 项目必须定义管理项目使用的秘密和凭证的策略。该策略应包括存储、访问和轮换秘密和凭证的指南。
+        details: 记录项目内如何管理和使用秘密和凭证。这应包括如何存储秘密（例如，使用秘密管理工具）、如何控制访问以及如何轮换或更新秘密的详细信息。确保敏感信息不会硬编码在源代码中或存储在版本控制系统中。
+      osps_do_03_01:
+        description: 当项目已发布版本时，项目文档必须包含验证发布资产完整性和真实性的说明。
+        details: 项目中的说明应包含所使用技术、要运行的命令以及预期输出的信息。如果可能，避免将此文档存储在构建和发布流水线的相同位置，以避免单一漏洞同时危及软件和验证软件完整性的文档。
+      osps_do_03_02:
+        description: 当项目已发布版本时，项目文档必须包含验证软件发布作者的预期身份的说明。
+        details: 预期身份可能采用用于签名的密钥ID、来自sigstore证书的颁发者和身份或其他类似形式。如果可能，避免将此文档存储在构建和发布流水线的相同位置，以避免单一漏洞同时危及软件和验证软件完整性的文档。
+      osps_do_04_01:
+        description: 当项目已发布版本时，项目文档必须包含关于每个发布版本支持范围和持续时间的描述性声明。
+        details: 为了传达项目发布的软件资产的支持范围和持续时间，项目应有SUPPORT.md文件、SECURITY.md中的"支持"部分或其他文档，说明支持生命周期，包括每个发布版本的预期支持持续时间、提供的支持类型（例如，错误修复、安全更新）以及获取支持的任何相关策略或程序。
+      osps_do_05_01:
+        description: 当项目已发布版本时，项目文档必须提供描述性声明说明何时发布版本或版本将不再接收安全更新。
+        details: 为了传达安全修复的支持范围和持续时间，项目应有SUPPORT.md或其他文档，说明项目的安全更新策略。
+      osps_gv_04_01:
+        description: 在活跃期间，项目文档必须有一个策略，要求在授予对敏感资源的提升权限之前审查代码协作者。
+        details: 在项目文档中发布可执行的策略，要求在授予对敏感资源（例如合并批准或访问秘密）的提升权限之前审查和批准代码协作者。建议审查包括建立可证明的身份血统，例如确认贡献者与已知可信组织的关联。
+      osps_qa_02_02:
+        description: 当项目已发布版本时，所有编译的已发布软件资产必须附带软件物料清单。
+        details: 建议在构建时使用经过准确性审查的工具自动生成SBOM。这使用户能够以标准化的方式将此数据与其环境中的其他项目一起提取。
+      osps_qa_04_02:
+        description: 当项目已发布包含多个源代码仓库的版本时，所有子项目必须执行与主代码库一样严格或更严格的安全要求。
+        details: 项目生成并编译到发布版本中的任何其他子项目代码仓库必须根据相应代码库的状态和意图执行安全要求。除了遵循相应的OSPS基线要求外，这还可能包括要求进行安全审查、确保其没有漏洞以及确保其没有已知的安全问题。
+      osps_qa_06_02:
+        description: 在活跃期间，项目文档必须清楚地记录测试何时以及如何运行。
+        details: 在贡献文档中添加一个章节，说明如何在本地运行测试以及如何在CI/CD管道中运行测试。文档应说明测试的测试内容以及如何解释测试结果。
+      osps_qa_06_03:
+        description: 在活跃期间，项目的文档必须包含一项政策，即对项目生成的软件的所有重大更改都应该在自动化测试套件中添加或更新功能测试。
+        details: 在贡献文档中添加一个章节，说明添加或更新测试的政策。该政策应说明什么是重大更改以及应该添加或更新哪些测试。
+      osps_qa_07_01:
+        description: 当向主分支提交时，项目的版本控制系统必须在合并之前要求至少一名非作者人工审批更改。
+        details: 配置项目的版本控制系统，要求在合并到发布分支或主分支之前至少有一名非作者人工审批更改。这可以通过要求拉取请求在合并之前必须由至少另一位协作者审查和批准来实现。
+      osps_sa_03_02:
+        description: 当项目发布版本时，项目必须执行威胁建模和攻击面分析，以理解和防护针对系统内关键代码路径、函数和交互的攻击。
+        details: 威胁建模是一项活动，其中项目查看代码库、相关流程和基础设施、接口、关键组件，并"像黑客一样思考"，集思广益探讨系统可能如何被破坏或受到损害。每个识别的威胁都会被列出，以便项目可以考虑如何主动避免或关闭可能出现的任何漏洞/脆弱点。确保为新功能或破坏性更改更新此分析。
+      osps_vm_04_02:
+        description: 在活跃期间，软件组件中不影响项目的任何漏洞必须在VEX文档中予以说明，并以不可利用性细节补充漏洞报告。
+        details: 建立VEX供给源，传达已知漏洞的可利用性状态，包括评估细节或任何阻止易受攻击代码执行的缓解措施。
+      osps_vm_05_01:
+        description: 在活跃期间，项目文档必须包含一项政策，定义与漏洞和许可证相关的SCA发现的修复阈值。
+        details: 在项目中记录一项政策，定义与漏洞和许可证相关的SCA发现的修复阈值。包括识别、优先级排序和修复这些发现的流程。
+      osps_vm_05_02:
+        description: 在活跃期间，项目文档必须包含一项政策，在任何发布之前解决SCA违规问题。
+        details: 在项目中记录一项政策，在任何发布之前解决适用的软件组成分析结果，并添加状态检查以验证在发布之前符合该政策。
+      osps_vm_05_03:
+        description: 在活跃期间，对项目代码库的所有更改必须根据记录的恶意依赖项和依赖项中已知漏洞的政策自动评估，然后在违规的情况下阻止，除非声明并抑制为不可利用。
+        details: 在项目的版本控制系统中创建一个状态检查，对代码库的所有更改运行软件组成分析工具。要求状态检查在更改可以合并之前必须通过。
+      osps_vm_06_01:
+        description: 在活跃期间，项目文档必须包含一项政策，定义SAST发现的修复阈值。
+        details: 在项目中记录一项政策，定义静态应用程序安全测试（SAST）发现的修复阈值。包括识别、优先级排序和修复这些发现的流程。
+      osps_vm_06_02:
+        description: 在活跃期间，对项目代码库的所有更改必须根据记录的安全弱点政策自动评估，并在违规的情况下阻止，除非声明并抑制为不可利用。
+        details: 在项目的版本控制系统中创建一个状态检查，对代码库的所有更改运行静态应用程序安全测试（SAST）工具。要求状态检查在更改可以合并之前必须通过。
+      osps_br_01_04:
+        description: 接受可信协作者输入的 CI/CD 流水线在流水线中使用该输入之前，必须对其进行清理和验证。
+        details: CI/CD 流水线应对显式工作流执行中的所有协作者输入进行清理（引用、转义或在期望值时退出）。虽然协作者通常是可信的，但工作流的手动输入无法经过审查，可能被账户劫持或内部威胁所滥用。
+  criteria_overall:
+    future: "{未来}"
+    na_allowed: "{允许N/A}"
+    na_justification_required: "{N/A理由}"
+    met_justification_required: "{满足理由}"
+    met_url_required: "{满足URL}"
+    obsolete: "{Obsolete}"
+  criteria_discussion:
+    intro_p01_html: "<h1 id='criteria_discussion'>条款讨论</h1>"
+    intro_p02_html: "<p> 没有一套实践可以<i>保证</i>软件永远不会有缺陷或漏洞。即使是形式化方法，如果规范或假设错误也可能失败。也没有任何一套实践可以保证项目将维持一个健康且运作良好的开发社区。</p>"
+    intro_p03_html: "<p> 然而，遵循最佳实践可以帮助改善项目的成果。例如，一些实践能够在发布前进行多人审查，这既有助于发现其他难以发现的技术漏洞，又有助于在来自不同组织的开发者之间建立信任并促进重复互动的意愿。</p>"
+    intro_p04_html: "<p> 本页讨论为开源安全基金会（OpenSSF）最佳实践徽章开发的自由/开放源代码软件（FLOSS）项目的最佳实践集。遵循这些最佳实践的项目将能够自愿自我认证并展示他们已获得相关徽章。项目可以免费使用Web应用程序（BadgeApp）来解释他们如何满足这些实践及其详细条款。</p>"
+    intro_p06_html: "<ol> <li>鼓励项目遵循最佳实践，</li> <li>帮助新项目发现这些实践是什么，以及</li> <li>帮助用户了解哪些项目正在遵循最佳实践（以便用户可以优先选择这些项目）。</li> </ol>"
+    intro_p07_html: <p> "最佳实践"这个成语的意思是"在一个组织、行业等中被优选或视为标准的程序或一套程序"（来源：<a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>）。这些条款是我们认为在更广泛的FLOSS社区中被广泛"优选或视为标准"的内容。</p>
+    intro_p08_html: <p> 有关这些条款如何制定的更多信息，请参阅<a href="https://github.com/ossf/best-practices-badge" >OpenSSF最佳实践徽章GitHub网站</a>。</p> <p> 您也可以<a href="/zh-CN/criteria">查看完整条款</a>。</p>
+    structure_p02_html: "<p> 最佳实践条款分为三个级别：<ul> <li><b>通过</b>侧重于运行良好的FLOSS项目通常已经遵循的最佳实践。获得通过徽章是一项成就；在任何时候，只有约10%追求徽章的项目达到通过级别。 <li><b>银级</b>是比通过更严格的一套条款，但预计小型和单一组织项目可以实现。 <li><b>金级</b>甚至比银级更严格，包括小型或单一组织项目无法实现的条款。 </ul>"
+    structure_p03_html: "<p> 每个条款都有一个简短的名称，在条款文本后的方括号内以上标文本显示。"
+    other_p02_html: <p> Linux基金会还赞助<a href="https://www.openchainproject.org/" rel="nofollow">OpenChain项目</a>，该项目确定"高质量自由和开源软件（FOSS）合规计划"的条款。OpenChain专注于组织如何最好地使用FOSS并为FOSS项目做出贡献，而OpenSSF最佳实践徽章专注于FLOSS项目本身。OpenSSF最佳实践徽章和OpenChain共同努力，帮助改进FLOSS以及FLOSS的使用方式。</p>
+    automation_p02_html: "<p> 在某些情况下，如果项目遵循标准惯例并托管在具有良好API支持的网站（例如GitHub）上，我们会自动测试并填写信息。</p>"
+    automation_p03_html: "<p> 我们打算在未来改进这种自动化。欢迎改进自动化的贡献！</p>"
+    automation_p04_html: <p>然而，我们有意优先考虑"什么是重要的"，即使无法负担得起自动化。我们喜欢自动化测量，但并非所有重要的事情都可以自动化或可以负担得起自动化。</p>
+    changes_p02_html: <p> 我们预计这些实践及其详细条款将随着时间的推移而更新。我们计划添加新条款，但将其标记为"未来"条款，以便项目可以添加该信息并保持其徽章。</p>
+    changes_p03_html: <p> <em>非常</em>欢迎通过<a href="https://github.com/ossf/best-practices-badge" >GitHub网站以问题或拉取请求的形式</a>提供反馈。还有一个<a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">用于一般讨论的邮件列表</a>。</p>
+    keywords_p02_html: <p> 本文档中的关键词"MUST"、"MUST NOT"、"SHOULD"、"SHOULD NOT"和"MAY"应按照<a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a>中的描述进行解释。添加了附加术语SUGGESTED。总之，这些关键词具有以下含义：</p>
+    keywords_p03_html: <ul> <li>术语"必须"（MUST）是绝对要求，"禁止"（MUST NOT）是绝对禁止。</li>
+    keywords_p04_html: <li>术语"应该"（SHOULD）表示通常要求的标准，但在特定情况下可能存在忽略它的合理理由。但是，在选择不同的方案之前，必须理解并仔细权衡其全部影响。</li>
+    keywords_p05_html: <li>术语"建议"（SUGGESTED）用于代替"应该"（SHOULD），当必须考虑该标准时，但不这样做的合理理由比"应该"更常见。</li>
+    keywords_p06_html: <li>术语"可以"（MAY）提供了一种可以做某事的方式，例如，明确所描述的实现是可接受的。</li> </ul>
+    keywords_p07_html: "<p> 标准通常表述为应该（SHOULD）做某事，或者建议（SUGGESTED），因为实现可能困难或成本可能很高。</p>"
+    achieving_p02_html: <p> 要获得徽章，必须满足所有"必须"（MUST）和"禁止"（MUST NOT）标准，所有"应该"（SHOULD）标准必须满足或提供不满足的理由，并且必须考虑所有"建议"（SUGGESTED）标准（必须评级为满足或不满足，但除非另有说明，否则不需要理由）。在允许的情况下，N/A（"不适用"）的答案被视为满足。在某些情况下，特别是在较高级别的徽章中，可能需要理由和/或网址（URL）。</p>
+    achieving_p03_html: <p> 某些标准具有影响此要求的特殊标记：<ul> <li><b>{N/A allowed}</b> - 允许"N/A"（"不适用"）。<li><b>{N/A justification}</b> - 允许"N/A"（"不适用"）并且需要理由。<li><b>{Met justification}</b> - "满足"需要理由。<li><b>{Met URL}</b> - "满足"需要包含网址（URL）的理由。<li><b>{Future}</b> - 此标准的答案目前没有影响，但将来可能会要求。</ul>
+    achieving_p04_html: <p> 项目必须达到前一级别才能达到下一级别。在某些情况下，"应该"（SHOULD）标准在更高级别的徽章中变成"必须"（MUST），并且一些较低级别的"建议"（SUGGESTED）标准在更高级别的徽章中变成"应该"（SHOULD）或"必须"（MUST）。较高级别还需要更多理由，因为我们希望其他人了解标准<i>如何</i>得到满足。</p>
+    achieving_p05_html: "<p> （许多）加密标准并不总是适用，因为某些软件不需要直接使用加密功能。在这些情况下，请回答N/A。</p>"
+    achieving_p06_html: "<p> 有一个隐含的通过标准 - 每个项目必须有一个具有稳定网址（URL）的公共网站。这是首先创建徽章条目所必需的。</p>"
+    terminology_p02_html: <p> 如果您不熟悉软件开发或运行FLOSS项目，诸如<a href="http://producingoss.com/" rel="nofollow"><em>Producing Open Source Software</em> by Karl Fogel</a>等材料可能对您有所帮助。</p>
+    terminology_p04_html: "<li><em>项目</em>是具有项目成员并产生项目成果的活动实体。其成员使用项目站点来协调和传播成果。项目不需要是正式的法律实体。</li>"
+    terminology_p05_html: "<li>项目<em>成员</em>是一个或多个人或公司的群体，他们共同努力以产生项目成果。一些FLOSS项目可能具有不同类型的成员，具有不同的角色，但这超出了我们的范围。</li>"
+    noncriteria_p03_html: "<li><em>不</em>要求任何特定的技术、产品或服务。例如，它们<em>不</em>要求git、GitHub或GitLab。这些标准<em>确实</em>为常见情况提供指导和帮助，因为这些信息可以帮助人们理解和满足标准。对于使用git或GitHub的项目，有一些特殊的自动化，以帮助这些常见情况下的用户，但它们不是<em>必需的</em>。因此，随着新工具和功能的出现，项目可以快速切换到它们。作为例外，标准确实要求项目网页和TLS。"
+    noncriteria_p04_html: "<li><em>不</em>要求或禁止任何特定的编程语言。它们确实要求对某些<em>类型</em>的编程语言采取额外的措施，但这是不同的。"
+    noncriteria_p05_html: <li><em>从不</em>要求使用专有软件、专有服务或专有技术，因为许多<a href="https://www.gnu.org/philosophy/free-sw.en.html" rel="nofollow">自由软件</a>开发者会拒绝此类标准。项目<em>允许</em>使用它们并依赖它们。
+    noncriteria_p06_html: "<li><em>不</em>要求项目内的积极开发或用户讨论。一些高度成熟的项目很少改变，因此可能活动很少。但是，这些标准<em>确实</em>要求，如果向项目报告漏洞，项目应做出响应。"
+    noncriteria_p08_html: "<li><em>不</em>要求一次实现所有标准；大多数项目随着时间的推移实现它们。</ul>"
+    noncriteria_p09_html: "<p> 通过级别不包括对单人项目不切实际的标准，例如需要大量资金的标准。许多FLOSS项目规模很小，我们不想剥夺它们的权利。"
+    identify_p02_html: <p> 我们的应用程序为每个项目条目提供唯一的id，但这对搜索项目的人没有帮助。就我们的目的而言，项目的<em>真实</em>名称是其仓库的网址（URL），如果不可用，则是项目"主页"网址（URL）。我们限制对仓库网址（URL）的更改速率以防止一些无意义的行为。项目通常具有人类可读的名称，但这些名称不够唯一。<p></p>
+    criteria_why_p02_html: <p> 论文 <a href="http://www.researchinlearningtechnology.net/index.php/rlt/article/view/23563" rel="nofollow">开放徽章在教育中的应用：在开放系统和徽章交叉点的意义是什么？</a> 确定了徽章系统的三个一般原因（所有这些都适用于此）：</p><ol>
+    criteria_why_p03_html: "<li>徽章作为行为的激励因素。我们希望通过识别最佳实践，鼓励项目实施这些最佳实践（如果它们尚未这样做）。</li>"
+    criteria_why_p04_html: "<li>徽章作为教学工具。有些项目可能不了解其他项目应用的一些最佳实践，或者这些实践如何被实际应用。徽章将帮助他们了解这些实践以及实施它们的方法。</li>"
+    criteria_why_p05_html: "<li>徽章作为标志或凭证。潜在用户希望使用那些应用最佳实践以持续产生良好结果的项目；徽章使项目能够轻松表明它们正在遵循最佳实践，并使用户能够轻松查看哪些项目正在这样做。</li> </ol>"
+    self_certification_p02_html: "<p> 我们选择使用自我认证，因为这使得大量项目（甚至小型项目）能够参与。有数百万个自由开源软件项目，支付第三方独立评估每个项目的费用无法扩展。项目可能会做出虚假声明的风险是存在的，但我们认为风险很小，用户可以自己检查声明，并且可以覆盖虚假声明。我们还使用自动化来覆盖虚假声明，前提是我们对结果有信心。</p>"
+  headings:
+    Controls: 控制
+    General: 通用
+    General_project_info: 常规
+  activerecord:
+    errors:
+      messages:
+        comma_separated_list: " 必须是仅使用ASCII字符的逗号分隔名称列表"
+        begin_with_cpe: ' 必须以"cpe:"开头'
+  layouts:
+    translation_disclaimer_html: 此翻译可能包含错误。如有冲突，以英文原文为准。
+  account_activations:
+    delay:
+      many: 作为反垃圾邮件措施，您必须在激活后等待 %{count} 小时才能登录。
+  detectives:
+    github:
+      repo_public: GitHub上的仓库，提供带有URL的公共git仓库。
+      repo_track: GitHub上的仓库，使用git。git可以跟踪更改、更改者以及更改时间。
+      repo_distributed: GitHub上的仓库，使用git。git是分布式的。
+      contribution: GitHub上的项目默认使用问题列表（Issues）和拉取请求（Pull Requests），如<https://guides.github.com/activities/contributing-to-open-source/>等文档所鼓励的。
+      discussion: GitHub支持对问题列表（Issues）和拉取请求（Pull Requests）的讨论。
+      osps_gv_02_01: GitHub支持对提议更改（通过拉取请求）和使用障碍（通过问题列表）的公开讨论。
+      osps_do_02_01: GitHub默认提供缺陷报告机制（通过问题列表）。
+      osps_ac_01_01: 自2023年3月起，GitHub要求启用双因素认证（2FA）。
+      osps_qa_01_01: 仓库在GitHub上公开可用。
+      osps_qa_01_02: 仓库的git元数据在GitHub上公开可用。
+      name: GitHub名称
+      description: GitHub描述
+      license: GitHub API许可证分析
+      implementation_languages: GitHub API实现语言分析
+    floss_license:
+      osi_approved: "%{license}许可证已获得开放源代码促进会（OSI）批准。"
+      osi_approved_repository: 仓库内容的%{license}许可证已获得开放源代码促进会（OSI）批准。
+      not_in_osi_list: 未在OSI列表中找到许可证。
+    hardened_sites:
+      all_headers_found: 找到所有必需的安全强化标头。
+      headers_missing: 缺少必需的安全强化标头：
+      nosniff_not_set: X-Content-Type-Options未设置为"nosniff"。
+    name_from_url:
+      domain_suggests: 项目 URL 的域名暗示了这一点。
+      tail_suggests: 项目 URL 的尾部暗示了这一点。
+      repo_tail_suggests: 仓库 URL 的尾部暗示了这一点。
+    project_sites_https:
+      given_http: '给定的 http: URL。'
+      official_http: 项目 URL 列表中官方使用 http（而非 https）。
+      url_uses_http: 我们收到的 URL 使用 http（而非 https）。
+      given_https: '仅给定 https: URL。'
+    repo_files:
+      no_file_found: 未找到 %{description} 文件。
+      file_found: 仓库中存在非平凡的 %{description} 文件：<%{url}>。
+      contribution_documented: 仓库中记录了贡献流程。
+      license_found: 在仓库中找到许可证文件。
+      license_not_found: 在仓库中未找到许可证文件。
+      license_not_in_releases: 在仓库中未找到许可证文件（可能未包含在发布版本中）。
+    subdir_files:
+      no_files_found: 未找到 %{description} 文件。
+      no_folder_found: 未找到适合 %{description} 的文件夹。
+      some_contents_found: 找到一些 %{description} 文件内容。
+    test_forced:
+      test_automation: 测试自动化（置信度 %{confidence}）
+    repo_json:
+      field_from_file: 来自项目的 bestpractices JSON 文件的值
+    security_insights:
+      field_value: 根据%{location}：%{field}=%{value}
+      array_match: 根据%{location}：%{field} %{match}
+      comment_suffix: 备注说明："%{comment}"。
+  static_pages:
+    criteria_stats:
+      obsolete: 已废弃

@@ -1,15 +1,38 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 25,
+      "fingerprint": "5487e4bbe962c057382afbfe96cae8a64f57448e87cfc58a78e8542f13e5c33b",
+      "check_name": "Deserialize",
+      "message": "Use of `Marshal.load` may be dangerous",
+      "file": "lib/no_dup_coder.rb",
+      "line": 73,
+      "link": "https://brakemanscanner.org/docs/warning_types/unsafe_deserialization",
+      "code": "Marshal.load(entry.value.data)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "NoDupCoder",
+        "method": "load"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "cwe_id": [
+        502
+      ],
+      "note": "NoDupCoder.load only Marshal.loads data it itself wrote via Marshal.dump, wrapped in the app-defined MarshaledValue struct and held in the in-process MemoryStore cache; the input is never user-controlled. See lib/no_dup_coder.rb header for the deserialization-safety rationale."
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "1d88fe438f43b6d400157f184178532abdfb46b98941f28b6f7bff7893bc5fea",
+      "fingerprint": "d1d862b0de146301fae436de4512b3aea7e6919f286ee62c438595f756a1e99c",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/project.rb",
-      "line": 533,
+      "line": 1185,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Project.select(\"id, name, achieved_#{[\"in_progress\", \"passing\", \"silver\", \"gold\"].drop(1)[level]}_at\").where(\"badge_percentage_#{level} >= 100\")",
+      "code": "Project.select(\"id, name, achieved_#{([\"in_progress\"] + Sections::METAL_LEVEL_NAMES).drop(1)[level]}_at\").where(\"badge_percentage_#{level} >= 100\")",
       "render_path": null,
       "location": {
         "type": "method",
@@ -18,7 +41,10 @@
       },
       "user_input": "level",
       "confidence": "Medium",
-      "note": "The \"level\" value is checked to only allow specific integers, so it cannot be a SQL injection."
+      "cwe_id": [
+        89
+      ],
+      "note": "The \"level\" value is checked (LEVEL_ID_NUMBERS.member?(level)) to only allow specific integers, and the interpolated badge level name is a constant lookup, so this cannot be SQL injection."
     },
     {
       "warning_type": "Cross-Site Scripting",
@@ -27,7 +53,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/projects/_details.html.erb",
-      "line": 6,
+      "line": 7,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "Criteria[criteria_level][criterion.to_sym].details",
       "render_path": [
@@ -35,7 +61,7 @@
           "type": "controller",
           "class": "ProjectsController",
           "method": "render_status",
-          "line": 60,
+          "line": 222,
           "file": "app/helpers/projects_helper.rb",
           "rendered": {
             "name": "projects/_status_chooser",
@@ -45,7 +71,7 @@
         {
           "type": "template",
           "name": "projects/_status_chooser",
-          "line": 97,
+          "line": 151,
           "file": "app/views/projects/_status_chooser.html.erb",
           "rendered": {
             "name": "projects/_details",
@@ -59,6 +85,9 @@
       },
       "user_input": null,
       "confidence": "Medium",
+      "cwe_id": [
+        79
+      ],
       "note": "The details text is from a trusted source"
     },
     {
@@ -68,7 +97,7 @@
       "check_name": "VerbConfusion",
       "message": "Potential HTTP verb confusion. `HEAD` is routed like `GET` but `request.get?` will return `false`",
       "file": "app/helpers/sessions_helper.rb",
-      "line": 211,
+      "line": 283,
       "link": "https://brakemanscanner.org/docs/warning_types/http_verb_confusion/",
       "code": "return unless request.get?",
       "render_path": null,
@@ -79,9 +108,12 @@
       },
       "user_input": "request.get?",
       "confidence": "Weak",
+      "cwe_id": [
+        352
+      ],
       "note": ""
     }
   ],
-  "updated": "2022-07-14 15:51:06 -0400",
-  "brakeman_version": "5.2.3"
+  "updated": "2026-06-21 19:42:48 -0400",
+  "brakeman_version": "8.0.5"
 }

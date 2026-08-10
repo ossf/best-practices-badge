@@ -1,24 +1,74 @@
 <%
- status_symbol = (criterion.to_s + '_status').to_sym
+ # Use precomputed symbols and strings to avoid allocations
+ criterion_str = criterion.to_s
+ status_symbol = criterion.status_symbol
  project_criterion_status = project[status_symbol]
  criterion_result = project.get_criterion_result(criterion)
+ # Get justification for data attribute
+ justification_symbol = criterion.justification_symbol
+ project_criterion_justification = project[justification_symbol] || ''
 
- cache ['buttons', criterion.to_s, criteria_level, criterion_result,
-        is_disabled, locale, project_criterion_status ] do
-   passing_class = if (criterion_result == :criterion_passing && is_disabled)
-                     ' criterion-passing'
-                   else
-                     ''
-                   end
+ # All project-specific rendering is outside the cache block.
+ passing_class = (criterion_result == :criterion_passing && view_only) ?
+                   ' criterion-passing' : ''
+
+ # Automation highlighting (transient per-request state, never cached).
+ # Uses precomputed Sets from ProjectsHelper for O(1) lookup.
+ # Yellow: automated_field_set — uses .include? (no data needed from inner hash)
+ # Orange: overridden_field_set — full-width <details> at top of row (col-xs-12 before col-md-3)
+ # Divergent: divergent_field_set — same full-width <details> pattern
+ #   Both override and divergent leave automation_icon empty; their <details> renders above the row.
+ highlight_class = ''
+ automation_icon = ''
+ override_detail_body = nil
+ divergent_detail_body = nil
+ if automated_field_set.include?(status_symbol)
+   highlight_class = " #{ApplicationHelper::HIGHLIGHT_AUTOMATED_CLASS}"
+   automation_icon = %(<span class="automation-icon" title="#{t('projects.edit.automation.automated_tooltip')}" aria-hidden="true">#{ApplicationHelper::ROBOT_EMOJI_SAFE}</span>).html_safe
+ elsif (override_data = overridden_field_set[status_symbol])
+   highlight_class = " #{ApplicationHelper::HIGHLIGHT_OVERRIDDEN_CLASS}"
+   old_status_str = CriterionStatus.canonical(override_data[:old_value]) || '?'
+   old_justification_part = override_data[:old_justification].present? ?
+     t('projects.edit.automation.overridden_old_justification_part',
+       old_justification: override_data[:old_justification]) : ''
+   explanation_part = override_data[:explanation].present? ?
+     t('projects.edit.automation.overridden_explanation_part',
+       explanation: override_data[:explanation]) : ''
+   override_detail_body = t('projects.edit.automation.overridden_detail',
+                             old_status: old_status_str,
+                             old_justification_part: old_justification_part,
+                             explanation_part: explanation_part)
+ elsif (divergent_data = divergent_field_set[status_symbol])
+   highlight_class = " #{ApplicationHelper::HIGHLIGHT_DIVERGENT_CLASS}"
+   justification_part = divergent_data[:proposed_justification].present? ?
+     t('projects.edit.automation.divergent_justification_part',
+       justification: divergent_data[:proposed_justification]) : ''
+   status_str = CriterionStatus.canonical(divergent_data[:proposed_status]) || '?'
+   divergent_detail_body = t('projects.edit.automation.divergent_detail',
+                              status: status_str, justification_part: justification_part)
+ end
+
+ is_crypto = criterion_str.start_with?('crypto_')
+ crypto_class = is_crypto ? ' criterion-is-crypto' : ''
 %>
-  <div id="<%= criterion.to_s %>" class="row criterion-data<%= passing_class %>">
-    <% is_crypto = criterion.to_s.match(/^crypto_/)
-       crypto_class = is_crypto ? ' criterion-is-crypto' : '' %>
-
+  <div id="<%= criterion_str %>" class="row criterion-data<%= passing_class %><%= highlight_class %>"
+       data-status="<%= status_to_string(project_criterion_status) %>"
+       data-justification="<%= h(project_criterion_justification) %>"
+       <% if highlight_class.present? %>
+       aria-label="<%= if highlight_class.include?('automated') then t('projects.edit.automation.aria_automated')
+                        elsif highlight_class.include?('divergent') then t('projects.edit.automation.aria_divergent')
+                        else t('projects.edit.automation.aria_overridden') end %>"
+       role="status"
+       <% end %>>
+    <%= override_detail_block(override_detail_body, extra_class: 'col-xs-12') if override_detail_body %>
+    <%= divergent_detail_block(divergent_detail_body, extra_class: 'col-xs-12') if divergent_detail_body %>
     <div class="col-md-3 col-sm-4 col-xs-4 criteria-radio<%= crypto_class %>">
+      <%= automation_icon.html_safe if automation_icon.present? %>
       <div class="status-chooser">
+      <% cache ['buttons', criterion_str, criteria_level, criterion_result,
+                view_only, locale, project_criterion_status] do %>
       <%= f.form_group status_symbol do %>
-        <%= link_to({ anchor: criterion.to_s }) do %>
+        <%= link_to("##{criterion}") do %>
         <%#
                        !!!!!  IMPORTANT  !!!!!
           The functionality below is mirrored in assets/project-form.js
@@ -30,25 +80,25 @@
           <% if criterion_result == :criterion_passing %>
             <%= image_tag(
                   'result_symbol_check.png', size: '40x40',
-                    id: criterion.to_s + '_enough',
+                    id: "#{criterion_str}_enough",
                     alt: t('projects.misc.in_javascript.passing_alt')
                 ) %>
           <% elsif criterion_result == :criterion_barely %>
             <%= image_tag(
                   'result_symbol_dash.png', size: '40x40',
-                    id: criterion.to_s + '_enough',
+                    id: "#{criterion_str}_enough",
                     alt: t('projects.misc.in_javascript.barely_alt')
                 ) %>
           <% elsif criterion_result == :criterion_failing %>
             <%= image_tag(
                   'result_symbol_x.png', size: '40x40',
-                    id: criterion.to_s + '_enough',
+                    id: "#{criterion_str}_enough",
                     alt: t('projects.misc.in_javascript.failing_alt')
                 ) %>
           <% else %>
             <%= image_tag(
                   'result_symbol_question.png', size: '40x40',
-                    id: criterion.to_s + '_enough',
+                    id: "#{criterion_str}_enough",
                     alt: t('projects.misc.in_javascript.unknown_alt')
                 ) %>
           <% end %>
@@ -57,47 +107,49 @@
         </div>
         <div class="col-xs-4 col-xs-offset-2 col-sm-offset-1 text-left block-left">
           <fieldset>
-          <legend class="hidden"><%= "Criterion [#{criterion}]" %></legend>
-          <%= f.radio_button status_symbol, 'Met', label: t('criterion_status.Met'),
-                                                   disabled: is_disabled %>
-          <%= f.radio_button status_symbol, 'Unmet', label: t('criterion_status.Unmet'),
-                                                     disabled: is_disabled  %>
+          <legend class="hidden"><%= "Criterion [#{baseline_id_to_display(criterion)}]" %></legend>
+          <%= status_radio_button f, project, status_symbol, 'Met',
+                                  label: t('criterion_status.Met'), disabled: view_only %>
+          <%= status_radio_button f, project, status_symbol, 'Unmet',
+                                  label: t('criterion_status.Unmet'), disabled: view_only %>
           <% if criterion.na_allowed? %>
-            <%= f.radio_button status_symbol, 'N/A', label: t('criterion_status.NA'),
-                                                     disabled: is_disabled  %>
+            <%= status_radio_button f, project, status_symbol, 'N/A',
+                                    label: t('criterion_status.NA'), disabled: view_only %>
           <% end %>
           <% unless criterion.minor == 'Prerequisites' %>
-            <%= f.radio_button status_symbol, '?', label: '?',
-                                                   disabled: is_disabled  %>
+            <%= status_radio_button f, project, status_symbol, '?',
+                                    label: '?', disabled: view_only %>
           <% end %>
           </fieldset>
         </div>
       <% end %>
+      <% end # cache 'buttons' %>
+      </div>
     </div>
-  </div>
-<% end # cache 'buttons' %>
   <div class='col-md-9 col-sm-8 col-xs-12 criteria-desc'>
-    <% cache ['desc', criterion.to_s, criteria_level, locale ] do
+    <% cache_frozen ['desc', criterion_str, criteria_level, locale ] do
        # Here we provide the description, details, and markings like
        # "met_url_required?".  We cache this separately.
        # Its cache needs fewer keys, so by caching this separately it
        # can be shared across more projects. %>
       <br>
       <%= if criterion.future?
-           '(' + t('projects.misc.future_criterion') + ')'
+           "(#{t('projects.misc.future_criterion')})"
+         elsif criterion.obsolete?
+           "(#{t('projects.misc.obsolete_criterion')})"
          else
-            ''
+           ''
          end %>
       <%= criterion.description %>
       <%= if criterion.met_url_required?
-            '(' + t('projects.misc.url_required') + ')'
+            "(#{t('projects.misc.url_required')})"
           else
             ''
          end %>
-      <sup>[<%= criterion %>]</sup>
+      <sup>[<%= baseline_id_to_display(criterion) %>]</sup>
       <%= if criterion.details
             render(partial: "details",
-              locals: {f: f, criterion: criterion,
+              locals: {criterion: criterion,
                        details: criterion.details.html_safe})
           end %>
     <% end # cache 'desc' %>
@@ -105,13 +157,14 @@
     </div><%# end of existing column %>
     <div class="col-xs-12"><%# new section for justification and rule %>
 
-    <% justification_symbol = (criterion.to_s + '_justification').to_sym
-       if (is_disabled)
+    <% # Use precomputed symbol to avoid string concatenation
+       justification_symbol = criterion.justification_symbol
+       if (view_only)
          project_criterion_justification = project[justification_symbol]
          if project_criterion_justification&.presence
-           cache ['markdown', project.id, criterion.to_s,
+           cache ['markdown', project.id, criterion_str,
                   project.lock_version] do %>
-          <div class="justification-markdown" lang="en">
+          <div class="justification-markdown" lang="<%= project.entry_locale %>">
             <%= markdown(project_criterion_justification) %>
           </div>
         <% end # cache 'markdown'
@@ -124,10 +177,10 @@
     <% else %>
       <%= f.text_area justification_symbol,
                       class: 'justification-text', hide_label: true,
-                      lang: 'en', spellcheck: true,
+                      lang: project.entry_locale, spellcheck: true,
                       placeholder:t('projects.misc.in_javascript.unknown_placeholder'),
-                      disabled: is_disabled %>
-    <% end # is_disabled %>
+                      disabled: view_only %>
+    <% end # view_only %>
     <% if is_last %>
       <br>
     <% else %>

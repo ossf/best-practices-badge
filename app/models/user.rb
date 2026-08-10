@@ -36,23 +36,49 @@ class User < ApplicationRecord
   DIGITS_OF_EMAIL_ENCRYPTION_KEY = 256 / 8 * 2 # 256-bit AES key in hex
   DIGITS_OF_EMAIL_BLIND_INDEX_KEY = 256 / 8 * 2 # 256-bit HMAC key in hex
 
+  # Age after which a never-activated local account is considered abandoned
+  # and eligible for purging by the daily task. Configurable via env var.
+  UNACTIVATED_ACCOUNT_LIFETIME = Integer(
+    ENV['BADGEAPP_UNACTIVATED_USER_DAYS'] || '7', 10
+  ).days
+
   # For tests
   TEST_EMAIL_ENCRYPTION_KEY = '1' * DIGITS_OF_EMAIL_ENCRYPTION_KEY
   TEST_EMAIL_BLIND_INDEX_KEY = '2' * DIGITS_OF_EMAIL_BLIND_INDEX_KEY
 
-  # Email addresses are stored as encrypted values.
-  # If a key isn't provided, use a bogus one to make testing easy.
-  attr_encrypted :email, algorithm: 'aes-256-gcm', key: [
+  # Returns the hex key for email encryption.
+  # In test mode (the default), always returns TEST_EMAIL_ENCRYPTION_KEY so that
+  # tests are self-contained regardless of shell/CI environment variables.
+  # Pass env_test: false to exercise the production path (used in tests for
+  # coverage and to verify ENV fallback behaviour).
+  def self.email_encryption_key_hex(env_test: Rails.env.test?)
+    return TEST_EMAIL_ENCRYPTION_KEY if env_test
+
     ENV['EMAIL_ENCRYPTION_KEY'] || TEST_EMAIL_ENCRYPTION_KEY
-  ].pack('H*')
+  end
+  private_class_method :email_encryption_key_hex
+
+  # Returns the hex key for the email blind index.  Same test/production
+  # split as email_encryption_key_hex.
+  def self.email_blind_index_key_hex(env_test: Rails.env.test?)
+    return TEST_EMAIL_BLIND_INDEX_KEY if env_test
+
+    ENV['EMAIL_BLIND_INDEX_KEY'] || TEST_EMAIL_BLIND_INDEX_KEY
+  end
+  private_class_method :email_blind_index_key_hex
+
+  # Email addresses are stored as encrypted values.
+  # Fixtures are encrypted with TEST_EMAIL_ENCRYPTION_KEY; the method above
+  # ensures that key is always used during tests.
+  attr_encrypted :email, algorithm: 'aes-256-gcm',
+                         key: [email_encryption_key_hex].pack('H*')
 
   # Email addresses are indexed as blind indexes of downcased email addresses,
   # so we can efficiently search for them while keeping them encrypted.
   # Usage: User.where(email: 'test@example.org')
   # or:    User.where(email: 'test@example.org', provider: 'local')
-  blind_index :email, key: [
-    ENV['EMAIL_BLIND_INDEX_KEY'] || TEST_EMAIL_BLIND_INDEX_KEY
-  ].pack('H*'), expression: ->(v) { v.try(:downcase) }
+  blind_index :email, key: [email_blind_index_key_hex].pack('H*'),
+                      expression: ->(v) { v.try(:downcase) }
 
   scope :created_since, (
     lambda do |time|
@@ -105,8 +131,8 @@ class User < ApplicationRecord
 
   # We don't allow locale nil. There's no need to, because the record has a
   # default value (and the default is used if we don't supply a value).
-  VALID_LOCALES_STRINGS = I18n.available_locales.map(&:to_s)
-  validates :preferred_locale, inclusion: { in: VALID_LOCALES_STRINGS }
+  VALID_LOCALE_STRINGS = Rails.application.config.valid_locale_strings
+  validates :preferred_locale, inclusion: { in: VALID_LOCALE_STRINGS }
 
   MAX_NICKNAME_LENGTH_GITHUB = 39
   validates :nickname, length: { maximum: MAX_NICKNAME_LENGTH_GITHUB },
@@ -180,6 +206,25 @@ class User < ApplicationRecord
     user if user && authenticated
   end
 
+  # Finds an unactivated user by email and validates their activation token in constant time.
+  # Prevents timing attacks from enumerating email addresses during account activation.
+  #
+  # @param email [String] The user's email address
+  # @param token [String] The activation token to verify
+  # @return [User, nil] The unactivated user if valid, nil otherwise
+  def self.find_unactivated_by_valid_token(email, token)
+    user = find_by(email: email)
+    unactivated = user && !user.activated?
+    if unactivated
+      token_valid = user.authenticated?(:activation, token)
+    else
+      # Always perform BCrypt to prevent timing-based user enumeration
+      verify_password_against_hash?(DUMMY_HASH, token)
+      token_valid = false
+    end
+    user if unactivated && token_valid
+  end
+
   # Creates a new user from OAuth authentication data.
   # Sets the user as activated and sends a welcome email if email is provided.
   # @param auth [Hash] OAuth authentication hash containing provider, uid, info
@@ -247,6 +292,47 @@ class User < ApplicationRecord
     'CANNOT_DECRYPT'
   end
 
+  # Can we actually deliver mail to this user's address?
+  #
+  # This asks only whether an address exists and is usable, never whether
+  # the user wants a particular message; that is important_notifications?
+  # and its kin.  It is the single place that question is answered, so
+  # that a caller deciding whether to send cannot disagree with the
+  # mailer that does the sending.  They did disagree: the notification
+  # loop tested only that encrypted_email was present, while the mailers
+  # also rejected an address that would not decrypt or had no "@", so an
+  # owner failing the second test but not the first was recorded as
+  # emailed when no mail existed.  See docs/warning_failures.md.
+  #
+  # @return [Boolean] true if we have a usable address for this user
+  def deliverable_email?
+    address = email_if_decryptable
+    address.present? && address != 'CANNOT_DECRYPT' &&
+      address.include?('@')
+  end
+
+  # Returns true if email search functionality is available.
+  # Email search requires the production blind index key to work correctly.
+  # In development without EMAIL_BLIND_INDEX_KEY, searches will fail to match
+  # production data, so we disable email search in that case.
+  # In test environment, uses TEST_EMAIL_BLIND_INDEX_KEY which works fine.
+  # @return [Boolean] true if email search will work
+  def self.email_search_available?
+    # Email search unavailable only in development without production keys
+    !Rails.env.development? || ENV['EMAIL_BLIND_INDEX_KEY'].present?
+  end
+
+  # Returns true if email decryption functionality is available.
+  # Email decryption requires the production encryption key to work correctly.
+  # In development without EMAIL_ENCRYPTION_KEY, decryption will fail on
+  # production data, so we disable email decryption in that case.
+  # In test environment, uses TEST_EMAIL_ENCRYPTION_KEY which works fine.
+  # @return [Boolean] true if email decryption will work
+  def self.email_decryption_available?
+    # Email decryption unavailable only in development without production keys
+    !Rails.env.development? || ENV['EMAIL_ENCRYPTION_KEY'].present?
+  end
+
   # Checks if the user has admin role.
   # @return [Boolean] true if user role is 'admin'
   def admin?
@@ -270,10 +356,41 @@ class User < ApplicationRecord
     SecureRandom.urlsafe_base64
   end
 
-  # Remembers a user in the database for use in persistent sessions.
-  # Generates and stores a remember token and its digest.
+  # Returns a scope of local accounts eligible for purging: never activated,
+  # older than UNACTIVATED_ACCOUNT_LIFETIME, and owning no projects or
+  # additional rights.
+  #
+  # @return [ActiveRecord::Relation]
+  def self.purgeable_unactivated_accounts
+    cutoff = UNACTIVATED_ACCOUNT_LIFETIME.ago
+    where(provider: 'local', activated: false)
+      .where(users: { created_at: ...cutoff })
+      .where.missing(:projects)
+      .where.missing(:additional_rights)
+  end
+
+  # Delete all accounts returned by purgeable_unactivated_accounts.
+  # Returns the count of deleted users.
+  #
+  # @return [Integer] number of accounts deleted
+  def self.purge_unactivated_accounts
+    scope = purgeable_unactivated_accounts
+    count = scope.count
+    scope.find_each(&:destroy)
+    count
+  end
+
+  # Creates a remember token for persistent login sessions.
+  # ONLY for local users - GitHub users must re-authenticate via OAuth.
+  # Generates and stores a remember token and its digest in the database.
+  #
+  # @raise [ArgumentError] if called on a GitHub user
   # @return [Boolean] true if save was successful
   def remember
+    if provider == 'github'
+      raise ArgumentError, 'GitHub users cannot use remember tokens'
+    end
+
     self.remember_token = User.new_token
     self.remember_digest = User.digest(remember_token)
     save!(touch: false)
@@ -331,9 +448,18 @@ class User < ApplicationRecord
 
   # Returns URL for Gravatar lookup based on email MD5 hash.
   # This is the real Gravatar URL used for local users.
+  # Returns bogus URL if email cannot be decrypted.
+  # @param decryption_available [Boolean, nil] Override for decryption check
+  #   (mainly for testing)
   # @return [String] the Gravatar URL for lookup
-  def lookup_gravatar_url
-    GRAVATAR_PREFIX + Digest::MD5.hexdigest(email.downcase)
+  def lookup_gravatar_url(decryption_available: nil)
+    decryption_available = self.class.email_decryption_available? if decryption_available.nil?
+
+    if decryption_available && encrypted_email?
+      GRAVATAR_PREFIX + Digest::MD5.hexdigest(email.downcase)
+    else
+      GRAVATAR_PREFIX + BOGUS_GRAVATAR_MD5
+    end
   end
 
   BOGUS_GRAVATAR_MD5 = '0' * 32

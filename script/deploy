@@ -1,0 +1,235 @@
+#!/bin/sh
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
+# Deploy by advancing a branch: "script/deploy staging" copies origin's
+# main onto staging, "script/deploy production" copies origin's staging
+# onto production. CircleCI does the rest, including the Heroku push and
+# the database refresh; see .circleci/config.yml.
+#
+# WHY THIS IS A SCRIPT AND NOT ONLY A RAKE TASK. Deploying is two git
+# commands, and it should not need 244 gems installed to run them. Rake
+# loads config/boot.rb, which does "require 'bundler/setup'", so ANY
+# rake invocation, including tasks marked :no_rails, fails when a single
+# locked gem is missing. That happens routinely now: dependency updates
+# arrive weekly and every merged one leaves a local bundle incomplete
+# until "bundle install" runs. The failure then lands exactly when
+# somebody is trying to deploy, possibly urgently.
+#
+# So the deploy lives here, in plain POSIX sh, and works in a fresh
+# clone with no gems at all. "rake deploy_staging" and
+# "rake deploy_production" still exist and call this, so muscle memory
+# and "rake -T" keep working.
+
+set -eu
+
+usage() {
+  echo 'usage: script/deploy staging|production' >&2
+  echo >&2
+  echo 'staging    copies origin/main onto the staging branch' >&2
+  echo 'production copies origin/staging onto the production branch' >&2
+}
+
+# Validate before use, the way script/validate_branch_name does. These
+# names reach git commands, and "the target is whatever you typed" is
+# not a property we want.
+target="${1:-}"
+case "$target" in
+  staging) source_branch='main' ;;
+  production) source_branch='staging' ;;
+  '')
+    echo 'ERROR: no target given.' >&2
+    usage
+    exit 1
+    ;;
+  *)
+    echo "ERROR: unknown target '$target'." >&2
+    usage
+    exit 1
+    ;;
+esac
+
+if [ "$#" -gt 1 ]; then
+  echo 'ERROR: too many arguments.' >&2
+  usage
+  exit 1
+fi
+
+# ASK GITHUB WHETHER A BRANCH'S TIP PASSED, and print whatever did not.
+# The tip is what a deploy is about to copy, so this is a question about
+# the thing being deployed rather than about the branch in general.
+#
+# BOTH ENDPOINTS ARE ASKED, and neither is redundant. CircleCI's
+# "ci/circleci: static" is reported as a commit STATUS and never appears
+# among the check runs, while CodeQL, brakeman and codespell are check
+# RUNS and never appear among the statuses. Asking only for statuses once
+# called a commit green whose three CodeQL analyses had failed.
+#
+# The grep pair is inverted on purpose: it reports anything that is not
+# "success" or "completed" rather than looking for known bad words, so a
+# conclusion GitHub invents later is caught instead of slipping past. A
+# null conclusion, meaning still running, is caught too.
+#
+# EXIT STATUS SAYS WHETHER THE QUESTION WAS ANSWERED, not whether the
+# answer was good: 0 means GitHub replied and any problems are on stdout,
+# 2 means the query itself failed. Callers must tell those apart. curl
+# exits 22 when -f meets an error, and treating that as an empty problem
+# list would read as success, which is the failure this shape prevents.
+#
+# The trailing "|| true" is needed because grep exits 1 when it matches
+# nothing, which here is the good case.
+checks_not_green() {
+  branch="$1"
+  api="https://api.github.com/repos/ossf/best-practices-badge/commits/$branch"
+  checks=$(curl -sSf "$api/status" "$api/check-runs?per_page=100") || return 2
+  printf '%s\n' "$checks" |
+    grep -E '"(state|status|conclusion)":' |
+    grep -vE '"(success|completed)"' || true
+  return 0
+}
+
+# PRODUCTION WAITS FOR EVIDENCE, so this refuses. A failed query refuses
+# too: not knowing is not the same as knowing it is fine, and production
+# is where that distinction is worth a stopped deploy.
+require_green() {
+  branch="$1"
+  if ! not_green=$(checks_not_green "$branch"); then
+    echo "Refusing to deploy: could not ask GitHub about $branch." >&2
+    exit 1
+  fi
+  if [ -z "$not_green" ]; then
+    echo "$branch has passed everything."
+  else
+    echo "Refusing to deploy: $branch has not passed everything." >&2
+    printf '%s\n' "$not_green" >&2
+    echo "Open the $branch commit on GitHub to see what." >&2
+    exit 1
+  fi
+}
+
+# STAGING REPORTS RATHER THAN REFUSES. Staging is a test tier and
+# CircleCI runs the whole suite again there, so a deploy that starts
+# before main's checks finish simply runs two suites at once, which is
+# allowed on purpose. What is NOT wanted is deploying something red
+# without noticing, so say so and continue.
+#
+# A red main is not always a reason to stop: the point of staging is to
+# try things. Saying which checks are unhappy, and leaving the decision
+# where it already was, is the whole of this function's job.
+report_green() {
+  branch="$1"
+  if ! not_green=$(checks_not_green "$branch"); then
+    echo "Note: could not ask GitHub about $branch; deploying anyway."
+    return 0
+  fi
+  if [ -z "$not_green" ]; then
+    echo "$branch has passed everything."
+  else
+    echo "WARNING: $branch has not passed everything:"
+    printf '%s\n' "$not_green"
+    echo 'Some of those may still be running rather than failed.'
+    echo 'Deploying to staging anyway; CircleCI runs the suite again'
+    echo 'there. Check before promoting any of this to production.'
+  fi
+}
+
+# FETCHES ORIGIN'S SOURCE BRANCH INTO THE LOCAL DEPLOY BRANCH, THEN
+# PUSHES THAT.
+#
+# The fetch source is origin's branch, never your local one, so an
+# unpushed commit of yours cannot reach a deploy branch.
+#
+# WHAT IT UPDATES LOCALLY, deliberately: the local deploy branch is
+# created if absent and fast-forwarded if present, so "git log staging"
+# tells the truth after a deploy instead of describing wherever the
+# branch sat when you last looked. In a full clone the push updates
+# "origin/staging" too; in a --single-branch or --depth clone it does
+# not, because that clone's refspec never mapped it. Nothing else is
+# touched: no other branch moves, the working tree is left alone, and a
+# dirty tree is fine.
+#
+# WHAT YOU CANNOT BE ON: the deploy branch itself. Git refuses to fetch
+# into a checked-out branch and stops with "refusing to fetch into
+# branch". That is fair, since these are branches to read rather than
+# work on, and the refusal is a useful signal that something odd is
+# going on.
+#
+# THE SECOND REFSPEC KEEPS "git status" HONEST. An explicit src:dst
+# overrides the clone's configured refspec, so no remote-tracking ref
+# would be touched otherwise, and origin/main would go stale while
+# deploys kept succeeding. It writes to a remote-tracking ref rather
+# than to refs/heads, so it works even while you are standing on main.
+# The leading "+" is deliberate and the asymmetry is the point: a
+# tracking ref is a mirror of the remote, where a forced update is
+# normal, while "main:staging" stays unforced so a divergence stops the
+# deploy.
+#
+# THE "&&" IS THE SAFETY, more than it looks. If your local deploy
+# branch has diverged, the fetch is REJECTED as a non-fast-forward and
+# exits 1, leaving the divergent commit in place; an unguarded push
+# would then send that commit to the deploy branch. Not passing --force
+# is the other half: the push refuses a non-fast-forward on the far end
+# too. Do not add --force to either.
+#
+# Echoed before running because these two commands ARE the deploy, and
+# they are what someone without a clone of this script types instead.
+# See docs/INSTALL.md.
+advance() {
+  from="$1"
+  to="$2"
+  echo "git fetch origin $from:$to +$from:refs/remotes/origin/$from &&"
+  echo "  git push origin $to"
+  git fetch origin "$from:$to" "+$from:refs/remotes/origin/$from" &&
+    git push origin "$to"
+}
+
+# AFTER THE DEPLOY, REPORT ON YOUR LOCAL main, and only when there is
+# something to say. The deploy has already happened by then, so nothing
+# here can delay or fail it. origin/main was just refreshed above, so
+# both comparisons are free and need no network.
+#
+# Behind is the ordinary case and only needs the cure. AHEAD IS NOT: it
+# means commits exist here and nowhere else, which is what happens when
+# you forget to branch before starting work, so it names them and offers
+# the way out. "git reset --keep" rather than "--hard" because it
+# refuses rather than discarding uncommitted changes.
+#
+# "--ff-only" ON THE SUGGESTED PULL LOOKS REDUNDANT AND IS NOT. This
+# message appears only when main is behind and not ahead, where a plain
+# "git pull" fast-forwards anyway. The flag is there for the reader's
+# configuration rather than for the ordinary case: with pull.rebase=true,
+# a common setting, a plain pull silently rewrites their commits if main
+# has diverged since this ran, and with pull.rebase=false it puts a
+# merge commit on main. Git's own default refuses either way, so this
+# guards against configuration, not against git.
+report_on_local_main() {
+  ahead=$(git rev-list --count origin/main..main 2>/dev/null || echo 0)
+  behind=$(git rev-list --count main..origin/main 2>/dev/null || echo 0)
+  if [ "$ahead" -gt 0 ]; then
+    echo
+    echo 'WARNING: your local main has commits that are not on GitHub,'
+    echo 'so they are not reviewed, not tested and not deployed:'
+    git log --oneline origin/main..main
+    echo 'If you meant to work on a branch, move them onto one and put'
+    echo 'main back where GitHub has it:'
+    echo '  git branch SAVED-WORK main'
+    echo '  git switch main && git reset --keep origin/main'
+  elif [ "$behind" -gt 0 ]; then
+    echo
+    echo 'Your local main is out of date. To catch up:'
+    echo '  git switch main && git pull --ff-only'
+  fi
+}
+
+case "$target" in
+  staging)
+    report_green "$source_branch"
+    advance "$source_branch" "$target"
+    report_on_local_main
+    ;;
+  production)
+    require_green "$source_branch"
+    advance "$source_branch" "$target"
+    ;;
+esac

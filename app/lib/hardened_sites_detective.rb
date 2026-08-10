@@ -17,24 +17,26 @@ class HardenedSitesDetective < Detective
     content-security-policy strict-transport-security
     x-content-type-options
   ].freeze
-  MET =
+
+  def met_result
     {
-      value: 'Met', confidence: 3,
-      explanation: 'Found all required security hardening headers.'
-    }.freeze
-  UNMET_MISSING =
+      value: CriterionStatus::MET, confidence: 3,
+      explanation: I18n.t('detectives.hardened_sites.all_headers_found')
+    }
+  end
+
+  def unmet_missing_result
     {
-      value: 'Unmet', confidence: 5,
-      explanation: 'Required security hardening headers missing: '
-    }.freeze
-  UNMET_NOSNIFF =
-    {
-      value: 'Unmet', confidence: 5,
-      explanation: '// X-Content-Type-Options was not set to "nosniff".'
-    }.freeze
+      value: CriterionStatus::UNMET, confidence: 5,
+      explanation: I18n.t('detectives.hardened_sites.headers_missing')
+    }
+  end
 
   INPUTS = %i[repo_url homepage_url].freeze
   OUTPUTS = [:hardened_site_status].freeze
+
+  # This detective can override hardened site detection with high confidence
+  OVERRIDABLE_OUTPUTS = [:hardened_site_status].freeze
 
   # Check the given hash of header values to make sure that all expected
   # keys are present. Return a list of missing fields (preferably empty).
@@ -69,9 +71,9 @@ class HardenedSitesDetective < Detective
   # Note: in the returned hash all field names are ASCII *lowercase*, so that
   # we can easily do case-insensitive matches (HTTP field names are
   # case-insensitive, see RFC 2616 section 4.2).
-  def get_headers(evidence, url)
-    response = evidence.get(url)
-    results = response.nil? ? {} : response[:meta]
+  def response_headers(evidence, url)
+    # We only need the response headers here, so use get_headers (no body).
+    results = evidence.get_headers(url) || {}
     # Return a version with keys in lowercase; we do *not* modify the original.
     # We use ":ascii" so that Turkic locales don't cause oddities. That
     # shouldn't matter anyway, since the user's locale is in I18n.locale,
@@ -81,7 +83,7 @@ class HardenedSitesDetective < Detective
 
   # Given evidence and a URL, return the list of problems with it.
   def problems_in_url(evidence, url)
-    headers = get_headers(evidence, url)
+    headers = response_headers(evidence, url)
     problems = missing_security_fields(headers)
     problems += missing_frame_options(headers)
     if problems.empty?
@@ -111,9 +113,9 @@ class HardenedSitesDetective < Detective
       all_problems = problems_in_urls(evidence, urls)
       results[:hardened_site_status] =
         if all_problems.empty?
-          MET
+          met_result
         else
-          answer = UNMET_MISSING.deep_dup # clone but result is not frozen
+          answer = unmet_missing_result
           answer[:explanation] += all_problems.join(', ')
           answer
         end

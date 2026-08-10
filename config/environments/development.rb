@@ -11,7 +11,7 @@ Rails.application.configure do
   # In the development environment your application's code is reloaded on
   # every request. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
-  config.cache_classes = false
+  config.enable_reloading = true
 
   config.public_file_server.enabled = true
   # Do not eager load code on boot.
@@ -23,9 +23,15 @@ Rails.application.configure do
   # Show full error reports and disable caching.
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = true
+  # Cache store config - must match production.rb (see explanation there
+  # for why this is duplicated rather than shared in application.rb).
+  require_relative '../../lib/no_dup_coder'
   config.cache_store =
     :memory_store,
-    { size: (ENV['RAILS_CACHE_SIZE'] || '128').to_i.megabytes }
+    {
+      size: (ENV['RAILS_CACHE_SIZE'] || '128').to_i.megabytes,
+      coder: NoDupCoder
+    }
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = true
@@ -39,6 +45,9 @@ Rails.application.configure do
   # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
 
+  # Don't force SSL in dev environment - causes 301 redirects that break it
+  config.force_ssl = false
+
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
@@ -48,34 +57,4 @@ Rails.application.configure do
   # assets,
   # yet still be able to expire them through the digest params.
   config.assets.digest = true
-
-  # Adds additional error checking when serving assets at runtime.
-  # Checks for improperly declared sprockets dependencies.
-  # Raises helpful error messages.
-  config.assets.raise_runtime_errors = true
-
-  config.after_initialize do
-    # The 'bullet' gem watches application queries and notifies
-    # when you should add eager loading (N+1 queries),
-    # when you're using eager loading that isn't necessary and
-    # when you should use counter cache.
-    Bullet.enable = true
-    Bullet.rails_logger = true
-    Bullet.add_footer = true
-    # Bullet.alert = true
-    # Bullet.bullet_logger = true
-    # Bullet.console = true
-    # Bullet.growl = true
-    # Bullet.xmpp = { :account  => 'bullets_account@jabber.org',
-    #               :password => 'bullets_password_for_jabber',
-    #               :receiver => 'your_account@jabber.org',
-    #               :show_online_status => true }
-    # Bullet.honeybadger = true
-    # Bullet.bugsnag = true
-    # Bullet.airbrake = true
-    # Bullet.rollbar = true
-    # Bullet.stacktrace_includes = [ 'your_gem', 'your_middleware' ]
-    # Bullet.stacktrace_excludes = [ 'their_gem', 'their_middleware' ]
-    # Bullet.slack = { webhook_url: 'http://some.slack.url', foo: 'bar' }
-  end
 end

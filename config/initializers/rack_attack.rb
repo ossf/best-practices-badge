@@ -18,15 +18,10 @@ class Rack::Attack
   # Create a set of possible login paths
   # "i18n" comes before "rack_attack" alphabetically, so
   # I18n.available_locales is configured by this point.
-  LOGIN_PATHS = I18n.available_locales.map do |loc|
-    "/#{loc}/login"
-  end.append('/login').to_set
+  LOGIN_PATHS = (I18n.available_locales.map { |loc| "/#{loc}/login" } + ['/login']).to_set.freeze
 
   # Configuration constant for signup paths.
-
-  SIGNUP_PATHS = I18n.available_locales.map do |loc|
-    "/#{loc}/users"
-  end.append('/users').to_set
+  SIGNUP_PATHS = (I18n.available_locales.map { |loc| "/#{loc}/users" } + ['/users']).to_set.freeze
 
   ### Configure Cache ###
 
@@ -59,13 +54,13 @@ class Rack::Attack
   # in production, as they are served separately.
   #
   # Key: "rack::attack:#{Time.now.to_i/:period}:req/ip:#{req.ip}"
-  unless Rails.env.test?
+  if Rails.env.production?
     throttle(
       'req/ip',
       limit: (ENV['RATE_REQ_IP_LIMIT'] || 600).to_i,
       period: (ENV['RATE_REQ_IP_PERIOD'] || 5.minutes).to_i
     ) do |req|
-      ClientIp.acquire(req) # unless req.path.start_with?('/assets')
+      ClientIp.extract(req) # unless req.path.start_with?('/assets')
     end
   end
 
@@ -84,7 +79,7 @@ class Rack::Attack
   # in production, as they are served separately.
   # The default is chosen to allow someone to query a single /projects page
   # of 30 projects along with JSON requests for data about every project.
-  unless Rails.env.test?
+  if Rails.env.production?
     throttle(
       'nonbadge_req/ip',
       limit: (ENV['NONBADGE_RATE_REQ_IP_LIMIT'] || '31').to_i,
@@ -92,7 +87,7 @@ class Rack::Attack
     ) do |req|
       if req.env['HTTP_ACCEPT']&.include?('application/json') ||
          !BADGE_REGEX_PATH.match(req.path)
-        ClientIp.acquire(req)
+        ClientIp.extract(req)
       end
     end
   end
@@ -112,14 +107,14 @@ class Rack::Attack
   # Limit: 20 login attempts per 20 seconds per IP address
   #
   # Key: "rack::attack:#{Time.now.to_i/:period}:logins/ip:#{req.ip}"
-  unless Rails.env.test?
+  if Rails.env.production?
     throttle(
       'logins/ip',
       limit: (ENV['RATE_LOGINS_IP_LIMIT'] || 20).to_i,
       period: (ENV['RATE_LOGINS_IP_PERIOD'] || 20.seconds).to_i
     ) do |req|
       if LOGIN_PATHS.include?(req.path) && req.post?
-        ClientIp.acquire(req)
+        ClientIp.extract(req)
       end
     end
   end
@@ -135,7 +130,7 @@ class Rack::Attack
   # throttle logins for another user and force their login requests to be
   # denied, but that's not very common and shouldn't happen to you. (Knock
   # on wood!)
-  unless Rails.env.test?
+  if Rails.env.production?
     throttle(
       'logins/email',
       limit: (ENV['RATE_LOGINS_EMAIL_LIMIT'] || 5).to_i,
@@ -161,22 +156,20 @@ class Rack::Attack
   # by email address; once an email address has been signed up, it
   # stays that way.
   #
-  unless Rails.env.test?
+  if Rails.env.production?
     throttle(
       'signup/ip',
       limit: (ENV['RATE_SIGNUP_IP_LIMIT'] || 20).to_i,
       period: (ENV['RATE_SIGNUP_IP_PERIOD'] || 10.seconds).to_i
     ) do |req|
       if SIGNUP_PATHS.include?(req.path) && req.post?
-        ClientIp.acquire(req)
+        ClientIp.extract(req)
       end
     end
   end
 
   # Create a set of possible password reset paths
-  PASSWORD_RESET_PATHS = I18n.available_locales.map do |loc|
-    "/#{loc}/password_resets"
-  end.append('/password_resets').to_set
+  PASSWORD_RESET_PATHS = (I18n.available_locales.map { |loc| "/#{loc}/password_resets" } + ['/password_resets']).to_set.freeze
 
   # RATE LIMITING FOR PASSWORD RESET REQUESTS BY IP ADDRESS
   # Throttle POST requests to /password_resets by IP address
@@ -184,14 +177,14 @@ class Rack::Attack
   # Limit: 10 password reset attempts per 60 seconds per IP address
   #
   # Key: "rack::attack:#{Time.now.to_i/:period}:password_resets/ip:#{req.ip}"
-  unless Rails.env.test?
+  if Rails.env.production?
     throttle(
       'password_resets/ip',
       limit: (ENV['RATE_PASSWORD_RESET_IP_LIMIT'] || 10).to_i,
       period: (ENV['RATE_PASSWORD_RESET_IP_PERIOD'] || 60.seconds).to_i
     ) do |req|
       if PASSWORD_RESET_PATHS.include?(req.path) && req.post?
-        ClientIp.acquire(req)
+        ClientIp.extract(req)
       end
     end
   end
@@ -252,7 +245,7 @@ class Rack::Attack
     # or if it's from a previously banned IP
     # so the request is blocked
     Rack::Attack::Fail2Ban.filter(
-      "pentesters-#{ClientIp.acquire(req)}",
+      "pentesters-#{ClientIp.extract(req)}",
       maxretry: FAIL2BAN_MAXRETRY,
       findtime: FAIL2BAN_FINDTIME,
       bantime: FAIL2BAN_BANTIME

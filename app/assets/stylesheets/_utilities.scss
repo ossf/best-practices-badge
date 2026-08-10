@@ -1,0 +1,35 @@
+// frozen_string_literal: true
+
+// Utility classes (reusable across pages)
+// Moved from static_pages.scss during CSS reorganization
+// NOTE: Mixins available via application.scss import context
+
+.center {
+  text-align: center;
+}
+
+.left {
+  padding-left: 100px;
+  padding-right: 100px;
+}
+
+.center h1 {
+  margin-bottom: 10px;
+}
+
+.display-none {
+  display: none;
+}
+
+.no-padding {
+  padding: 0;
+}
+
+// Debug helper
+.debug_dump {
+  clear: both;
+  float: left;
+  width: 100%;
+  margin-top: 45px;
+  box-sizing: border-box;
+}

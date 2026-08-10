@@ -3,38 +3,30 @@
     followed by starting and finishing another full row. %>
 <% badge_hostname = (ENV['PUBLIC_HOSTNAME'] || 'localhost') %>
 <% provide :insert_progress_bar do %>
-  <div id="progress-mobile" class="progress">
-    <div id="badge-progress"
-         class="progress-bar progress-bar-success badge-progress"
+  <div class="progress-mobile progress">
+    <div class="progress-bar progress-bar-success badge-progress"
          role="progressbar" aria-valuenow="<%= project.badge_percentage_0 %>"
          aria-valuemin="0" aria-valuemax="100">
       <%= project.badge_percentage_0 %>%
     </div>
   </div>
 <% end %>
-<%
-   # If the additional rights list changes, invalidate the cache.
-   # If the performance is too slow, we could directly expire it instead,
-   # but that adds a maintenance headache.
-   additional_rights_list = project.additional_rights.pluck(:user_id).join(',')
-
-   # The badge URL has one value for some time after the project entry
-   # is edited, and then changes. To handle that gracefully, we
-   # expire the cache after a period of time.
-   cache_if is_disabled, [project, locale, additional_rights_list],
-            expires_in: 12.hours do %>
 <%= render(partial: 'form_early',
            locals:
              {
-               project: project, is_disabled: is_disabled,
-               criteria_level: '0', badge_hostname: badge_hostname
+               project: project, view_only: view_only,
+               criteria_level: criteria_level, badge_hostname: badge_hostname
              }) %>
 
 <div class="row">
   <div class="col-md-12">
  <div>
   <%# Don't provide criteria_level, as '0' is the default. %>
-  <%= bootstrap_form_for project, url: project_path(project) do |f| %>
+  <%# In view_only mode the form is for display only and is never submitted,
+      so suppress the per-request authenticity_token. This keeps anonymous
+      show pages byte-identical (and free of a useless session-CSRF write) so
+      the CDN can share one cached object. See docs/cdn-cache-not-logged-in.md. %>
+  <%= bootstrap_form_for project, url: edit_project_section_path(project, criteria_level), authenticity_token: (false if view_only) do |f| %>
     <%= render 'shared/error_messages', object: f.object %>
     <%= f.hidden_field :lock_version %>
 
@@ -52,343 +44,56 @@
              }) %>
       <div class="panel-collapse collapse in">
         <ul class="list-group">
-          <li class="list-group-item"><h3 id="section_identification"><%= t('headings.Identification') %></h3>
+          <li class="list-group-item"><h3 id="section_general_project_info"><%= t('headings.General_project_info') %></h3>
 
             <%= render(partial: 'form_basics',
                        locals:
                          {
-                           project: project, is_disabled: is_disabled,
+                           project: project, view_only: view_only,
                            badge_hostname: badge_hostname, f: f,
-                           criteria_level: '0'
+                           criteria_level: criteria_level
                          }) %>
-
-            <div class="hidable-text-entry">
-            <strong><%= t 'projects.form_basics.implementation_languages.description' %></strong>
-            <%= render(partial: "details", locals: {
-              criterion: "implementation_languages",
-              details:
-                t('projects.form_basics.implementation_languages.details') }) %>
-            <%= f.text_field :implementation_languages,
-                             hide_label: true, class:"form-control",
-                             placeholder:
-                               t('projects.form_basics.' +
-                                 'implementation_languages.placeholder'),
-                             spellcheck: false,
-                             list: 'implementation_language_list',
-                             disabled: is_disabled %>
-           <!-- Some examples from http://wiki.spdx.org/view/FileNoticeExamples -->
-           <datalist class="hidden" id="implementation_language_list">
-              <option value="-">- (None)</option>
-              <option value="4th Dimension/4D">4th Dimension/4D</option>
-              <option value="ABAP">ABAP</option>
-              <option value="ABC">ABC</option>
-              <option value="ActionScript">ActionScript</option>
-              <option value="Ada">Ada</option>
-              <option value="Alice">Alice</option>
-              <option value="Apex">Apex</option>
-              <option value="APL">APL</option>
-              <option value="Assembly language">Assembly language</option>
-              <option value="AutoLISP">AutoLISP</option>
-              <option value="Awk">Awk</option>
-              <option value="Bash">Bash (bash-specific)</option>
-              <option value="bc">bc</option>
-              <option value="BlitzMax">BlitzMax</option>
-              <option value="Bourne shell">Bourne shell (portable)</option>
-              <option value="C">C</option>
-              <option value="C#">C#</option>
-              <option value="C++">C++</option>
-              <option value="CFML">CFML</option>
-              <option value="cg">cg</option>
-              <option value="Clojure">Clojure</option>
-              <option value="CL (OS/400)">CL (OS/400)</option>
-              <option value="COBOL">COBOL</option>
-              <option value="Common Lisp">Common Lisp</option>
-              <option value="Crystal">Crystal</option>
-              <option value="C shell">C shell</option>
-              <option value="D">D</option>
-              <option value="Dart">Dart</option>
-              <option value="Delphi">Delphi</option>
-              <option value="Eiffel">Eiffel</option>
-              <option value="Elixir">Elixir</option>
-              <option value="Elm">Elm</option>
-              <option value="Emacs Lisp">Emacs Lisp</option>
-              <option value="Erlang">Erlang</option>
-              <option value="F#">F#</option>
-              <option value="Factor">Factor</option>
-              <option value="Forth">Forth</option>
-              <option value="Fortran">Fortran</option>
-              <option value="FoxPro">FoxPro</option>
-              <option value="Go">Go</option>
-              <option value="Groovy">Groovy</option>
-              <option value="Hack">Hack</option>
-              <option value="Haskell">Haskell</option>
-              <option value="Icon">Icon</option>
-              <option value="IDL">IDL</option>
-              <option value="Inform 6">Inform 6</option>
-              <option value="Inform 7">Inform 7</option>
-              <option value="Io">Io</option>
-              <option value="J">J</option>
-              <option value="Java">Java</option>
-              <option value="JavaScript">JavaScript</option>
-              <option value="Julia">Julia</option>
-              <option value="Korn shell">Korn shell</option>
-              <option value="Kotlin">Kotlin</option>
-              <option value="LabVIEW">LabVIEW</option>
-              <option value="Ladder Logic">Ladder Logic</option>
-              <option value="Lisp">Lisp (other than Common Lisp, Scheme, Emacs Lisp, or Clojure)</option>
-              <option value="Logo">Logo</option>
-              <option value="Lua">Lua</option>
-              <option value="Maple">Maple</option>
-              <option value="MATLAB">MATLAB</option>
-              <option value="ML">ML</option>
-              <option value="MQL4">MQL4</option>
-              <option value="NATURAL">NATURAL</option>
-              <option value="NXT-G">NXT-G</option>
-              <option value="Objective-C">Objective-C</option>
-              <option value="OCaml">OCaml</option>
-              <option value="OpenCL">OpenCL</option>
-              <option value="Oz">Oz</option>
-              <option value="Perl">Perl</option>
-              <option value="PHP">PHP</option>
-              <option value="PL/I">PL/I</option>
-              <option value="PL/SQL">PL/SQL</option>
-              <option value="PostScript">PostScript</option>
-              <option value="PowerShell">PowerShell</option>
-              <option value="Prolog">Prolog</option>
-              <option value="Python">Python</option>
-              <option value="Q">Q</option>
-              <option value="R">R</option>
-              <option value="REXX">REXX</option>
-              <option value="RPG (OS/400)">RPG (OS/400)</option>
-              <option value="Ruby">Ruby</option>
-              <option value="Rust">Rust</option>
-              <option value="SAS">SAS</option>
-              <option value="Scala">Scala</option>
-              <option value="Scheme">Scheme</option>
-              <option value="Scratch">Scratch</option>
-              <option value="Simulink">Simulink</option>
-              <option value="Smalltalk">Smalltalk</option>
-              <option value="SPARK">SPARK</option>
-              <option value="SPSS">SPSS</option>
-              <option value="Standard ML">Standard ML</option>
-              <option value="Stata">Stata</option>
-              <option value="Swift">Swift</option>
-              <option value="Tcl">Tcl</option>
-              <option value="Transact-SQL">Transact-SQL</option>
-              <option value="VBScript">VBScript</option>
-              <option value="Verilog ">Verilog </option>
-              <option value="VHDL">VHDL</option>
-              <option value="Visual Basic">Visual Basic (not .NET)</option>
-              <option value="Visual Basic .NET">Visual Basic .NET</option>
-           </datalist>
-           </div>
-<!-- TODO: MUST have a project or repo URL, SUGGESTED to use HTTPS.
-     However, first is implied by "description_good",
-     and the MITM stuff notes https as a way to implement it. -->
-            <div class="hidable-text-entry">
-            <%= f.label :cpe, t('projects.form_basics.cpe.description_html') %>
-            <%= render(partial: "details",
-                       locals: {
-                         criterion: "cpe",
-                         details:
-                           t('projects.form_basics.cpe.details_html')}) %>
-            <%= f.text_field :cpe,
-                  skip_label: true, class:"form-control",
-                  placeholder: t('projects.form_basics.cpe.placeholder'),
-                  spellcheck: false, disabled: is_disabled %>
-            </div>
           </li>
 
    <%# Note: render() accepts met_suppress: ..., unmet_placeholder:  ... %>
           <li class="list-group-item"><h3 id="section_basic_project_website_content"><%= t('headings.Basic project website content') %></h3>
-            <%= render_status 'description_good', f, project, '0', is_disabled %>
+            <%= render_status 'description_good', f, project, '0', view_only %>
 
-            <%= render_status 'interact', f, project, '0', is_disabled %>
+            <%= render_status 'interact', f, project, '0', view_only %>
 
-            <%= render_status 'contribution', f, project, '0', is_disabled %>
+            <%= render_status 'contribution', f, project, '0', view_only %>
 
-            <%= render_status 'contribution_requirements', f, project, '0', is_disabled, true %>
+            <%= render_status 'contribution_requirements', f, project, '0', view_only, true %>
           </li>
           <li class="list-group-item"><h3 id="section_floss_license"><%=
             t('FLOSS license',
               scope: :headings) %></h3>
 
-            <div class="hidable-text-entry">
-            <strong><%= t('projects.form_basics.license.description_html') %></strong>
-            <%= render(partial: 'details',
-                       locals: {
-                         criterion: 'license',
-                         details:
-                           t('projects.form_basics.license.details_html')
-                       }) %>
-            <%=
-                # "Pattern" here is not a rigorous check of SPDX syntax.
-                # It only checks to ensure that only legal characters are
-                # allowed. Still, this can prevent some problems we've seen
-                # in some submissions, while permitting legal expressions like
-                # "(GPL-2.0+ WITH Bison-exception-2.2)".  See:
-                # https://spdx.org/spdx-specification-21-web-version
-                # Errors here do not cause *security* issues, so we're not
-                # too strict, but we want to check inputs so that our
-                # data is much more likely to be accurate.
-                f.text_field :license,
-                             class: 'form-control', hide_label: true,
-                             pattern: '[()A-Za-z0-9\-.+ ]*',
-                             title:
-                               t('projects.form_basics.license.title'),
-                             placeholder:
-                               t('projects.form_basics.license.placeholder'),
-                             list: 'license_list', disabled: is_disabled %>
-           <!-- Some examples from http://wiki.spdx.org/view/FileNoticeExamples -->
-           <datalist class="hidden" id="license_list">
-              <option value="AGPL-3.0-only">AGPL-3.0-only {GNU Affero General Public License 3.0 only}</option>
-              <option value="AGPL-3.0-or-later">AGPL-3.0-or-later {GNU Affero General Public License 3.0 or later}</option>
-              <option value="Apache-2.0">Apache-2.0 {Apache License 2.0}</option>
-              <option value="Artistic-1.0">Artistic-1.0 {Artistic License 1.0}</option>
-              <option value="Artistic-1.0-Perl">Artistic-1.0-Perl {Artistic License 1.0, Perl}</option>
-              <option value="Artistic-1.0-cl8">Artistic-1.0-cl8 {Artistic License 1.0 with clause 8}</option>
-              <option value="Artistic-2.0">Artistic-2.0 {Artistic License 2.0}</option>
-              <option value="BSD-3-Clause">BSD-3-Clause {BSD 3-clause "New" or "Revised" License}</option>
-              <option value="BSD-2-Clause">BSD-2-Clause {BSD 2-clause "Simplified" License}</option>
-              <option value="BSD-2-Clause-FreeBSD">BSD-2-Clause-FreeBSD {BSD 2-clause FreeBSD License}</option>
-              <option value="BSL-1.0">BSL-1.0 {Boost Software License 1.0}</option>
-              <option value="CC0-1.0">CC0-1.0 {Creative Commons Zero v1.0 Universal}</option>
-              <option value="CC-BY-3.0">CC-BY-3.0 {Creative Commons Attribution 3.0}</option>
-              <option value="CC-BY-3.0+">CC-BY-3.0+ {Creative Commons Attribution 3.0 or later}</option>
-              <option value="CC-BY-4.0">CC-BY-4.0 {Creative Commons Attribution 4.0}</option>
-              <option value="CC-BY-4.0+">CC-BY-4.0+ {Creative Commons Attribution 4.0 or later}</option>
-              <option value="CC-BY-SA-3.0">CC-BY-SA-3.0 {Creative Commons Attribution ShareAlike 3.0}</option>
-              <option value="CC-BY-SA-3.0+">CC-BY-SA-3.0+ {Creative Commons Attribution ShareAlike 3.0 or later}</option>
-              <option value="CC-BY-SA-4.0">CC-BY-SA-4.0 {Creative Commons Attribution ShareAlike 4.0}</option>
-              <option value="CC-BY-SA-4.0+">CC-BY-SA-4.0+ {Creative Commons Attribution ShareAlike 4.0 or later}</option>
-              <option value="CDDL-1.0">CDDL-1.0 {Common Development and Distribution License 1.0}</option>
-              <option value="CDDL-1.1">CDDL-1.1 {Common Development and Distribution License 1.1}</option>
-              <option value="CPL-1.0">CPL-1.0 {Common Public License 1.0}</option>
-              <option value="CECILL-B">CECILL-B {CeCILL-B Free Software License Agreement}</option>
-              <option value="EPL-1.0">EPL-1.0 {Eclipse Public License 1.0}</option>
-              <option value="EPL-2.0">EPL-2.0 {Eclipse Public License 2.0}</option>
-              <option value="GPL-2.0-only">GPL-2.0-only {GNU General Public License version 2.0 only}</option>
-              <option value="GPL-2.0-or-later">GPL-2.0-or-later {GNU General Public License version 2.0 or later}</option>
-              <option value="GPL-3.0-only">GPL-3.0-only {GNU General Public License version 3.0 only}</option>
-              <option value="GPL-3.0-or-later">GPL-3.0-or-later {GNU General Public License version 3.0 or later}</option>
-              <option value="ISC">ISC {ISC license}</option>
-              <option value="LGPL-2.1-only">LGPL-2.1-only {GNU Lesser General Public License version 2.1 only}</option>
-              <option value="LGPL-2.1-or-later">LGPL-2.1-or-later {GNU Lesser General Public License version 2.1 or later}</option>
-              <option value="LGPL-3.0-only">LGPL-3.0-only {GNU Lesser General Public License version 3.0 only}</option>
-              <option value="LGPL-3.0-or-later">LGPL-3.0-or-later {GNU Lesser General Public License version 3.0 or later}</option>
-              <option value="MS-PL">MS-PL {Microsoft Public License}</option>
-              <option value="MIT">MIT</option>
-              <option value="MPL-1.0">MPL-1.0 {Mozilla Public License 1.0}</option>
-              <option value="MPL-1.1">MPL-1.1 {Mozilla Public License 1.1}</option>
-              <option value="MPL-2.0">MPL-2.0 {Mozilla Public License 2.0}</option>
-              <option value="MPL-2.0-no-copyleft-exception">MPL-2.0-no-copyleft-exception {Mozilla Public License 2.0, no copyleft exception}</option>
-              <option value="Unlicense">Unlicense {The Unlicense}</option>
-              <option value="Zlib">Zlib {zlib License}</option>
-              <option value="zlib-acknowledgement">zlib-acknowledgement {zlib/libpng License with Acknowledgement}</option>
-              <option value="(GPL-3.0-or-later WITH Bison-Exception)">(GPL-3.0-or-later WITH Bison-Exception)</option>
-              <option value="(LGPL-2.1-or-later AND AML)">(LGPL-2.1-or-later AND AML) {must meet both the GNU Lesser General Public License version 2.1 or later AND the Apple MIT License}</option>
-              <option value="(MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later)">(MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later)</option>
-              <option value="(Ruby OR BSD-2-Clause)">(Ruby OR BSD-2-Clause)</option>
-           </datalist>
-            <br>
-            <hr>
-           </div>
+            <%= render_status 'floss_license', f, project, '0', view_only %>
 
-            <%= render_status 'floss_license', f, project, '0', is_disabled %>
+            <%= render_status 'floss_license_osi', f, project, '0', view_only %>
 
-            <%= render_status 'floss_license_osi', f, project, '0', is_disabled %>
-
-            <%= render_status 'license_location', f, project, '0', is_disabled, true %>
+            <%= render_status 'license_location', f, project, '0', view_only, true %>
           <%# End of Basics "identification" section %>
           </li>
 
           <%= render_minor_status(
-                '0', 'Basics', 'Documentation', f, project, is_disabled
+                '0', 'Basics', 'Documentation', f, project, view_only
               ) %>
 
           <%= render_minor_status(
-                '0', 'Basics', 'Other', f, project, is_disabled
+                '0', 'Basics', 'Other', f, project, view_only
               ) %>
         </ul>
-      <% if !is_disabled && current_user &&
-            (current_user.admin? || current_user.id == project.user_id) %>
-        <div class="row">
-        <div class="col-xs-12">
-          <br>
-            <%= t 'projects.edit.new_owner' %>:
-            <%= f.text_field :user_id,
-                             hide_label: true, class:"form-control",
-                             placeholder: nil,
-                             spellcheck: false,
-                             disabled: is_disabled %><br>
-        </div>
-        <div class="col-xs-12">
-          <br>
-            <%= t 'projects.edit.new_owner_repeat' %>:
-            <%# The user must provide the same value here as user_id to
-                cause an ownership change.
-                The client-side pattern here prevents some mistakes.
-                Since it's client-side we don't depend on it for security.
-            %>
-            <input type="text" name="project[user_id_repeat]"
-                   id="project_user_id_repeat" class="form-control"
-                   value="" spellcheck="false" pattern="^(|\d+)$"
-                   placeholder="">
-        </div>
-        </div>
-      <% end %>
-      <div class="row">
-      <div class="col-xs-12">
-        <br>
-        <div class="alert alert-info">
-          <strong><%= t('projects.misc.reminder_notification_note.title') %></strong>
-          <%= t('projects.misc.reminder_notification_note.description_html', user_id: current_user&.id) %>
-        </div>
-      </div>
-      </div>
+      <%# Ownership transfer and collaborator management moved to
+          /projects/:id/permissions/edit - a dedicated permissions form %>
 
-      <div class="row">
-      <div class="col-xs-12">
-        <%= t 'projects.form_basics.additional_rights_changes.description',
-              current_rights: project.additional_rights_to_s %>
-        <%= render(partial: "details", locals: {
-          criterion: "additional_rights_changes",
-          details:
-            t('projects.form_basics.additional_rights_changes.details_html') })
-        %>
-        <% unless is_disabled %>
-        <%# text_field_tag isn't flexible enough, so create this directly.
-            The client-side pattern here prevents some mistakes,
-            but since it's client-side we don't depend on it for security. %>
-          <input type="text" name="additional_rights_changes"
-                 id="additional_rights_changes" class="form-control"
-                 value="" spellcheck="false"
-                 pattern="^(| *[+-] *(\d+( *, *\d+)*)+)$"
-                 placeholder="<%= t('projects.form_basics.additional_rights_changes.placeholder')%>">
-        <% end # is_disabled %>
-      </div>
-      </div>
-
-      <br><br>
-      <%= f.label :general_comments,
-                  t('projects.misc.general_comments.description') %><br>
-      <% if is_disabled %>
-        <div class="discussion-markdown" id="project_general_comments">
-          <%= markdown(project[:general_comments]) %>
-        </div>
-      <% else %>
-        <%= f.text_area :general_comments,
-                        class:"form-control", skip_label: true,
-                        lang: 'en', spellcheck: true,
-                        placeholder:
-                          t('projects.misc.general_comments.placeholder'),
-                        disabled: is_disabled %>
-      <% end %>
-      <% unless is_disabled %>
+      <% unless view_only %>
         <div class="panel-footer text-center">
-          <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-          <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'changecontrol', class:"btn btn-success btn-submit" %>
+          <%= render 'form_submit_notice', project: project %>
+          <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'changecontrol', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
           <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
         </div>
       <% end %>
@@ -409,22 +114,23 @@
           <%= render_minor_status(
                 '0', 'Change Control',
                 'Public version-controlled source repository',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '0', 'Change Control', 'Unique version numbering',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '0', 'Change Control', 'Release notes',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'reporting', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'reporting', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -444,19 +150,20 @@
         <ul class="list-group">
           <%= render_minor_status(
                 '0', 'Reporting', 'Bug-reporting process',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
 
           <%= render_minor_status(
                 '0', 'Reporting', 'Vulnerability report process',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'quality', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'quality', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -476,29 +183,30 @@
         <ul class="list-group">
           <%= render_minor_status(
                 '0', 'Quality', 'Working build system',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
 
           <%= render_minor_status(
                 '0', 'Quality', 'Automated test suite',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
 
           <%= render_minor_status(
                 '0', 'Quality', 'New functionality testing',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
 
           <%= render_minor_status(
                 '0', 'Quality', 'Warning flags',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'security', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'security', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -518,47 +226,51 @@
         <ul class="list-group">
           <%= render_minor_status(
                 '0', 'Security', 'Secure development knowledge',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
-          <li class="list-group-item"><h3 id="section_use_basic_good_cryptographic_practices"><%=
+          <li class="list-group-item">
+            <% cache_frozen ['crypto_section_header', '0', locale, view_only] do %>
+            <h3 id="section_use_basic_good_cryptographic_practices"><%=
             t('Use basic good cryptographic practices',
               scope: :headings) %></h3>
 
             <span class="criteria-desc">
               <%= t('projects.misc.some_not_crypto_html') %>
             </span>
-            <% if (!is_disabled) %>
+            <% if (!view_only) %>
               <br><br>
               <button class="btn btn-default hidden-print" type="button" id='all_crypto_na'>
                 <%= t('projects.misc.dont_use_crypto') %>
               </button>
               <br>
             <% end %>
+            <% end # cache crypto_section_header %>
             <%# Do *NOT* wrap this with <li>...</li>, we did that already. %>
             <%= render_minor_status(
                   '0', 'Security', 'Use basic good cryptographic practices',
-                  f, project, is_disabled, false
+                  f, project, view_only, false
                 ) %>
           </li>
           <%= render_minor_status(
                 '0', 'Security',
                 'Secured delivery against man-in-the-middle (MITM) attacks',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '0', 'Security', 'Publicly known vulnerabilities fixed',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '0', 'Security', 'Other security issues',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
-        <% unless is_disabled %>
+        <% unless view_only %>
           <div class="panel-footer text-center">
-            <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-            <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-              value: 'analysis', class:"btn btn-success btn-submit" %>
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'analysis', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
             <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
           </div>
         <% end %>
@@ -578,11 +290,11 @@
         <ul class="list-group">
           <%= render_minor_status(
                 '0', 'Analysis', 'Static code analysis',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
           <%= render_minor_status(
                 '0', 'Analysis', 'Dynamic code analysis',
-                f, project, is_disabled
+                f, project, view_only
               ) %>
         </ul>
       </div>
@@ -590,13 +302,14 @@
   </div>
       <br>
       <div class="center">
-      <% if is_disabled %>
+      <% if view_only %>
         <%= t "projects.show.#{project.data_license_field}",
               user: project.user_display_name %>
       <% else %>
-        <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
-        <%= f.button t('projects.edit.save_and_continue'), type: 'submit', name: 'continue',
-          value: 'Save', class:"btn btn-success btn-submit" %>
+        <%= render 'form_submit_notice', project: project %>
+        <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+              value: 'Save', class:"btn btn-success btn-submit",
+              title: t('projects.edit.save_and_continue_tooltip') %>
         <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
       <% end %>
       </div>
@@ -604,4 +317,3 @@
   </div>
 </div>
 </div>
-<% end %>

@@ -1,0 +1,17 @@
+<div class="row">
+  <div class="col-md-2 col-sm-3">
+    <div class="main-badge-ques"></div>
+  </div>
+  <div class="col-md-7 col-sm-6">
+    <h1 class="m-t-0 h2"><%= t('.title') %></h1>
+    <p><strong><%= @project.name.presence || '(Name Unknown)' %></strong></p>
+    <p><%= t('.instructions') %></p>
+    <ul>
+      <% ApplicationHelper.project_nav_sections[I18n.locale].each do |section| %>
+        <li>
+          <%= link_to section[:name], project_section_path(@project, section[:level]) %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

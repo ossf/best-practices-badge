@@ -13,7 +13,7 @@ Rails.application.configure do
   # test suite. You never need to work with it otherwise. Remember that
   # your test database is "scratch space" for the test suite and is wiped
   # and recreated between test runs. Don't rely on the data there!
-  config.cache_classes = false
+  config.enable_reloading = true
 
   # Do not eager load code on boot. This avoids loading your whole application
   # just for the purpose of running a single test. If you are using a tool that
@@ -28,9 +28,15 @@ Rails.application.configure do
   # Show full error reports and disable caching.
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = true
+  # Cache store config - must match production.rb (see explanation there
+  # for why this is duplicated rather than shared in application.rb).
+  require_relative '../../lib/no_dup_coder'
   config.cache_store =
     :memory_store,
-    { size: (ENV['RAILS_CACHE_SIZE'] || '128').to_i.megabytes }
+    {
+      size: (ENV['RAILS_CACHE_SIZE'] || '128').to_i.megabytes,
+      coder: NoDupCoder
+    }
 
   # Raise exceptions instead of rendering exception templates.
   # This makes it easier to detect uncaught exceptions during testing.
@@ -55,35 +61,12 @@ Rails.application.configure do
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
+  # Don't force SSL in test environment - causes 301 redirects that break tests
+  config.force_ssl = false
+
   # Enable Rack's built-in compression mechanism; this is important for people
   # with slow network connections.  Enable during tests to make test
   # more like production
   config.middleware.use Rack::Deflater
-
-  config.after_initialize do
-    # The 'bullet' gem watches application queries and notifies
-    # when you should add eager loading (N+1 queries),
-    # when you're using eager loading that isn't necessary and
-    # when you should use counter cache.
-    Bullet.enable = true
-    Bullet.rails_logger = true
-    Bullet.add_footer = true
-    Bullet.raise = true # raise an error if n+1 query occurs
-    # Bullet.alert = true
-    # Bullet.bullet_logger = true
-    # Bullet.console = true
-    # Bullet.growl = true
-    # Bullet.xmpp = { :account  => 'bullets_account@jabber.org',
-    #               :password => 'bullets_password_for_jabber',
-    #               :receiver => 'your_account@jabber.org',
-    #               :show_online_status => true }
-    # Bullet.honeybadger = true
-    # Bullet.bugsnag = true
-    # Bullet.airbrake = true
-    # Bullet.rollbar = true
-    # Bullet.stacktrace_includes = [ 'your_gem', 'your_middleware' ]
-    # Bullet.stacktrace_excludes = [ 'their_gem', 'their_middleware' ]
-    # Bullet.slack = { webhook_url: 'http://some.slack.url', foo: 'bar' }
-  end
 end
 # rubocop:enable Metrics/BlockLength

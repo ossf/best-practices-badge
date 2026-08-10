@@ -9,15 +9,13 @@ json.call(
   @user, :id, :name, :nickname, :uid, :provider, :created_at, :updated_at
 )
 # This is an array of the project ids this user owns.
-json.projects @user.projects.pluck(:id)
+# Use ids for efficiency - we need ALL project IDs (not paginated subset)
+json.projects @user.projects.ids
 # Generate { project1.id: ['edit'], project2.id: ['edit'], ...}.
 # We generate this format in case there's more than 1 right in the future.
-# We could use @user.additional_rights.pluck(:id) instead, but we've
-# already calculated it so there's no point in doing it twice.
+# Use map and index_with since @projects_additional_rights is already loaded
 json.additional_rights(
-  @projects_additional_rights.pluck(:id).each_with_object({}) do |p, result|
-    result[p] = ['edit']
-  end
+  @projects_additional_rights.map(&:id).index_with { ['edit'] }
 )
 #
 # current user or admin can see more

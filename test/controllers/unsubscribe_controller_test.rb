@@ -11,6 +11,7 @@ require 'cgi'
 # rubocop:disable Metrics/ClassLength
 class UnsubscribeControllerTest < ActionDispatch::IntegrationTest
   def setup
+    super
     @user = User.create!(
       name: 'Test User',
       email: 'test@example.com',

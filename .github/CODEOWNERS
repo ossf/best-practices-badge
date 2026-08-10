@@ -1,0 +1,17 @@
+# CODEOWNERS — enforce mandatory review for security-sensitive files.
+#
+# Changes to these paths automatically request review from the listed owners.
+# This requires "Require review from Code Owners" to be enabled in
+# GitHub → Settings → Branches → Branch protection rules for main.
+#
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# CI/CD pipeline configuration — any change here can affect code execution
+# and credential access during automated workflows.
+/.github/                @david-a-wheeler @SecurityCRob @GeauxJD
+/.circleci/              @david-a-wheeler @SecurityCRob @GeauxJD
+
+# Dependency management — changes here affect what third-party code runs
+# in production and in CI.
+/Gemfile                 @david-a-wheeler @SecurityCRob @GeauxJD
+/Gemfile.lock            @david-a-wheeler @SecurityCRob @GeauxJD

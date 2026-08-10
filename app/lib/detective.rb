@@ -17,6 +17,11 @@ class Detective
   INPUTS = [].freeze
   OUTPUTS = [].freeze
 
+  # Individual detectives must identify which outputs can override user input
+  # (when confidence >= Chief::CONFIDENCE_OVERRIDE).
+  # Outputs not listed here will only fill in blank/'?' fields.
+  OVERRIDABLE_OUTPUTS = [].freeze
+
   # Individual detectives must implement "analyze"
   # "Current" is a hash of current best estimates of fields and values.
   # We pass this separately from the evidence to reduce potential problems

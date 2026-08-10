@@ -28,6 +28,12 @@ class PasswordResetsTest < ActionDispatch::IntegrationTest
     assert_equal 0, ActionMailer::Base.deliveries.size
     assert_not flash.empty?
     assert_redirected_to root_url(locale: :en)
+    # Unactivated account - no email should be sent
+    unactivated = users(:test_user_not_active)
+    post password_resets_path,
+         params: { password_reset: { email: unactivated.email }, locale: :en }
+    assert_equal 0, ActionMailer::Base.deliveries.size
+    assert_redirected_to root_url(locale: :en)
     # Valid email
     post password_resets_path,
          params: { password_reset: { email: @user.email }, locale: :en }

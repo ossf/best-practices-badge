@@ -1,0 +1,1043 @@
+# criteria/security_insights_map.yml
+#
+# Mapping from security-insights.yml fields to badge criteria proposals,
+# to enable automation.
+#
+# To update # Target: comment blocks run:
+#   ruby script/update_security_insights_comments.rb
+#
+# Each entry maps one security-insights.yml field condition to one badge
+# target criterion.  Multiple entries may share the same si_path (one per
+# target); multiple entries may share the same target_criterion (one per
+# source field or condition).  The detective takes the highest-confidence
+# proposal for each target.
+#
+# si_path: dot-notation path into the parsed security-insights YAML.
+#   Hyphens in key names are allowed (e.g. "vulnerability-reporting").
+#
+# The condition is matched based on which optional fields are present:
+#   si_value        - case-insensitive .to_s equality (or substring) match
+#   si_alternatives - case-insenstiive match against any item in the list
+#   si_item_field   - array-of-objects scan: The si_path is expected to
+#                     contain a list of objects. In each object, inspect
+#                     the named sub-field (e.g., `type`) in each object.
+#                     This matches if any of those objects match
+#   also            - sub-path within the matched object that must also equal
+#                     boolean true (only valid with si_item_field)
+#   substring: true - use "contains" rather than equality for comparisons
+# If none of these are present, then this is just a presence check
+# (the rule matches if the field is non-nil and non-empty).
+#
+# target_criterion: badge field name (metal or baseline)
+# inferred_status: Met | Unmet | N/A
+# confidence: 0-3 (always < Chief::CONFIDENCE_OVERRIDE of 4)
+#   0 = intentionally disabled; documents an understood situation we have
+#       deliberately decided not to act on.  Stripped from MAPPINGS at load
+#       time — never reaches any detective logic or OUTPUTS.
+#   1 = weak signal; worth surfacing but treat with caution
+#   2 = moderate confidence; partial or related requirement
+#   2.5 = strong confidence; essentially the same requirement.
+#       We don't use the more obvious "3" because we also look at
+#       *other* data that might more *directly* justify the claim.
+#       In those cases we want to point to that more direct evidence.
+#       While having a security-insights value is nice, they don't
+#       necessarily include comments, in which case all we can record is that
+#       the security-insights file made a claim. If we can record the
+#       more direct evidence justifying the claim, we should do that.
+#       (An alternative would be to add 0.25 or 0.05 confidence if there
+#       is a comment. We don't do that, because we don't know how valuable
+#       the comment is, but maybe we should!)
+#
+# Target criterion descriptions (from config/locales/en.yml) appear as
+# # Target: comment blocks below each target_criterion line.
+# These are maintained by script/update_security_insights_comments.rb.
+# DO NOT edit # Target: blocks by hand; run the script instead:
+#   ruby script/update_security_insights_comments.rb
+
+mappings:
+
+  # ---------------------------------------------------------------------------
+  # Vulnerability Reporting (project.vulnerability-reporting)
+  # ---------------------------------------------------------------------------
+
+  # project.vulnerability-reporting.reports-accepted
+  # Type: Boolean (required in VulnerabilityReporting)
+  # Whether the project accepts vulnerability reports from external parties.
+
+  - si_path: project.vulnerability-reporting.reports-accepted
+    si_value: true
+    target_criterion: vulnerability_report_process
+    # Target:
+    #   description: "The project MUST publish the process for reporting
+    #     vulnerabilities on the project site."
+    #   details: "Projects hosted on GitHub SHOULD consider enabling privately
+    #     reporting a security vulnerability. Projects on GitLab SHOULD
+    #     consider using its ability for privately reporting a vulnerability.
+    #     Projects MAY identify a mailing address on
+    #     https://PROJECTSITE/security, often in the form security@example.org.
+    #     This vulnerability reporting process MAY be the same as its bug
+    #     reporting process. Vulnerability reports MAY always be public, but
+    #     many projects have a private vulnerability reporting mechanism."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: project.vulnerability-reporting.reports-accepted
+    si_value: false
+    target_criterion: vulnerability_report_process
+    # Target:
+    #   description: "The project MUST publish the process for reporting
+    #     vulnerabilities on the project site."
+    #   details: "Projects hosted on GitHub SHOULD consider enabling privately
+    #     reporting a security vulnerability. Projects on GitLab SHOULD
+    #     consider using its ability for privately reporting a vulnerability.
+    #     Projects MAY identify a mailing address on
+    #     https://PROJECTSITE/security, often in the form security@example.org.
+    #     This vulnerability reporting process MAY be the same as its bug
+    #     reporting process. Vulnerability reports MAY always be public, but
+    #     many projects have a private vulnerability reporting mechanism."
+    # Note: false means the project actively states it does not accept reports,
+    # which makes it very likely no reporting process has been published.
+    # A project could theoretically publish a process that says "we don't accept
+    # reports," but this is unusual; confidence 2 (not 3) reflects that edge case.
+    inferred_status: Unmet
+    confidence: 2
+
+  - si_path: project.vulnerability-reporting.reports-accepted
+    si_value: true
+    target_criterion: vulnerability_report_response
+    # Target:
+    #   description: "The project's initial response time for any vulnerability
+    #     report received in the last 6 months MUST be less than or equal to 14
+    #     days."
+    #   details: "If there have been no vulnerabilities reported in the last 6
+    #     months, choose "not applicable" (N/A)."
+    # Note: Accepting reports is a necessary condition for responding to them,
+    # but says nothing about actual response speed.  A confidence-1 signal was
+    # considered but rejected: the criterion requires a specific ≤14-day SLA,
+    # which cannot be inferred from a boolean flag.  Confidence 0 = disabled.
+    inferred_status: Met
+    confidence: 0
+
+  - si_path: project.vulnerability-reporting.reports-accepted
+    si_value: true
+    target_criterion: osps_vm_03_01
+    # Target:
+    #   description: "While active, the project documentation MUST provide a
+    #     means for private vulnerability reporting directly to the security
+    #     contacts within the project."
+    #   details: "Provide a means for security researchers to report
+    #     vulnerabilities privately to the project. This may be a dedicated
+    #     email address, a web form, VCS specialized tools, email addresses for
+    #     security contacts, or other methods."
+    # Note: reports-accepted=true means reports are accepted, but says nothing
+    # about whether the channel is *private*.  A project that accepts only public
+    # issue reports satisfies reports-accepted but not osps_vm_03_01.  Confidence
+    # 1 (weak signal); a stronger signal is pgp-key or contact email being present.
+    inferred_status: Met
+    confidence: 0
+
+  - si_path: project.vulnerability-reporting.reports-accepted
+    si_value: false
+    target_criterion: osps_vm_03_01
+    # Target:
+    #   description: "While active, the project documentation MUST provide a
+    #     means for private vulnerability reporting directly to the security
+    #     contacts within the project."
+    #   details: "Provide a means for security researchers to report
+    #     vulnerabilities privately to the project. This may be a dedicated
+    #     email address, a web form, VCS specialized tools, email addresses for
+    #     security contacts, or other methods."
+    inferred_status: Unmet
+    confidence: 2.5
+
+  # project.vulnerability-reporting.policy
+  # Type: URL (optional)
+  # URL of the project's coordinated vulnerability disclosure (CVD) policy.
+
+  - si_path: project.vulnerability-reporting.policy
+    target_criterion: vulnerability_report_process
+    # Target:
+    #   description: "The project MUST publish the process for reporting
+    #     vulnerabilities on the project site."
+    #   details: "Projects hosted on GitHub SHOULD consider enabling privately
+    #     reporting a security vulnerability. Projects on GitLab SHOULD
+    #     consider using its ability for privately reporting a vulnerability.
+    #     Projects MAY identify a mailing address on
+    #     https://PROJECTSITE/security, often in the form security@example.org.
+    #     This vulnerability reporting process MAY be the same as its bug
+    #     reporting process. Vulnerability reports MAY always be public, but
+    #     many projects have a private vulnerability reporting mechanism."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: project.vulnerability-reporting.policy
+    target_criterion: osps_vm_01_01
+    # Target:
+    #   description: "While active, the project documentation MUST include a
+    #     policy for coordinated vulnerability disclosure (CVD), with a clear
+    #     timeframe for response."
+    #   details: "Create a SECURITY.md file at the root of the directory,
+    #     outlining the project's policy for coordinated vulnerability
+    #     disclosure. Include a method for reporting vulnerabilities. Set
+    #     expectations for how the project will respond and address reported
+    #     issues."
+    inferred_status: Met
+    confidence: 2
+
+  # project.vulnerability-reporting.pgp-key
+  # Type: String (optional)
+  # PGP key (or fingerprint/URL) for encrypted vulnerability report submission.
+
+  - si_path: project.vulnerability-reporting.pgp-key
+    target_criterion: vulnerability_report_private
+    # Target:
+    #   description: "If private vulnerability reports are supported, the
+    #     project MUST include how to send the information in a way that is
+    #     kept private."
+    #   details: "Examples include a private defect report submitted on the web
+    #     using HTTPS (TLS) or an email encrypted using OpenPGP. If
+    #     vulnerability reports are always public (so there are never private
+    #     vulnerability reports), choose "not applicable" (N/A)."
+    inferred_status: Met
+    confidence: 2
+
+  # ---------------------------------------------------------------------------
+  # Repository Documentation (repository.documentation)
+  # ---------------------------------------------------------------------------
+
+  # repository.documentation.contributing-guide
+  # Type: URL (optional)
+  # URL of a guide explaining how to contribute to the project.
+
+  - si_path: repository.documentation.contributing-guide
+    target_criterion: contribution
+    # Target:
+    #   description: "The information on how to contribute MUST explain the
+    #     contribution process (e.g., are pull requests used?)"
+    #   details: "We presume that projects on GitHub use issues and pull
+    #     requests unless otherwise noted. This information can be short, e.g.,
+    #     stating that the project uses pull requests, an issue tracker, or
+    #     posts to a mailing list (which one?)"
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.documentation.contributing-guide
+    target_criterion: osps_gv_03_01
+    # Target:
+    #   description: "While active, the project documentation MUST include an
+    #     explanation of the contribution process."
+    #   details: "Create a CONTRIBUTING.md or CONTRIBUTING/ directory to
+    #     outline the contribution process including the steps for submitting
+    #     changes, and engaging with the project maintainers."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.documentation.security-policy
+  # Type: URL (optional)
+  # URL of the project's security policy document (e.g. SECURITY.md).
+
+  - si_path: repository.documentation.security-policy
+    target_criterion: osps_vm_01_01
+    # Target:
+    #   description: "While active, the project documentation MUST include a
+    #     policy for coordinated vulnerability disclosure (CVD), with a clear
+    #     timeframe for response."
+    #   details: "Create a SECURITY.md file at the root of the directory,
+    #     outlining the project's policy for coordinated vulnerability
+    #     disclosure. Include a method for reporting vulnerabilities. Set
+    #     expectations for how the project will respond and address reported
+    #     issues."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.documentation.security-policy
+    target_criterion: osps_vm_02_01
+    # Target:
+    #   description: "While active, the project documentation MUST contain
+    #     security contacts."
+    #   details: "Create a security.md (or similarly-named) file that contains
+    #     security contacts for the project."
+    inferred_status: Met
+    confidence: 2
+
+  # Considered and excluded: security-policy → osps_do_02_01
+  # osps_do_02_01 requires a guide for reporting *defects* (general bugs).
+  # The SI security-policy field is specifically a *security* vulnerability
+  # disclosure policy, which is a distinct document from a defect-reporting
+  # guide.  The overlap is too weak to infer Met, so this mapping is omitted.
+  # (osps_do_02_01 is already detected by RepoFilesExamineDetective via SECURITY.md)
+
+  # repository.documentation.governance
+  # Type: URL (optional)
+  # URL of a governance document describing project roles and responsibilities.
+
+  - si_path: repository.documentation.governance
+    target_criterion: osps_gv_01_01
+    # Target:
+    #   description: "While active, the project documentation MUST include a
+    #     list of project members with access to sensitive resources."
+    #   details: "Document project participants and their roles through such
+    #     artifacts as members.md, governance.md, maintainers.md, or similar
+    #     file within the source code repository of the project. This may be as
+    #     simple as including names or account handles in a list of
+    #     maintainers, or more complex depending on the project's governance."
+    inferred_status: Met
+    confidence: 1
+
+  - si_path: repository.documentation.governance
+    target_criterion: osps_gv_01_02
+    # Target:
+    #   description: "While active, the project documentation MUST include
+    #     descriptions of the roles and responsibilities for members of the
+    #     project."
+    #   details: "Document project participants and their roles through such
+    #     artifacts as members.md, governance.md, maintainers.md, or similar
+    #     file within the source code repository of the project."
+    inferred_status: Met
+    confidence: 1
+
+  # repository.documentation.review-policy
+  # Type: URL (optional)
+  # URL of a documented code review policy for the repository.
+
+  - si_path: repository.documentation.review-policy
+    target_criterion: osps_qa_07_01
+    # Target:
+    #   description: "When a commit is made to the primary branch, the
+    #     project's version control system MUST require at least one non-author
+    #     human approval of the changes before merging."
+    #   details: "Configure the project's version control system to require at
+    #     least one non-author human approval of changes before merging into
+    #     the release or primary branch. This can be achieved by requiring a
+    #     pull request to be reviewed and approved by at least one other
+    #     collaborator before it can be merged."
+    # Note: osps_qa_07_01 requires VCS *enforcement*, not just a written policy.
+    # A review-policy URL only shows the policy exists.
+    inferred_status: Met
+    confidence: 0
+
+  # repository.documentation.dependency-management-policy
+  # Type: URL (optional)
+  # URL of a policy describing how dependencies are selected, obtained, and tracked.
+
+  - si_path: repository.documentation.dependency-management-policy
+    target_criterion: osps_do_06_01
+    # Target:
+    #   description: "When the project has made a release, the project
+    #     documentation MUST include a description of how the project selects,
+    #     obtains, and tracks its dependencies."
+    #   details: "It is recommended to publish this information alongside the
+    #     project's technical & design documentation on a publicly viewable
+    #     resource such as the source code repository, project website, or
+    #     other channel."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.documentation.dependency-management-policy
+    target_criterion: osps_vm_05_01
+    # Target:
+    #   description: "While active, the project documentation MUST include a
+    #     policy that defines a threshold for remediation of SCA findings
+    #     related to vulnerabilities and licenses."
+    #   details: "Document a policy in the project that defines a threshold for
+    #     remediation of SCA findings related to vulnerabilities and licenses.
+    #     Include the process for identifying, prioritizing, and remediating
+    #     these findings."
+    inferred_status: Met
+    confidence: 1
+
+  # repository.documentation.code-of-conduct
+  # Type: URL (optional)
+  # URL of the project's code of conduct document.
+
+  - si_path: repository.documentation.code-of-conduct
+    target_criterion: code_of_conduct
+    # Target:
+    #   description: "The project MUST adopt a code of conduct and post it in a
+    #     standard location."
+    #   details: "Projects may be able to improve the civility of their
+    #     community and to set expectations about acceptable conduct by
+    #     adopting a code of conduct. This can help avoid problems before they
+    #     occur and make the project a more welcoming place to encourage
+    #     contributions. This should focus only on behavior within the
+    #     community/workplace of the project. Example codes of conduct are the
+    #     Linux kernel code of conduct, the Contributor Covenant Code of
+    #     Conduct, the Debian Code of Conduct, the Ubuntu Code of Conduct, the
+    #     Fedora Code of Conduct, the GNOME Code Of Conduct, the KDE Community
+    #     Code of Conduct, the Python Community Code of Conduct, The Ruby
+    #     Community Conduct Guideline, and The Rust Code of Conduct."
+    inferred_status: Met
+    confidence: 2
+
+  # ---------------------------------------------------------------------------
+  # Repository Status (repository.status)
+  # ---------------------------------------------------------------------------
+
+  # repository.status
+  # Type: String (required); one of: active, abandoned, concept, inactive,
+  #   moved, suspended, unsupported, WIP
+  # Lifecycle state of the repository.
+
+  - si_path: repository.status
+    si_value: active
+    target_criterion: maintained
+    # Target:
+    #   description: "The project MUST be maintained."
+    #   details: "As a minimum, the project should attempt to respond to
+    #     significant problem and vulnerability reports. A project that is
+    #     actively pursuing a badge is probably maintained. All projects and
+    #     people have limited resources, and typical projects must reject some
+    #     proposed changes, so limited resources and proposal rejections do not
+    #     by themselves indicate an unmaintained project. When a project knows
+    #     that it will no longer be maintained, it should set this criterion to
+    #     "Unmet" and use the appropriate mechanism(s) to indicate to others
+    #     that it is not being maintained. For example, use “DEPRECATED” as the
+    #     first heading of its README, add “DEPRECATED” near the beginning of
+    #     its home page, add “DEPRECATED” to the beginning of its code
+    #     repository project description, add a no-maintenance-intended badge
+    #     in its README and/or home page, mark it as deprecated in any package
+    #     repositories (e.g., npm deprecate), and/or use the code repository's
+    #     marking system to archive it (e.g., GitHub's "archive" setting,
+    #     GitLab’s "archived" marking, Gerrit's "readonly" status, or
+    #     SourceForge’s "abandoned" project status). Additional discussion can
+    #     be found here."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.status
+    si_alternatives: [abandoned, inactive, suspended, unsupported]
+    target_criterion: maintained
+    # Target:
+    #   description: "The project MUST be maintained."
+    #   details: "As a minimum, the project should attempt to respond to
+    #     significant problem and vulnerability reports. A project that is
+    #     actively pursuing a badge is probably maintained. All projects and
+    #     people have limited resources, and typical projects must reject some
+    #     proposed changes, so limited resources and proposal rejections do not
+    #     by themselves indicate an unmaintained project. When a project knows
+    #     that it will no longer be maintained, it should set this criterion to
+    #     "Unmet" and use the appropriate mechanism(s) to indicate to others
+    #     that it is not being maintained. For example, use “DEPRECATED” as the
+    #     first heading of its README, add “DEPRECATED” near the beginning of
+    #     its home page, add “DEPRECATED” to the beginning of its code
+    #     repository project description, add a no-maintenance-intended badge
+    #     in its README and/or home page, mark it as deprecated in any package
+    #     repositories (e.g., npm deprecate), and/or use the code repository's
+    #     marking system to archive it (e.g., GitHub's "archive" setting,
+    #     GitLab’s "archived" marking, Gerrit's "readonly" status, or
+    #     SourceForge’s "abandoned" project status). Additional discussion can
+    #     be found here."
+    inferred_status: Unmet
+    confidence: 2
+
+  # ---------------------------------------------------------------------------
+  # Security Tools (repository.security.tools)
+  # ---------------------------------------------------------------------------
+
+  # repository.security.tools[type=SAST]
+  # SecurityTool with type "SAST" (Static Application Security Testing).
+  # integration.ci: true means the tool runs in the CI/CD pipeline.
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: SAST
+    target_criterion: static_analysis
+    # Target:
+    #   description: "At least one static code analysis tool (beyond compiler
+    #     warnings and "safe" language modes) MUST be applied to any proposed
+    #     major production release of the software before its release, if there
+    #     is at least one FLOSS tool that implements this criterion in the
+    #     selected language."
+    #   details: "A static code analysis tool examines the software code (as
+    #     source code, intermediate code, or executable) without executing it
+    #     with specific inputs. For purposes of this criterion, compiler
+    #     warnings and "safe" language modes do not count as static code
+    #     analysis tools (these typically avoid deep analysis because speed is
+    #     vital). Some static analysis tools focus on detecting generic
+    #     defects, others focus on finding specific kinds of defects (such as
+    #     vulnerabilities), and some do a combination. Examples of such static
+    #     code analysis tools include cppcheck (C, C++), clang static analyzer
+    #     (C, C++), SpotBugs (Java), FindBugs (Java) (including
+    #     FindSecurityBugs), PMD (Java), Brakeman (Ruby on Rails), lintr (R),
+    #     goodpractice (R), Coverity Quality Analyzer, SonarQube, Codacy, and
+    #     HP Enterprise Fortify Static Code Analyzer. Larger lists of tools can
+    #     be found in places such as the Wikipedia list of tools for static
+    #     code analysis, OWASP information on static code analysis, NIST list
+    #     of source code security analyzers, and Wheeler's list of static
+    #     analysis tools. If there are no FLOSS static analysis tools available
+    #     for the implementation language(s) used, you may select 'N/A'."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    also: integration.ci
+    si_value: SAST
+    target_criterion: static_analysis_fixed
+    # Target:
+    #   description: "All medium and higher severity exploitable
+    #     vulnerabilities discovered with static code analysis MUST be fixed in
+    #     a timely way after they are confirmed."
+    #   details: "A vulnerability is considered medium or higher severity if
+    #     its Common Vulnerability Scoring System (CVSS) base qualitative score
+    #     is medium or higher. In CVSS versions 2.0 through 3.1, this is
+    #     equivalent to a CVSS score of 4.0 or higher. Projects may use the
+    #     CVSS score as published in a widely-used vulnerability database (such
+    #     as the National Vulnerability Database) using the most-recent version
+    #     of CVSS reported in that database. Projects may instead calculate the
+    #     severity themselves using the latest version of CVSS at the time of
+    #     the vulnerability disclosure, if the calculation inputs are publicly
+    #     revealed once the vulnerability is publicly known. Note that
+    #     criterion vulnerabilities_fixed_60_days requires that all such
+    #     vulnerabilities be fixed within 60 days of being made public."
+    # Unfortunately, just running the tools in CI doesn't mean that
+    # important vulnerabilities are fixed. It's easy to configure tools to
+    # ignore all problems. That's *necessary* when you first start using tools,
+    # but it also means we can't infer enough just from tool presence.
+    inferred_status: Met
+    confidence: 0
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: SAST
+    target_criterion: osps_vm_06_02
+    # Target:
+    #   description: "While active, all changes to the project's codebase MUST
+    #     be automatically evaluated against a documented policy for security
+    #     weaknesses and blocked in the event of violations except when
+    #     declared and suppressed as non-exploitable."
+    #   details: "Create a status check in the project's version control system
+    #     that runs a Static Application Security Testing (SAST) tool on all
+    #     changes to the codebase. Require that the status check passes before
+    #     changes can be merged."
+    inferred_status: Met
+    confidence: 1
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    also: integration.ci
+    si_value: SAST
+    target_criterion: osps_vm_06_02
+    # Target:
+    #   description: "While active, all changes to the project's codebase MUST
+    #     be automatically evaluated against a documented policy for security
+    #     weaknesses and blocked in the event of violations except when
+    #     declared and suppressed as non-exploitable."
+    #   details: "Create a status check in the project's version control system
+    #     that runs a Static Application Security Testing (SAST) tool on all
+    #     changes to the codebase. Require that the status check passes before
+    #     changes can be merged."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.security.tools[type=SCA]
+  # SecurityTool with type "SCA" (Software Composition Analysis / dependency scanning).
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: SCA
+    target_criterion: dependency_monitoring
+    # Target:
+    #   description: "Projects MUST monitor or periodically check their
+    #     external dependencies (including convenience copies) to detect known
+    #     vulnerabilities, and fix exploitable vulnerabilities or verify them
+    #     as unexploitable."
+    #   details: "This can be done using an origin analyzer / dependency
+    #     checking tool / software composition analysis tool such as OWASP's
+    #     Dependency-Check, Sonatype's Nexus Auditor, Synopsys' Black Duck
+    #     Software Composition Analysis, and Bundler-audit (for Ruby). Some
+    #     package managers include mechanisms to do this. It is acceptable if
+    #     the components' vulnerability cannot be exploited, but this analysis
+    #     is difficult and it is sometimes easier to simply update or fix the
+    #     part."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: SCA
+    target_criterion: osps_vm_05_03
+    # Target:
+    #   description: "While active, all changes to the project's codebase MUST
+    #     be automatically evaluated against a documented policy for malicious
+    #     dependencies and known vulnerabilities in dependencies, then blocked
+    #     in the event of violations, except when declared and suppressed as
+    #     non-exploitable."
+    #   details: "Create a status check in the project's version control system
+    #     that runs a Software Composition Analysis tool on all changes to the
+    #     codebase. Require that the status check passes before changes can be
+    #     merged."
+    # The mapping is too tenuous to even give it confidence 1. It's not
+    # even necessarily in the CI.
+    inferred_status: Met
+    confidence: 0
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    also: integration.ci
+    si_value: SCA
+    target_criterion: osps_vm_05_03
+    # Target:
+    #   description: "While active, all changes to the project's codebase MUST
+    #     be automatically evaluated against a documented policy for malicious
+    #     dependencies and known vulnerabilities in dependencies, then blocked
+    #     in the event of violations, except when declared and suppressed as
+    #     non-exploitable."
+    #   details: "Create a status check in the project's version control system
+    #     that runs a Software Composition Analysis tool on all changes to the
+    #     codebase. Require that the status check passes before changes can be
+    #     merged."
+    # SCA (Software Composition Analysis) is precisely dependency scanning, and
+    # also: integration.ci requires ci=true, matching "automatically
+    # evaluated on all changes".  Confidence 2.
+    inferred_status: Met
+    confidence: 2
+
+  # repository.security.tools[type=fuzzing]
+  # SecurityTool with type "fuzzing".
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: fuzzing
+    target_criterion: dynamic_analysis
+    # Target:
+    #   description: "The project MUST apply at least one dynamic analysis tool
+    #     to any proposed major production release of the software produced by
+    #     the project before its release."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.security.tools[type=DAST]
+  # SecurityTool with type "DAST" (Dynamic Application Security Testing).
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: DAST
+    target_criterion: dynamic_analysis
+    # Target:
+    #   description: "The project MUST apply at least one dynamic analysis tool
+    #     to any proposed major production release of the software produced by
+    #     the project before its release."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.security.tools[type=pentest]
+  # SecurityTool with type "pentest" (penetration test).
+  # A pentest is a structured security assessment; maps to security_review and
+  # osps_sa_03_01 (security assessment before/after release).
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: pentest
+    target_criterion: security_review
+    # Target:
+    #   description: "The project MUST have performed a security review within
+    #     the last 5 years. This review MUST consider the security requirements
+    #     and security boundary."
+    #   details: "This MAY be done by the project members and/or an independent
+    #     evaluation. This evaluation MAY be supported by static and dynamic
+    #     analysis tools, but there also must be human review to identify
+    #     problems (particularly in design) that tools cannot detect."
+    # Some uncertainty. We don't know if 5 years was met.
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: pentest
+    target_criterion: osps_sa_03_01
+    # Target:
+    #   description: "When the project has made a release, the project MUST
+    #     perform a security assessment to understand the most likely and
+    #     impactful potential security problems that could occur within the
+    #     software."
+    #   details: "Performing a security assessment informs both project members
+    #     as well as downstream consumers that the project understands what
+    #     problems could arise within the software. Understanding what threats
+    #     could be realized helps the project manage and address risk. This
+    #     information is useful to downstream consumers to demonstrate the
+    #     security acumen and practices of the project. Ensure this is updated
+    #     for new features or breaking changes."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.security.tools[type=secret]
+  # SecurityTool with type "secret" (secret/credential scanning).
+
+  - si_path: repository.security.tools
+    si_item_field: type
+    si_value: secret
+    target_criterion: no_leaked_credentials
+    # Target:
+    #   description: "The public repositories MUST NOT leak a valid private
+    #     credential (e.g., a working password or private key) that is intended
+    #     to limit public access."
+    #   details: "A project MAY leak "sample" credentials for testing and
+    #     unimportant databases, as long as they are not intended to limit
+    #     public access."
+    inferred_status: Met
+    confidence: 2
+
+  # ---------------------------------------------------------------------------
+  # Project Security Contacts (project.security.security-contacts)
+  # ---------------------------------------------------------------------------
+
+  # project.security.security-contacts
+  # Type: Array of SecurityContact objects (optional)
+  # Each object may have: name, primary-contact, affiliation, social,
+  #   email, phone, pgp-key, response-time, role fields.
+  # Presence of a non-empty array means the project has documented security
+  # contacts, directly satisfying osps_vm_02_01.
+
+  - si_path: project.security.security-contacts
+    target_criterion: osps_vm_02_01
+    # Target:
+    #   description: "While active, the project documentation MUST contain
+    #     security contacts."
+    #   details: "Create a security.md (or similarly-named) file that contains
+    #     security contacts for the project."
+    inferred_status: Met
+    confidence: 2
+
+  # ---------------------------------------------------------------------------
+  # Security Assessments (repository.security.assessments)
+  # ---------------------------------------------------------------------------
+
+  # repository.security.assessments.self.evidence
+  # Type: URL (optional within the required Assessment object)
+  # IMPORTANT: repository.security.assessments.self is a *required* field in
+  # the SI spec, so it is present in every valid security-insights file.
+  # Checking "self present" would always fire, providing no information.
+  # Instead we check self.evidence (optional URL) — its presence means the
+  # project has linked to evidence that a self-assessment was actually performed.
+
+  - si_path: repository.security.assessments.self.evidence
+    target_criterion: security_review
+    # Target:
+    #   description: "The project MUST have performed a security review within
+    #     the last 5 years. This review MUST consider the security requirements
+    #     and security boundary."
+    #   details: "This MAY be done by the project members and/or an independent
+    #     evaluation. This evaluation MAY be supported by static and dynamic
+    #     analysis tools, but there also must be human review to identify
+    #     problems (particularly in design) that tools cannot detect."
+    # We don't know if "last 5 years" was met. However, if they're willing
+    # to assert it, it's likely to have been that recent.
+    inferred_status: Met
+    confidence: 1
+
+  - si_path: repository.security.assessments.self.evidence
+    target_criterion: osps_sa_03_01
+    # Target:
+    #   description: "When the project has made a release, the project MUST
+    #     perform a security assessment to understand the most likely and
+    #     impactful potential security problems that could occur within the
+    #     software."
+    #   details: "Performing a security assessment informs both project members
+    #     as well as downstream consumers that the project understands what
+    #     problems could arise within the software. Understanding what threats
+    #     could be realized helps the project manage and address risk. This
+    #     information is useful to downstream consumers to demonstrate the
+    #     security acumen and practices of the project. Ensure this is updated
+    #     for new features or breaking changes."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.security.assessments.third-party
+  # Type: Array of Assessment objects (optional)
+  # Evidence of one or more third-party security assessments.
+
+  - si_path: repository.security.assessments.third-party
+    target_criterion: security_review
+    # Target:
+    #   description: "The project MUST have performed a security review within
+    #     the last 5 years. This review MUST consider the security requirements
+    #     and security boundary."
+    #   details: "This MAY be done by the project members and/or an independent
+    #     evaluation. This evaluation MAY be supported by static and dynamic
+    #     analysis tools, but there also must be human review to identify
+    #     problems (particularly in design) that tools cannot detect."
+    # We don't know, from *just* this, if it was done within 5 years.
+    # It's likely but uncertain. Third party does give higher confidence.
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.security.assessments.third-party
+    target_criterion: osps_sa_03_01
+    # Target:
+    #   description: "When the project has made a release, the project MUST
+    #     perform a security assessment to understand the most likely and
+    #     impactful potential security problems that could occur within the
+    #     software."
+    #   details: "Performing a security assessment informs both project members
+    #     as well as downstream consumers that the project understands what
+    #     problems could arise within the software. Understanding what threats
+    #     could be realized helps the project manage and address risk. This
+    #     information is useful to downstream consumers to demonstrate the
+    #     security acumen and practices of the project. Ensure this is updated
+    #     for new features or breaking changes."
+    inferred_status: Met
+    confidence: 2.5
+
+  # ---------------------------------------------------------------------------
+  # Release Details (repository.release)
+  # ---------------------------------------------------------------------------
+
+  # repository.release.automated-pipeline
+  # Type: Boolean (required in ReleaseDetails)
+  # Whether the project uses an automated pipeline to produce releases.
+
+  - si_path: repository.release.automated-pipeline
+    si_value: true
+    target_criterion: build
+    # Target:
+    #   description: "If the software produced by the project requires building
+    #     for use, the project MUST provide a working build system that can
+    #     automatically rebuild the software from source code."
+    #   details: "A build system determines what actions need to occur to
+    #     rebuild the software (and in what order), and then performs those
+    #     steps. For example, it can invoke a compiler to compile the source
+    #     code. If an executable is created from source code, it must be
+    #     possible to modify the project's source code and then generate an
+    #     updated executable with those modifications. If the software produced
+    #     by the project depends on external libraries, the build system does
+    #     not need to build those external libraries. If there is no need to
+    #     build anything to use the software after its source code is modified,
+    #     select "not applicable" (N/A)."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.release.changelog
+  # Type: URL (optional)
+  # URL pointing to the project's changelog.
+
+  - si_path: repository.release.changelog
+    target_criterion: release_notes
+    # Target:
+    #   description: "The project MUST provide, in each release, release notes
+    #     that are a human-readable summary of major changes in that release to
+    #     help users determine if they should upgrade and what the upgrade
+    #     impact will be. The release notes MUST NOT be the raw output of a
+    #     version control log (e.g., the "git log" command results are not
+    #     release notes). Projects whose results are not intended for reuse in
+    #     multiple locations (such as the software for a single website or
+    #     service) AND employ continuous delivery MAY select "N/A"."
+    #   details: "The release notes MAY be implemented in a variety of ways.
+    #     Many projects provide them in a file named "NEWS", "CHANGELOG", or
+    #     "ChangeLog", optionally with extensions such as ".txt", ".md", or
+    #     ".html". Historically the term "change log" meant a log of every
+    #     change, but to meet these criteria what is needed is a human-readable
+    #     summary. The release notes MAY instead be provided by version control
+    #     system mechanisms such as the GitHub Releases workflow."
+    # It *might* be a raw dump, but if it's noted in the security-insights.yml
+    # file, it's probably a useful one.
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.release.changelog
+    target_criterion: osps_br_04_01
+    # Target:
+    #   description: "When an official release is created, that release MUST
+    #     contain a descriptive log of functional and security modifications."
+    #   details: "Ensure that all releases include a descriptive change log. It
+    #     is recommended to ensure that the change log is human-readable and
+    #     includes details beyond commit messages, such as descriptions of the
+    #     security impact or relevance to different use cases. To ensure
+    #     machine readability, place the content under a markdown header such
+    #     as "## Changelog"."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.release.attestations[predicate-uri contains "slsa"]
+  # Attestation whose predicate-uri references an SLSA provenance or
+  # verification-summary specification, indicating signed/attested releases.
+
+  - si_path: repository.release.attestations
+    si_item_field: predicate-uri
+    substring: true
+    si_value: slsa
+    target_criterion: signed_releases
+    # Target:
+    #   description: "The project MUST cryptographically sign releases of the
+    #     project results intended for widespread use, and there MUST be a
+    #     documented process explaining to users how they can obtain the public
+    #     signing keys and verify the signature(s). The private key for these
+    #     signature(s) MUST NOT be on site(s) used to directly distribute the
+    #     software to the public. If releases are not intended for widespread
+    #     use, select "not applicable" (N/A)."
+    #   details: "The project results include both source code and any
+    #     generated deliverables where applicable (e.g., executables, packages,
+    #     and containers). Generated deliverables MAY be signed separately from
+    #     source code. These MAY be implemented as signed git tags (using
+    #     cryptographic digital signatures). Projects MAY provide generated
+    #     results separately from tools like git, but in those cases, the
+    #     separate results MUST be separately signed."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: repository.release.attestations
+    si_item_field: predicate-uri
+    substring: true
+    si_value: slsa
+    target_criterion: osps_br_06_01
+    # Target:
+    #   description: "When an official release is created, that release MUST be
+    #     signed or accounted for in a signed manifest including each asset's
+    #     cryptographic hashes."
+    #   details: "Sign all released software assets at build time with a
+    #     cryptographic signature or attestations, such as GPG or PGP
+    #     signature, Sigstore signatures, SLSA provenance, or SLSA VSAs.
+    #     Include the cryptographic hashes of each asset in a signed manifest
+    #     or metadata file."
+    inferred_status: Met
+    confidence: 2
+
+  # repository.release.attestations[predicate-uri contains "spdx"]
+  # Attestation whose predicate-uri references an SPDX SBOM specification,
+  # indicating a software bill of materials accompanies the release.
+
+  - si_path: repository.release.attestations
+    si_item_field: predicate-uri
+    substring: true
+    si_value: spdx
+    target_criterion: osps_qa_02_02
+    # Target:
+    #   description: "When the project has made a release, all compiled
+    #     released software assets MUST be delivered with a software bill of
+    #     materials."
+    #   details: "It is recommended to auto-generate SBOMs at build time using
+    #     a tool that has been vetted for accuracy. This enables users to
+    #     ingest this data in a standardized approach alongside other projects
+    #     in their environment."
+    inferred_status: Met
+    confidence: 2
+
+  # ---------------------------------------------------------------------------
+  # Security Insights schema v1.0.0 fields  [v1.0.0 ONLY]
+  #
+  # The v1.0.0 schema uses a completely different top-level structure from
+  # v2.x.  These paths will return nil on v2.x files (so the rules never
+  # fire there), and vice versa for the v2.x rules above.  We support a
+  # small subset of v1.0.0 fields to provide some value for projects that
+  # haven’t yet migrated to the current schema.
+  #
+  # Each entry below is tagged [v1.0.0] so it is easy to identify.
+  # ---------------------------------------------------------------------------
+
+  # [v1.0.0] project-lifecycle.stage
+  # Type: String; v1.0.0 equivalent of repository.status in v2.x.
+  # Known values: active, inactive, concept, archived, unsupported.
+
+  - si_path: project-lifecycle.stage
+    si_value: active
+    target_criterion: maintained
+    # [v1.0.0] Source: project-lifecycle.stage = “active”
+    # Target:
+    #   description: "The project MUST be maintained."
+    #   details: "As a minimum, the project should attempt to respond to
+    #     significant problem and vulnerability reports. A project that is
+    #     actively pursuing a badge is probably maintained. All projects and
+    #     people have limited resources, and typical projects must reject some
+    #     proposed changes, so limited resources and proposal rejections do not
+    #     by themselves indicate an unmaintained project. When a project knows
+    #     that it will no longer be maintained, it should set this criterion to
+    #     "Unmet" and use the appropriate mechanism(s) to indicate to others
+    #     that it is not being maintained. For example, use “DEPRECATED” as the
+    #     first heading of its README, add “DEPRECATED” near the beginning of
+    #     its home page, add “DEPRECATED” to the beginning of its code
+    #     repository project description, add a no-maintenance-intended badge
+    #     in its README and/or home page, mark it as deprecated in any package
+    #     repositories (e.g., npm deprecate), and/or use the code repository's
+    #     marking system to archive it (e.g., GitHub's "archive" setting,
+    #     GitLab’s "archived" marking, Gerrit's "readonly" status, or
+    #     SourceForge’s "abandoned" project status). Additional discussion can
+    #     be found here."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: project-lifecycle.stage
+    si_alternatives: [inactive, archived, unsupported, concept]
+    target_criterion: maintained
+    # [v1.0.0] Source: project-lifecycle.stage in [inactive, archived,
+    #   unsupported, concept]
+    # Target:
+    #   description: "The project MUST be maintained."
+    #   details: "As a minimum, the project should attempt to respond to
+    #     significant problem and vulnerability reports. A project that is
+    #     actively pursuing a badge is probably maintained. All projects and
+    #     people have limited resources, and typical projects must reject some
+    #     proposed changes, so limited resources and proposal rejections do not
+    #     by themselves indicate an unmaintained project. When a project knows
+    #     that it will no longer be maintained, it should set this criterion to
+    #     "Unmet" and use the appropriate mechanism(s) to indicate to others
+    #     that it is not being maintained. For example, use “DEPRECATED” as the
+    #     first heading of its README, add “DEPRECATED” near the beginning of
+    #     its home page, add “DEPRECATED” to the beginning of its code
+    #     repository project description, add a no-maintenance-intended badge
+    #     in its README and/or home page, mark it as deprecated in any package
+    #     repositories (e.g., npm deprecate), and/or use the code repository's
+    #     marking system to archive it (e.g., GitHub's "archive" setting,
+    #     GitLab’s "archived" marking, Gerrit's "readonly" status, or
+    #     SourceForge’s "abandoned" project status). Additional discussion can
+    #     be found here."
+    inferred_status: Unmet
+    confidence: 2
+
+  # [v1.0.0] vulnerability-reporting.accepts-vulnerability-reports
+  # Type: Boolean; v1.0.0 equivalent of
+  #   project.vulnerability-reporting.reports-accepted in v2.x.
+
+  - si_path: vulnerability-reporting.accepts-vulnerability-reports
+    si_value: true
+    target_criterion: vulnerability_report_process
+    # [v1.0.0] Source: vulnerability-reporting.accepts-vulnerability-reports
+    #   = true
+    # Target:
+    #   description: "The project MUST publish the process for reporting
+    #     vulnerabilities on the project site."
+    #   details: "Projects hosted on GitHub SHOULD consider enabling privately
+    #     reporting a security vulnerability. Projects on GitLab SHOULD
+    #     consider using its ability for privately reporting a vulnerability.
+    #     Projects MAY identify a mailing address on
+    #     https://PROJECTSITE/security, often in the form security@example.org.
+    #     This vulnerability reporting process MAY be the same as its bug
+    #     reporting process. Vulnerability reports MAY always be public, but
+    #     many projects have a private vulnerability reporting mechanism."
+    inferred_status: Met
+    confidence: 2
+
+  - si_path: vulnerability-reporting.accepts-vulnerability-reports
+    si_value: false
+    target_criterion: vulnerability_report_process
+    # [v1.0.0] Source: vulnerability-reporting.accepts-vulnerability-reports
+    #   = false
+    # Target:
+    #   description: "The project MUST publish the process for reporting
+    #     vulnerabilities on the project site."
+    #   details: "Projects hosted on GitHub SHOULD consider enabling privately
+    #     reporting a security vulnerability. Projects on GitLab SHOULD
+    #     consider using its ability for privately reporting a vulnerability.
+    #     Projects MAY identify a mailing address on
+    #     https://PROJECTSITE/security, often in the form security@example.org.
+    #     This vulnerability reporting process MAY be the same as its bug
+    #     reporting process. Vulnerability reports MAY always be public, but
+    #     many projects have a private vulnerability reporting mechanism."
+    inferred_status: Unmet
+    confidence: 2
+
+  # [v1.0.0] security-contacts
+  # Type: Array of {type, value} objects at the top level; v1.0.0 equivalent
+  # of project.security.security-contacts in v2.x.
+  # No Unmet rule: absence of the field says nothing (project may have
+  # contacts documented elsewhere), consistent with v2.x treatment.
+
+  - si_path: security-contacts
+    target_criterion: osps_vm_02_01
+    # [v1.0.0] Source: security-contacts (non-empty array)
+    # Target:
+    #   description: "While active, the project documentation MUST contain
+    #     security contacts."
+    #   details: "Create a security.md (or similarly-named) file that contains
+    #     security contacts for the project."
+    inferred_status: Met
+    confidence: 2

@@ -1,0 +1,11 @@
+<%# Renders the data-license notice and automation hint shown in every edit
+    panel footer. Required locals:
+      - project: the Project instance being edited %>
+<%= t 'projects.edit.submit_cdla_permissive_20_html' %>
+<%= t 'projects.edit.automation_hint_html',
+      badge_hostname: (ENV['PUBLIC_HOSTNAME'] || 'bestpractices.dev'),
+      app_locale: I18n.locale,
+      project_id: project.id,
+      automation_proposals_url: ApplicationHelper::AUTOMATION_PROPOSALS_URL %>
+<br>
+<br>

@@ -4,40 +4,51 @@ That includes everyone who provided comments via the mailing list,
 issue tracker, or via pull requests.
 
 Alphabetically by family (last) name, contributors include:
-Wang Anyu
-Mark Atwood
-Tod Beardsley
-Doug Birdwell
-Alton(ius) Blom
-Hanno Böck
-enos-dandrea
-Jason Dossett *
-David Drysdale
-Karl Fogel
-Alex Jordan (strugee)
-Sam Khakimov
-Greg Kroah-Hartman
-Dan Kohn *
-Yannick Moy
-Charles Neill (cneill)
-Mark Rader
-Emily Ratliff
-Tom Ritter
-Nicko van Someren
-Daniel Stenberg (curl)
-Marcus Streets *
-Trevor Vaughan
-Dale Visser
-Kevin W. Wall
-Florian Weimer
-David A. Wheeler *
+
+* Wang Anyu
+* Mark Atwood
+* Tod Beardsley
+* Doug Birdwell
+* Alton(ius) Blom
+* Hanno Böck
+* enos-dandrea
+* Jason Dossett *
+* David Drysdale
+* Andrew Fader *
+* Karl Fogel
+* Tony Hansen
+* Alex Jordan (strugee)
+* Sam Khakimov
+* Greg Kroah-Hartman
+* Dan Kohn
+* Yannick Moy
+* Charles Neill (cneill)
+* Mark Rader
+* Emily Ratliff
+* Tom Ritter
+* Christopher "CRob" Robinson
+* Toine Siebelink
+* Nicko van Someren
+* Daniel Stenberg (curl)
+* Marcus Streets
+* Trevor Vaughan
+* Dale Visser
+* Kevin W. Wall
+* Florian Weimer
+* David A. Wheeler *
 
 (Apologies in advance for anyone we've accidentally omitted.)
+
+We especially recognize Dan Kohn (1972-2020), who was instrumental
+in starting this project. He is deeply missed.
 
 Those marked with a "*" have all the necessary rights to
 create and close issues, accept proposed changes,
 and release versions of software, as well administrate the production system.
-This is enough to meet the "access_continuity" criterion.
+This meets the "access_continuity" criterion.
+
+See the TSC.md document for the current Technical Steering Committee
+(TSC) members.
 
 We currently don't have any security vulnerabilities that have been
 found externally by others. If someone *has* done so, and would like to
@@ -49,4 +60,5 @@ we can quickly fix them. Please see our information on
 
 Karl Fogel not only provided us helpful inputs, but his book
 "Producing Open Secure Software" <http://producingoss.com/>
-was an important basis for identifying many project best practices - thank you!
+was an important basis for identifying many project best practices.
+Thank you!

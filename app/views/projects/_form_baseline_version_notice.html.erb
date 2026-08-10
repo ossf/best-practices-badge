@@ -1,0 +1,12 @@
+<%# Baseline criteria version notice shown near the top of every baseline form.
+    To change versions, edit BaselineConfig in app/lib/baseline_config.rb.
+%>
+<% if BaselineConfig::IN_TRANSITION %>
+  <span><%= t('projects.baseline_version_notice.transition',
+       current_version: BaselineConfig::CURRENT_VERSION,
+       new_version:     BaselineConfig::NEW_VERSION,
+       enforce_date:    BaselineConfig::ENFORCE_DATE) %></span>
+<% else %><%# Mute when not in transition, few will care at that point. %>
+  <span class="text-muted"><%= t('projects.baseline_version_notice.current',
+       version: BaselineConfig::CURRENT_VERSION) %></span>
+<% end %>

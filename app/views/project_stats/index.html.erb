@@ -22,7 +22,7 @@
   # This causes loading the JSON data as a separate request.
   # Doing it this way means that the page we send is smaller, and
   # the JSON data can be easily cached by the CDN.
-  line_chart total_projects_project_stats_path(format: :json, locale: nil),
+  line_chart total_projects_project_stats_path(locale: nil),
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
 
@@ -31,7 +31,7 @@
 <h2><%= t '.projects_nontrivial' %></h2>
 <%=
   # Done transforming data; display it.
-  line_chart nontrivial_projects_project_stats_path(format: :json, locale: nil),
+  line_chart nontrivial_projects_project_stats_path(locale: nil),
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
 
@@ -39,7 +39,7 @@
 
 <h2><%= t '.projects_activity_30' %></h2>
 <%=
-  line_chart activity_30_project_stats_path(format: :json),
+  line_chart activity_30_project_stats_path,
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
 
@@ -47,7 +47,7 @@
 
 <h2><%= t '.daily_activity' %></h2>
 <%=
-  line_chart daily_activity_project_stats_path(format: :json),
+  line_chart daily_activity_project_stats_path,
     colors: ['green', 'darkgreen', 'blue', 'darkblue', 'red', 'purple'],
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
@@ -59,7 +59,7 @@
 
 <h2><%= t '.reminders' %></h2>
 <%=
-  line_chart reminders_project_stats_path(format: :json),
+  line_chart reminders_project_stats_path,
     colors: ['green', 'blue'],
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
@@ -67,7 +67,7 @@
 
 <h2><%= t '.projects_silver' %></h2>
 <%=
-  line_chart silver_project_stats_path(format: :json, locale: nil),
+  line_chart silver_project_stats_path(locale: nil),
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
 
@@ -75,7 +75,7 @@
 
 <h2><%= t '.projects_gold' %></h2>
 <%=
-  line_chart gold_project_stats_path(format: :json, locale: nil),
+  line_chart gold_project_stats_path(locale: nil),
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
 
@@ -83,7 +83,7 @@
 
 <h2><%= t '.projects_completed_silver_and_gold' %></h2>
 <%=
-  line_chart silver_and_gold_project_stats_path(format: :json),
+  line_chart silver_and_gold_project_stats_path,
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
 
@@ -91,7 +91,7 @@
 
 <h2><%= t '.percent_projects_earning_badges' %></h2>
 <%=
-  line_chart percent_earning_project_stats_path(format: :json),
+  line_chart percent_earning_project_stats_path,
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
 
@@ -99,7 +99,7 @@
 
 <h2><%= t '.user_statistics' %></h2>
 <%=
-  line_chart user_statistics_project_stats_path(format: :json),
+  line_chart user_statistics_project_stats_path,
     library: ProjectStatsHelper::DATE_CHART_OPTIONS
 %>
 

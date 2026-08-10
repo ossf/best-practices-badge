@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Processor for Github flavored markdown, using commonmarker.
+#
+# Originally used Redcarpet, but Redcarpet became unreliable,
+# so we switched to Commonmarker which processes GitHub Flavored Markdown
+# per the CommonMark specification.
+#
+# This doesn't do syntax highlighting - we don't need it.
+# If we did, there are various options such as https://github.com/jneen/rouge
+# GitHub's full rendering system is here:
+#   https://github.com/github/markup
+
+require 'rubygems'
+require 'commonmarker'
+
+def markdown(text)
+  # Configure Commonmarker with GitHub Flavored Markdown extensions
+  # For documentation generation, we allow HTML passthrough
+  options = {
+    render: {
+      unsafe: true # Allow HTML in markdown for documentation
+    },
+    extension: {
+      autolink: true,       # Auto-link URLs
+      strikethrough: true,  # Support ~~strikethrough~~
+      table: true,          # Support tables
+      tagfilter: false      # Don't filter tags (this is for docs generation)
+    }
+  }
+  Commonmarker.to_html(text, options: options)
+end
+
+# Generate results.
+
+# The first argument is used as both the page title and source filename
+# (or just title if reading from stdin)
+# ARGF will read from ARGV files, or from stdin if ARGV is empty
+title = ARGV.first || 'Untitled'
+
+puts <<-GENERATED_HTML_HEADER
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <title>#{title}</title>
+  </head>
+  <body>
+GENERATED_HTML_HEADER
+
+puts markdown(ARGF.read)
+
+puts <<-GENERATED_HTML_FOOTER
+  </body>
+  </html>
+GENERATED_HTML_FOOTER

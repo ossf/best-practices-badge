@@ -1,3 +1,7 @@
+<%# IMPORTANT: This view uses selective field loading for performance.
+    The project objects only have fields listed in projects_controller.rb:
+    - HTML_INDEX_FIELDS (for project listings)
+    If you add a new field reference to this view, ensure it's in that list! %>
 <table class="table table-bordered table-striped table-responsive">
   <%# Can't cache, because user selection could invert them %>
   <thead>
@@ -20,7 +24,7 @@
     <%# The badge URL has one value for some time after the project entry
        is edited, and then changes. To handle that gracefully, we
        expire the cache after a period of time. %>
-    <% cache [project, locale], expires_in: 12.hours do %>
+    <% cache_frozen [project, locale], expires_in: 12.hours do %>
       <tr>
         <td><%= link_to project.id, project %></td>
         <td class="project_name"><%=
@@ -28,7 +32,7 @@
             word_breakdown(project.name.presence || t('.paren_name_unknown')),
             project
           ) %></td>
-        <td><span lang="en"><%= markdown(
+        <td><span lang="<%= project.entry_locale %>"><%= markdown(
                   (project.description || '').
                   truncate(160, separator: ' ')) %></span></td>
         <td class='website'>

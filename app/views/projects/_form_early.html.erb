@@ -15,33 +15,69 @@
            details: t('projects.form_early.badge_intro.details_html')
 }) %>
 
-<% if is_disabled %>
-  <% next_level_prefix = project_path %>
-  <%= t('projects.form_early.got_badge.description_1') %>
+<% if view_only %>
+  <%
+    next_level_prefix = project_path
+    # Set up badge display variables based on section type (baseline vs metal)
+    is_baseline = Sections.section_type(criteria_level) == :baseline
+    badge_i18n_key = is_baseline ? 'got_baseline_badge' : 'got_badge'
+    badge_img_src = is_baseline ? project.baseline_badge_src_url : project.badge_src_url
+    badge_value = is_baseline ? project.baseline_badge_value : project.badge_level
+    badge_level = is_baseline ? project.baseline_badge_level : project.badge_level
+    badge_url_suffix = Sections.badge_url_suffix(criteria_level)
+    badge_alt_text = is_baseline ? 'OpenSSF Baseline' : 'OpenSSF Best Practices'
+  %>
+  <%= t("projects.form_early.#{badge_i18n_key}.description_1") %>
   <!-- DO NOT USE /badge_static in README files! --><img src='<%=
-  project.badge_src_url %>' width='<%=
-  Badge::BADGE_WIDTHS[project.badge_level]
+  badge_img_src %>' width='<%=
+  Badge.width(badge_value)
   %>' height='20' alt="<%=
-  t('projects.form_early.got_badge.badge_alt',
-    id: project.id, level: project.badge_level) %>">
-  <%= t('projects.form_early.got_badge.description_2') %>
+  t("projects.form_early.#{badge_i18n_key}.badge_alt",
+    id: project.id, level: badge_level) %>">
+  <%= t("projects.form_early.#{badge_i18n_key}.description_2") %>
   <%= render(partial: "details", locals: {
-         criterion: "got_badge",
-         details: t('projects.form_early.got_badge.details_html',
-                    markdown_embedding: %{<code>[![OpenSSF Best Practices](https://#{ badge_hostname }/projects/#{ project.id }/badge)](https://#{ badge_hostname }/projects/#{ project.id })</code>}.html_safe,
-                    html_embedding: %{<code>&lt;a href="https://#{badge_hostname}/projects/#{ project.id }"&gt;&lt;img src="https://#{ badge_hostname }/projects/#{ project.id }/badge"&gt;&lt;/a&gt; </code>}.html_safe)
+         criterion: badge_i18n_key,
+         details: t("projects.form_early.#{badge_i18n_key}.details_html",
+                    markdown_embedding: %{<code>[![#{badge_alt_text}](https://#{ badge_hostname }/projects/#{ project.id }/#{badge_url_suffix})](https://#{ badge_hostname }/projects/#{ project.id })</code>}.html_safe,
+                    html_embedding: %{<code>&lt;a href="https://#{badge_hostname}/projects/#{ project.id }"&gt;&lt;img src="https://#{ badge_hostname }/projects/#{ project.id }/#{badge_url_suffix}"&gt;&lt;/a&gt; </code>}.html_safe)
       }) %>
 <% else %>
-  <% next_level_prefix = edit_project_path %>
+  <% next_level_prefix = edit_project_section_path(project, criteria_level) %>
   <%= t('projects.form_early.got_badge.editing_description_html') %>
 <% end %>
 
 <br><br>
-<%= t("#{criteria_level}_html", scope: 'projects.form_early.level',
-      passing: %{<a href='#{next_level_prefix}' title='#{t('projects.form_early.level.0')}'>#{image_tag('passing.svg', size: '53x20', alt: t('projects.form_early.level.0'))}</a>}.html_safe,
-      silver: %{<a href='#{next_level_prefix}?criteria_level=1' title='#{t('projects.form_early.level.1')}'>#{image_tag('silver.svg', size: '41x20', alt: t('projects.form_early.level.1'))}</a>}.html_safe,
-      gold: %{<a href='#{next_level_prefix}?criteria_level=2' title='#{t('projects.form_early.level.2')}'>#{image_tag('gold.svg', size: '35x20', alt: t('projects.form_early.level.2'))}</a>}.html_safe,
+<%
+  # Generate path-based URLs for badge levels (not query parameters)
+  # Rails auto-generates project_section_path and edit_project_section_path from routes
+  passing_path = view_only ? project_section_path(project, 'passing') : edit_project_section_path(project, 'passing')
+  silver_path = view_only ? project_section_path(project, 'silver') : edit_project_section_path(project, 'silver')
+  gold_path = view_only ? project_section_path(project, 'gold') : edit_project_section_path(project, 'gold')
+  baseline_1_path = view_only ? project_section_path(project, 'baseline-1') : edit_project_section_path(project, 'baseline-1')
+  baseline_2_path = view_only ? project_section_path(project, 'baseline-2') : edit_project_section_path(project, 'baseline-2')
+  baseline_3_path = view_only ? project_section_path(project, 'baseline-3') : edit_project_section_path(project, 'baseline-3')
+
+  # Cache level name translations to avoid duplicate I18n lookups
+  passing_level_name = t('projects.form_early.level.0')
+  silver_level_name = t('projects.form_early.level.1')
+  gold_level_name = t('projects.form_early.level.2')
+  baseline_1_level_name = t('projects.form_early.level.baseline-1')
+  baseline_2_level_name = t('projects.form_early.level.baseline-2')
+  baseline_3_level_name = t('projects.form_early.level.baseline-3')
+%>
+<%= t("#{criteria_level_to_internal(criteria_level)}_html", scope: 'projects.form_early.level',
+      passing: %{<a href='#{passing_path}' title='#{passing_level_name}'>#{image_tag('passing.svg', size: '53x20', alt: passing_level_name)}</a>}.html_safe,
+      silver: %{<a href='#{silver_path}' title='#{silver_level_name}'>#{image_tag('silver.svg', size: '41x20', alt: silver_level_name)}</a>}.html_safe,
+      gold: %{<a href='#{gold_path}' title='#{gold_level_name}'>#{image_tag('gold.svg', size: '35x20', alt: gold_level_name)}</a>}.html_safe,
       ) %>
+<% if Sections.section_type(criteria_level) == :baseline %>
+  <%= render 'form_baseline_version_notice' %>
+<% end %>
+<br><br>
+<strong>Baseline Series:</strong>
+<%= link_to baseline_1_level_name, baseline_1_path, class: (criteria_level == 'baseline-1' ? 'btn btn-primary btn-xs' : 'btn btn-default btn-xs') %>
+<%= link_to baseline_2_level_name, baseline_2_path, class: (criteria_level == 'baseline-2' ? 'btn btn-primary btn-xs' : 'btn btn-default btn-xs') %>
+<%= link_to baseline_3_level_name, baseline_3_path, class: (criteria_level == 'baseline-3' ? 'btn btn-primary btn-xs' : 'btn btn-default btn-xs') %>
 
 <%# End column started outside. %>
 </div>

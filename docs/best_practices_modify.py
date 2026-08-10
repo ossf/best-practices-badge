@@ -2,7 +2,7 @@
 # Modify www.bestpractices.dev project entries via API
 
 # Copyright the Linux Foundation and the
-# CII Best Practices badge contributors
+# OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
 """

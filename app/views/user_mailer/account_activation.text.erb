@@ -1,3 +1,3 @@
 <%= t 'user_mailer.account_activation.before_text' %>
-<%= edit_account_activation_url(id: @user.activation_token, email: @user.email,
+<%= edit_account_activation_url(token: @user.activation_token, email: @user.email,
       locale: locale) %>

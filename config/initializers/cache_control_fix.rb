@@ -23,15 +23,14 @@ class CacheControlFixMiddleware
   end
 
   def call(env)
-    status, headers, body = @app.call(env)
+    result = @app.call(env)
+    _status, headers, _body = result
 
     cache_control = headers['Cache-Control'] || headers['cache-control']
+    headers['Cache-Control'] = 'private, no-cache' if cache_control == 'no-cache'
 
-    if cache_control == 'no-cache'
-      headers['Cache-Control'] = 'private, no-cache'
-    end
-
-    [status, headers, body]
+    # Always return original result array to avoid unnecessary object creation
+    result
   end
 end
 

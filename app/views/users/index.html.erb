@@ -10,9 +10,9 @@
       <%= link_to user.name, user %>
     | <%= user.provider %>
       <% if current_user&.admin? %>
-        <% if user.email? %>
-    |     <a href="mailto:<%= CGI::escape(user.email).html_safe %>">email
-            <%= user.email %></a>
+        <% if user.encrypted_email? %>
+    |     <a href="mailto:<%= CGI::escape(user.email_if_decryptable).html_safe %>">email
+            <%= user.email_if_decryptable %></a>
         <% end %>
     |   <%= link_to "delete", user, method: :delete,
                                     data: { confirm: "Are you sure?" } %>
@@ -20,16 +20,15 @@
     </li>
   <% end %>
 </ul>
-<%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %>
+<%= render 'shared/pagination', pagy: @pagy %>
 
 <% if current_user&.admin? %>
 <h2 class>New Search</h2>
-<p><strong>Name search is case-insensitive and supports wildcards:</strong> Use % for zero or more characters and _ for exactly one character.</p>
- <%= form_for users_path, method: 'get', enforce_utf8: true do %>
-  <label for="name"><%= 'Name' %></label>
-  <%= text_field_tag :name, params[:name], size: 40, placeholder: 'User name (case-insensitive, % and _)' %>
-  <label for="email"><%= 'Email' %></label>
-  <%= text_field_tag :email, params[:email], size: 60, placeholder: 'User email (case-insensitive exact match)' %>
+ <%= form_for users_path, method: 'get' do %>
+  <label for="search_names"><%= 'Names (one per line)' %></label>
+  <%= text_area_tag :search_names, params[:search_names], rows: 3, cols: 40, placeholder: 'User names (1/line, case-insensitive, % for 0+ chars, _ for 1 char)' %>
+  <label for="search_emails"><%= 'Emails (one per line)' %></label>
+  <%= text_area_tag :search_emails, params[:search_emails], rows: 3, cols: 60, placeholder: 'User emails (1/line, case-insensitive exact match)' %>
   <%= submit_tag 'User Search', name: nil %>
  <% end %>
 <% end %>

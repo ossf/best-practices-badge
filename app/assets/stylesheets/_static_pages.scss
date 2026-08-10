@@ -1,0 +1,73 @@
+// Place all the styles related to the StaticPages controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+@import "variables";
+
+// Home page specific styles
+
+.best-practices-banner {
+  font-size: 5em;
+}
+
+.best-practices-main-text {
+  font-size: 1.1em;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.home-badge {
+  margin-top: 1em;
+  background: image-url('home_badge.png') no-repeat top left;
+  width: 250px;
+  height: 250px;
+  background-size: contain;
+}
+
+.earner-logo {
+  margin-right: 8px;
+}
+
+.btn-main-getbadge {
+  border-radius: 50px;
+  padding: .5em;
+  font-size: 1.5em;
+  background-color: #80B957;
+}
+
+.btn-main-margin {
+  margin: 1em 0;
+}
+
+@media only screen and (max-width: 480px) {
+  .btn-stack {
+    display: block;
+    float: none;
+    text-align: center;
+    width: 100%;
+  }
+
+  .home-badge {
+    margin: auto;
+    background-size: 140px 140px;
+  }
+
+  .best-practices-banner {
+    font-size: 3em;
+  }
+}
+
+@media only screen and (min-width: $screen-xs-custom) and (max-width: $screen-xs-max) {
+  .home-badge {
+    margin: auto;
+    background-size: 200px 200px;
+  }
+}
+
+@media only screen and (min-width: $screen-sm-min) {
+  .home-badge {
+    background-size: 250px 250px;
+  }
+}
+
+// Other static page content styles

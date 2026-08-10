@@ -1,0 +1,1294 @@
+---
+en:
+  feed_title: OpenSSF Best Practices BadgeApp Updated Projects
+  project_name_unknown: "(Name unknown)"
+  locale_name:
+    pt-BR: Brazilian Portuguese
+  layouts:
+    toggle_navigation: Toggle collapsible navigation
+    signup_html: Sign Up
+    translation_disclaimer_html: This translation may contain errors. In case of conflict, the English original governs.
+  password_resets:
+    forgot_password: Forgot password
+    reset_password: Reset password
+    password_confirmation: Confirmation
+    password_empty: Password can't be empty
+    password_reset: Password has been reset
+    instructions_sent: 'Email sent with password reset instructions (if a local account exists)
+
+      '
+    reset_expired: Password reset has expired.
+    update_password: Update password
+  unsubscribe:
+    header: Unsubscribe
+    description: We're sorry you no longer want to receive notifications. If you are certain, please confirm your notification unsubscribe request.
+    email_label: Email Address
+    issued_label: Issued Date
+    token_label: Unsubscribe Token
+    submit: Unsubscribe
+    confirm_message: Are you sure you want to unsubscribe from all notifications?
+    processing: Processing...
+    success: You have been successfully unsubscribed from our notifications.
+    invalid_token: Invalid unsubscribe token. Please check the token from your email.
+    no_matching_accounts: No matching accounts found with notification emails enabled.
+    missing_parameters: 'Missing required parameters: email address, unsubscribe token, and issued date.'
+    invalid_parameters: Invalid parameters provided.
+    error: An error occurred while processing your request. Please try again later.
+  static_pages:
+    cookies:
+      cookies_info_html: '<p> To make this site work properly, we sometimes place small data files called cookies on your device. Many websites do this. </p> <p> A cookie is a small text file that a website saves on your computer (including your mobile device) when you visit the site. It enables the website to remember your actions and preferences (such as login, language, font size and other display preferences) over a period of time, so you don’t have to keep re-entering them whenever you come back to the site or browse from one page to another. Cookies are a standard part of the HTTP protocol that implements the World Wide Web (WWW), and are specified in <a href="https://tools.ietf.org/html/rfc6265">RFC 6265</a>. </p> <p> We use first-party "session" cookies whenever you log in. By definition, session cookies are designed to expire when you exit your browser or log off. If you enable "Keep me logged in" (aka "Remember me"), we also store information in a first-party "permanent" cookie on your browser so that we can automatically log you back in when you visit our site even after you exit your browser. If you choose to use other sites (such as GitHub) for authentication to this site, then that other site will probably use cookies (and thus what they do with cookies will also apply). Please note that we can''t control what other sites do. </p> <p> The cookies we set are only used to support capabilities related to this site. Consent can be withdrawn - just delete the cookies on your browser. You can control and/or delete cookies as you wish.  For details, see <a href="https://www.aboutcookies.org">cookies.org</a>.  You can delete all cookies that are already on your computer and you can set most browsers to prevent them from being placed. If you do this, however, you may have to manually adjust some preferences every time you visit a site and some services and functionalities may not work. In particular, logging into this site depends on session cookies (on this and many other sites). </p> <p> This text is intended to comply with UK and EU "Cookie laws". </p>
+
+        '
+    criteria_stats:
+      project_stats_html: The "active" criteria are criteria that are included in the percentage calculations (as opposed to "future" criteria). The next columns identify the number of active criteria in each level that are MUST, SHOULD, SUGGESTED, allow a "N/A" as an answer, require justification when "met" is the answer, require a URL, require justification when "met" is the answer or a URL, include details, or are new at this level. "Future" criteria are shown on the form, and are expected to be added as active criteria to some level in the future, but are not included in completion calculations. <br><br> You can see statistics about projects over time at the <a href="/en/project_stats">project stats page</a>.
+      obsolete: Obsolete
+  users:
+    edit:
+      notification_emails: Email notifications
+      notification_emails_help: Receive email notifications about your projects
+      important_notifications: Important notifications
+      important_notifications_help: Receive important notifications such as loss of a badge due to changed requirements
+  project_stats:
+    index:
+      project_stats_header: Project Statistics
+      all_projects: All projects
+      projects_nontrivial: Projects with non-trivial progress
+      projects_activity_30: Projects with badge entry activity in last 30 days
+      projects_silver: Project progress towards silver
+      projects_gold: Project progress towards gold
+      projects_completed_silver_and_gold: Projects completing silver and gold
+      percent_projects_earning_badges: Percentage of projects earning badges
+      daily_activity: Daily badge entry activity
+      reminders: Reminders
+      active_projects: Active projects (created/updated within 30 days)
+      active_in_progress: Active in-progress projects (created/updated within 30 days)
+      active_edited: Active edited projects (updated within 30 days)
+      active_edited_in_progress: Active edited in-progress projects (updated within 30 days)
+      projects_created_since_yesterday: projects created since day before
+      projects_updated_since_yesterday: projects updated since day before
+      projects_created_average_7_days: projects created average over 7 days
+      projects_updated_average_7_days: projects updated average over 7 days
+      projects_created_updated_daily: The dataset "projects created since day before" is a set of counts of how many projects were created within 24 hours of the given datetime (not including projects that were also deleted in the same 24 hour period). Similarly, the dataset "projects updated since the day before" is a set of counts of how many projects were edited within 24 hours of the given datetime (not including projects that were created or deleted in the same 24 hour period). The 7 day averages show the corresponding averages for 7 days. You may select colors in the legend to hide and unhide the corresponding data.
+      reminders_sent_since_yesterday: Reminders sent since yesterday
+      reactivated_projects: Reactivated projects in 14 days after receiving reminder
+      admin_html: As an admin, you may also see the <a href="/en/reminders">detailed information about reminders</a> and <a href="/en/project_stats?type=uncommon">graphs of less commonly-used statistics</a>.
+      raw_data: 'You can also see the raw data:'
+      json_format: JSON format
+      csv_format: downloadable CSV format
+      user_statistics: User statistics
+      users: Users
+      github_users: GitHub Users
+      local_users: Custom (Local) Users
+      users_created_since_yesterday: Users Created since Yesterday
+      users_updated_since_yesterday: Users Updated since Yesterday
+      users_with_projects: Users with Projects
+      users_without_projects: Users without Projects
+      users_with_multiple_projects: Users with Multiple Projects
+      users_with_passing_projects: Users with Passing Projects
+      users_with_silver_projects: Users with Silver Projects
+      users_with_gold_projects: Users with Gold Projects
+  projects:
+    index:
+      all: All
+      passing_100: Passing at least (100%+ tiered)
+      in_progress_variable: In Progress (%{percent}%+ tiered)
+      silver_in_progress_variable: Passing, partial silver (%{percent}%+ tiered)
+      silver_200: Silver (200%+ tiered)
+      gold_in_progress_variable: Silver, partial gold (%{percent}%+ tiered)
+      gold_300: Gold (300%)
+      in_progress_next: In Progress, %{percent}% completed for passing
+      passing_next: Passing, %{percent}% completed for silver
+      silver_next: Silver, %{percent}% completed for gold
+      add_link: Add
+      add_new: Add New Project
+      badge_status: Badge status
+      exclude_passing: Exclude passing
+      text_search: Text search
+      name_or_description: Name or description text
+      search: Search
+    table:
+      badge: Badge
+      can_also_sort: 'The "tiered %" field shows 300% for gold, 200% for silver, and 100% for passing, and adds progress after the highest-earned badge.  You can also sort by the following:'
+      repository_url: repository URL
+      create_time: create time (for the badge entry)
+      update_time: last update time (for the badge entry)
+      badge_level: Badge level for project %{id} is %{percent}%
+    new:
+      thanks_adding: Thanks for adding the Project! Please fill out the rest of the information to get the Badge.
+      post_delay_warning: There may be a significant delay after submitting as we try to automatically fill in information.
+      new_badge: New badge
+      tell_us: 'Please tell us about your free/libre/open source software (FLOSS) project. This <b>MUST</b> be a FLOSS project; nothing else is permitted. Do <b>NOT</b> add an unrelated site to try to improve a site''s search engine optimization (SEO). This spamming is forbidden because it harms users, and it will not help SEO anyway (all hyperlinks are marked with <tt>ugc</tt> and <tt>nofollow</tt>).
+
+        '
+      may_select_html: You may select from one of your GitHub repos <em>OR</em> provide information about some other project. If your project hasn't earned a passing badge and you haven't made any edits for at least 30 days, we'll send you a reminder email (you can disable reminders at any time if you want to).
+      new_badge_or: OR
+      select_one_github: Select one of your GitHub repos
+      submit_github: Submit GitHub Repository
+      project_already_exists: This project already exists!
+      url_of_homepage: What is the URL for the project home page (the URL for the project as a whole)? Start with http(s):// (many characters are not allowed, including "?")
+      placeholder_of_homepage: http(s)://... for project home page URL, use https:// if you can
+      url_of_repo: What is the URL for the version control repository (it may be the same as the project home page)? Start with http(s):// (many characters are not allowed, including "?")
+      placeholder_of_repo: http(s)://... for project repo URL, use https:// if you can
+      submit_urls: Submit URL
+      final_text_html: Note - if your repository URL is on GitHub, anyone who can commit to the repository will be able to edit the badge information.
+      sign_in_first: Please sign in to add a project!
+      original_repos: "=> Original GitHub Repos"
+      fork_repos: "=> Forked GitHub Repos"
+      reminder_email_html: If your project hasn't earned a badge and you haven't made any edits for at least 30 days, we'll send you a reminder email (you can disable reminders at any time if you want to).
+      github_repo_label: Select a GitHub repository (optional)
+      submit: Submit Project
+      badge_series: Badge series
+      badge_series_description: You can choose which badge series to start with. The baseline series is a more minimal checklist focusing only on MUST security requirements and is derived in part from global cybersecurity regulations and frameworks. The metal series is a larger set of criteria that includes suggestions and quality issues that impact security, and is derived in part from experiences of secure FLOSS projects. Both focus on security, and we encourage projects to eventually do both; you choose where to start.
+      badge_series_metal: Metal (passing, silver, gold)
+      badge_series_baseline: Baseline (baseline-1, baseline-2, baseline-3)
+      github_reconnect_html: We could not load your GitHub repositories. Your GitHub session may have expired.
+      github_reconnect_link: Reconnect to GitHub
+    delete_form:
+      info_html: "<b>Warning</b> - you are about to <b>permanently delete</b> the badge entry for %{project_name}. This <b>cannot</b> be easily undone, so we recommend that you do <b>not</b> delete this badge entry. You don't need to complete badge criteria all at once; most projects get the badge by identifying and meeting missing criteria over time. If you think some criteria don't make any sense, cannot figure out how to meet some criteria, or have other questions, please contact us. Note that not all criteria must be met to get a badge (some criteria SHOULD be met or are simply SUGGESTED). If you don't want reminders emailed to you, simply edit the project entry and turn off email reminders instead. However, if you are <i>certain</i> that you want to <i>permanently delete</i> this badge entry, please explain below why you are permanently deleting it."
+      rationale_placeholder: "(Required) Please explain why you are permanently deleting this project badge entry, and if applicable, what you wish we did instead (20+ characters, 15+ non-whitespace)"
+      delete_action: PERMANENTLY DELETE this project badge entry!
+      too_short: Must have at least 20 characters.
+      more_non_whitespace: Must have at least 15 non-whitespace characters.
+    edit:
+      edit_status: Edit Project Badge Status
+      repo_url_limits: You may only change your repo_url if it is (1) more than 180 days since it was last changed, or (2) it is only a switch between http and https. Please file an issue (with rationale) if you need to change it sooner.
+      changed_since_html: Another user has made a change to that record since you accessed the edit form. <br>Please open a new <a href="%{edit_url}" target="_blank" rel="noopener">edit form</a> to transfer your changes.
+      successfully_updated: Project was successfully updated.
+      congrats_new: CONGRATULATIONS on earning a %{new_badge_level} badge! If you haven't already, please show your badge status on your project page (see the "how to embed it" text just below if you don't know how to do that).
+      lost_badge: Project has lost a badge.
+      new_owner: Owner id (a positive integer), change to change ownership
+      new_owner_repeat: Repeated new owner id (to confirm an ownership change)
+      current_owner: 'Current owner ID:'
+      ownership_edit_hint: "(Ownership can be transferred when editing this section.)"
+      static_analysis_updated_html: We have updated our requirements for the criterion static_analysis. Please add a justification for this criterion.
+      save_and_continue: Save (and continue)
+      submit_and_exit: Submit (and exit)
+      submit_cc_by_3plus_html: By submitting this data about the project you agree to release it under at least the <a href="https://creativecommons.org/licenses/by/3.0/us" target="_blank" rel="noopener">Creative Commons Attribution version 3.0 or later license (CC-BY-3.0+)</a>. This means that all are free to share and adapt the data, but they must give appropriate credit. You retain copyright (if any), and the project license is unaffected.<br><br>
+      submit_cdla_permissive_20_html: By submitting this data about the project you agree to release it under at least the <a href="https://cdla.dev/permissive-2-0/" >Community Data License Agreement – Permissive, Version 2.0</a>. This means that a Data Recipient may share the Data, with or without modifications, so long as the Data Recipient makes available the text of this agreement with the shared Data. This agreement does <i>not</i> impose any restriction or obligations with respect to the use, modification, or sharing of Results. You retain copyright (if any), and the project license is unaffected.<br><br>
+      not_authorized: You are not authorized to edit this project.
+      automation:
+        aria_automated: This field was automatically filled
+        aria_overridden: This field value was corrected by automation
+        automated_tooltip: We filled this in using automated project analysis
+        overridden_tooltip: We corrected this value using automated project analysis
+        chief_overrode:
+          one: 'We corrected 1 field based on project analysis:'
+          other: 'We corrected %{count} fields based on project analysis:'
+        override_detail: "'%{criterion}' changed from '%{old}' to '%{new}' — %{explanation}"
+        analysis_failed:
+          one: 'Warning: Automated analysis failed for 1 field (%{fields}). Your other changes were saved.'
+          other: 'Warning: Automated analysis failed for %{count} fields (%{fields}). Your other changes were saved.'
+        aria_divergent: Automation had a different answer
+        overridden_detail: 'Previous value: %{old_status}.%{old_justification_part}%{explanation_part}'
+        overridden_old_justification_part: " Previous justification: %{old_justification}"
+        overridden_explanation_part: " Automation reason: %{explanation}"
+        divergent_detail: Automation instead determined %{status}.%{justification_part}
+        divergent_justification_part: " %{justification}"
+        divergent_proposed_value: 'Automation suggested: %{proposed_value}'
+      save_and_continue_tooltip: Runs automation to fill unknown values
+      automation_hint_html: You can use tools and AI systems to propose changes via a simple URL, such as <tt>https://%{badge_hostname}/%{app_locale}/projects/%{project_id}/choose/edit?osps_ac_01_01_status=Met&amp;osps_ac_01_01_justification=GitHub+enforced</tt>. See our <a href="%{automation_proposals_url}">automation proposals system</a> for how to do that.
+    show:
+      section_selector: Section
+      edit: Edit
+      delete: Delete
+      confirm_delete: Are you SURE you want to DELETE the ENTIRE project %{project_id}?
+      back: Back
+      owned_by: 'Project badge entry owned by:'
+      created_at_html: "<strong>Entry created on</strong> %{when},"
+      updated_at_html: "<strong>last updated on</strong> %{when}."
+      last_lost_html: Last lost passing badge on %{when}.
+      last_achieved_html: Last achieved passing badge on %{when}.
+      cdla_permissive_20_html: This data is available under the <a href="https://cdla.dev/permissive-2-0/" >Community Data License Agreement – Permissive, Version 2.0 (CDLA-Permissive-2.0)</a>. This means that a Data Recipient may share the Data, with or without modifications, so long as the Data Recipient makes available the text of this agreement with the shared Data. Please credit %{user} and the OpenSSF Best Practices badge contributors.<br><br>
+      cc_by_3plus_html: This data is available under the <a href="https://creativecommons.org/licenses/by/3.0/us" target="_blank" rel="noopener">Creative Commons Attribution version 3.0 or later license (CC-BY-3.0+)</a>. All are free to share and adapt the data, but must give appropriate credit. Please credit %{user} and the OpenSSF Best Practices badge contributors.<br><br>
+      cc_by_3only_html: This data is available under the <a href="https://creativecommons.org/licenses/by/3.0/us" target="_blank" rel="noopener">Creative Commons Attribution version 3.0 license (CC-BY-3.0)</a> per the <a href="https://www.linuxfoundation.org/terms" target="_blank" rel="noopener">terms of use</a>. All are free to share and adapt the data, but must give appropriate credit. Please credit %{user} and the OpenSSF Best Practices badge contributors.<br><br>
+    form_early:
+      badge_intro:
+        description: Projects that follow the best practices below can voluntarily self-certify and show that they've achieved an Open Source Security Foundation (OpenSSF) best practices badge.
+        details_html: There is no set of practices that can guarantee that software will never have defects or vulnerabilities; even formal methods can fail if the specifications or assumptions are wrong. Nor is there any set of practices that can guarantee that a project will sustain a healthy and well-functioning development community. However, following best practices can help improve the results of projects. For example, some practices enable multi-person review before release, which can both help find otherwise hard-to-find technical vulnerabilities and help build trust and a desire for repeated interaction among developers from different companies. To earn a badge, all MUST and MUST NOT criteria must be met, all SHOULD criteria must be met OR be unmet with justification, <em>and</em> all SUGGESTED criteria must be met OR unmet (we want them considered at least). If you want to enter justification text as a generic comment, instead of being a rationale that the situation is acceptable, start the text block with '//' followed by a space. Feedback is welcome via the <a href="https://github.com/ossf/best-practices-badge">GitHub site as issues or pull requests</a> There is also a <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">mailing list for general discussion</a>.<br /><br /> We gladly provide the information in several locales, however, if there is any conflict or inconsistency between the translations, the English version is the authoritative version.
+      level:
+        '0': Passing
+        0_html: These are the %{passing} level criteria. You can also view the %{silver} or %{gold} level criteria.
+        '1': Silver
+        1_html: These are the %{silver} level criteria. You can also view the %{passing} or %{gold} level criteria.
+        '2': Gold
+        2_html: These are the %{gold} level criteria. You can also view the %{passing} or %{silver} level criteria.
+        baseline-1: Baseline Level 1
+        baseline-1_html: These are the Baseline Level 1 criteria.
+        baseline-2: Baseline Level 2
+        baseline-2_html: These are the Baseline Level 2 criteria.
+        baseline-3: Baseline Level 3
+        baseline-3_html: These are the Baseline Level 3 criteria.
+      got_badge:
+        description_1: 'If this is your project, please show your badge status on your project page! The badge status looks like this:'
+        badge_alt: Badge level for project %{id} is %{level}
+        description_2: 'Here is how to embed it:'
+        details_html: You can show your badge status by embedding this in your markdown file:<br /> %{markdown_embedding}<br /> or by embedding this in your HTML:<br /> %{html_embedding}<br />
+        editing_description_html: <strong>Please 'submit' often</strong> to save your work (you can always go back and edit more later). <br><br> If you need help, have a question, or see a problem, please <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">file an issue</a></em>.
+      got_baseline_badge:
+        description_1: 'If this is your project, please show your baseline badge status on your project page! The baseline badge status looks like this:'
+        badge_alt: Baseline badge level for project %{id} is %{level}
+        description_2: 'Here is how to embed the baseline badge:'
+        details_html: You can show your baseline badge status by embedding this in your markdown file:<br /> %{markdown_embedding}<br /> or by embedding this in your HTML:<br /> %{html_embedding}<br />
+    form_basics:
+      project_name:
+        description: What is the human-readable name of the project?
+        details: Note that other projects may use the same name.
+        placeholder: FLOSS Project Name
+      description:
+        description: What is a brief description of the project?
+        details: Include key comments about the project.  Use markdown. This information is used when displaying badge information.
+        placeholder: Project Description
+      homepage_url:
+        description: What is the URL for the project (as a whole)?
+        placeholder: Project Website URL
+      repo_url:
+        description: What is the URL for the version control repository (it may be the same as the project URL)?
+        placeholder: Project Repo URL
+      implementation_languages:
+        description: What programming language(s) are used to implement the project?
+        details: If there is more than one language, list them as comma-separated values (spaces optional) and sort them from most to least used. If there is a long list, please list at least the first three most common ones.  If there is no language (e.g., this is a documentation-only or test-only project), use the single character "-". Please use a conventional capitalization for each language, e.g., "JavaScript".
+        placeholder: Implementation language(s) used as a comma-separated list, sorted by amount of use
+      additional_rights_changes:
+        description: "(Advanced) What other users have additional rights to edit this badge entry? Currently: %{current_rights}"
+        details_html: Most projects should ignore this field. Project badge entries can always be edited by the badge entry owner (creator), BadgeApp administrators, and anyone who can commit to the GitHub repository (if it's on GitHub). If you want someone else to be able to edit this badge entry, and you already have edit rights to this project badge entry, you can additional users with edit rights. Just enter "+" followed by a comma-separated list of integer user ids. Those users will then also be allowed to edit this project entry. If you're the owner of the badge entry or a BadgeApp administrator, you can remove users from this list by entering "-" followed by a comma-separated list of integer user ids. We expect that normally only one person will edit a particular badge entry at a time. This application uses optimistic locking to prevent saving stale data if multiple users try to edit a badge entry simultaneously. If you have multiple editors, we recommend saving badge entry data incrementally and often (that is a wise practice anyway).
+        placeholder: Change using + or - followed by a comma-separated user id list
+      cpe:
+        description_html: What is the <a href="https://nvd.nist.gov/cpe.cfm">Common Platform Enumeration (CPE)</a> name for the project (if it has one)?
+        details_html: The <a href="https://nvd.nist.gov/cpe.cfm">Common Platform Enumeration (CPE)</a> is a structured naming scheme for information technology systems, software, and packages. It is used in a number of systems and databases when reporting vulnerabilities.
+        placeholder: "(Optional) CPE name"
+      license:
+        description_html: What license(s) is the project released under?
+        details_html: Please use <a href="https://spdx.org/licenses/">SPDX license expression format</a>; examples include "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "GPL-2.0+", "LGPL-3.0+", "MIT", and "(BSD-2-Clause OR Ruby)".  Do <b>not</b> include single quotes or double quotes.
+        title: License in SPDX license expression format, e.g., "MIT" or "GPL-3.0+", without single quotes or double quotes
+        placeholder: FLOSS License
+      entry_locale:
+        description: What language is used for this badge entry's description and justifications?
+        details: Select the language used for the project description and criterion justification text. This helps browser translation tools correctly identify the language of this content. Most projects use English.
+    misc:
+      in_javascript:
+        collapse_all_title: Collapse all panels
+        collapse_all: Collapse panels
+        expand_all_title: Expand all panels
+        expand_all: Expand panels
+        show_details: Show details
+        hide_details: Hide details
+        show_all_details: Show all details
+        hide_all_details: Hide all details
+        show_met_title: Show complete and incomplete criteria
+        show_met_html: Show complete and incomplete criteria
+        hide_met_title: Show only incomplete criteria (showing only unmet and unknown)
+        hide_met_html: Show only incomplete criteria
+        passing_alt: Enough for a badge!
+        barely_alt: Barely enough for a badge.
+        failing_alt: Not enough for a badge.
+        unknown_alt: Unknown required information, not enough for a badge.
+        met_url_placeholder: "(URL required) Please explain how this is met, including 1+ key URLs."
+        met_justification_placeholder: "(Required) Please explain how this is met, possibly including 1+ key URLs."
+        met_placeholder: "(Optional) Please explain how this is met, possibly including 1+ key URLs."
+        unmet_placeholder: Please explain why it's okay this is unmet, including 1+ key URLs.
+        na_justification_placeholder: "(Required) Please explain why this is not applicable (N/A), possibly including 1+ key URLs."
+        na_placeholder: "(Optional) Please explain why this is not applicable (N/A), possibly including 1+ key URLs."
+        unknown_placeholder: Please explain
+      disabled_reminders: "(Advanced) Disable inactivity reminder (we recommend you leave this unchecked; note that project entries must be edited to change whether or not reminders are sent)"
+      reminder_notification_note:
+        title: Email Notification Settings
+        description_html: If you are the owner of this badge entry and want to disable inactivity reminder emails, please edit your <a href="/users/%{user_id}/edit">user profile settings</a>. This setting applies to all your projects.
+      general_comments:
+        description: 'Other general comments about the project:'
+        placeholder: Additional Comments (in markdown)
+      some_not_crypto_html: Note that some software does not need to use cryptographic mechanisms. If your project produces software that (1) includes, activates, or enables encryption functionality, and (2) might be released from the United States (US) to outside the US or to a non-US-citizen, you may be legally required to take a few extra steps. Typically this just involves sending an email. For more information, see the encryption section of <a href="https://www.linuxfoundation.org/resources/publications/understanding-us-export-controls-with-open-source-projects" ><i>Understanding Open Source Technology &amp; US Export Controls</i></a>.
+      dont_use_crypto: Press here if the software produced by the project does not use cryptographic mechanisms
+      future_header_html: These are criteria we intend to add in the near future, but are <em>not</em> currently required for a badge. This grace period allows projects to update to changed criteria and retain their badge as best practices improve.
+      toggle_details_title: Toggle details text
+      details: Details
+      url_required: URL required
+      future_criterion: Future criterion
+      url_required_warning: 'Warning: URL required, but no URL found.'
+      justification_required_warning: 'Warning: Requires lengthier justification.'
+      in_development_warning_html: "<strong>Warning!</strong> This is not the production system; this is a test tier."
+      close: Close
+      obsolete_header_html: These are criteria that were previously required but have been retired from the upstream baseline. They are shown for reference and are <em>not</em> required for a badge.
+      obsolete_criterion: Obsolete criterion
+    delete:
+      done: Project was successfully deleted.
+    baseline_version_notice:
+      current: These are criteria version %{version}.
+      transition_html: These criteria are from baseline version %{current_version} with updated criteria text from version %{new_version}. Criteria that are new in version %{new_version} are labeled &ldquo;future&rdquo; and will begin to be enforced starting %{enforce_date}. Please provide answers to the &ldquo;future&rdquo; criteria before that date.
+      transition: These criteria are from baseline version %{current_version} with updated criteria text from version %{new_version}. Criteria that are new in version %{new_version} are labeled "future" and will begin to be enforced starting %{enforce_date}. Please provide answers to the "future" criteria before that date.
+    choose_edit:
+      title: Choose a Section to Edit
+      instructions: Select a section to edit.
+      proposals_note: Any proposed changes will be applied to the selected section.
+    choose_show:
+      title: Choose a Section to View
+      instructions: Select a section to view.
+  report_mailer:
+    new_project_heading: Thanks for adding your project to the Best Practices Badging Program
+    new_project_part1: |-
+      Thank you for adding your project
+      to the Best Practices Badging Program.
+      The current name we have for this project is:
+    new_project_part2: |-
+      Please visit your badge entry
+      to complete the information and get your badge!
+      Here is the URL for your badge entry:
+    new_project_part3_html: |-
+      <p>
+      We encourage you to keep making progress.
+      </p>
+      <p>
+      If you want to see <em>only</em> what you're missing,
+      visit your badge entry, and
+      then click on the button near the top labelled "Hide met or N/A criteria"
+      If you have questions, or need help, please contact
+      <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
+      or file an issue at
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
+      (click on "new issue").
+      </p>
+      <p>
+      We will never send you advertisements, and we will only rarely
+      send you email.
+      We will send you an email on important badge application events,
+      such as when you create a new project badge entry,
+      when your project gains or loses a badge,
+      or when someone requests a password reset on your user account.
+      If your project does not have a badge, and you haven't updated its badge
+      entry for at least 30 days, we'll normally send you an inactivity
+      reminder about every 30-60 days.
+      You can disable these inactivity reminder messages at any time by
+      editing your <a href="/users/%{user_id}/edit">user account settings</a>
+      to turn off "Email notifications".
+      If your project has earned a passing badge, or its
+      badge entry has been edited within 30 days,
+      then no inactivity reminder will be sent.
+      </p>
+      <p>
+      Thank you for your time.
+      </p>
+    new_project_part3_text: |-
+      We encourage you to keep making progress.
+      If you want to see only what you're missing, visit your badge entry, and
+      then click on the button near the top labelled "Hide met or N/A criteria".
+      If you have questions, or need help, please contact
+      cii-badges-questions@lists.coreinfrastructure.org
+      or file an issue at
+      https://github.com/ossf/best-practices-badge/issues
+      (click on "new issue").
+
+      We will never send you advertisements, and we will only rarely
+      send you email.
+      We will send you an email on important badge application events,
+      such as when you create a new project badge entry,
+      when your project gains or loses a badge,
+      or when someone requests a password reset on your user account.
+      If your project does not have a badge, and you haven't updated its badge
+      entry for at least 30 days, we'll normally send you an inactivity
+      reminder about every 30-60 days.
+      You can disable these inactivity reminder messages at any time by
+      editing your user account settings at /users/%{user_id}/edit to turn off "Email notifications".
+      Be sure to edit your user profile settings if you want to change whether
+      or not you receive inactivity reminders!
+      If your project has earned a passing badge, or its
+      badge entry has been edited within 30 days,
+      then no inactivity reminder will be sent.
+
+      Thank you for your time.
+    reminder_body_html: |-
+      <h1>Automated Best Practices Badge Reminder for %{project_name}</h1>
+      <p>
+      This is an automated reminder that your project
+      "%{project_name}"
+      does not currently have a "best practices" badge,
+      and its badge entry has not been updated in a while.
+      </p>
+
+      <p>
+      Your best practices badge entry is at
+      <a href="%{project_info_url}">%{project_info_url}</a>
+      and was last updated on %{project_updated_at}.
+      It is currently at %{project_badge_percentage_0}% (out of 100%).
+      </p>
+
+      <p>
+      We encourage you to keep making progress.
+      Please visit your badge entry at
+      <a href="%{project_info_url}">%{project_info_url}</a>
+      to complete the information and get your badge!
+      </p>
+
+      <p>
+      If you want to see <em>only</em> what you're missing, visit your badge entry,
+      select the button near the top labelled "Expand all panels", and
+      then select the button near the top labelled "Hide met or N/A criteria".
+      If you have questions, or need help, please contact
+      <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
+      or file an issue at
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
+      (click on "new issue").
+      </p>
+
+      <p>
+      We don't send reminders if you continue to update your badge entry,
+      and we only send reminders approximately every 30-60 days.  However,
+      if you want to disable these reminder messages, edit your
+      <a href="/users/%{user_id}/edit">user account settings</a>
+      to turn off "Email notifications".
+      This setting applies to all your projects.
+      We hope you'll instead keep working at it
+      and eventually earn the badge.
+      </p>
+
+      <p>
+      Thank you for your time.
+      </p>
+    reminder_body_text: |-
+      This is an automated reminder that your project
+      "%{project_name}"
+      does not currently have a "best practices" badge,
+      and its badge entry has not been updated in a while.
+
+      Your best practices badge entry is at
+      %{project_info_url}
+      and was last updated on %{project_updated_at}
+      It is currently at %{project_badge_percentage_0}% (out of 100%).
+
+      We encourage you to keep making progress.
+      Please visit your badge entry at
+      %{project_info_url}
+      to complete the information and get your badge!
+
+      If you want to see only what you're missing, visit your badge entry,
+      select the button near the top labelled "Expand all panels", and
+      then select the button near the top labelled "Hide met or N/A criteria".
+      If you have questions, or need help, please contact
+      cii-badges-questions@lists.coreinfrastructure.org
+      or file an issue at
+      https://github.com/ossf/best-practices-badge/issues
+      (click on "new issue").
+
+      We don't send reminders if you continue to update your badge entry,
+      and we only send reminders approximately every 30-60 days.  However,
+      if you want to disable these reminder messages, edit your
+      user account settings at /users/%{user_id}/edit to turn off "Email notifications".
+      This setting applies to all your projects.
+      We hope you'll instead keep working at it
+      and eventually earn the badge.
+
+      Thank you for your time.
+    gained_level_part1: |-
+      Congratulations!
+      According to the information that you've provided,
+      your project has earned the OpenSSF best practices '%{new_level}' badge.
+      For more information, see this URL:
+    gained_level_part2: |-
+      Please add your badge to your project and/or repository site;
+      you've earned it:
+    gained_level_part3: |-
+      We strongly encourage you to add or improve justification text,
+      including adding URLs that point to more information.
+      If you have suggestions on how to improve the criteria or
+      badge web application, please file an issue at:
+      https://github.com/ossf/best-practices-badge/issues
+      One of our goals is to encourage projects to make some improvements.
+      We put some of these reports on the public wiki; please let us know
+      if you do NOT want the changes publicly posted at
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
+      Thank you, and congratulations.
+    in_markdown_add: 'In markdown you can add this:'
+    in_html_add: 'In HTML you can add this:'
+    lost_level_message: |-
+      We're sorry, but your project no longer has the "%{old_level}" badge
+      and is now "%{new_level}".
+      Please see the following URL for more information:
+    ending: "--- David A. Wheeler, OpenSSF Best Practices Badge Lead"
+    unsubscribe_notice_html: 'To unsubscribe from these email notifications, please visit: <a href="%{unsubscribe_url}">%{unsubscribe_url}</a>'
+    unsubscribe_notice_text: 'To unsubscribe from these email notifications, please visit: %{unsubscribe_url}'
+    subject_warned_level: Your best practices badge may lose "%{old_level}" status
+    warned_level_message: |-
+      This is an advance notice that your project's "%{old_level}" badge may be
+      lost on %{effective_date} when updated criteria take effect.
+      Please review your badge entry at the following URL before that date:
+  criteria:
+    '0':
+      description_good:
+        description: The project website MUST succinctly describe what the software does (what problem does it solve?).
+        details: This MUST be in language that potential users can understand (e.g., it uses minimal jargon).
+        met_placeholder: "(Optional) Where is the succinct description?  Consider providing a URL."
+      interact:
+        description: 'The project website MUST provide information on how to: obtain, provide feedback (as bug reports or enhancements), and contribute to the software.'
+        met_placeholder: "(Optional) Where is this information?  Consider providing URL(s)."
+      floss_license:
+        description: The software produced by the project MUST be released as FLOSS.
+        details: 'FLOSS is software released in a way that meets the <a href="https://opensource.org/osd-annotated">Open Source Definition</a> or <a href="https://www.gnu.org/philosophy/free-sw.en.html">Free Software Definition</a>. Examples of such licenses include the <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a>, <a href="https://opensource.org/licenses/MIT">MIT</a>, <a href="https://opensource.org/licenses/BSD-2-Clause">BSD 2-clause</a>, <a href="https://opensource.org/licenses/BSD-3-Clause">BSD 3-clause revised</a>, <a href="https://opensource.org/licenses/Apache-2.0">Apache 2.0</a>, <a href="https://opensource.org/licenses/lgpl-license">Lesser GNU General Public License (LGPL)</a>, and the <a href="https://opensource.org/licenses/gpl-license">GNU General Public License (GPL)</a>. For our purposes, this means that the license MUST be: <ul> <li><a href="https://opensource.org/licenses">an approved license by the Open Source Initiative (OSI)</a>, or</li> <li><a href="https://www.gnu.org/licenses/license-list.html">a free license as approved by the Free Software Foundation (FSF)</a>, or</li> <li><a href="https://www.debian.org/legal/licenses/">a free license acceptable to Debian main</a>, or</li> <li><a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing">a "good" license according to Fedora</a>.</li> </ul> The software MAY also be licensed other ways (e.g., "GPLv2 or proprietary" is acceptable).'
+      floss_license_osi:
+        description: It is SUGGESTED that any required license(s) for the software produced by the project be <a href="https://opensource.org/licenses">approved by the Open Source Initiative (OSI).</a>
+        details: The OSI uses a rigorous approval process to determine which licenses are OSS.
+      license_location:
+        description: The project MUST post the license(s) of its results in a standard location in their source repository.
+        details: 'One convention is posting the license as a top-level file named LICENSE or COPYING, which MAY be followed by an extension such as ".txt" or ".md". An alternative convention is to have a directory named LICENSES containing license file(s); these files are typically named as their SPDX license identifier followed by an appropriate file extension, as described in the <a href="https://reuse.software/spec/">REUSE Specification</a>. Note that this criterion is only a requirement on the source repository. You do NOT need to include the license file when generating something from the source code (such as an executable, package, or container). For example, when generating an R package for the Comprehensive R Archive Network (CRAN), follow standard CRAN practice: if the license is a standard license, use the standard short license specification (to avoid installing yet another copy of the text) and list the LICENSE file in an exclusion file such as .Rbuildignore. Similarly, when creating a Debian package, you may put a link in the copyright file to the license text in /usr/share/common-licenses, and exclude the license file from the created package (e.g., by deleting the file after calling dh_auto_install). We encourage including machine-readable license information in generated formats where practical.'
+      documentation_basics:
+        description: The project MUST provide basic documentation for the software produced by the project.
+        details: 'This documentation must be in some media (such as text or video) that includes: how to install it, how to start it, how to use it (possibly with a tutorial using examples), and how to use it securely (e.g., what to do and what not to do) if that is an appropriate topic for the software. The security documentation need not be long. The project MAY use hypertext links to non-project material as documentation. If the project does not produce software, choose "not applicable" (N/A).'
+        met_placeholder: "(Optional) What URL(s) are the starting points to for documentation?"
+      documentation_interface:
+        description: The project MUST provide reference documentation that describes the external interface (both input and output) of the software produced by the project.
+        details: The documentation of an external interface explains to an end-user or developer how to use it.  This would include its application program interface (API) if the software has one. If it is a library, document the major classes/types and methods/functions that can be called. If it is a web application, define its URL interface (often its REST interface). If it is a command-line interface, document the parameters and options it supports. In many cases it's best if most of this documentation is automatically generated, so that this documentation stays synchronized with the software as it changes, but this isn't required. The project MAY use hypertext links to non-project material as documentation. Documentation MAY be automatically generated (where practical this is often the best way to do so). Documentation of a REST interface may be generated using Swagger/OpenAPI. Code interface documentation MAY be generated using tools such as <a href="http://usejsdoc.org/">JSDoc</a> (JavaScript), <a href="https://esdoc.org/">ESDoc</a> (JavaScript), pydoc (Python), <a href="https://cran.r-project.org/web/packages/devtools/index.html">devtools</a> (R), <a href="https://cran.r-project.org/web/packages/pkgdown/index.html">pkgdown</a> (R), and Doxygen (many).  Merely having comments in implementation code is not sufficient to satisfy this criterion; there needs to be an easy way to see the information without reading through all the source code. If the project does not produce software, choose "not applicable" (N/A).
+      sites_https:
+        description: The project sites (website, repository, and download URLs) MUST support HTTPS using TLS.
+        details: This requires that the project home page URL and the version control repository URL begin with "https:", not "http:". You can get free certificates from <a href="https://letsencrypt.org/">Let's Encrypt</a>. Projects MAY implement this criterion using (for example) <a href="https://help.github.com/articles/securing-your-github-pages-site-with-https/">GitHub pages</a>, <a href="https://about.gitlab.com/2016/12/24/were-bringing-gitlab-pages-to-community-edition/">GitLab pages</a>, or <a href="https://sourceforge.net/blog/introducing-https-for-project-websites/">SourceForge project pages</a>. If you support HTTP, we urge you to redirect the HTTP traffic to HTTPS.
+      discussion:
+        description: The project MUST have one or more mechanisms for discussion (including proposed changes and issues) that are searchable, allow messages and topics to be addressed by URL, enable new people to participate in some of the discussions, and do not require client-side installation of proprietary software.
+        details: Examples of acceptable mechanisms include archived mailing list(s), GitHub issue and pull request discussions, Bugzilla, Mantis, and Trac. Asynchronous discussion mechanisms (like IRC) are acceptable if they meet these criteria; make sure there is a URL-addressable archiving mechanism. Proprietary JavaScript, while discouraged, is permitted.
+      english:
+        description: The project SHOULD provide documentation in English and be able to accept bug reports and comments about code in English.
+        details: English is currently the <a href="https://en.wikipedia.org/wiki/Lingua_franca">lingua franca</a> of computer technology; supporting English increases the number of different potential developers and reviewers worldwide. A project can meet this criterion even if its core developers' primary language is not English.
+      maintained:
+        description: The project MUST be maintained.
+        details: As a minimum, the project should attempt to respond to significant problem and vulnerability reports. A project that is actively pursuing a badge is probably maintained. All projects and people have limited resources, and typical projects must reject some proposed changes, so limited resources and proposal rejections do not by themselves indicate an unmaintained project. <br><br> When a project knows that it will no longer be maintained, it should set this criterion to "Unmet" and use the appropriate mechanism(s) to indicate to others that it is not being maintained. For example, use “DEPRECATED” as the first heading of its README, add “DEPRECATED” near the beginning of its home page, add “DEPRECATED” to the beginning of its code repository project description, add a <a href="https://unmaintained.tech/">no-maintenance-intended badge</a> in its README and/or home page, mark it as deprecated in any package repositories (e.g., <a href="https://docs.npmjs.com/deprecating-and-undeprecating-packages-or-package-versions">npm deprecate</a>), and/or use the code repository's marking system to archive it (e.g., GitHub's <a href="https://docs.github.com/en/enterprise-server@2.21/github/creating-cloning-and-archiving-repositories/archiving-a-github-repository">"archive" setting</a>, GitLab’s <a href="https://docs.gitlab.com/ee/user/project/settings/#archiving-a-project">"archived" marking</a>, Gerrit's "readonly" status, or SourceForge’s "abandoned" project status). Additional discussion can be found <a href="https://medium.com/maintainer-io/how-to-deprecate-a-repository-on-github-8f0ceb9155e">here</a>.
+      repo_public:
+        description: The project MUST have a version-controlled source repository that is publicly readable and has a URL.
+        details: The URL MAY be the same as the project URL. The project MAY use private (non-public) branches in specific cases while the change is not publicly released (e.g., for fixing a vulnerability before it is revealed to the public).
+      repo_track:
+        description: The project's source repository MUST track what changes were made, who made the changes, and when the changes were made.
+      repo_interim:
+        description: To enable collaborative review, the project's source repository MUST include interim versions for review between releases; it MUST NOT include only final releases.
+        details: Projects MAY choose to omit specific interim versions from their public source repositories (e.g., ones that fix specific non-public security vulnerabilities, may never be publicly released, or include material that cannot be legally posted and are not in the final release).
+      repo_distributed:
+        description: It is SUGGESTED that common distributed version control software be used (e.g., git) for the project's source repository.
+        details: Git is not specifically required and projects can use centralized version control software (such as subversion) with justification.
+      version_unique:
+        description: The project results MUST have a unique version identifier for each release intended to be used by users.
+        details: This MAY be met in a variety of ways including a commit IDs (such as git commit id or mercurial changeset id) or a version number (including version numbers that use semantic versioning or date-based schemes like YYYYMMDD).
+      version_semver:
+        description: It is SUGGESTED that the <a href="https://semver.org">Semantic Versioning (SemVer)</a> or <a href="https://calver.org/" >Calendar Versioning (CalVer)</a> version numbering format be used for releases. It is SUGGESTED that those who use CalVer include a micro level value.
+        details: Projects should generally prefer whatever format is expected by their users, e.g., because it is the normal format used by their ecosystem. Many ecosystems prefer SemVer, and SemVer is generally preferred for application programmer interfaces (APIs) and software development kits (SDKs). CalVer tends to be used by projects that are large, have an unusually large number of independently-developed dependencies, have a constantly-changing scope, or are time-sensitive. It is SUGGESTED that those who use CalVer include a micro level value, because including a micro level supports simultaneously-maintained branches whenever that becomes necessary. Other version numbering formats may be used as version numbers, including git commit IDs or mercurial changeset IDs, as long as they uniquely identify versions. However, some alternatives (such as git commit IDs) can cause problems as release identifiers, because users may not be able to easily determine if they are up-to-date. The version ID format may be unimportant for identifying software releases if all recipients only run the latest version (e.g., it is the code for a single website or internet service that is constantly updated via continuous delivery).
+      version_tags:
+        description: It is SUGGESTED that projects identify each release within their version control system. For example, it is SUGGESTED that those using git identify each release using git tags.
+      release_notes:
+        description: The project MUST provide, in each release, release notes that are a human-readable summary of major changes in that release to help users determine if they should upgrade and what the upgrade impact will be. The release notes MUST NOT be the raw output of a version control log (e.g., the "git log" command results are not release notes). Projects whose results are not intended for reuse in multiple locations (such as the software for a single website or service) AND employ continuous delivery MAY select "N/A".
+        details: The release notes MAY be implemented in a variety of ways. Many projects provide them in a file named "NEWS", "CHANGELOG", or "ChangeLog", optionally with extensions such as ".txt", ".md", or ".html".  Historically the term "change log" meant a log of <em>every</em> change, but to meet these criteria what is needed is a human-readable summary.  The release notes MAY instead be provided by version control system mechanisms such as the <a href="https://github.com/blog/1547-release-your-software">GitHub Releases workflow</a>.
+      release_notes_vulns:
+        description: The release notes MUST identify every publicly known run-time vulnerability fixed in this release that already had a CVE assignment or similar when the release was created. This criterion may be marked as not applicable (N/A) if users typically cannot practically update the software themselves (e.g., as is often true for kernel updates). This criterion applies only to the project results, not to its dependencies. If there are no release notes or there have been no publicly known vulnerabilities, choose N/A.
+        details: This criterion helps users determine if a given update will fix a vulnerability that is publicly known, to help users make an informed decision about updating. If users typically cannot practically update the software themselves on their computers, but must instead depend on one or more intermediaries to perform the update (as is often the case for a kernel and low-level software that is intertwined with a kernel), the project may choose "not applicable" (N/A) instead, since this additional information will not be helpful to those users. Similarly, a project may choose N/A if all recipients only run the latest version (e.g., it is the code for a single website or internet service that is constantly updated via continuous delivery). This criterion only applies to the project results, not its dependencies. Listing the vulnerabilities of all transitive dependencies of a project becomes unwieldy as dependencies increase and vary, and is unnecessary since tools that examine and track dependencies can do this in a more scalable way.
+      report_process:
+        description: The project MUST provide a process for users to submit bug reports (e.g., using an issue tracker or a mailing list).
+      report_tracker:
+        description: The project SHOULD use an issue tracker for tracking individual issues.
+        unmet_placeholder: Why is there no issue tracker?
+      report_responses:
+        description: The project MUST acknowledge a majority of bug reports submitted in the last 2-12 months (inclusive); the response need not include a fix.
+      enhancement_responses:
+        description: The project SHOULD respond to a majority (&gt;50%) of enhancement requests in the last 2-12 months (inclusive).
+        details: The response MAY be 'no' or a discussion about its merits. The goal is simply that there be some response to some requests, which indicates that the project is still alive. For purposes of this criterion, projects need not count fake requests (e.g., from spammers or automated systems). If a project is no longer making enhancements, please select "unmet" and include the URL that makes this situation clear to users. If a project tends to be overwhelmed by the number of enhancement requests, please select "unmet" and explain.
+      report_archive:
+        description: The project MUST have a publicly available archive for reports and responses for later searching.
+      vulnerability_report_process:
+        description: The project MUST publish the process for reporting vulnerabilities on the project site.
+        details: Projects hosted on GitHub SHOULD consider <a href="https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability" >enabling privately reporting a security vulnerability</a>. Projects on GitLab SHOULD consider using its ability for <a href="https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability" >privately reporting a vulnerability</a>. Projects MAY identify a mailing address on https://PROJECTSITE/security, often in the form security@example.org. This vulnerability reporting process MAY be the same as its bug reporting process. Vulnerability reports MAY always be public, but many projects have a private vulnerability reporting mechanism.
+      vulnerability_report_private:
+        description: If private vulnerability reports are supported, the project MUST include how to send the information in a way that is kept private.
+        details: Examples include a private defect report submitted on the web using HTTPS (TLS) or an email encrypted using OpenPGP. If vulnerability reports are always public (so there are never private vulnerability reports), choose "not applicable" (N/A).
+      vulnerability_report_response:
+        description: The project's initial response time for any vulnerability report received in the last 6 months MUST be less than or equal to 14 days.
+        details: If there have been no vulnerabilities reported in the last 6 months, choose "not applicable" (N/A).
+      test:
+        description: The project MUST use at least one automated test suite that is publicly released as FLOSS (this test suite may be maintained as a separate FLOSS project). The project MUST clearly show or document how to run the test suite(s) (e.g., via a continuous integration (CI) script or via documentation in files such as BUILD.md, README.md, or CONTRIBUTING.md).
+        details: The project MAY use multiple automated test suites (e.g., one that runs quickly, vs. another that is more thorough but requires special equipment). There are many test frameworks and test support systems available, including <a href="https://www.seleniumhq.org/">Selenium</a> (web browser automation), <a href="https://junit.org">Junit</a> (JVM, Java), <a href="https://CRAN.R-project.org/package=RUnit">RUnit</a> (R), <a href="https://cran.r-project.org/web/packages/testthat/index.html">testthat</a> (R).
+      test_invocation:
+        description: A test suite SHOULD be invocable in a standard way for that language.
+        details: For example, "make check", "mvn test", or "rake test" (Ruby).
+      test_most:
+        description: It is SUGGESTED that the test suite cover most (or ideally all) the code branches, input fields, and functionality.
+      test_continuous_integration:
+        description: It is SUGGESTED that the project implement continuous integration (where new or changed code is frequently integrated into a central code repository and automated tests are run on the result).
+      test_policy:
+        description: The project MUST have a general policy (formal or not) that as major new functionality is added to the software produced by the project, tests of that functionality should be added to an automated test suite.
+        details: As long as a policy is in place, even by word of mouth, that says developers should add tests to the automated test suite for major new functionality, select "Met."
+      tests_are_added:
+        description: The project MUST have evidence that the <a href="#test_policy">test_policy</a> for adding tests has been adhered to in the most recent major changes to the software produced by the project.
+        details: Major functionality would typically be mentioned in the release notes. Perfection is not required, merely evidence that tests are typically being added in practice to the automated test suite when new major functionality is added to the software produced by the project.
+      tests_documented_added:
+        description: It is SUGGESTED that this policy on adding tests (see <a href="#test_policy">test_policy</a>) be <em>documented</em> in the instructions for change proposals.
+        details: However, even an informal rule is acceptable as long as the tests are being added in practice.
+      warnings:
+        description: The project MUST enable one or more compiler warning flags, a "safe" language mode, or use a separate "linter" tool to look for code quality errors or common simple mistakes, if there is at least one FLOSS tool that can implement this criterion in the selected language.
+        details: Examples of compiler warning flags include gcc/clang "-Wall". Examples of a "safe" language mode include JavaScript "use strict" and perl5's "use warnings". A separate "linter" tool is simply a tool that examines the source code to look for code quality errors or common simple mistakes. These are typically enabled within the source code or build instructions.
+      warnings_fixed:
+        description: The project MUST address warnings.
+        details: These are the warnings identified by the implementation of the <a href="#warnings">warnings</a> criterion. The project should fix warnings or mark them in the source code as false positives. Ideally there would be no warnings, but a project MAY accept some warnings (typically less than 1 warning per 100 lines or less than 10 warnings).
+      warnings_strict:
+        description: It is SUGGESTED that projects be maximally strict with warnings in the software produced by the project, where practical.
+        details: Some warnings cannot be effectively enabled on some projects. What is needed is evidence that the project is striving to enable warning flags where it can, so that errors are detected early.
+      know_secure_design:
+        description: The project MUST have at least one primary developer who knows how to design secure software. (See ‘details’ for the exact requirements.)
+        details: 'This requires understanding the following design principles, including the 8 principles from <a href="https://web.mit.edu/Saltzer/www/publications/protection/">Saltzer and Schroeder</a>: <ul> <li>economy of mechanism (keep the design as simple and small as practical, e.g., by adopting sweeping simplifications) <li>fail-safe defaults (access decisions should deny by default, and projects'' installation should be secure by default) <li>complete mediation (every access that might be limited must be checked for authority and be non-bypassable) <li>open design (security mechanisms should not depend on attacker ignorance of its design, but instead on more easily protected and changed information like keys and passwords) <li>separation of privilege (ideally, access to important objects should depend on more than one condition, so that defeating one protection system won''t enable complete access. E.G., multi-factor authentication, such as requiring both a password and a hardware token, is stronger than single-factor authentication) <li>least privilege (processes should operate with the least privilege necessary) <li>least common mechanism (the design should minimize the mechanisms common to more than one user and depended on by all users, e.g., directories for temporary files) <li>psychological acceptability (the human interface must be designed for ease of use - designing for "least astonishment" can help) <li>limited attack surface (the attack surface - the set of the different points where an attacker can try to enter or extract data - should be limited) <li>input validation with allowlists (inputs should typically be checked to determine if they are valid before they are accepted; this validation should use allowlists (which only accept known-good values), not denylists (which attempt to list known-bad values)). </ul> A "primary developer" in a project is anyone who is familiar with the project''s code base, is comfortable making changes to it, and is acknowledged as such by most other participants in the project. A primary developer would typically make a number of contributions over the past year (via code, documentation, or answering questions). Developers would typically be considered primary developers if they initiated the project (and have not left the project more than three years ago), have the option of receiving information on a private vulnerability reporting channel (if there is one), can accept commits on behalf of the project, or perform final releases of the project software. If there is only one developer, that individual is the primary developer. Many books and courses are available to help you understand how to develop more secure software and discuss design. For example, the <a href="https://openssf.org/edx-courses/">Secure Software Development Fundamentals</a> course is a free set of three courses that explain how to develop more secure software (it''s free if you audit it; for an extra fee you can earn a certificate to prove you learned the material).'
+      know_common_errors:
+        description: At least one of the project's primary developers MUST know of common kinds of errors that lead to vulnerabilities in this kind of software, as well as at least one method to counter or mitigate each of them.
+        details: Examples (depending on the type of software) include SQL injection, OS injection, classic buffer overflow, cross-site scripting, missing authentication, and missing authorization. See the <a href="https://cwe.mitre.org/top25/">CWE/SANS top 25</a> or <a href="https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project">OWASP Top 10</a> for commonly used lists. Many books and courses are available to help you understand how to develop more secure software and discuss common implementation errors that lead to vulnerabilities. For example, the <a href="https://openssf.org/edx-courses/">Secure Software Development Fundamentals</a> course is a free set of three courses that explain how to develop more secure software (it's free if you audit it; for an extra fee you can earn a certificate to prove you learned the material).
+      crypto_working:
+        description: The default security mechanisms within the software produced by the project MUST NOT depend on broken cryptographic algorithms (e.g., MD4, MD5, single DES, RC4, Dual_EC_DRBG), or use cipher modes that are inappropriate to the context, unless they are necessary to implement an interoperable protocol (where the protocol implemented is the most recent version of that standard broadly supported by the network ecosystem, that ecosystem requires the use of such an algorithm or mode, and that ecosystem does not offer any more secure alternative). The documentation MUST describe any relevant security risks and any known mitigations if these broken algorithms or modes are necessary for an interoperable protocol.
+        details: ECB mode is almost never appropriate because it reveals identical blocks within the ciphertext as demonstrated by the <a href="https://blog.filippo.io/the-ecb-penguin/">ECB penguin</a>, and CTR mode is often inappropriate because it does not perform authentication and causes duplicates if the input state is repeated.  In many cases it's best to choose a block cipher algorithm mode designed to combine secrecy and authentication, e.g., Galois/Counter Mode (GCM) and EAX. Projects MAY allow users to enable broken mechanisms (e.g., during configuration) where necessary for compatibility, but then users know they're doing it.
+      crypto_weaknesses:
+        description: The default security mechanisms within the software produced by the project SHOULD NOT depend on cryptographic algorithms or modes with known serious weaknesses (e.g., the SHA-1 cryptographic hash algorithm or the CBC mode in SSH).
+        details: 'Concerns about CBC mode in SSH are discussed in <a href="https://www.kb.cert.org/vuls/id/958563">CERT: SSH CBC vulnerability</a>.'
+      crypto_random:
+        details: A cryptographically secure random number generator may be a hardware random number generator, or it may be a cryptographically secure pseudo-random number generator (CSPRNG) using an algorithm such as Hash_DRBG, HMAC_DRBG, CTR_DRBG, Yarrow, or Fortuna. Examples of calls to <em>secure</em> random number generators include Java's java.security.SecureRandom and JavaScript's window.crypto.getRandomValues. Examples of calls to <em>insecure</em> random number generators include Java's java.util.Random and JavaScript's Math.random.
+      delivery_mitm:
+        description: The project MUST use a delivery mechanism that counters MITM attacks. Using https or ssh+scp is acceptable.
+        details: An even stronger mechanism is releasing the software with digitally signed packages, since that mitigates attacks on the distribution system, but this only works if the users can be confident that the public keys for signatures are correct <em>and</em> if the users will actually check the signature.
+      delivery_unsigned:
+        description: A cryptographic hash (e.g., a sha1sum) MUST NOT be retrieved over http and used without checking for a cryptographic signature.
+        details: These hashes can be modified in transit.
+      vulnerabilities_fixed_60_days:
+        description: There MUST be no unpatched vulnerabilities of medium or higher severity that have been publicly known for more than 60 days.
+        details: 'The vulnerability must be patched and released by the project itself (patches may be developed elsewhere). A vulnerability becomes publicly known (for this purpose) once it has a CVE with publicly released non-paywalled information (reported, for example, in the <a href="https://nvd.nist.gov/">National Vulnerability Database</a>) or when the project has been informed and the information has been released to the public (possibly by the project). A vulnerability is considered medium or higher severity if its <a href="https://www.first.org/cvss/" >Common Vulnerability Scoring System (CVSS)</a> base qualitative score is medium or higher. In CVSS versions 2.0 through 3.1, this is equivalent to a CVSS score of 4.0 or higher. Projects may use the CVSS score as published in a widely-used vulnerability database (such as the <a href="https://nvd.nist.gov">National Vulnerability Database</a>) using the most-recent version of CVSS reported in that database. Projects may instead calculate the severity themselves using the latest version of <a href="https://www.first.org/cvss/">CVSS</a> at the time of the vulnerability disclosure, if the calculation inputs are publicly revealed once the vulnerability is publicly known. <strong>Note</strong>: this means that users might be left vulnerable to all attackers worldwide for up to 60 days. This criterion is often much easier to meet than what Google recommends in <a href="https://security.googleblog.com/2010/07/rebooting-responsible-disclosure-focus.html">Rebooting responsible disclosure</a>, because Google recommends that the 60-day period start when the project is notified <em>even</em> if the report is not public. Also note that this badge criterion, like other criteria, applies to the individual project. Some projects are part of larger umbrella organizations or larger projects, possibly in multiple layers, and many projects feed their results to other organizations and projects as part of a potentially-complex supply chain. An individual project often cannot control the rest, but an individual project can work to release a vulnerability patch in a timely way. Therefore, we focus solely on the individual project''s response time.  Once a patch is available from the individual project, others can determine how to deal with the patch (e.g., they can update to the newer version or they can apply just the patch as a cherry-picked solution).'
+      vulnerabilities_critical_fixed:
+        description: Projects SHOULD fix all critical vulnerabilities rapidly after they are reported.
+      no_leaked_credentials:
+        description: The public repositories MUST NOT leak a valid private credential (e.g., a working password or private key) that is intended to limit public access.
+        details: A project MAY leak "sample" credentials for testing and unimportant databases, as long as they are not intended to limit public access.
+      static_analysis:
+        description: At least one static code analysis tool (beyond compiler warnings and "safe" language modes) MUST be applied to any proposed major production release of the software before its release, if there is at least one FLOSS tool that implements this criterion in the selected language.
+        details: A static code analysis tool examines the software code (as source code, intermediate code, or executable) without executing it with specific inputs. For purposes of this criterion, compiler warnings and "safe" language modes do not count as static code analysis tools (these typically avoid deep analysis because speed is vital). Some static analysis tools focus on detecting generic defects, others focus on finding specific kinds of defects (such as vulnerabilities), and some do a combination. Examples of such static code analysis tools include <a href="http://cppcheck.sourceforge.net/">cppcheck</a> (C, C++), <a href="https://clang-analyzer.llvm.org/">clang static analyzer</a> (C, C++), <a href="https://spotbugs.github.io/">SpotBugs</a> (Java), <a href="http://findbugs.sourceforge.net/">FindBugs</a> (Java) (including <a href="https://h3xstream.github.io/find-sec-bugs/">FindSecurityBugs</a>), <a href="https://pmd.github.io/">PMD</a> (Java), <a href="https://brakemanscanner.org/">Brakeman</a> (Ruby on Rails), <a href="https://cran.r-project.org/web/packages/lintr/index.html">lintr</a> (R), <a href="https://cran.r-project.org/web/packages/goodpractice/index.html">goodpractice</a> (R), <a href="https://scan.coverity.com/">Coverity Quality Analyzer</a>, <a href="https://www.sonarqube.org/">SonarQube</a>, <a href="https://www.codacy.com/">Codacy</a>, and <a href="https://saas.hpe.com/en-us/software/sca">HP Enterprise Fortify Static Code Analyzer</a>. Larger lists of tools can be found in places such as the <a href="https://en.wikipedia.org/wiki/List_of_tools_for_static_code_analysis">Wikipedia list of tools for static code analysis</a>, <a href="https://www.owasp.org/index.php/Static_Code_Analysis">OWASP information on static code analysis</a>, <a href="https://samate.nist.gov/index.php/Source_Code_Security_Analyzers.html">NIST list of source code security analyzers</a>, and <a href="https://www.dwheeler.com/essays/static-analysis-tools.html">Wheeler's list of static analysis tools</a>. If there are no FLOSS static analysis tools available for the implementation language(s) used, you may select 'N/A'.
+        na_placeholder: Why can't this be met (e.g., no FLOSS tools exist for that language)?
+        met_placeholder: What static analysis tool(s) are used?
+      static_analysis_common_vulnerabilities:
+        description: It is SUGGESTED that at least one of the static analysis tools used for the static_analysis criterion include rules or approaches to look for common vulnerabilities in the analyzed language or environment.
+        details: Static analysis tools that are specifically designed to look for common vulnerabilities are more likely to find them. That said, using any static tools will typically help find some problems, so we are suggesting but not requiring this for the 'passing' level badge.
+      static_analysis_fixed:
+        description: All medium and higher severity exploitable vulnerabilities discovered with static code analysis MUST be fixed in a timely way after they are confirmed.
+        details: A vulnerability is considered medium or higher severity if its <a href="https://www.first.org/cvss/" >Common Vulnerability Scoring System (CVSS)</a> base qualitative score is medium or higher. In CVSS versions 2.0 through 3.1, this is equivalent to a CVSS score of 4.0 or higher. Projects may use the CVSS score as published in a widely-used vulnerability database (such as the <a href="https://nvd.nist.gov">National Vulnerability Database</a>) using the most-recent version of CVSS reported in that database. Projects may instead calculate the severity themselves using the latest version of <a href="https://www.first.org/cvss/">CVSS</a> at the time of the vulnerability disclosure, if the calculation inputs are publicly revealed once the vulnerability is publicly known. Note that criterion vulnerabilities_fixed_60_days requires that all such vulnerabilities be fixed within 60 days of being made public.
+      static_analysis_often:
+        description: It is SUGGESTED that static source code analysis occur on every commit or at least daily.
+      dynamic_analysis:
+        description: It is SUGGESTED that at least one dynamic analysis tool be applied to any proposed major production release of the software before its release.
+        details: A dynamic analysis tool examines the software by executing it with specific inputs. For example, the project MAY use a fuzzing tool (e.g., <a href="http://lcamtuf.coredump.cx/afl/">American Fuzzy Lop</a>) or a web application scanner (e.g., <a href="https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project">OWASP ZAP</a> or <a href="https://w3af.org/">w3af</a>). In some cases the <a href="https://github.com/google/oss-fuzz#introduction">OSS-Fuzz</a> project may be willing to apply fuzz testing to your project. For purposes of this criterion the dynamic analysis tool needs to vary the inputs in some way to look for various kinds of problems <em>or</em> be an automated test suite with at least 80% branch coverage. The <a href="https://en.wikipedia.org/wiki/Dynamic_program_analysis">Wikipedia page on dynamic analysis</a> and the <a href="https://www.owasp.org/index.php/Fuzzing">OWASP page on fuzzing</a> identify some dynamic analysis tools. The analysis tool(s) MAY be focused on looking for security vulnerabilities, but this is not required.
+      dynamic_analysis_unsafe:
+        description: It is SUGGESTED that if the software produced by the project includes software written using a memory-unsafe language (e.g., C or C++), then at least one dynamic tool (e.g., a fuzzer or web application scanner) be routinely used in combination with a mechanism to detect memory safety problems such as buffer overwrites. If the project does not produce software written in a memory-unsafe language, choose "not applicable" (N/A).
+        details: Examples of mechanisms to detect memory safety problems include <a href="https://github.com/google/sanitizers/wiki/AddressSanitizer">Address Sanitizer (ASAN)</a> (available in GCC and LLVM), <a href="https://clang.llvm.org/docs/MemorySanitizer.html">Memory Sanitizer</a>, and <a href="http://valgrind.org/">valgrind</a>. Other potentially-used tools include <a href="https://clang.llvm.org/docs/ThreadSanitizer.html">thread sanitizer</a> and <a href="https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html">undefined behavior sanitizer</a>. Widespread assertions would also work.
+      dynamic_analysis_enable_assertions:
+        description: It is SUGGESTED that the project use a configuration for at least some dynamic analysis (such as testing or fuzzing) which enables many assertions. In many cases these assertions should <i>not</i> be enabled in production builds.
+        details: This criterion does <i>not</i> suggest enabling assertions during production; that is entirely up to the project and its users to decide. This criterion's focus is instead to improve fault detection during dynamic analysis <i>before</i> deployment. Enabling assertions in <i>production</i> use is <i>completely</i> different from enabling assertions during dynamic analysis (such as testing). In some cases enabling assertions in production use is extremely unwise (especially in high-integrity components). There are many arguments against enabling assertions in production, e.g., libraries should not crash callers, their presence may cause rejection by app stores, and/or activating an assertion in production may expose private data such as private keys. Beware that in many Linux distributions <tt>NDEBUG</tt> is not defined, so C/C++ <tt>assert()</tt> will by default be enabled for production in those environments. It may be important to use a different assertion mechanism or defining <tt>NDEBUG</tt> for production in those environments.
+      dynamic_analysis_fixed:
+        description: All medium and higher severity exploitable vulnerabilities discovered with dynamic code analysis MUST be fixed in a timely way after they are confirmed.
+        details: If you are not running dynamic code analysis and thus have not found any vulnerabilities in this way, choose "not applicable" (N/A). A vulnerability is considered medium or higher severity if its <a href="https://www.first.org/cvss/" >Common Vulnerability Scoring System (CVSS)</a> base qualitative score is medium or higher. In CVSS versions 2.0 through 3.1, this is equivalent to a CVSS score of 4.0 or higher. Projects may use the CVSS score as published in a widely-used vulnerability database (such as the <a href="https://nvd.nist.gov">National Vulnerability Database</a>) using the most-recent version of CVSS reported in that database. Projects may instead calculate the severity themselves using the latest version of <a href="https://www.first.org/cvss/">CVSS</a> at the time of the vulnerability disclosure, if the calculation inputs are publicly revealed once the vulnerability is publicly known.
+    '1':
+      achieve_passing:
+        description: The project MUST achieve a passing level badge.
+      contribution_requirements:
+        description: The information on how to contribute MUST include the requirements for acceptable contributions (e.g., a reference to any required coding standard).
+      dco:
+        description: The project SHOULD have a legal mechanism where all developers of non-trivial amounts of project software assert that they are legally authorized to make these contributions. The most common and easily-implemented approach for doing this is by using a <a href="https://developercertificate.org/">Developer Certificate of Origin (DCO)</a>, where users add "signed-off-by" in their commits and the project links to the DCO website. However, this MAY be implemented as a Contributor License Agreement (CLA), or other legal mechanism.
+        details: The DCO is the recommended mechanism because it's easy to implement, tracked in the source code, and git directly supports a "signed-off" feature using "commit -s". To be most effective it is best if the project documentation explains what "signed-off" means for that project. A CLA is a legal agreement that defines the terms under which intellectual works have been licensed to an organization or project.  A contributor assignment agreement (CAA) is a legal agreement that transfers rights in an intellectual work to another party; projects are not required to have CAAs, since having CAA increases the risk that potential contributors will not contribute, especially if the receiver is a for-profit organization. The <a href="https://www.apache.org/licenses/">Apache Software Foundation CLAs (the individual contributor license and the corporate CLA)</a> are examples of CLAs, for projects which determine that the risks of these kinds of CLAs to the project are less than their benefits.
+      governance:
+        description: The project MUST clearly define and document its project governance model (the way it makes decisions, including key roles).
+        details: There needs to be some well-established documented way to make decisions and resolve disputes. In small projects, this may be as simple as "the project owner and lead makes all final decisions". There are various governance models, including benevolent dictator and formal meritocracy; for more details, see <a href="http://oss-watch.ac.uk/resources/governancemodels">Governance models</a>. Both centralized (e.g., single-maintainer) and decentralized (e.g., group maintainers) approaches have been successfully used in projects. The governance information does not need to document the possibility of creating a project fork, since that is always possible for FLOSS projects.
+      code_of_conduct:
+        description: The project MUST adopt a code of conduct and post it in a standard location.
+        details: Projects may be able to improve the civility of their community and to set expectations about acceptable conduct by adopting a code of conduct. This can help avoid problems before they occur and make the project a more welcoming place to encourage contributions. This should focus only on behavior within the community/workplace of the project.  Example codes of conduct are the <a href="https://www.kernel.org/doc/html/latest/process/code-of-conduct.html">Linux kernel code of conduct</a>, the <a href="https://contributor-covenant.org/">Contributor Covenant Code of Conduct</a>, the <a href="https://www.debian.org/code_of_conduct">Debian Code of Conduct</a>, the <a href="https://www.ubuntu.com/about/about-ubuntu/conduct">Ubuntu Code of Conduct</a>, the <a href="https://getfedora.org/code-of-conduct">Fedora Code of Conduct</a>, the <a href="https://wiki.gnome.org/action/show/Foundation/CodeOfConduct">GNOME Code Of Conduct</a>, the <a href="https://www.kde.org/code-of-conduct/">KDE Community Code of Conduct</a>, the <a href="https://www.python.org/psf/codeofconduct/">Python Community Code of Conduct</a>, <a href="https://www.ruby-lang.org/en/conduct/">The Ruby Community Conduct Guideline</a>, and <a href="https://www.rust-lang.org/en-US/conduct.html">The Rust Code of Conduct</a>.
+      roles_responsibilities:
+        description: The project MUST clearly define and publicly document the key roles in the project and their responsibilities, including any tasks those roles must perform.  It MUST be clear who has which role(s), though this might not be documented in the same way.
+        details: The documentation for <a href="#governance">governance</a> and roles and responsibilities may be in one place.
+      access_continuity:
+        description: The project MUST be able to continue with minimal interruption if any one person dies, is incapacitated, or is otherwise unable or unwilling to continue support of the project. In particular, the project MUST be able to create and close issues, accept proposed changes, and release versions of software, within a week of confirmation of the loss of support from any one individual. This MAY be done by ensuring someone else has any necessary keys, passwords, and legal rights to continue the project. Individuals who run a FLOSS project MAY do this by providing keys in a lockbox and a will providing any needed legal rights (e.g., for DNS names).
+      bus_factor:
+        description: The project SHOULD have a "bus factor" of 2 or more.
+        details: A "bus factor" (aka "truck factor") is the minimum number of project members that have to suddenly disappear from a project ("hit by a bus") before the project stalls due to lack of knowledgeable or competent personnel. The <a href="https://github.com/mtov/truck-factor">truck-factor</a> tool can estimate this for projects on GitHub. For more information, see <a href="https://www.researchgate.net/publication/272824568_assessing_the_bus_factor_of_git_repositories">Assessing the Bus Factor of Git Repositories</a> by Cosentino et al.
+      documentation_roadmap:
+        description: The project MUST have a documented roadmap that describes what the project intends to do and not do for at least the next year.
+        details: The project might not achieve the roadmap, and that's fine; the purpose of the roadmap is to help potential users and contributors understand the intended direction of the project. It need not be detailed.
+      documentation_architecture:
+        description: The project MUST include documentation of the architecture (aka high-level design) of the software produced by the project. If the project does not produce software, select "not applicable" (N/A).
+        details: A software architecture explains a program's fundamental structures, i.e., the program's major components, the relationships among them, and the key properties of these components and relationships.
+      documentation_security:
+        description: The project MUST document what the user can and cannot expect in terms of security from the software produced by the project (its "security requirements").
+        details: These are the security requirements that the software is intended to meet.
+      documentation_quick_start:
+        description: The project MUST provide a "quick start" guide for new users to help them quickly do something with the software.
+        details: The idea is to show users how to get started and make the software do anything at all. This is critically important for potential users to get started.
+      assurance_case:
+        description: 'The project MUST provide an assurance case that justifies why its security requirements are met. The assurance case MUST include: a description of the threat model, clear identification of trust boundaries, an argument that secure design principles have been applied, and an argument that common implementation security weaknesses have been countered.'
+        details: An assurance case is "a documented body of evidence that provides a convincing and valid argument that a specified set of critical claims regarding a system’s properties are adequately justified for a given application in a given environment" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Software Assurance Using Structured Assurance Case Models", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Trust boundaries are boundaries where data or execution changes its level of trust, e.g., a server's boundaries in a typical web application. It's common to list secure design principles (such as Saltzer and Schroeer) and common implementation security weaknesses (such as the OWASP top 10 or CWE/SANS top 25), and show how each are countered. The <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp assurance case</a> may be a useful example. This is related to documentation_security, documentation_architecture, and implement_secure_design.
+      documentation_current:
+        description: The project MUST make an effort to keep the documentation consistent with the current version of the project results (including software produced by the project). Any <em>known</em> documentation defects making it inconsistent MUST be fixed. If the documentation is generally current, but erroneously includes some older information that is no longer true, just treat that as a defect, then track and fix as usual.
+        details: The documentation MAY include information about differences or changes between versions of the software and/or link to older versions of the documentation. The intent of this criterion is that an effort is made to keep the documentation consistent, not that the documentation must be perfect.
+      documentation_achievements:
+        description: The project repository front page and/or website MUST identify and hyperlink to any achievements, including this best practices badge, within 48 hours of public recognition that the achievement has been attained.
+        details: An achievement is any set of external criteria that the project has specifically worked to meet, including some badges. This information does not need to be on the project website front page.  A project using GitHub can put achievements on the repository front page by adding them to the README file.
+      accessibility_best_practices:
+        description: The project (both project sites and project results) SHOULD follow accessibility best practices so that persons with disabilities can still participate in the project and use the project results where it is reasonable to do so.
+        details: |-
+          For web applications, see the <a href="https://www.w3.org/TR/WCAG20/">Web Content Accessibility Guidelines (WCAG 2.0)</a> and its supporting document <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/Overview.html">Understanding WCAG 2.0</a>; see also <a href="https://www.w3.org/standards/webdesign/accessibility">W3C accessibility information</a>. For GUI applications, consider using the environment-specific accessibility guidelines (such as <a href="https://developer.gnome.org/accessibility-devel-guide/stable/">Gnome</a>, <a href="https://accessibility.kde.org/">KDE</a>, <a href="https://docs.xfce.org/xfce/xfce4-settings/accessibility">XFCE</a>, <a href="https://developer.android.com/guide/topics/ui/accessibility/">Android</a>, <a href="https://developer.apple.com/accessibility/ios/">iOS</a>, <a href="https://www.apple.com/accessibility/osx/voiceover/">Mac</a>, and <a href="https://msdn.microsoft.com/en-us/windows/uwp/accessibility/accessibility-overview">Windows</a>). Some TUI applications (e.g. `ncurses` programs) can do certain things to make themselves more accessible (such as `alpine`'s `force-arrow-cursor` setting). Most command-line applications are fairly accessible as-is. This criterion is often N/A, e.g., for program libraries. Here are some examples of actions to take or issues to consider: <ul> <li>Provide text alternatives for any non-text content so
+            that it can be changed into other forms people need, such as
+            large print, braille, speech, symbols or simpler language (
+            <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/text-equiv.html">WCAG 2.0 guideline 1.1</a>)
+          <li>Color is not used as the only visual means of conveying
+            information, indicating an action, prompting a response, or
+            distinguishing a visual element. (
+            <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-without-color.html">WCAG 2.0 guideline 1.4.1</a>)
+          <li>The visual presentation of text and images of text has a contrast
+            ratio of at least 4.5:1, except for large text, incidental text,
+            and logotypes (
+            <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html">WCAG 2.0 guideline 1.4.3</a>)
+          <li>Make all functionality available from a keyboard (WCAG guideline 2.1) <li>A GUI or web-based project SHOULD test with at least one
+            screen-reader on the target platform(s) (e.g. NVDA, Jaws, or
+            WindowEyes on Windows; VoiceOver on Mac & iOS; Orca on Linux/BSD;
+            TalkBack on Android). TUI programs MAY work to reduce overdraw
+            to prevent redundant reading by screen-readers.
+          </ul>
+      internationalization:
+        description: The software produced by the project SHOULD be internationalized to enable easy localization for the target audience's culture, region, or language. If internationalization (i18n) does not apply (e.g., the software doesn't generate text intended for end-users and doesn't sort human-readable text), select "not applicable" (N/A).
+        details: Localization "refers to the adaptation of a product, application or document content to meet the language, cultural and other requirements of a specific target market (a locale)." Internationalization is the "design and development of a product, application or document content that enables easy localization for target audiences that vary in culture, region, or language." (See <a href="https://www.w3.org/International/questions/qa-i18n">W3C's "Localization vs. Internationalization"</a>.) Software meets this criterion simply by being internationalized. No localization for another specific language is required, since once software has been internationalized it's possible for others to work on localization.
+      sites_password_security:
+        description: If the project sites (website, repository, and download URLs) store passwords for authentication of external users, the passwords MUST be stored as iterated hashes with a per-user salt by using a key stretching (iterated) algorithm (e.g., Argon2id, Bcrypt, Scrypt, or PBKDF2). If the project sites do not store passwords for this purpose, select "not applicable" (N/A).
+        details: Note that the use of <a href="https://help.github.com/articles/github-security/">GitHub</a> meets this criterion. This criterion only applies to passwords used for authentication of external users into the project sites (aka inbound authentication). If the project sites must log in to other sites (aka outbound authentication), they may need to store authorization tokens for that purpose differently (since storing a hash would be useless). This applies criterion crypto_password_storage to the project sites, similar to sites_https.
+      maintenance_or_update:
+        description: The project MUST maintain the most often used older versions of the product <em>or</em> provide an upgrade path to newer versions. If the upgrade path is difficult, the project MUST document how to perform the upgrade (e.g., the interfaces that have changed and detailed suggested steps to help upgrade).
+      report_tracker:
+        description: The project MUST use an issue tracker for tracking individual issues.
+      vulnerability_report_credit:
+        description: The project MUST give credit to the reporter(s) of all vulnerability reports resolved in the last 12 months, except for the reporter(s) who request anonymity. If there have been no vulnerabilities resolved in the last 12 months, select "not applicable" (N/A).
+      vulnerability_response_process:
+        description: The project MUST have a documented process for responding to vulnerability reports.
+        details: This is strongly related to vulnerability_report_process, which requires that there be a documented way to report vulnerabilities. It also related to vulnerability_report_response, which requires response to vulnerability reports within a certain time frame.
+      coding_standards:
+        description: The project MUST identify the specific coding style guides for the primary languages it uses, and require that contributions generally comply with it.
+        details: In most cases this is done by referring to some existing style guide(s), possibly listing differences. These style guides can include ways to improve readability and ways to reduce the likelihood of defects (including vulnerabilities). Many programming languages have one or more widely-used style guides. Examples of style guides include <a href="https://github.com/google/styleguide">Google's style guides</a> and <a href="https://www.securecoding.cert.org/">SEI CERT Coding Standards</a>.
+      coding_standards_enforced:
+        description: The project MUST automatically enforce its selected coding style(s) if there is at least one FLOSS tool that can do so in the selected language(s).
+        details: This MAY be implemented using static analysis tool(s) and/or by forcing the code through code reformatters. In many cases the tool configuration is included in the project's repository (since different projects may choose different configurations). Projects MAY allow style exceptions (and typically will); where exceptions occur, they MUST be rare and documented in the code at their locations, so that these exceptions can be reviewed and so that tools can automatically handle them in the future. Examples of such tools include ESLint (JavaScript), Rubocop (Ruby), and <a href="https://cran.r-project.org/web/packages/devtools/index.html">devtools check</a> (R).
+      build_standard_variables:
+        description: Build systems for native binaries MUST honor the relevant compiler and linker (environment) variables passed in to them (e.g., CC, CFLAGS, CXX, CXXFLAGS, and LDFLAGS) and pass them to compiler and linker invocations. A build system MAY extend them with additional flags; it MUST NOT simply replace provided values with its own. If no native binaries are being generated, select "not applicable" (N/A).
+        details: It should be easy to enable special build features like Address Sanitizer (ASAN), or to comply with distribution hardening best practices (e.g., by easily turning on compiler flags to do so).
+      build_preserve_debug:
+        description: The build and installation system SHOULD preserve debugging information if they are requested in the relevant flags (e.g., "install -s" is not used). If there is no build or installation system (e.g., typical JavaScript libraries), select "not applicable" (N/A).
+        details: E.G., setting CFLAGS (C) or CXXFLAGS (C++) should create the relevant debugging information if those languages are used, and they should not be stripped during installation. Debugging information is needed for support and analysis, and also useful for measuring the presence of hardening features in the compiled binaries.
+      build_non_recursive:
+        description: The build system for the software produced by the project MUST NOT recursively build subdirectories if there are cross-dependencies in the subdirectories. If there is no build or installation system (e.g., typical JavaScript libraries), select "not applicable" (N/A).
+        details: The project build system's internal dependency information needs to be accurate, otherwise, changes to the project may not build correctly. Incorrect builds can lead to defects (including vulnerabilities). A common mistake in large build systems is to use a "recursive build" or "recursive make", that is, a hierarchy of subdirectories containing source files, where each subdirectory is independently built. Unless each subdirectory is fully independent, this is a mistake, because the dependency information is incorrect.
+      build_repeatable:
+        description: The project MUST be able to repeat the process of generating information from source files and get exactly the same bit-for-bit result. If no building occurs (e.g., scripting languages where the source code is used directly instead of being compiled), select "not applicable" (N/A).
+        details: GCC and clang users may find the -frandom-seed option useful; in some cases, this can be resolved by forcing some sort order. More suggestions can be found at the <a href="https://reproducible-builds.org/">reproducible build</a> site.
+      installation_common:
+        description: The project MUST provide a way to easily install and uninstall the software produced by the project using a commonly-used convention.
+        details: Examples include using a package manager (at the system or language level), "make install/uninstall" (supporting DESTDIR), a container in a standard format, or a virtual machine image in a standard format. The installation and uninstallation process (e.g., its packaging) MAY be implemented by a third party as long as it is FLOSS.
+      installation_standard_variables:
+        description: The installation system for end-users MUST honor standard conventions for selecting the location where built artifacts are written to at installation time.  For example, if it installs files on a POSIX system it MUST honor the DESTDIR environment variable. If there is no installation system or no standard convention, select "not applicable" (N/A).
+      installation_development_quick:
+        description: The project MUST provide a way for potential developers to quickly install all the project results and support environment necessary to make changes, including the tests and test environment. This MUST be performed with a commonly-used convention.
+        details: This MAY be implemented using a generated container and/or installation script(s). External dependencies would typically be installed by invoking system and/or language package manager(s), per external_dependencies.
+      external_dependencies:
+        description: The project MUST list external dependencies in a computer-processable way.
+        details: Typically this is done using the conventions of package manager and/or build system. Note that this helps implement <a href="#installation_development_quick">installation_development_quick</a>.
+      dependency_monitoring:
+        description: Projects MUST monitor or periodically check their external dependencies (including convenience copies) to detect known vulnerabilities, and fix exploitable vulnerabilities or verify them as unexploitable.
+        details: This can be done using an origin analyzer / dependency checking tool / software composition analysis tool such as <a href="https://www.owasp.org/index.php/OWASP_Dependency_Check">OWASP's Dependency-Check</a>, <a href="https://www.sonatype.com/nexus-auditor">Sonatype's Nexus Auditor</a>, <a href="https://www.synopsys.com/software-integrity/security-testing/software-composition-analysis.html">Synopsys' Black Duck Software Composition Analysis</a>, and <a href="https://github.com/rubysec/bundler-audit">Bundler-audit (for Ruby)</a>. Some package managers include mechanisms to do this. It is acceptable if the components' vulnerability cannot be exploited, but this analysis is difficult and it is sometimes easier to simply update or fix the part.
+      updateable_reused_components:
+        description: |-
+          The project MUST either:
+          <ol>
+          <li> make it easy to identify and update reused externally-maintained components; <strong>or</strong></li>
+          <li> use the standard components provided by the system or programming language.</li>
+          </ol>
+          Then, if a vulnerability is found in a reused component, it will be
+          easy to update that component.
+        details: 'A typical way to meet this criterion is to use system and programming language package management systems. Many FLOSS programs are distributed with "convenience libraries" that are local copies of standard libraries (possibly forked). By itself, that''s fine. However, if the program *must* use these local (forked) copies, then updating the "standard" libraries as a security update will leave these additional copies still vulnerable. This is especially an issue for cloud-based systems; if the cloud provider updates their "standard" libraries but the program won''t use them, then the updates don''t actually help. See, e.g., <a href="https://spot.livejournal.com/312320.html">"Chromium: Why it isn''t in Fedora yet as a proper package" by Tom Callaway</a>.'
+      interfaces_current:
+        description: The project SHOULD avoid using deprecated or obsolete functions and APIs where FLOSS alternatives are available in the set of technology it uses (its "technology stack") and to a supermajority of the users the project supports (so that users have ready access to the alternative).
+      automated_integration_testing:
+        description: An automated test suite MUST be applied on each check-in to a shared repository for at least one branch.  This test suite MUST produce a report on test success or failure.
+        details: This requirement can be viewed as a subset of test_continuous_integration, but focused on just testing, without requiring continuous integration.
+      regression_tests_added50:
+        description: The project MUST add regression tests to an automated test suite for at least 50% of the bugs fixed within the last six months.
+      test_statement_coverage80:
+        description: The project MUST have FLOSS automated test suite(s) that provide at least 80% statement coverage if there is at least one FLOSS tool that can measure this criterion in the selected language.
+        details: Many FLOSS tools are available to measure test coverage, including gcov/lcov, Blanket.js, Istanbul, JCov, and <a href="https://cran.r-project.org/web/packages/covr/index.html">covr</a> (R). Note that meeting this criterion is not a guarantee that the test suite is thorough, instead, failing to meet this criterion is a strong indicator of a poor test suite.
+      test_policy_mandated:
+        description: The project MUST have a formal written policy that as major new functionality is added, tests for the new functionality MUST be added to an automated test suite.
+      tests_documented_added:
+        description: The project MUST include, in its documented instructions for change proposals, the policy that tests are to be added for major new functionality.
+      warnings_strict:
+        description: Projects MUST be maximally strict with warnings in the software produced by the project, where practical.
+      implement_secure_design:
+        description: The project MUST implement secure design principles (from "know_secure_design"), where applicable.  If the project is not producing software, select "not applicable" (N/A).
+        details: For example, the project results should have fail-safe defaults (access decisions should deny by default, and projects' installation should be secure by default). They should also have complete mediation (every access that might be limited must be checked for authority and be non-bypassable). Note that in some cases principles will conflict, in which case a choice must be made (e.g., many mechanisms can make things more complex, contravening "economy of mechanism" / keep it simple).
+      crypto_weaknesses:
+        description: The default security mechanisms within the software produced by the project MUST NOT depend on cryptographic algorithms or modes with known serious weaknesses (e.g., the SHA-1 cryptographic hash algorithm or the CBC mode in SSH).
+      crypto_algorithm_agility:
+        description: The project SHOULD support multiple cryptographic algorithms, so users can quickly switch if one is broken. Common symmetric key algorithms include AES, Twofish, and Serpent. Common cryptographic hash algorithm alternatives include SHA-2 (including SHA-224, SHA-256, SHA-384 AND SHA-512) and SHA-3.
+      crypto_credential_agility:
+        description: The project MUST support storing authentication credentials (such as passwords and dynamic tokens) and private cryptographic keys in files that are separate from other information (such as configuration files, databases, and logs), and permit users to update and replace them without code recompilation. If the project never processes authentication credentials and private cryptographic keys, select "not applicable" (N/A).
+      crypto_used_network:
+        description: The software produced by the project SHOULD support secure protocols for all of its network communications, such as SSHv2 or later, TLS1.2 or later (HTTPS), IPsec, SFTP, and SNMPv3. Insecure protocols such as FTP, HTTP, telnet, SSLv3 or earlier, and SSHv1 SHOULD be disabled by default, and only enabled if the user specifically configures it. If the software produced by the project does not support network communications, select "not applicable" (N/A).
+      crypto_tls12:
+        description: The software produced by the project SHOULD, if it supports or uses TLS, support at least TLS version 1.2. Note that the predecessor of TLS was called SSL. If the software does not use TLS, select "not applicable" (N/A).
+      crypto_certificate_verification:
+        description: The software produced by the project MUST, if it supports TLS, perform TLS certificate verification by default when using TLS, including on subresources. If the software does not use TLS, select "not applicable" (N/A).
+        details: 'Note that incorrect TLS certificate verification is a common mistake. For more information, see <a href="https://crypto.stanford.edu/~dabo/pubs/abstracts/ssl-client-bugs.html">"The Most Dangerous Code in the World: Validating SSL Certificates in Non-Browser Software" by Martin Georgiev et al.</a> and <a href="https://blogs.gnome.org/mcatanzaro/2016/03/12/do-you-trust-this-application/">"Do you trust this application?" by Michael Catanzaro</a>.'
+      crypto_verification_private:
+        description: The software produced by the project MUST, if it supports TLS, perform certificate verification before sending HTTP headers with private information (such as secure cookies). If the software does not use TLS, select "not applicable" (N/A).
+      signed_releases:
+        description: The project MUST cryptographically sign releases of the project results intended for widespread use, and there MUST be a documented process explaining to users how they can obtain the public signing keys and verify the signature(s). The private key for these signature(s) MUST NOT be on site(s) used to directly distribute the software to the public. If releases are not intended for widespread use, select "not applicable" (N/A).
+        details: The project results include both source code and any generated deliverables where applicable (e.g., executables, packages, and containers). Generated deliverables MAY be signed separately from source code. These MAY be implemented as signed git tags (using cryptographic digital signatures). Projects MAY provide generated results separately from tools like git, but in those cases, the separate results MUST be separately signed.
+      version_tags_signed:
+        description: It is SUGGESTED that in the version control system, each important version tag (a tag that is part of a major release, minor release, or fixes publicly noted vulnerabilities) be cryptographically signed and verifiable as described in <a href="#signed_releases">signed_releases</a>.
+      input_validation:
+        description: The project results MUST check all inputs from potentially untrusted sources to ensure they are valid (an *allowlist*), and reject invalid inputs, if there are any restrictions on the data at all.
+        details: Note that comparing input against a list of "bad formats" (aka a *denylist*) is normally not enough, because attackers can often work around a denylist. In particular, numbers are converted into internal formats and then checked if they are between their minimum and maximum (inclusive), and text strings are checked to ensure that they are valid text patterns (e.g., valid UTF-8, length, syntax, etc.). Some data may need to be "anything at all" (e.g., a file uploader), but these would typically be rare.
+      hardening:
+        description: Hardening mechanisms SHOULD be used in the software produced by the project so that software defects are less likely to result in security vulnerabilities.
+        details: Hardening mechanisms may include HTTP headers like Content Security Policy (CSP), compiler flags to mitigate attacks (such as -fstack-protector), or compiler flags to eliminate undefined behavior. For our purposes least privilege is not considered a hardening mechanism (least privilege is important, but separate).
+      static_analysis_common_vulnerabilities:
+        description: The project MUST use at least one static analysis tool with rules or approaches to look for common vulnerabilities in the analyzed language or environment, if there is at least one FLOSS tool that can implement this criterion in the selected language.
+      dynamic_analysis_unsafe:
+        description: If the software produced by the project includes software written using a memory-unsafe language (e.g., C or C++), then at least one dynamic tool (e.g., a fuzzer or web application scanner) MUST be routinely used in combination with a mechanism to detect memory safety problems such as buffer overwrites. If the project does not produce software written in a memory-unsafe language, choose "not applicable" (N/A).
+    '2':
+      achieve_silver:
+        description: The project MUST achieve a silver level badge.
+      contributors_unassociated:
+        details: 'Contributors are associated if they are paid to work by the same organization (as an employee or contractor) and the organization stands to benefit from the project''s results. Financial grants do not count as being from the same organization if they pass through other organizations (e.g., science grants paid to different organizations from a common government or NGO source do not cause contributors to be associated). Someone is a significant contributor if they have made non-trivial contributions to the project in the past year. Examples of good indicators of a significant contributor are: written at least 1,000 lines of code, contributed 50 commits, or contributed at least 20 pages of documentation.'
+      copyright_per_file:
+        description: The project MUST include a copyright statement in each source file, identifying the copyright holder (e.g., the [project name] contributors).
+        details: 'This MAY be done by including the following inside a comment near the beginning of each file: "<tt>Copyright the [project name] contributors.</tt>". See <a href="https://www.linuxfoundation.org/blog/2020/01/copyright-notices-in-open-source-software-projects/" >"Copyright Notices in Open Source Software Projects" by Steve Winslow</a>.'
+      license_per_file:
+        description: 'The project MUST include a license statement in each source file. This MAY be done by including the following inside a comment near the beginning of each file: <a href="https://spdx.dev/ids/#how"><tt>SPDX-License-Identifier: [SPDX license expression for project]</tt></a>.'
+        details: This MAY also be done by including a statement in natural language identifying the license. The project MAY also include a stable URL pointing to the license text, or the full license text. Note that the criterion license_location requires the project license be in a standard location. See <a href="https://github.com/david-a-wheeler/spdx-tutorial">this SPDX tutorial</a> for more information about SPDX license expressions. Note the relationship with <a href="#copyright_per_file">copyright_per_file</a>, whose content would typically precede the license information.
+      repo_distributed:
+        description: The project's source repository MUST use a common distributed version control software (e.g., git or mercurial).
+      small_tasks:
+        description: The project MUST clearly identify small tasks that can be performed by new or casual contributors.
+        details: This identification is typically done by marking selected issues in an issue tracker with one or more tags the project uses for the purpose, e.g., <a href="https://up-for-grabs.net/#/">up-for-grabs</a>, <a href="https://www.firsttimersonly.com/">first-timers-only</a>, "Small fix", microtask, or IdealFirstBug. These new tasks need not involve adding functionality; they can be improving documentation, adding test cases, or anything else that aids the project and helps the contributor understand more about the project.
+      require_2FA:
+        description: The project MUST require two-factor authentication (2FA) for developers for changing a central repository or accessing sensitive data (such as private vulnerability reports). This 2FA mechanism MAY use mechanisms without cryptographic mechanisms such as SMS, though that is not recommended.
+      secure_2FA:
+        description: The project's two-factor authentication (2FA) SHOULD use cryptographic mechanisms to prevent impersonation. Short Message Service (SMS) based 2FA, by itself, does NOT meet this criterion, since it is not encrypted.
+        details: A 2FA mechanism that meets this criterion would be a Time-based One-Time Password (TOTP) application that automatically generates an authentication code that changes after a certain period of time. Note that <a href="https://help.github.com/articles/configuring-two-factor-authentication-via-a-totp-mobile-app/">GitHub supports TOTP</a>.
+      code_review_standards:
+        details: See also <a href="#two_person_review">two_person_review</a> and contribution_requirements.
+      two_person_review:
+        description: The project MUST have at least 50% of all proposed modifications reviewed before release by a person other than the author, to determine if it is a worthwhile modification and free of known issues which would argue against its inclusion
+      build_reproducible:
+        description: The project MUST have a <a href="https://reproducible-builds.org/">reproducible build</a>. If no building occurs (e.g., scripting languages where the source code is used directly instead of being compiled), select "not applicable" (N/A).
+        details: A reproducible build means that multiple parties can independently redo the process of generating information from source files and get exactly the same bit-for-bit result.  In some cases, this can be resolved by forcing some sort order. JavaScript developers may consider using npm shrinkwrap and webpack OccurrenceOrderPlugin. GCC and clang users may find the -frandom-seed option useful. The build environment (including the toolset) can often be defined for external parties by specifying the cryptographic hash of a specific container or virtual machine that they can use for rebuilding. The <a href="https://reproducible-builds.org/docs/">reproducible builds project has documentation on how to do this</a>.
+      test_invocation:
+        description: A test suite MUST be invocable in a standard way for that language.
+      test_continuous_integration:
+        description: The project MUST implement continuous integration, where new or changed code is frequently integrated into a central code repository and automated tests are run on the result.
+        details: In most cases this means that each developer who works full-time on the project integrates at least daily.
+      test_statement_coverage90:
+        description: The project MUST have FLOSS automated test suite(s) that provide at least 90% statement coverage if there is at least one FLOSS tool that can measure this criterion in the selected language.
+      test_branch_coverage80:
+        description: The project MUST have FLOSS automated test suite(s) that provide at least 80% branch coverage if there is at least one FLOSS tool that can measure this criterion in the selected language.
+      crypto_used_network:
+        description: The software produced by the project MUST support secure protocols for all of its network communications, such as SSHv2 or later, TLS1.2 or later (HTTPS), IPsec, SFTP, and SNMPv3. Insecure protocols such as FTP, HTTP, telnet, SSLv3 or earlier, and SSHv1 MUST be disabled by default, and only enabled if the user specifically configures it. If the software produced by the project does not support network communications, select "not applicable" (N/A).
+      crypto_tls12:
+        description: The software produced by the project MUST, if it supports or uses TLS, support at least TLS version 1.2. Note that the predecessor of TLS was called SSL. If the software does not use TLS, select "not applicable" (N/A).
+      hardened_site:
+        description: The project website, repository (if accessible via the web), and download site (if separate) MUST include key hardening headers with nonpermissive values.
+        details: 'Note that GitHub and GitLab are known to meet this. Sites such as https://securityheaders.com/ can quickly check this. The key hardening headers are: Content Security Policy (CSP), HTTP Strict Transport Security (HSTS), X-Content-Type-Options (as "nosniff"), and X-Frame-Options. Fully static web sites with no ability to log in via the web pages could omit some hardening headers with less risk, but there''s no reliable way to detect such sites, so we require these headers even if they are fully static sites.'
+      security_review:
+        description: The project MUST have performed a security review within the last 5 years. This review MUST consider the security requirements and security boundary.
+        details: This MAY be done by the project members and/or an independent evaluation. This evaluation MAY be supported by static and dynamic analysis tools, but there also must be human review to identify problems (particularly in design) that tools cannot detect.
+      hardening:
+        description: Hardening mechanisms MUST be used in the software produced by the project so that software defects are less likely to result in security vulnerabilities.
+      dynamic_analysis:
+        description: The project MUST apply at least one dynamic analysis tool to any proposed major production release of the software produced by the project before its release.
+      dynamic_analysis_enable_assertions:
+        description: The project SHOULD include many run-time assertions in the software it produces and check those assertions during dynamic analysis.
+    baseline-1:
+      osps_ac_01_01:
+        description: When a user attempts to read or modify a sensitive resource in the project's authoritative repository, the system MUST require the user to complete a multi-factor authentication process.
+        details: Enforce multi-factor authentication for the project's version control system, requiring collaborators to provide a second form of authentication when accessing sensitive data or modifying repository settings. Passkeys are acceptable for this control.
+      osps_ac_02_01:
+        description: When a new collaborator is added, the version control system MUST require manual permission assignment, or restrict the collaborator permissions to the lowest available privileges by default.
+        details: Most public version control systems are configured in this manner. Ensure the project's version control system always assigns the lowest available permissions to collaborators by default when added, granting additional permissions only when necessary.
+      osps_ac_03_01:
+        description: When a direct commit is attempted on the project's primary branch, an enforcement mechanism MUST prevent the change from being applied.
+        details: If the VCS is centralized, set branch protection on the primary branch in the project's VCS. Alternatively, use a decentralized approach, like the Linux kernel's, where changes are first proposed in another repository, and merging changes into the primary repository requires a specific separate act.
+      osps_ac_03_02:
+        description: When an attempt is made to delete the project's primary branch, the version control system MUST treat this as a sensitive activity and require explicit confirmation of intent.
+        details: Set branch protection on the primary branch in the project's version control system to prevent deletion.
+      osps_br_01_01:
+        description: When a CI/CD pipeline accepts an input parameter, that parameter MUST be sanitized and validated prior to use in the pipeline.
+        details: CI/CD pipelines should sanitize (quote, escape or exit on expected values) all metadata inputs which correspond to untrusted sources. This includes data such as branch names, commit messages, tags, pull request titles, and author information.
+      osps_br_01_02:
+        description: When a CI/CD pipeline uses a branch name in its functionality, that name value MUST be sanitized and validated prior to use in the pipeline.
+      osps_br_03_01:
+        description: When the project lists a URI as an official project channel, that URI MUST be exclusively delivered using encrypted channels.
+        details: Configure the project's websites and version control systems to use encrypted channels such as SSH or HTTPS for data transmission. Ensure all tools and domains referenced in project documentation can only be accessed via encrypted channels.
+      osps_br_03_02:
+        description: When the project lists a URI as an official distribution channel, that URI MUST be exclusively delivered using encrypted channels.
+        details: Configure the project's release pipeline to only fetch data from websites, API responses, and other services which use encrypted channels such as SSH or HTTPS for data transmission.
+      osps_br_07_01:
+        description: The project MUST prevent the unintentional storage of unencrypted sensitive data, such as secrets and credentials, in the version control system.
+        details: Configure .gitignore or equivalent to exclude files that may contain sensitive information. Use pre-commit hooks and automated scanning tools to detect and prevent the inclusion of sensitive data in commits.
+      osps_do_01_01:
+        description: When the project has made a release, the project documentation MUST include user guides for all basic functionality.
+        details: Create user guides or documentation for all basic functionality of the project, explaining how to install, configure, and use the project's features. If there are any known dangerous or destructive actions available, include highly-visible warnings.
+      osps_do_02_01:
+        description: When the project has made a release, the project documentation MUST include a guide for reporting defects.
+        details: It is recommended that projects use their VCS default issue tracker. If an external source is used, ensure that the project documentation and contributing guide clearly and visibly explain how to use the reporting system. It is recommended that project documentation also sets expectations for how defects will be triaged and resolved.
+      osps_gv_02_01:
+        description: While active, the project MUST have one or more mechanisms for public discussions about proposed changes and usage obstacles.
+        details: Establish one or more mechanisms for public discussions within the project, such as mailing lists, instant messaging, or issue trackers, to facilitate open communication and feedback.
+      osps_gv_03_01:
+        description: While active, the project documentation MUST include an explanation of the contribution process.
+        details: Create a CONTRIBUTING.md or CONTRIBUTING/ directory to outline the contribution process including the steps for submitting changes, and engaging with the project maintainers.
+      osps_le_02_01:
+        description: While active, the license for the source code MUST meet the OSI Open Source Definition or the FSF Free Software Definition.
+        details: Add a LICENSE file to the project's repo with a license that is an approved license by the Open Source Initiative (OSI), or a free license as approved by the Free Software Foundation (FSF). Examples of such licenses include the MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), and the GNU General Public License (GPL). Releasing to the public domain meets this control if there are no other encumbrances such as patents.
+      osps_le_02_02:
+        description: While active, the license for the released software assets MUST meet the OSI Open Source Definition or the FSF Free Software Definition.
+        details: If a different license is included with released software assets, ensure it is an approved license by the Open Source Initiative (OSI), or a free license as approved by the Free Software Foundation (FSF). Examples of such licenses include the MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), and the GNU General Public License (GPL). Note that the license for the released software assets may be different than the source code.
+      osps_le_03_01:
+        description: While active, the license for the source code MUST be maintained in the corresponding repository's LICENSE file, COPYING file, or LICENSE/ directory.
+        details: Include the project's source code license in the project's LICENSE file, COPYING file, or LICENSE/ directory to provide visibility and clarity on the licensing terms. The filename MAY have an extension. If the project has multiple repositories, ensure that each repository includes the license file.
+      osps_le_03_02:
+        description: While active, the license for the released software assets MUST be included in the released source code, or in a LICENSE file, COPYING file, or LICENSE/ directory alongside the corresponding release assets.
+        details: Include the project's released software assets license in the released source code, or in a LICENSE file, COPYING file, or LICENSE/ directory alongside the corresponding release assets to provide visibility and clarity on the licensing terms. The filename MAY have an extension. If the project has multiple repositories, ensure that each repository includes the license file.
+      osps_qa_01_01:
+        description: While active, the project's source code repository MUST be publicly readable at a static URL.
+        details: Use a common VCS such as GitHub, GitLab, or Bitbucket. Ensure the repository is publicly readable. Avoid duplication or mirroring of repositories unless highly visible documentation clarifies the primary source. Avoid frequent changes to the repository that would impact the repository URL. Ensure the repository is public.
+      osps_qa_01_02:
+        description: The version control system MUST contain a publicly readable record of all changes made, who made the changes, and when the changes were made.
+        details: Use a common VCS such as GitHub, GitLab, or Bitbucket to maintain a publicly readable commit history. Avoid squashing or rewriting commits in a way that would obscure the author of any commits.
+      osps_qa_02_01:
+        description: When the package management system supports it, the source code repository MUST contain a dependency list that accounts for the direct language dependencies.
+        details: This may take the form of a package manager or language dependency file that enumerates all direct dependencies such as package.json, Gemfile, or go.mod.
+      osps_qa_04_01:
+        description: While active, the project documentation MUST contain a list of any codebases that are considered subprojects.
+        details: Document any additional subproject code repositories produced by the project and compiled into a release. This documentation should include the status and intent of the respective codebase.
+      osps_qa_05_01:
+        description: While active, the version control system MUST NOT contain generated executable artifacts.
+        details: Remove generated executable artifacts in the project's version control system. It is recommended that any scenario where a generated executable artifact appears critical to a process such as testing, it should be instead be generated at build time or stored separately and fetched during a specific well-documented pipeline step.
+      osps_qa_05_02:
+        description: While active, the version control system MUST NOT contain unreviewable binary artifacts.
+        details: Do not add any unreviewable binary artifacts to the project's version control system. This includes executable application binaries, library files, and similar artifacts. It does not include assets such as graphical images, sound or music files, and similar content typically stored in a binary format.
+      osps_vm_02_01:
+        description: While active, the project documentation MUST contain security contacts.
+        details: Create a security.md (or similarly-named) file that contains security contacts for the project.
+      osps_br_01_03:
+        description: When a CI/CD pipeline operates on untrusted code snapshots, it MUST prevent access to privileged CI/CD credentials and assets.
+        details: CI/CD pipelines should isolate untrusted code snapshots from privileged credentials and assets. In particular, projects should be careful to ensure that workflows which build or execute code prior to review by a collaborator do not have access to CI/CD credentials.
+    baseline-2:
+      osps_ac_04_01:
+        description: When a CI/CD task is executed with no permissions specified, the CI/CD system MUST default the task's permissions to the lowest permissions granted in the pipeline.
+        details: Configure the project's settings to assign the lowest available permissions to new pipelines by default, granting additional permissions only when necessary for specific tasks.
+      osps_br_02_01:
+        description: When an official release is created, that release MUST be assigned a unique version identifier.
+        details: Assign a unique version identifier to each release produced by the project, following a consistent naming convention or numbering scheme. Examples include SemVer, CalVer, or git commit id.
+      osps_br_04_01:
+        description: When an official release is created, that release MUST contain a descriptive log of functional and security modifications.
+        details: Ensure that all releases include a descriptive change log. It is recommended to ensure that the change log is human-readable and includes details beyond commit messages, such as descriptions of the security impact or relevance to different use cases. To ensure machine readability, place the content under a markdown header such as "## Changelog".
+      osps_br_05_01:
+        description: When a build and release pipeline ingests dependencies, it MUST use standardized tooling where available.
+        details: Use a common tooling for your ecosystem, such as package managers or dependency management tools to ingest dependencies at build time. This may include using a dependency file, lock file, or manifest to specify the required dependencies, which are then pulled in by the build system.
+      osps_br_06_01:
+        description: When an official release is created, that release MUST be signed or accounted for in a signed manifest including each asset's cryptographic hashes.
+        details: Sign all released software assets at build time with a cryptographic signature or attestations, such as GPG or PGP signature, Sigstore signatures, SLSA provenance, or SLSA VSAs. Include the cryptographic hashes of each asset in a signed manifest or metadata file.
+      osps_do_06_01:
+        description: When the project has made a release, the project documentation MUST include a description of how the project selects, obtains, and tracks its dependencies.
+        details: It is recommended to publish this information alongside the project's technical & design documentation on a publicly viewable resource such as the source code repository, project website, or other channel.
+      osps_gv_01_01:
+        description: While active, the project documentation MUST include a list of project members with access to sensitive resources.
+        details: Document project participants and their roles through such artifacts as members.md, governance.md, maintainers.md, or similar file within the source code repository of the project. This may be as simple as including names or account handles in a list of maintainers, or more complex depending on the project's governance.
+      osps_gv_01_02:
+        description: While active, the project documentation MUST include descriptions of the roles and responsibilities for members of the project.
+        details: Document project participants and their roles through such artifacts as members.md, governance.md, maintainers.md, or similar file within the source code repository of the project.
+      osps_gv_03_02:
+        description: While active, the project documentation MUST include a guide for code contributors that includes requirements for acceptable contributions.
+        details: Extend the CONTRIBUTING.md or CONTRIBUTING/ contents in the project documentation to outline the requirements for acceptable contributions, including coding standards, testing requirements, and submission guidelines for code contributors. It is recommended that this guide is the source of truth for both contributors and approvers.
+      osps_le_01_01:
+        description: While active, the version control system MUST require all code contributors to assert that they are legally authorized to make the associated contributions on every commit.
+        details: Include a DCO in the project's repository, requiring code contributors to assert that they are legally authorized to commit the associated contributions on every commit. Use a status check to ensure the assertion is made. A CLA also satisfies this requirement. Some version control systems, such as GitHub, may include this in the platform terms of service.
+      osps_qa_03_01:
+        description: When a commit is made to the primary branch, any automated status checks for commits MUST pass or be manually bypassed.
+        details: Configure the project's version control system to require that all automated status checks pass or require manual acknowledgement before a commit can be merged into the primary branch. It is recommended that any optional status checks are NOT configured as a pass or fail requirement that approvers may be tempted to bypass.
+      osps_qa_06_01:
+        description: Prior to a commit being accepted, the project's CI/CD pipelines MUST run at least one automated test suite to ensure the changes meet expectations.
+        details: Automated tests should be run prior to every merge into the primary branch. The test suite should be run in a CI/CD pipeline and the results should be visible to all contributors. The test suite should be run in a consistent environment and should be run in a way that allows contributors to run the tests locally. Examples of test suites include unit tests, integration tests, and end-to-end tests.
+      osps_sa_01_01:
+        description: When the project has made a release, the project documentation MUST include design documentation demonstrating all actions and actors within the system.
+        details: Include designs in the project documentation that explains the actions and actors. Actors include any subsystem or entity that can influence another segment in the system. Ensure this is updated for new features or breaking changes.
+      osps_sa_02_01:
+        description: When the project has made a release, the project documentation MUST include descriptions of all external software interfaces of the released software assets.
+        details: Document all software interfaces (APIs) of the released software assets, explaining how users can interact with the software and what data is expected or produced. Ensure this is updated for new features or breaking changes.
+      osps_sa_03_01:
+        description: When the project has made a release, the project MUST perform a security assessment to understand the most likely and impactful potential security problems that could occur within the software.
+        details: Performing a security assessment informs both project members as well as downstream consumers that the project understands what problems could arise within the software. Understanding what threats could be realized helps the project manage and address risk. This information is useful to downstream consumers to demonstrate the security acumen and practices of the project. Ensure this is updated for new features or breaking changes.
+      osps_vm_01_01:
+        description: While active, the project documentation MUST include a policy for coordinated vulnerability disclosure (CVD), with a clear timeframe for response.
+        details: Create a SECURITY.md file at the root of the directory, outlining the project's policy for coordinated vulnerability disclosure. Include a method for reporting vulnerabilities. Set expectations for how the project will respond and address reported issues.
+      osps_vm_03_01:
+        description: While active, the project documentation MUST provide a means for private vulnerability reporting directly to the security contacts within the project.
+        details: Provide a means for security researchers to report vulnerabilities privately to the project. This may be a dedicated email address, a web form, VCS specialized tools, email addresses for security contacts, or other methods.
+      osps_vm_04_01:
+        description: While active, the project documentation MUST publicly publish data about discovered vulnerabilities.
+        details: Provide information about known vulnerabilities in a predictable public channel, such as a CVE entry, blog post, or other medium. To the degree possible, this information should include affected version(s), how a consumer can determine if they are vulnerable, and instructions for mitigation or remediation.
+      osps_do_07_01:
+        description: The project documentation MUST include instructions on how to build the software, including required libraries, frameworks, SDKs, and dependencies.
+        details: It is recommended to publish this information alongside the project's contributor documentation, such as in CONTRIBUTING.md or other developer task documentation. This may also be documented using Makefile targets or other automation scripts.
+    baseline-3:
+      osps_ac_04_02:
+        description: When a job is assigned permissions in a CI/CD pipeline, the source code or configuration MUST only assign the minimum privileges necessary for the corresponding activity.
+        details: Configure the project's CI/CD pipelines to assign the lowest available permissions to users and services by default, elevating permissions only when necessary for specific tasks. In some version control systems, this may be possible at the organizational or repository level. If not, set permissions at the top level of the pipeline.
+      osps_br_02_02:
+        description: When an official release is created, all assets within that release MUST be clearly associated with the release identifier or another unique identifier for the asset.
+        details: Assign a unique version identifier to each software asset produced by the project, following a consistent naming convention or numbering scheme. Examples include SemVer, CalVer, or git commit id.
+      osps_br_07_02:
+        description: The project MUST define a policy for managing secrets and credentials used by the project. The policy should include guidelines for storing, accessing, and rotating secrets and credentials.
+        details: Document how secrets and credentials are managed and used within the project. This should include details on how secrets are stored (e.g., using a secrets management tool), how access is controlled, and how secrets are rotated or updated. Ensure that sensitive information is not hard-coded in the source code or stored in version control systems.
+      osps_do_03_01:
+        description: When the project has made a release, the project documentation MUST contain instructions to verify the integrity and authenticity of the release assets.
+        details: Instructions in the project should contain information about the technology used, the commands to run, and the expected output. When possible, avoid storing this documentation in the same location as the build and release pipeline to avoid a single breach compromising both the software and the documentation for verifying the integrity of the software.
+      osps_do_03_02:
+        description: When the project has made a release, the project documentation MUST contain instructions to verify the expected identity of the person or process authoring the software release.
+        details: The expected identity may be in the form of key IDs used to sign, issuer and identity from a sigstore certificate, or other similar forms. When possible, avoid storing this documentation in the same location as the build and release pipeline to avoid a single breach compromising both the software and the documentation for verifying the integrity of the software.
+      osps_do_04_01:
+        description: When the project has made a release, the project documentation MUST include a descriptive statement about the scope and duration of support for each release.
+        details: In order to communicate the scope and duration of support for the project's released software assets, the project should have a SUPPORT.md file, a "Support" section in SECURITY.md, or other documentation explaining the support lifecycle, including the expected duration of support for each release, the types of support provided (e.g., bug fixes, security updates), and any relevant policies or procedures for obtaining support.
+      osps_do_05_01:
+        description: When the project has made a release, the project documentation MUST provide a descriptive statement when releases or versions will no longer receive security updates.
+        details: In order to communicate the scope and duration of support for security fixes, the project should have a SUPPORT.md or other documentation explaining the project's policy for security updates.
+      osps_gv_04_01:
+        description: While active, the project documentation MUST have a policy that code collaborators are reviewed prior to granting escalated permissions to sensitive resources.
+        details: Publish an enforceable policy in the project documentation that requires code collaborators to be reviewed and approved before being granted escalated permissions to sensitive resources, such as merge approval or access to secrets. It is recommended that vetting includes establishing a justifiable lineage of identity such as confirming the contributor's association with a known trusted organization.
+      osps_qa_02_02:
+        description: When the project has made a release, all compiled released software assets MUST be delivered with a software bill of materials.
+        details: It is recommended to auto-generate SBOMs at build time using a tool that has been vetted for accuracy. This enables users to ingest this data in a standardized approach alongside other projects in their environment.
+      osps_qa_04_02:
+        description: When the project has made a release comprising multiple source code repositories, all subprojects MUST enforce security requirements that are as strict or stricter than the primary codebase.
+        details: Any additional subproject code repositories produced by the project and compiled into a release must enforce security requirements as applicable to the status and intent of the respective codebase. In addition to following the corresponding OSPS Baseline requirements, this may include requiring a security review, ensuring that it is free of vulnerabilities, and ensuring that it is free of known security issues.
+      osps_qa_06_02:
+        description: While active, project's documentation MUST clearly document when and how tests are run.
+        details: Add a section to the contributing documentation that explains how to run the tests locally and how to run the tests in the CI/CD pipeline. The documentation should explain what the tests are testing and how to interpret the results.
+      osps_qa_06_03:
+        description: While active, the project's documentation MUST include a policy that all major changes to the software produced by the project should add or update tests of the functionality in an automated test suite.
+        details: Add a section to the contributing documentation that explains the policy for adding or updating tests. The policy should explain what constitutes a major change and what tests should be added or updated.
+      osps_qa_07_01:
+        description: When a commit is made to the primary branch, the project's version control system MUST require at least one non-author human approval of the changes before merging.
+        details: Configure the project's version control system to require at least one non-author human approval of changes before merging into the release or primary branch. This can be achieved by requiring a pull request to be reviewed and approved by at least one other collaborator before it can be merged.
+      osps_sa_03_02:
+        description: When the project has made a release, the project MUST perform a threat modeling and attack surface analysis to understand and protect against attacks on critical code paths, functions, and interactions within the system.
+        details: Threat modeling is an activity where the project looks at the codebase, associated processes and infrastructure, interfaces, key components and "thinks like a hacker" and brainstorms how the system be be broken or compromised. Each identified threat is listed out so the project can then think about how to proactively avoid or close off any gaps/vulnerabilities that could arise. Ensure this is updated for new features or breaking changes.
+      osps_vm_04_02:
+        description: While active, any vulnerabilities in the software components not affecting the project MUST be accounted for in a VEX document, augmenting the vulnerability report with non-exploitability details.
+        details: Establish a VEX feed communicating the exploitability status of known vulnerabilities, including assessment details or any mitigations in place preventing vulnerable code from being executed.
+      osps_vm_05_01:
+        description: While active, the project documentation MUST include a policy that defines a threshold for remediation of SCA findings related to vulnerabilities and licenses.
+        details: Document a policy in the project that defines a threshold for remediation of SCA findings related to vulnerabilities and licenses. Include the process for identifying, prioritizing, and remediating these findings.
+      osps_vm_05_02:
+        description: While active, the project documentation MUST include a policy to address SCA violations prior to any release.
+        details: Document a policy in the project to address applicable Software Composition Analysis results before any release, and add status checks that verify compliance with that policy prior to release.
+      osps_vm_05_03:
+        description: While active, all changes to the project's codebase MUST be automatically evaluated against a documented policy for malicious dependencies and known vulnerabilities in dependencies, then blocked in the event of violations, except when declared and suppressed as non-exploitable.
+        details: Create a status check in the project's version control system that runs a Software Composition Analysis tool on all changes to the codebase. Require that the status check passes before changes can be merged.
+      osps_vm_06_01:
+        description: While active, the project documentation MUST include a policy that defines a threshold for remediation of SAST findings.
+        details: Document a policy in the project that defines a threshold for remediation of Static Application Security Testing (SAST) findings. Include the process for identifying, prioritizing, and remediating these findings.
+      osps_vm_06_02:
+        description: While active, all changes to the project's codebase MUST be automatically evaluated against a documented policy for security weaknesses and blocked in the event of violations except when declared and suppressed as non-exploitable.
+        details: Create a status check in the project's version control system that runs a Static Application Security Testing (SAST) tool on all changes to the codebase. Require that the status check passes before changes can be merged.
+      osps_br_01_04:
+        description: CI/CD pipelines which accept trusted collaborator input MUST sanitize and validate that input prior to use in the pipeline.
+        details: CI/CD pipelines should sanitize (quote, escape or exit on expected values) all collaborator inputs on explicit workflow executions. While collaborators are generally trusted, manual inputs to a workflow cannot be reviewed and could be abused by an account takeover or insider threat.
+  criteria_overall:
+    beginning_header_all: FLOSS Best Practices Criteria (All Levels)
+    beginning_header_0: FLOSS Best Practices Criteria (Passing Badge)
+    beginning_header_1: FLOSS Best Practices Criteria (Silver Badge)
+    beginning_header_2: FLOSS Best Practices Criteria (Gold Badge)
+    beginning_all_html: <p> This is the set of best practices for Free/Libre and Open Source Software (FLOSS) projects to achieve the Open Source Security Foundation (OpenSSF) Best Practices badges at the passing, silver, and gold badge levels. You can show this list with <a href="/en/criteria">just the criteria</a> or with <a href="/en/criteria?details=true&rationale=true">additional information</a>. You may also view just the <a href="/en/criteria/0">passing</a>, <a href="/en/criteria/1">silver</a>, and <a href="/en/criteria/2">gold</a> criteria, as well as <a href="/en/criteria_stats">criteria statistics</a>.
+    beginning_0_html: <p> This is the set of best practices for Free/Libre and Open Source Software (FLOSS) projects to achieve the Open Source Security Foundation (OpenSSF) Best Practices passing badge. You can show this list with <a href="/en/criteria/0">just the criteria</a> or with <a href="/en/criteria/0?details=true&rationale=true">additional information</a>. The <a href="/en/criteria">full set of criteria for all badge levels</a> are also available.
+    beginning_1_html: <p> This is the set of best practices for Free/Libre and Open Source Software (FLOSS) projects to achieve the Open Source Security Foundation (OpenSSF) Best Practices silver badge. You can show this list with <a href="/en/criteria/1">just the criteria</a> or with <a href="/en/criteria/1?details=true&rationale=true">additional information</a>. The <a href="/en/criteria">full set of criteria</a> are also available.
+    beginning_2_html: <p> This is the set of best practices for Free/Libre and Open Source Software (FLOSS) projects to achieve the Open Source Security Foundation (OpenSSF) Best Practices gold badge. You can show this list with <a href="/en/criteria/2">just the criteria</a> or with <a href="/en/criteria/2?details=true&rationale=true">additional information</a>. The <a href="/en/criteria">full set of criteria</a> are also available.
+    see_discussion_html: <p> See <a href="/en/criteria_discussion">criteria discussion</a> for more information about these criteria.
+    future: "{Future}"
+    na_allowed: "{N/A allowed}"
+    na_justification_required: "{N/A justification}"
+    met_justification_required: "{Met justification}"
+    met_url_required: "{Met URL}"
+    obsolete: "{Obsolete}"
+  criteria_discussion:
+    intro_p01_html: "<h1 id='criteria_discussion'>Criteria Discussion</h1>"
+    intro_p02_html: "<p> There is no set of practices that can <i>guarantee</i> that software will never have defects or vulnerabilities. Even formal methods can fail if the specifications or assumptions are wrong. Nor is there any set of practices that can guarantee that a project will sustain a healthy and well-functioning development community.</p>"
+    intro_p03_html: "<p> However, following best practices can help improve the results of projects. For example, some practices enable multi-person review before release, which can both help find otherwise hard-to-find technical vulnerabilities and help build trust and a desire for repeated interaction among developers from different organizations.</p>"
+    intro_p04_html: "<p> This page discusses the set of best practices for Free/Libre and Open Source Software (FLOSS) projects developed for the Open Source Security Foundation (OpenSSF) Best Practices badge. Projects that follow these best practices will be able to voluntarily self-certify and show that they've achieved the relevant badge. Projects can do this, at no cost, by using a web application (BadgeApp) to explain how they meet these practices and their detailed criteria.</p>"
+    intro_p05_html: "<p> These best practices have been created to:</p>"
+    intro_p06_html: "<ol> <li>encourage projects to follow best practices,</li> <li>help new projects discover what those practices are, and</li> <li>help users know which projects are following best practices (so users can prefer such projects).</li> </ol>"
+    intro_p07_html: '<p> The idiom "best practices" means "a procedure or set of procedures that is preferred or considered standard within an organization, industry, etc." (source: <a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>). These criteria are what we believe are widely "preferred or considered standard" in the wider FLOSS community.</p>'
+    intro_p08_html: <p> For more information on how these criteria were developed, see the <a href="https://github.com/ossf/best-practices-badge" >OpenSSF Best Practices badge GitHub site</a>.</p> <p> You may also <a href="/en/criteria">see the full criteria</a>.</p>
+    structure_p01_html: "<p></p> <h2 id='criteria_structure'>Criteria Structure</h2>"
+    structure_p02_html: "<p> The best practices criteria are divided into three levels:<ul> <li><b>Passing</b> focuses on best practices that well-run FLOSS projects typically already follow. Getting the passing badge is an achievement; at any one time only about 10% of projects pursuing a badge achieve the passing level. <li><b>Silver</b> is a more stringent set of criteria than passing but is expected to be achievable by small and single-organization projects. <li><b>Gold</b> is even more stringent than silver and includes criteria that are not achievable by small or single-organization projects. </ul>"
+    structure_p03_html: "<p> Every criterion has a short name, shown as superscripted text inside square brackets after the criteria text."
+    other_p01_html: "<p></p> <h2 id='criteria_other_projects'>Relationship to Other Projects</h2>"
+    other_p02_html: <p> The Linux Foundation also sponsors the <a href="https://www.openchainproject.org/" rel="nofollow">OpenChain Project</a>, which identifies criteria for a "high quality Free and Open Source Software (FOSS) compliance program." OpenChain focuses on how organizations can best use FLOSS and contribute back to FLOSS projects, while the OpenSSF Best Practices badge focuses on the FLOSS projects themselves. The OpenSSF Best Practices badge and OpenChain work together to help improve FLOSS and how FLOSS is used.</p>
+    automation_p01_html: "<p></p> <h2 id='criteria_automation'>Criteria Automation</h2>"
+    automation_p02_html: "<p> In some cases we automatically test and fill in information if the project follows standard conventions and is hosted on a site (e.g., GitHub) with decent API support.</p>"
+    automation_p03_html: "<p> We intend to improve this automation in the future. Improvements to the automation are welcome!</p>"
+    automation_p04_html: <p>However, we have intentionally prioritized on "what is important", even if can't be affordably automated. We love automated measurements, but not everything important is automatable or can be automated affordably.</p>
+    changes_p01_html: "<p></p> <h2 id='criteria_changes'>Changes over time</h2>"
+    changes_p02_html: <p> We expect that these practices and their detailed criteria will be updated over time. We plan to add new criteria but mark them as "future" criteria, so that projects can add that information and maintain their badge.</p>
+    changes_p03_html: <p> Feedback is <em>very</em> welcome via the <a href="https://github.com/ossf/best-practices-badge" >GitHub site as issues or pull requests</a>. There is also a <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">mailing list for general discussion</a>.</p>
+    keywords_p01_html: "<p></p> <h2 id='keywords'>Key words</h2>"
+    keywords_p02_html: <p> The key words "MUST", "MUST NOT", "SHOULD", "SHOULD NOT", and "MAY" in this document are to be interpreted as described in <a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a>. The additional term SUGGESTED is added. In summary, these key words have the following meanings:</p>
+    keywords_p03_html: "<ul> <li>The term MUST is an absolute requirement, and MUST NOT is an absolute prohibition.</li>"
+    keywords_p04_html: "<li>The term SHOULD indicates a criterion that is normally required, but there may exist valid reasons in particular circumstances to ignore it. However, the full implications must be understood and carefully weighed before choosing a different course.</li>"
+    keywords_p05_html: "<li>The term SUGGESTED is used instead of SHOULD when the criterion must be considered, but the valid reasons to not do so are even more common than for SHOULD.</li>"
+    keywords_p06_html: "<li>The term MAY provides one way something can be done, e.g., to make it clear that the described implementation is acceptable.</li> </ul>"
+    keywords_p07_html: "<p> Often a criterion is stated as something that SHOULD be done, or is SUGGESTED, because it may be difficult to implement or the costs to do so may be high.</p>"
+    achieving_p01_html: "<p></p> <h2 id='criteria_achieving_badge'>Achieving a badge</h2>"
+    achieving_p02_html: <p> To obtain a badge, all MUST and MUST NOT criteria must be met, all SHOULD criteria must be either met OR unmet with justification, and all SUGGESTED criteria have to be considered (it must be rated as met or unmet, but justification is not required unless noted otherwise). An answer of N/A ("not applicable"), where allowed, is considered the same as being met. In some cases, especially in the higher levels, justification and/or a URL may be required.</p>
+    achieving_p03_html: <p> Some criteria have special markings that influence this:<ul> <li><b>{N/A allowed}</b> - "N/A" ("Not applicable") is allowed. <li><b>{N/A justification}</b> - "N/A" ("Not applicable") is allowed and requires justification. <li><b>{Met justification}</b> - "Met" requires justification. <li><b>{Met URL}</b> - "Met" requires justification with a URL. <li><b>{Future}</b> - the answer to this criterion currently has no effect, but it may be required in the future. </ul>
+    achieving_p04_html: "<p> A project must achieve the previous level to achieve the next level. In some cases SHOULD criteria become MUST in higher level badges, and some SUGGESTED criteria at lower levels become SHOULD or MUST in higher level badges. The higher levels also require more justification, because we want others to understand <i>how</i> the criteria are being met.</p>"
+    achieving_p05_html: "<p> The (many) cryptographic criteria do not always apply, because some software has no need to directly use cryptographic capabilities. In those cases, answer N/A.</p>"
+    achieving_p06_html: "<p> There is one implied passing criterion - every project MUST have a public website with a stable URL. This is required to create a badge entry in the first place.</p>"
+    terminology_p01_html: "<p></p> <h2 id='criteria_terminology'>Terminology</h2>"
+    terminology_p02_html: <p> If you are not familiar with software development or running a FLOSS project, materials such as <a href="http://producingoss.com/" rel="nofollow"><em>Producing Open Source Software</em> by Karl Fogel</a> may be helpful to you.</p>
+    terminology_p03_html: "<p>Here are a few key terms:</p><ul>"
+    terminology_p04_html: "<li>A <em>project</em> is an active entity that has project member(s) and produces project result(s). Its member(s) use project sites to coordinate and disseminate result(s). A project does not need to be a formal legal entity.</li>"
+    terminology_p05_html: "<li>Project <em>members</em> are the group of one or more people or companies who work together to attempt to produce project results. Some FLOSS projects may have different kinds of members, with different roles, but that's outside our scope.</li>"
+    terminology_p06_html: <li>Project <em>results</em> are what the project members work together to produce as their end goal. Normally this is software, but project results may include other things as well. Criteria that refer to "software produced by the project" are referring to project results.</li>
+    terminology_p07_html: <li>Project <em>sites</em> are the sites dedicated to supporting the development and dissemination of project results, and include the project website, repository, and download sites where applicable (see <a href="#sites_https">sites_https</a>).</li>
+    terminology_p08_html: "<li>The project <em>website</em>, aka project homepage, is the main page on the world wide web (WWW) that a new user would typically visit to see information about the project; it may be the same as the project's repository site (this is often true on GitHub).</li>"
+    terminology_p09_html: "<li>The project <em>repository</em> manages and stores the project results and revision history of the project results. This is also referred to as the project <em>source repository</em>, because we only require managing and storing of the editable versions, not of automatically generated results (in many cases generated results are not stored in a repository).</li>"
+    terminology_p10_html: "<li>A <em>project security mechanism</em> is a security mechanism provided by the delivered project's software. </ul>"
+    noncriteria_p01_html: "<p></p> <h2 id='criteria_noncriteria'>Non-criteria</h2>"
+    noncriteria_p02_html: "<p> The criteria:<ul>"
+    noncriteria_p03_html: "<li>do <em>not</em> require any specific technology, product, or service. For example, they do <em>not</em> require git, GitHub, or GitLab. The criteria <em>do</em> provide guidance and help for common cases, since that information can help people understand and meet the criteria. There is some special automation for projects using git or GitHub, to help users in those common cases, but they are not <em>required</em>. Thus, as new tools and capabilities become available, projects can quickly switch to them. As exceptions, the criteria do require a project web page and TLS."
+    noncriteria_p04_html: "<li>do <em>not</em> require or forbid any particular programming language. They do require that additional measures be taken for certain <em>kinds</em> of programming languages, but that is different."
+    noncriteria_p05_html: <li><em>never</em> require the use of proprietary software, proprietary service, or a proprietary technology, since many <a href="https://www.gnu.org/philosophy/free-sw.en.html" rel="nofollow">free software</a> developers would reject such criteria. Projects are <em>allowed</em> to use them and depend on them.
+    noncriteria_p06_html: "<li>do <em>not</em> require active development or user discussion within a project.  Some highly mature projects rarely change and thus may have little activity.  The criteria <em>do</em>, however, require that the project be responsive if vulnerabilities are reported to the project."
+    noncriteria_p07_html: "<li>do <em>not</em> require fees to get a badge."
+    noncriteria_p08_html: "<li>do <em>not</em> require that all criteeria be implemented at once; most projects implement them over time. </ul>"
+    noncriteria_p09_html: "<p> The passing level does not include criteria that would be impractical for a single-person project, e.g., something that requires a significant amount of money. Many FLOSS projects are small, and we do not want to disenfranchise them."
+    identify_p01_html: "<p></p> <h2 id='criteria_id_project'>Identifying a project</h2>"
+    identify_p02_html: <p> Our application gives every project entry a unique id, but that doesn't help people searching for the project. For our purposes, the <em>real</em> name of a project is the URL for its repository, and where that is not available, the project "front page" URL. We rate limit changes to the repo URL to prevent some nonsense. Projects normally have a human-readable name, but these names are not unique enough. <p></p>
+    criteria_why_p01_html: "<h2 id='criteria_why'>Why have criteria?</h2>"
+    criteria_why_p02_html: '<p> The paper <a href="http://www.researchinlearningtechnology.net/index.php/rlt/article/view/23563" rel="nofollow">Open badges for education: what are the implications at the intersection of open systems and badging?</a> identifies three general reasons for badging systems (all are valid for this):</p><ol>'
+    criteria_why_p03_html: "<li>Badges as a motivator of behavior.  We hope that by identifying best practices, we'll encourage projects to implement those best practices if they do not do them already.</li>"
+    criteria_why_p04_html: "<li>Badges as a pedagogical tool.  Some projects may not be aware of some of the best practices applied by others, or how they can be practically applied. The badge will help them become aware of them and ways to implement them.</li>"
+    criteria_why_p05_html: "<li>Badges as a signifier or credential. Potential users want to use projects that are applying best practices to consistently produce good results; badges make it easy for projects to signify that they are following best practices, and make it easy for users to see which projects are doing so.</li> </ol>"
+    self_certification_p01_html: <h3 id="criteria_self_certification">Why self-certification?</h3>
+    self_certification_p02_html: "<p> We have chosen to use self-certification, because this makes it possible for a large number of projects (even small ones) to participate.  There are millions of FLOSS projects, and paying third parties to independently evaluate each one does not scale. There's a risk that projects may make false claims, but we think the risk is small, users can check the claims for themselves, and false claims can be overridden. We also use automation to override false claims where we can be confident in the results. </p>"
+  headings:
+    Accessibility and internationalization: Accessibility and internationalization
+    Analysis: Analysis
+    Automated test suite: Automated test suite
+    Identification: Identification
+    Prerequisites: Prerequisites
+    Basic project website content: Basic project website content
+    Basics: Basics
+    Bug-reporting process: Bug-reporting process
+    Change Control: Change Control
+    Coding standards: Coding standards
+    Controls: Controls
+    Documentation: Documentation
+    General: General
+    Dynamic code analysis: Dynamic code analysis
+    Externally-maintained components: Externally-maintained components
+    FLOSS license: FLOSS license
+    Future: Future
+    future: future
+    Installation system: Installation system
+    New functionality testing: New functionality testing
+    Other: Other
+    Other security issues: Other security issues
+    Previous versions: Previous versions
+    Project oversight: Project oversight
+    Public version-controlled source repository: Public version-controlled source repository
+    Publicly known vulnerabilities fixed: Publicly known vulnerabilities fixed
+    Quality: Quality
+    Release notes: Release notes
+    Reporting: Reporting
+    Secure development knowledge: Secure development knowledge
+    Secure release: Secure release
+    Secured delivery against man-in-the-middle (MITM) attacks: Secured delivery against man-in-the-middle (MITM) attacks
+    Security: Security
+    Static code analysis: Static code analysis
+    Unique version numbering: Unique version numbering
+    Use basic good cryptographic practices: Use basic good cryptographic practices
+    Vulnerability report process: Vulnerability report process
+    Warning flags: Warning flags
+    Working build system: Working build system
+    General_project_info: General
+  criterion_status:
+    Met: Met
+    Unmet: Unmet
+    NA: N/A
+  error_messages:
+    need_home_page_or_url: Need at least a home page or repository URL
+    form_contains:
+      one: The form contains 1 error.
+      few: The form contains %{count} errors.
+      many: The form contains %{count} errors.
+      other: The form contains %{count} errors.
+    not_an_email: " is not an email"
+    known_bad_password: " is a well-known (bad) password"
+    valid_text: |2-
+       must have a valid UTF-8 encoding and no invalid control
+      characters
+    url_message: " must begin with http: or https: and use a limited charset"
+  activerecord:
+    errors:
+      messages:
+        comma_separated_list: " must be a comma-separated list of names using only ASCII characters"
+        begin_with_cpe: ' must begin with "cpe:"'
+  last_entry: Last translation entry
+  account_activations:
+    delay:
+      many: 'As an anti-spam measure, you must wait %{count} hours after activation before you can log in.
+
+        '
+  detectives:
+    github:
+      repo_public: Repository on GitHub, which provides public git repositories with URLs.
+      repo_track: Repository on GitHub, which uses git. git can track the changes, who made them, and when they were made.
+      repo_distributed: Repository on GitHub, which uses git. git is distributed.
+      contribution: Projects on GitHub by default use issues and pull requests, as encouraged by documentation such as <https://guides.github.com/activities/contributing-to-open-source/>.
+      discussion: GitHub supports discussions on issues and pull requests.
+      osps_gv_02_01: GitHub supports public discussions on proposed changes (via pull requests) and usage obstacles (via issues).
+      osps_do_02_01: GitHub provides defect reporting mechanisms by default (via issues).
+      osps_ac_01_01: GitHub requires 2FA as of March 2023.
+      osps_qa_01_01: Repository is publicly available on GitHub.
+      osps_qa_01_02: Repository git metadata is publicly available on GitHub.
+      name: GitHub name
+      description: GitHub description
+      license: GitHub API license analysis
+      implementation_languages: GitHub API implementation language analysis
+    floss_license:
+      osi_approved: The %{license} license is approved by the Open Source Initiative (OSI).
+      osi_approved_repository: The %{license} license for the repository contents is approved by the Open Source Initiative (OSI).
+      not_in_osi_list: Did not find license in the OSI list.
+    hardened_sites:
+      all_headers_found: Found all required security hardening headers.
+      headers_missing: 'Required security hardening headers missing: '
+      nosniff_not_set: X-Content-Type-Options was not set to "nosniff".
+    name_from_url:
+      domain_suggests: The project URL's domain name suggests this.
+      tail_suggests: The project URL's tail suggests this.
+      repo_tail_suggests: The repo URL's tail suggests this.
+    project_sites_https:
+      given_http: 'Given an http: URL.'
+      official_http: Project URLs lists http (not https) as official.
+      url_uses_http: We were given a URL that uses http (not https).
+      given_https: 'Given only https: URLs.'
+    repo_files:
+      no_file_found: No %{description} file found.
+      file_found: 'Non-trivial %{description} file in repository: <%{url}>.'
+      contribution_documented: Contribution process documented in repository.
+      license_found: License file found in repository.
+      license_not_found: License file not found in repository.
+      license_not_in_releases: License file not found in repository (likely not included in releases).
+    subdir_files:
+      no_files_found: No %{description} file(s) found.
+      no_folder_found: No appropriate folder found for %{description}.
+      some_contents_found: Some %{description} file contents found.
+    test_forced:
+      test_automation: Test automation (confidence %{confidence})
+    repo_json:
+      field_from_file: Value from project's bestpractices JSON file
+    security_insights:
+      field_value: 'Per %{location}: %{field}=%{value}'
+      array_match: 'Per %{location}: %{field} %{match}'
+      comment_suffix: 'Comment says: "%{comment}".'

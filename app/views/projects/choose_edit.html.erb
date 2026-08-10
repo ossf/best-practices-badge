@@ -1,0 +1,24 @@
+<div class="row">
+  <div class="col-md-2 col-sm-3">
+    <div class="main-badge-ques"></div>
+  </div>
+  <div class="col-md-7 col-sm-6">
+    <h1 class="m-t-0 h2"><%= t('.title') %></h1>
+    <p><strong><%= @project.name.presence || '(Name Unknown)' %></strong></p>
+    <p><%= t('.instructions') %></p>
+    <% if @proposal_query_string.present? %>
+      <p><%= t('.proposals_note') %></p>
+    <% end %>
+    <ul>
+      <% ApplicationHelper.project_nav_sections[I18n.locale].each do |section| %>
+        <li>
+          <%
+            edit_url = edit_project_section_path(@project, section[:level])
+            edit_url += "?#{@proposal_query_string}" if @proposal_query_string.present?
+          %>
+          <%= link_to section[:name], edit_url %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

@@ -1561,7 +1561,7 @@ Review these larger criteria sets for things to add:
 ### Probably not: Security Code review ideas from liujin28
 
 liujin28 proposed some specifics for security code review in
-<a href="https://github.com/coreinfrastructure/best-practices-badge/pull/536">PR 536</a>
+<a href="https://github.com/ossf/best-practices-badge/pull/536">PR 536</a>
 
 *Response*: We think this is too detailed, and too restrictive to
 specific situations.  Instead, we would want to discuss review, and
@@ -1761,8 +1761,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 

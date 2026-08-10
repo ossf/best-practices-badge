@@ -1,0 +1,446 @@
+---
+de:
+  locale_name:
+    pt-BR: Brasilianisches Portugiesisch
+    sw: Swahili
+  unsubscribe:
+    header: Abmelden
+    description: Es tut uns leid, dass Sie keine Benachrichtigungen mehr erhalten möchten. Wenn Sie sicher sind, bestätigen Sie bitte Ihre Anfrage zur Abmeldung von Benachrichtigungen.
+    email_label: E-Mail-Adresse
+    issued_label: Ausstellungsdatum
+    token_label: Abmelde-Token
+    submit: Abmelden
+    confirm_message: Sind Sie sicher, dass Sie sich von allen Benachrichtigungen abmelden möchten?
+    processing: Wird verarbeitet...
+    success: Sie wurden erfolgreich von unseren Benachrichtigungen abgemeldet.
+    invalid_token: Ungültiger Abmelde-Token. Bitte überprüfen Sie den Token aus Ihrer E-Mail.
+    no_matching_accounts: Keine übereinstimmenden Konten mit aktivierten Benachrichtigungs-E-Mails gefunden.
+    missing_parameters: 'Fehlende erforderliche Parameter: E-Mail-Adresse, Abmelde-Token und Ausstellungsdatum.'
+    invalid_parameters: Ungültige Parameter angegeben.
+    error: Bei der Verarbeitung Ihrer Anfrage ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.
+  users:
+    edit:
+      notification_emails: E-Mail-Benachrichtigungen
+      notification_emails_help: E-Mail-Benachrichtigungen über Ihre Projekte erhalten
+      important_notifications: Wichtige Benachrichtigungen
+      important_notifications_help: Erhalten Sie wichtige Benachrichtigungen, z. B. den Verlust eines Abzeichens aufgrund geänderter Anforderungen
+  projects:
+    edit:
+      new_owner: Eigentümer-ID (eine positive ganze Zahl), ändern um Eigentümerschaft zu ändern
+      new_owner_repeat: Wiederholte neue Eigentümer-ID (zur Bestätigung einer Eigentümeränderung)
+      current_owner: 'Aktuelle Eigentümer-ID:'
+      ownership_edit_hint: "(Die Eigentümerschaft kann beim Bearbeiten dieses Abschnitts übertragen werden.)"
+      submit_cdla_permissive_20_html: Durch die Übermittlung dieser Daten über das Projekt stimmen Sie zu, diese mindestens unter der <a href="https://cdla.dev/permissive-2-0/" >Community Data License Agreement – Permissive, Version 2.0</a> zu veröffentlichen. Dies bedeutet, dass ein Datenempfänger die Daten mit oder ohne Änderungen weitergeben darf, solange der Datenempfänger den Text dieser Vereinbarung mit den weitergegebenen Daten zur Verfügung stellt. Diese Vereinbarung legt <i>keine</i> Einschränkungen oder Verpflichtungen in Bezug auf die Nutzung, Änderung oder Weitergabe von Ergebnissen fest. Sie behalten das Urheberrecht (falls vorhanden), und die Projektlizenz bleibt unberührt.<br><br>
+      not_authorized: Sie sind nicht berechtigt, dieses Projekt zu bearbeiten.
+      automation:
+        aria_automated: Dieses Feld wurde automatisch ausgefüllt
+        aria_overridden: Dieser Feldwert wurde durch Automatisierung korrigiert
+        automated_tooltip: Wir haben dies mittels automatisierter Projektanalyse ausgefüllt
+        overridden_tooltip: Wir haben diesen Wert mittels automatisierter Projektanalyse korrigiert
+        chief_overrode:
+          one: 'Wir haben 1 Feld auf Basis der Projektanalyse korrigiert:'
+          other: 'Wir haben %{count} Felder auf Basis der Projektanalyse korrigiert:'
+        override_detail: „%{criterion}" von „%{old}" zu „%{new}" geändert — %{explanation}
+        analysis_failed:
+          one: 'Warnung: Automatisierte Analyse für 1 Feld fehlgeschlagen (%{fields}). Ihre anderen Änderungen wurden gespeichert.'
+          other: 'Warnung: Automatisierte Analyse für %{count} Felder fehlgeschlagen (%{fields}). Ihre anderen Änderungen wurden gespeichert.'
+        aria_divergent: Automatisierung hatte eine andere Antwort
+        overridden_detail: 'Vorheriger Wert: %{old_status}.%{old_justification_part}%{explanation_part}'
+        overridden_old_justification_part: " Vorherige Begründung: %{old_justification}"
+        overridden_explanation_part: " Automatisierungsgrund: %{explanation}"
+        divergent_detail: Automatisierung hat stattdessen %{status}.%{justification_part} ermittelt
+        divergent_justification_part: " %{justification}"
+        divergent_proposed_value: 'Automatisierungsvorschlag: %{proposed_value}'
+      save_and_continue_tooltip: Führt Automatisierung aus, um unbekannte Werte zu füllen
+      automation_hint_html: Sie können Tools und KI-Systeme nutzen, um Änderungen über eine einfache URL vorzuschlagen, z. B. <tt>https://%{badge_hostname}/%{app_locale}/projects/%{project_id}/choose/edit?osps_ac_01_01_status=Met&amp;osps_ac_01_01_justification=GitHub+enforced</tt>. Wie das geht, erfahren Sie in unserem <a href="%{automation_proposals_url}">Automatisierungsvorschlagssystem</a>.
+    show:
+      section_selector: Abschnitt
+      cdla_permissive_20_html: Diese Daten sind unter der <a href="https://cdla.dev/permissive-2-0/" >Community Data License Agreement – Permissive, Version 2.0 (CDLA-Permissive-2.0)</a> verfügbar. Dies bedeutet, dass ein Datenempfänger die Daten mit oder ohne Änderungen weitergeben darf, solange der Datenempfänger den Text dieser Vereinbarung mit den weitergegebenen Daten zur Verfügung stellt. Bitte nennen Sie %{user} und die OpenSSF Best Practices Badge-Mitwirkenden als Urheber.<br><br>
+    form_early:
+      got_baseline_badge:
+        description_1: 'Wenn dies Ihr Projekt ist, zeigen Sie bitte Ihren Baseline-Badge-Status auf Ihrer Projektseite! Der Baseline-Badge-Status sieht so aus:'
+        badge_alt: Baseline-Badge-Level für Projekt %{id} ist %{level}
+        description_2: 'So betten Sie das Baseline-Badge ein:'
+        details_html: Sie können Ihren Baseline-Badge-Status anzeigen, indem Sie Folgendes in Ihre Markdown-Datei einbetten:<br /> %{markdown_embedding}<br /> oder indem Sie Folgendes in Ihr HTML einbetten:<br /> %{html_embedding}<br />
+      level:
+        baseline-1: Baseline Niveau 1
+        baseline-1_html: Dies sind die Baseline Niveau 1 Kriterien.
+        baseline-2: Baseline Niveau 2
+        baseline-2_html: Dies sind die Baseline Niveau 2 Kriterien.
+        baseline-3: Baseline Niveau 3
+        baseline-3_html: Dies sind die Baseline Niveau 3 Kriterien.
+    misc:
+      reminder_notification_note:
+        title: E-Mail-Benachrichtigungseinstellungen
+        description_html: Wenn Sie der Eigentümer dieses Badge-Eintrags sind und Erinnerungs-E-Mails bei Inaktivität deaktivieren möchten, bearbeiten Sie bitte Ihre <a href="/users/%{user_id}/edit">Benutzerprofileinstellungen</a>. Diese Einstellung gilt für alle Ihre Projekte.
+      obsolete_header_html: Dies sind Kriterien, die zuvor erforderlich waren, aber aus dem vorgelagerten Baseline zurückgezogen wurden. Sie werden zur Referenz angezeigt und sind <em>nicht</em> für ein Badge erforderlich.
+      obsolete_criterion: Veraltetes Kriterium
+    form_basics:
+      entry_locale:
+        description: Welche Sprache wird für die Beschreibung und Begründungen dieses Badge-Eintrags verwendet?
+        details: Wählen Sie die Sprache aus, die für die Projektbeschreibung und den Begründungstext der Kriterien verwendet wird. Dies hilft Browser-Übersetzungstools, die Sprache dieses Inhalts korrekt zu identifizieren. Die meisten Projekte verwenden Englisch.
+    new:
+      reminder_email_html: Wenn Ihr Projekt noch kein Badge erhalten hat und Sie seit mindestens 30 Tagen keine Änderungen vorgenommen haben, senden wir Ihnen eine Erinnerungs-E-Mail (Sie können Erinnerungen jederzeit deaktivieren, wenn Sie möchten).
+      github_repo_label: Ein GitHub-Repository auswählen (optional)
+      submit: Projekt einreichen
+      badge_series: Badge-Serie
+      badge_series_description: Sie können wählen, mit welcher Badge-Serie Sie beginnen möchten. Die Baseline-Serie ist eine minimale Checkliste, die sich nur auf MUSS-Sicherheitsanforderungen konzentriert und teilweise aus globalen Cybersicherheitsvorschriften und -rahmenwerken abgeleitet ist. Die Metal-Serie ist ein umfangreicherer Kriterienkatalog, der Empfehlungen und Qualitätsfragen enthält, die sich auf die Sicherheit auswirken, und teilweise aus den Erfahrungen sicherer FLOSS-Projekte abgeleitet ist. Beide konzentrieren sich auf Sicherheit, und wir ermutigen Projekte, letztendlich beide zu absolvieren; Sie wählen, wo Sie beginnen.
+      badge_series_metal: Metall (passing, silver, gold)
+      badge_series_baseline: Baseline (baseline-1, baseline-2, baseline-3)
+      github_reconnect_html: Wir konnten Ihre GitHub-Repositories nicht laden. Ihre GitHub-Sitzung ist möglicherweise abgelaufen.
+      github_reconnect_link: Erneut mit GitHub verbinden
+    baseline_version_notice:
+      current: Dies sind Kriterienversion %{version}.
+      transition: Diese Kriterien stammen aus der Basisversion %{current_version} mit aktualisierten Kriterientexten aus Version %{new_version}. Kriterien, die in Version %{new_version} neu sind, sind als "zukünftig" gekennzeichnet und werden ab dem %{enforce_date} durchgesetzt. Bitte beantworten Sie die "zukünftigen" Kriterien vor diesem Datum.
+    choose_edit:
+      title: Einen Abschnitt zum Bearbeiten auswählen
+      instructions: Wählen Sie einen Abschnitt zum Bearbeiten aus.
+      proposals_note: Alle vorgeschlagenen Änderungen werden auf den ausgewählten Abschnitt angewendet.
+    choose_show:
+      title: Einen Abschnitt zum Anzeigen auswählen
+      instructions: Wählen Sie einen Abschnitt zum Anzeigen aus.
+  report_mailer:
+    unsubscribe_notice_html: 'Um sich von diesen E-Mail-Benachrichtigungen abzumelden, besuchen Sie bitte: <a href="%{unsubscribe_url}">%{unsubscribe_url}</a>'
+    unsubscribe_notice_text: 'Um sich von diesen E-Mail-Benachrichtigungen abzumelden, besuchen Sie bitte: %{unsubscribe_url}'
+    subject_warned_level: Ihr Best-Practices-Abzeichen könnte den "%{old_level}"-Status verlieren
+    warned_level_message: |-
+      Dies ist eine Vorankündigung, dass das "%{old_level}"-Abzeichen Ihres Projekts
+      am %{effective_date} verloren gehen könnte, wenn aktualisierte Kriterien in Kraft treten.
+      Bitte überprüfen Sie Ihren Abzeichen-Eintrag unter der folgenden URL vor diesem Datum:
+  criteria:
+    '0':
+      maintained:
+        description: Das Projekt MUSS gepflegt werden.
+        details: Als Minimum sollte das Projekt versuchen, auf wichtige Problem- und Schwachstellenberichte zu reagieren. Ein Projekt, das aktiv ein Badge anstrebt, wird wahrscheinlich gepflegt. Alle Projekte und Menschen haben begrenzte Ressourcen, und typische Projekte müssen einige vorgeschlagene Änderungen ablehnen, daher deuten begrenzte Ressourcen und Ablehnungen von Vorschlägen allein nicht auf ein ungepflegtes Projekt hin. <br><br> Wenn ein Projekt weiß, dass es nicht mehr gepflegt wird, sollte es dieses Kriterium auf "Unerfüllt" setzen und die entsprechenden Mechanismen verwenden, um anderen anzuzeigen, dass es nicht gepflegt wird. Verwenden Sie zum Beispiel "DEPRECATED" als erste Überschrift seiner README, fügen Sie "DEPRECATED" am Anfang seiner Homepage hinzu, fügen Sie "DEPRECATED" am Anfang der Projektbeschreibung seines Code-Repositorys hinzu, fügen Sie ein <a href="https://unmaintained.tech/">no-maintenance-intended Badge</a> in seiner README und/oder Homepage hinzu, markieren Sie es als veraltet in allen Paket-Repositories (z. B. <a href="https://docs.npmjs.com/deprecating-and-undeprecating-packages-or-package-versions">npm deprecate</a>) und/oder verwenden Sie das Markierungssystem des Code-Repositorys, um es zu archivieren (z. B. GitHubs <a href="https://docs.github.com/en/enterprise-server@2.21/github/creating-cloning-and-archiving-repositories/archiving-a-github-repository">"archive"-Einstellung</a>, GitLabs <a href="https://docs.gitlab.com/ee/user/project/settings/#archiving-a-project">"archived"-Markierung</a>, Gerrits "readonly"-Status oder SourceForges "abandoned"-Projektstatus). Weitere Diskussionen finden Sie <a href="https://medium.com/maintainer-io/how-to-deprecate-a-repository-on-github-8f0ceb9155e">hier</a>.
+      dynamic_analysis_enable_assertions:
+        details: Dieses Kriterium schlägt <i>nicht</i> vor, Assertions in der Produktionsumgebung zu aktivieren; das liegt ganz beim Projekt und seinen Benutzern. Stattdessen liegt der Fokus dieses Kriteriums darauf, die Fehlererkennung während der dynamischen Analyse <i>vor</i> der Bereitstellung zu verbessern. Das Aktivieren von Assertions im <i>Produktions</i>einsatz unterscheidet sich <i>völlig</i> vom Aktivieren von Assertions während der dynamischen Analyse (wie z.B. Tests). In einigen Fällen ist das Aktivieren von Assertions im Produktionseinsatz äußerst unklug (insbesondere bei hochintegren Komponenten). Es gibt viele Argumente gegen das Aktivieren von Assertions in der Produktion, z.B. sollten Bibliotheken keine Aufrufer zum Absturz bringen, ihre Anwesenheit kann zur Ablehnung durch App Stores führen und/oder das Auslösen einer Assertion in der Produktion kann private Daten wie private Schlüssel offenlegen. Beachten Sie, dass in vielen Linux-Distributionen <tt>NDEBUG</tt> nicht definiert ist, sodass C/C++ <tt>assert()</tt> standardmäßig für die Produktion in diesen Umgebungen aktiviert wird. Es kann wichtig sein, einen anderen Assertion-Mechanismus zu verwenden oder <tt>NDEBUG</tt> für die Produktion in diesen Umgebungen zu definieren.
+    baseline-1:
+      osps_ac_01_01:
+        description: Wenn ein Benutzer versucht, eine sensible Ressource im autoritativen Repository des Projekts zu lesen oder zu ändern, MUSS das System vom Benutzer verlangen, einen Multi-Faktor-Authentifizierungsprozess abzuschließen.
+        details: Erzwingen Sie Multi-Faktor-Authentifizierung für das Versionskontrollsystem des Projekts und verlangen Sie von Mitarbeitern, eine zweite Form der Authentifizierung bereitzustellen, wenn sie auf sensible Daten zugreifen oder Repository-Einstellungen ändern. Passkeys sind für diese Kontrolle akzeptabel.
+      osps_ac_02_01:
+        description: Wenn ein neuer Mitarbeiter hinzugefügt wird, MUSS das Versionskontrollsystem eine manuelle Berechtigungszuweisung erfordern oder die Mitarbeiterberechtigungen standardmäßig auf die niedrigsten verfügbaren Privilegien beschränken.
+        details: Die meisten öffentlichen Versionskontrollsysteme sind auf diese Weise konfiguriert. Stellen Sie sicher, dass das Versionskontrollsystem des Projekts Mitarbeitern beim Hinzufügen immer standardmäßig die niedrigsten verfügbaren Berechtigungen zuweist und zusätzliche Berechtigungen nur bei Bedarf gewährt.
+      osps_ac_03_01:
+        description: Wenn ein direktes Commit auf den primären Branch des Projekts versucht wird, MUSS ein Durchsetzungsmechanismus verhindern, dass die Änderung angewendet wird.
+        details: Wenn das VCS zentralisiert ist, setzen Sie Branch-Schutz auf den primären Branch im VCS des Projekts. Alternativ verwenden Sie einen dezentralisierten Ansatz, wie beim Linux-Kernel, wo Änderungen zuerst in einem anderen Repository vorgeschlagen werden und das Zusammenführen von Änderungen in das primäre Repository einen spezifischen separaten Akt erfordert.
+      osps_ac_03_02:
+        description: Wenn versucht wird, den primären Branch des Projekts zu löschen, MUSS das Versionskontrollsystem dies als sensible Aktivität behandeln und eine explizite Bestätigung der Absicht erfordern.
+        details: Setzen Sie Branch-Schutz auf den primären Branch im Versionskontrollsystem des Projekts, um das Löschen zu verhindern.
+      osps_br_01_01:
+        description: Wenn eine CI/CD-Pipeline einen Eingabeparameter akzeptiert, MUSS dieser Parameter vor der Verwendung in der Pipeline bereinigt und validiert werden.
+        details: CI/CD-Pipelines sollten alle Metadaten-Eingaben, die nicht vertrauenswürdigen Quellen entsprechen, bereinigen (in Anführungszeichen setzen, escapen oder bei erwarteten Werten beenden). Dazu gehören Daten wie Branch-Namen, Commit-Nachrichten, Tags, Titel von Pull Requests und Autoreninformationen.
+      osps_br_01_02:
+        description: Wenn eine CI/CD-Pipeline einen Branch-Namen in ihrer Funktionalität verwendet, MUSS dieser Namenswert vor der Verwendung in der Pipeline bereinigt und validiert werden.
+      osps_br_03_01:
+        description: Wenn das Projekt eine URI als offiziellen Projektkanal auflistet, MUSS diese URI ausschließlich über verschlüsselte Kanäle bereitgestellt werden.
+        details: Konfigurieren Sie die Websites und Versionskontrollsysteme des Projekts so, dass sie verschlüsselte Kanäle wie SSH oder HTTPS für die Datenübertragung verwenden. Stellen Sie sicher, dass alle Tools und Domains, die in der Projektdokumentation referenziert werden, nur über verschlüsselte Kanäle zugänglich sind.
+      osps_br_03_02:
+        description: Wenn das Projekt eine URI als offiziellen Vertriebskanal auflistet, MUSS diese URI ausschließlich über verschlüsselte Kanäle bereitgestellt werden.
+        details: Konfigurieren Sie die Release-Pipeline des Projekts so, dass Daten nur von Websites, API-Antworten und anderen Diensten abgerufen werden, die verschlüsselte Kanäle wie SSH oder HTTPS für die Datenübertragung verwenden.
+      osps_br_07_01:
+        description: Das Projekt MUSS die unbeabsichtigte Speicherung unverschlüsselter sensibler Daten, wie Geheimnisse und Anmeldeinformationen, im Versionskontrollsystem verhindern.
+        details: Konfigurieren Sie .gitignore oder Äquivalent, um Dateien auszuschließen, die sensible Informationen enthalten könnten. Verwenden Sie Pre-Commit-Hooks und automatisierte Scan-Tools, um die Einbeziehung sensibler Daten in Commits zu erkennen und zu verhindern.
+      osps_do_01_01:
+        description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation Benutzerhandbücher für alle grundlegenden Funktionen enthalten.
+        details: Erstellen Sie Benutzerhandbücher oder Dokumentationen für alle grundlegenden Funktionen des Projekts, die erklären, wie das Projekt installiert, konfiguriert und verwendet wird. Wenn es bekannte gefährliche oder destruktive Aktionen gibt, fügen Sie gut sichtbare Warnungen hinzu.
+      osps_do_02_01:
+        description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation eine Anleitung zum Melden von Fehlern enthalten.
+        details: Es wird empfohlen, dass Projekte ihren Standard-Issue-Tracker des VCS verwenden. Wenn eine externe Quelle verwendet wird, stellen Sie sicher, dass die Projektdokumentation und der Beitragsleitfaden klar und sichtbar erklären, wie das Meldesystem verwendet wird. Es wird empfohlen, dass die Projektdokumentation auch Erwartungen daran setzt, wie Fehler priorisiert und behoben werden.
+      osps_gv_02_01:
+        description: Während das Projekt aktiv ist, MUSS das Projekt einen oder mehrere Mechanismen für öffentliche Diskussionen über vorgeschlagene Änderungen und Nutzungshindernisse haben.
+        details: Richten Sie einen oder mehrere Mechanismen für öffentliche Diskussionen innerhalb des Projekts ein, wie Mailinglisten, Instant Messaging oder Issue-Tracker, um offene Kommunikation und Feedback zu ermöglichen.
+      osps_gv_03_01:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Erklärung des Beitragsprozesses enthalten.
+        details: Erstellen Sie eine CONTRIBUTING.md oder ein CONTRIBUTING/ Verzeichnis, um den Beitragsprozess zu skizzieren, einschließlich der Schritte zum Einreichen von Änderungen und zur Interaktion mit den Projektbetreuern.
+      osps_le_02_01:
+        description: Während das Projekt aktiv ist, MUSS die Lizenz für den Quellcode die OSI Open Source Definition oder die FSF Free Software Definition erfüllen.
+        details: Fügen Sie eine LICENSE-Datei zum Repository des Projekts mit einer Lizenz hinzu, die eine genehmigte Lizenz der Open Source Initiative (OSI) oder eine freie Lizenz ist, wie sie von der Free Software Foundation (FSF) genehmigt wurde. Beispiele für solche Lizenzen sind MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL) und die GNU General Public License (GPL). Eine Veröffentlichung in die Public Domain erfüllt diese Kontrolle, wenn es keine anderen Belastungen wie Patente gibt.
+      osps_le_02_02:
+        description: Während das Projekt aktiv ist, MUSS die Lizenz für die veröffentlichten Software-Assets die OSI Open Source Definition oder die FSF Free Software Definition erfüllen.
+        details: Wenn eine andere Lizenz mit veröffentlichten Software-Assets enthalten ist, stellen Sie sicher, dass es eine genehmigte Lizenz der Open Source Initiative (OSI) oder eine freie Lizenz ist, wie sie von der Free Software Foundation (FSF) genehmigt wurde. Beispiele für solche Lizenzen sind MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL) und die GNU General Public License (GPL). Beachten Sie, dass die Lizenz für die veröffentlichten Software-Assets von der des Quellcodes abweichen kann.
+      osps_le_03_01:
+        description: Während das Projekt aktiv ist, MUSS die Lizenz für den Quellcode in der LICENSE-Datei, COPYING-Datei oder im LICENSE/ Verzeichnis des entsprechenden Repositorys gepflegt werden.
+        details: Fügen Sie die Quellcode-Lizenz des Projekts in die LICENSE-Datei, COPYING-Datei oder das LICENSE/ Verzeichnis des Projekts ein, um Sichtbarkeit und Klarheit über die Lizenzbedingungen zu schaffen. Der Dateiname KANN eine Erweiterung haben. Wenn das Projekt mehrere Repositorys hat, stellen Sie sicher, dass jedes Repository die Lizenzdatei enthält.
+      osps_le_03_02:
+        description: Während das Projekt aktiv ist, MUSS die Lizenz für die veröffentlichten Software-Assets im veröffentlichten Quellcode oder in einer LICENSE-Datei, COPYING-Datei oder einem LICENSE/ Verzeichnis neben den entsprechenden Release-Assets enthalten sein.
+        details: Fügen Sie die Lizenz für die veröffentlichten Software-Assets des Projekts in den veröffentlichten Quellcode oder in eine LICENSE-Datei, COPYING-Datei oder ein LICENSE/ Verzeichnis neben den entsprechenden Release-Assets ein, um Sichtbarkeit und Klarheit über die Lizenzbedingungen zu schaffen. Der Dateiname KANN eine Erweiterung haben. Wenn das Projekt mehrere Repositorys hat, stellen Sie sicher, dass jedes Repository die Lizenzdatei enthält.
+      osps_qa_01_01:
+        description: Während das Projekt aktiv ist, MUSS das Quellcode-Repository des Projekts unter einer statischen URL öffentlich lesbar sein.
+        details: Verwenden Sie ein gängiges VCS wie GitHub, GitLab oder Bitbucket. Stellen Sie sicher, dass das Repository öffentlich lesbar ist. Vermeiden Sie Duplizierung oder Spiegelung von Repositorys, es sei denn, eine gut sichtbare Dokumentation verdeutlicht die primäre Quelle. Vermeiden Sie häufige Änderungen am Repository, die sich auf die Repository-URL auswirken würden. Stellen Sie sicher, dass das Repository öffentlich ist.
+      osps_qa_01_02:
+        description: Das Versionskontrollsystem MUSS eine öffentlich lesbare Aufzeichnung aller vorgenommenen Änderungen, wer die Änderungen vorgenommen hat und wann die Änderungen vorgenommen wurden, enthalten.
+        details: Verwenden Sie ein gängiges VCS wie GitHub, GitLab oder Bitbucket, um eine öffentlich lesbare Commit-Historie zu pflegen. Vermeiden Sie das Zusammenfassen oder Umschreiben von Commits auf eine Weise, die den Autor von Commits verschleiern würde.
+      osps_qa_02_01:
+        description: Wenn das Paketverwaltungssystem dies unterstützt, MUSS das Quellcode-Repository eine Abhängigkeitsliste enthalten, die die direkten Sprachabhängigkeiten berücksichtigt.
+        details: Dies kann in Form einer Paketverwaltungs- oder Sprachabhängigkeitsdatei erfolgen, die alle direkten Abhängigkeiten auflistet, wie package.json, Gemfile oder go.mod.
+      osps_qa_04_01:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Liste aller Codebasen enthalten, die als Unterprojekte betrachtet werden.
+        details: Dokumentieren Sie alle zusätzlichen Unterprojekt-Code-Repositorys, die vom Projekt produziert und in ein Release kompiliert werden. Diese Dokumentation sollte den Status und die Absicht der jeweiligen Codebasis enthalten.
+      osps_qa_05_01:
+        description: Während das Projekt aktiv ist, DARF das Versionskontrollsystem KEINE generierten ausführbaren Artefakte enthalten.
+        details: Entfernen Sie generierte ausführbare Artefakte aus dem Versionskontrollsystem des Projekts. Es wird empfohlen, dass in jedem Szenario, in dem ein generiertes ausführbares Artefakt für einen Prozess wie Tests kritisch erscheint, es stattdessen zur Build-Zeit generiert oder separat gespeichert und während eines spezifischen gut dokumentierten Pipeline-Schritts abgerufen werden sollte.
+      osps_qa_05_02:
+        description: Während aktiv, DARF das Versionskontrollsystem KEINE nicht überprüfbaren Binärartefakte enthalten.
+        details: Fügen Sie keine nicht überprüfbaren Binärartefakte zum Versionskontrollsystem des Projekts hinzu. Dies umfasst ausführbare Anwendungsbinärdateien, Bibliotheksdateien und ähnliche Artefakte. Dies schließt keine Assets wie Grafikbilder, Ton- oder Musikdateien und ähnliche Inhalte ein, die typischerweise in einem Binärformat gespeichert werden.
+      osps_vm_02_01:
+        description: Während aktiv, MUSS die Projektdokumentation Sicherheitskontakte enthalten.
+        details: Erstellen Sie eine security.md (oder ähnlich benannte) Datei, die Sicherheitskontakte für das Projekt enthält.
+      osps_br_01_03:
+        description: Wenn eine CI/CD-Pipeline mit nicht vertrauenswürdigen Code-Snapshots arbeitet, MUSS sie den Zugriff auf privilegierte CI/CD-Anmeldeinformationen und -Ressourcen verhindern.
+        details: CI/CD-Pipelines sollten nicht vertrauenswürdige Code-Snapshots von privilegierten Anmeldeinformationen und Ressourcen isolieren. Insbesondere sollten Projekte sorgfältig darauf achten, dass Workflows, die Code vor der Überprüfung durch einen Mitarbeiter erstellen oder ausführen, keinen Zugriff auf CI/CD-Anmeldeinformationen haben.
+    baseline-2:
+      osps_ac_04_01:
+        description: Wenn eine CI/CD-Aufgabe ohne angegebene Berechtigungen ausgeführt wird, MUSS das CI/CD-System die Berechtigungen der Aufgabe standardmäßig auf die niedrigsten in der Pipeline gewährten Berechtigungen setzen.
+        details: Konfigurieren Sie die Einstellungen des Projekts so, dass neuen Pipelines standardmäßig die niedrigsten verfügbaren Berechtigungen zugewiesen werden, wobei zusätzliche Berechtigungen nur bei Bedarf für bestimmte Aufgaben gewährt werden.
+      osps_br_02_01:
+        description: Wenn ein offizieller Release erstellt wird, MUSS diesem Release eine eindeutige Versionskennung zugewiesen werden.
+        details: Weisen Sie jedem vom Projekt erstellten Release eine eindeutige Versionskennung zu und folgen Sie dabei einer konsistenten Namenskonvention oder einem Nummerierungsschema. Beispiele sind SemVer, CalVer oder Git-Commit-ID.
+      osps_br_04_01:
+        description: Wenn ein offizieller Release erstellt wird, MUSS dieser Release ein beschreibendes Protokoll funktionaler und sicherheitsrelevanter Änderungen enthalten.
+        details: Stellen Sie sicher, dass alle Releases ein beschreibendes Änderungsprotokoll enthalten. Es wird empfohlen sicherzustellen, dass das Änderungsprotokoll von Menschen lesbar ist und Details über Commit-Nachrichten hinaus enthält, wie z.B. Beschreibungen der Sicherheitsauswirkung oder Relevanz für verschiedene Anwendungsfälle. Um Maschinenlesbarkeit zu gewährleisten, platzieren Sie den Inhalt unter einer Markdown-Überschrift wie "## Changelog".
+      osps_br_05_01:
+        description: Wenn eine Build- und Release-Pipeline Abhängigkeiten einbindet, MUSS sie standardisierte Tools verwenden, wo verfügbar.
+        details: Verwenden Sie ein gängiges Tool für Ihr Ökosystem, wie z.B. Paketmanager oder Abhängigkeits-Management-Tools, um Abhängigkeiten zur Build-Zeit einzubinden. Dies kann die Verwendung einer Abhängigkeitsdatei, Lock-Datei oder Manifest umfassen, um die erforderlichen Abhängigkeiten zu spezifizieren, die dann vom Build-System eingezogen werden.
+      osps_br_06_01:
+        description: Wenn ein offizieller Release erstellt wird, MUSS dieser Release signiert sein oder in einem signierten Manifest erfasst werden, das die kryptographischen Hashes jedes Assets enthält.
+        details: Signieren Sie alle freigegebenen Software-Assets zur Build-Zeit mit einer kryptographischen Signatur oder Attestierungen, wie z.B. GPG- oder PGP-Signatur, Sigstore-Signaturen, SLSA-Provenance oder SLSA-VSAs. Fügen Sie die kryptographischen Hashes jedes Assets in eine signierte Manifest- oder Metadaten-Datei ein.
+      osps_do_06_01:
+        description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation eine Beschreibung enthalten, wie das Projekt seine Abhängigkeiten auswählt, bezieht und verfolgt.
+        details: Es wird empfohlen, diese Informationen zusammen mit der technischen und Design-Dokumentation des Projekts auf einer öffentlich zugänglichen Ressource wie dem Quellcode-Repository, der Projektwebsite oder einem anderen Kanal zu veröffentlichen.
+      osps_gv_01_01:
+        description: Während aktiv, MUSS die Projektdokumentation eine Liste von Projektmitgliedern mit Zugriff auf sensible Ressourcen enthalten.
+        details: Dokumentieren Sie Projektteilnehmer und ihre Rollen durch Artefakte wie members.md, governance.md, maintainers.md oder eine ähnliche Datei im Quellcode-Repository des Projekts. Dies kann so einfach sein wie die Aufnahme von Namen oder Account-Handles in einer Liste von Maintainern, oder komplexer sein, abhängig von der Governance des Projekts.
+      osps_gv_01_02:
+        description: Während aktiv, MUSS die Projektdokumentation Beschreibungen der Rollen und Verantwortlichkeiten für Mitglieder des Projekts enthalten.
+        details: Dokumentieren Sie Projektteilnehmer und ihre Rollen durch Artefakte wie members.md, governance.md, maintainers.md oder ähnliche Dateien im Quellcode-Repository des Projekts.
+      osps_gv_03_02:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation einen Leitfaden für Code-Beitragende enthalten, der Anforderungen für akzeptable Beiträge beinhaltet.
+        details: Erweitern Sie die Inhalte von CONTRIBUTING.md oder CONTRIBUTING/ in der Projektdokumentation, um die Anforderungen für akzeptable Beiträge zu beschreiben, einschließlich Codierungsstandards, Testanforderungen und Einreichungsrichtlinien für Code-Beitragende. Es wird empfohlen, dass dieser Leitfaden die verbindliche Quelle sowohl für Beitragende als auch für Genehmiger ist.
+      osps_le_01_01:
+        description: Während das Projekt aktiv ist, MUSS das Versionskontrollsystem von allen Code-Beitragenden verlangen, dass sie bei jedem Commit bestätigen, dass sie rechtlich berechtigt sind, die zugehörigen Beiträge zu leisten.
+        details: Fügen Sie ein DCO in das Repository des Projekts ein, das Code-Beitragende dazu verpflichtet zu bestätigen, dass sie rechtlich berechtigt sind, die zugehörigen Beiträge bei jedem Commit zu leisten. Verwenden Sie eine Statusüberprüfung, um sicherzustellen, dass die Bestätigung erfolgt ist. Ein CLA erfüllt diese Anforderung ebenfalls. Einige Versionskontrollsysteme, wie GitHub, können dies in den Nutzungsbedingungen der Plattform enthalten.
+      osps_qa_03_01:
+        description: Wenn ein Commit in den primären Branch erfolgt, MÜSSEN alle automatisierten Statusüberprüfungen für Commits bestanden werden oder manuell umgangen werden.
+        details: Konfigurieren Sie das Versionskontrollsystem des Projekts so, dass alle automatisierten Statusüberprüfungen bestanden werden müssen oder eine manuelle Bestätigung erforderlich ist, bevor ein Commit in den primären Branch zusammengeführt werden kann. Es wird empfohlen, dass optionale Statusüberprüfungen NICHT als Bestehen-oder-Durchfallen-Anforderung konfiguriert werden, die Genehmiger versucht sein könnten zu umgehen.
+      osps_qa_06_01:
+        description: Bevor ein Commit akzeptiert wird, MÜSSEN die CI/CD-Pipelines des Projekts mindestens eine automatisierte Test-Suite ausführen, um sicherzustellen, dass die Änderungen den Erwartungen entsprechen.
+        details: Automatisierte Tests sollten vor jedem Merge in den primären Branch ausgeführt werden. Die Test-Suite sollte in einer CI/CD-Pipeline ausgeführt werden und die Ergebnisse sollten für alle Beitragenden sichtbar sein. Die Test-Suite sollte in einer konsistenten Umgebung ausgeführt werden und so ausgeführt werden, dass Beitragende die Tests lokal ausführen können. Beispiele für Test-Suites sind Unit-Tests, Integrationstests und End-to-End-Tests.
+      osps_sa_01_01:
+        description: Wenn das Projekt eine Veröffentlichung vorgenommen hat, MUSS die Projektdokumentation Design-Dokumentation enthalten, die alle Aktionen und Akteure innerhalb des Systems demonstriert.
+        details: Fügen Sie Designs in die Projektdokumentation ein, die die Aktionen und Akteure erklären. Akteure umfassen jedes Subsystem oder jede Entität, die ein anderes Segment im System beeinflussen kann. Stellen Sie sicher, dass dies für neue Funktionen oder Breaking Changes aktualisiert wird.
+      osps_sa_02_01:
+        description: Wenn das Projekt eine Veröffentlichung vorgenommen hat, MUSS die Projektdokumentation Beschreibungen aller externen Software-Schnittstellen der veröffentlichten Software-Assets enthalten.
+        details: Dokumentieren Sie alle Software-Schnittstellen (APIs) der veröffentlichten Software-Assets und erklären Sie, wie Benutzer mit der Software interagieren können und welche Daten erwartet oder produziert werden. Stellen Sie sicher, dass dies für neue Funktionen oder Breaking Changes aktualisiert wird.
+      osps_sa_03_01:
+        description: Wenn das Projekt eine Veröffentlichung vorgenommen hat, MUSS das Projekt eine Sicherheitsbewertung durchführen, um die wahrscheinlichsten und folgenschwersten potenziellen Sicherheitsprobleme zu verstehen, die innerhalb der Software auftreten könnten.
+        details: Die Durchführung einer Sicherheitsbewertung informiert sowohl Projektmitglieder als auch nachgelagerte Verbraucher darüber, dass das Projekt versteht, welche Probleme innerhalb der Software auftreten könnten. Das Verständnis darüber, welche Bedrohungen realisiert werden könnten, hilft dem Projekt, Risiken zu verwalten und anzugehen. Diese Informationen sind für nachgelagerte Verbraucher nützlich, um den Sicherheitssachverstand und die Praktiken des Projekts zu demonstrieren. Stellen Sie sicher, dass dies für neue Funktionen oder Breaking Changes aktualisiert wird.
+      osps_vm_01_01:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie für koordinierte Offenlegung von Schwachstellen (CVD) mit einem klaren Zeitrahmen für die Reaktion enthalten.
+        details: Erstellen Sie eine SECURITY.md-Datei im Stammverzeichnis, die die Richtlinie des Projekts für koordinierte Offenlegung von Schwachstellen beschreibt. Fügen Sie eine Methode zur Meldung von Schwachstellen hinzu. Setzen Sie Erwartungen dafür, wie das Projekt reagieren und gemeldete Probleme angehen wird.
+      osps_vm_03_01:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Möglichkeit zur privaten Meldung von Schwachstellen direkt an die Sicherheitskontakte innerhalb des Projekts bieten.
+        details: Bieten Sie Sicherheitsforschern eine Möglichkeit, Schwachstellen privat an das Projekt zu melden. Dies kann eine dedizierte E-Mail-Adresse, ein Webformular, spezialisierte VCS-Tools, E-Mail-Adressen für Sicherheitskontakte oder andere Methoden sein.
+      osps_vm_04_01:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation öffentlich Daten über entdeckte Schwachstellen veröffentlichen.
+        details: Bereitstellen von Informationen über bekannte Schwachstellen in einem vorhersehbaren öffentlichen Kanal, wie z.B. einem CVE-Eintrag, Blogbeitrag oder einem anderen Medium. Soweit möglich sollten diese Informationen betroffene Version(en) enthalten, wie ein Verbraucher feststellen kann, ob er betroffen ist, und Anweisungen zur Schadensbegrenzung oder Behebung.
+      osps_do_07_01:
+        description: Die Projektdokumentation MUSS Anweisungen enthalten, wie die Software gebaut wird, einschließlich erforderlicher Bibliotheken, Frameworks, SDKs und Abhängigkeiten.
+        details: Es wird empfohlen, diese Informationen zusammen mit der Beiträgerdokumentation des Projekts zu veröffentlichen, z. B. in CONTRIBUTING.md oder anderen Entwickleraufgabendokumentationen. Dies kann auch mithilfe von Makefile-Zielen oder anderen Automatisierungsskripten dokumentiert werden.
+    baseline-3:
+      osps_ac_04_02:
+        description: Wenn einem Job Berechtigungen in einer CI/CD-Pipeline zugewiesen werden, MUSS der Quellcode oder die Konfiguration nur die minimal erforderlichen Berechtigungen für die entsprechende Aktivität zuweisen.
+        details: Konfigurieren Sie die CI/CD-Pipelines des Projekts so, dass sie Benutzern und Diensten standardmäßig die niedrigsten verfügbaren Berechtigungen zuweisen und Berechtigungen nur bei Bedarf für bestimmte Aufgaben erhöhen. In einigen Versionsverwaltungssystemen kann dies auf Organisations- oder Repository-Ebene möglich sein. Falls nicht, setzen Sie Berechtigungen auf der obersten Ebene der Pipeline.
+      osps_br_02_02:
+        description: Wenn ein offizielles Release erstellt wird, MÜSSEN alle Assets innerhalb dieses Releases eindeutig mit dem Release-Identifikator oder einem anderen eindeutigen Identifikator für das Asset verknüpft sein.
+        details: Weisen Sie jedem vom Projekt produzierten Software-Asset einen eindeutigen Versionsidentifikator zu, der einer konsistenten Namenskonvention oder einem Nummerierungsschema folgt. Beispiele sind SemVer, CalVer oder Git Commit ID.
+      osps_br_07_02:
+        description: Das Projekt MUSS eine Richtlinie für die Verwaltung von Secrets und Zugangsdaten definieren, die vom Projekt verwendet werden. Die Richtlinie sollte Leitlinien für die Speicherung, den Zugriff und die Rotation von Secrets und Zugangsdaten enthalten.
+        details: Dokumentieren Sie, wie Secrets und Zugangsdaten innerhalb des Projekts verwaltet und verwendet werden. Dies sollte Details darüber enthalten, wie Secrets gespeichert werden (z.B. unter Verwendung eines Tools zur Verwaltung von Secrets), wie der Zugriff kontrolliert wird und wie Secrets rotiert oder aktualisiert werden. Stellen Sie sicher, dass sensible Informationen nicht fest im Quellcode kodiert oder in Versionsverwaltungssystemen gespeichert werden.
+      osps_do_03_01:
+        description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation Anweisungen zur Überprüfung der Integrität und Authentizität der Release-Assets enthalten.
+        details: Anweisungen im Projekt sollten Informationen über die verwendete Technologie, die auszuführenden Befehle und die erwartete Ausgabe enthalten. Vermeiden Sie nach Möglichkeit die Speicherung dieser Dokumentation am gleichen Ort wie die Build- und Release-Pipeline, um zu vermeiden, dass eine einzelne Sicherheitsverletzung sowohl die Software als auch die Dokumentation zur Überprüfung der Integrität der Software kompromittiert.
+      osps_do_03_02:
+        description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation Anweisungen zur Überprüfung der erwarteten Identität der Person oder des Prozesses enthalten, die/der die Software-Release erstellt hat.
+        details: Die erwartete Identität kann in Form von Schlüssel-IDs zur Signierung, Aussteller und Identität aus einem Sigstore-Zertifikat oder ähnlichen Formen vorliegen. Vermeiden Sie nach Möglichkeit die Speicherung dieser Dokumentation am gleichen Ort wie die Build- und Release-Pipeline, um zu vermeiden, dass eine einzelne Sicherheitsverletzung sowohl die Software als auch die Dokumentation zur Überprüfung der Integrität der Software kompromittiert.
+      osps_do_04_01:
+        description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation eine beschreibende Aussage über den Umfang und die Dauer der Unterstützung für jedes Release enthalten.
+        details: Um den Umfang und die Dauer der Unterstützung für die veröffentlichten Software-Assets des Projekts zu kommunizieren, sollte das Projekt eine SUPPORT.md-Datei, einen "Support"-Abschnitt in SECURITY.md oder eine andere Dokumentation haben, die den Support-Lebenszyklus erklärt, einschließlich der erwarteten Dauer der Unterstützung für jedes Release, der Art der bereitgestellten Unterstützung (z.B. Fehlerkorrekturen, Sicherheitsaktualisierungen) und aller relevanten Richtlinien oder Verfahren zur Erlangung von Unterstützung.
+      osps_do_05_01:
+        description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation eine beschreibende Aussage enthalten, wann Releases oder Versionen keine Sicherheitsaktualisierungen mehr erhalten werden.
+        details: Um den Umfang und die Dauer der Unterstützung für Sicherheitskorrekturen zu kommunizieren, sollte das Projekt eine SUPPORT.md oder eine andere Dokumentation haben, die die Richtlinien des Projekts für Sicherheitsaktualisierungen erklärt.
+      osps_gv_04_01:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie enthalten, dass Code-Mitwirkende überprüft werden, bevor ihnen erweiterte Berechtigungen für sensible Ressourcen gewährt werden.
+        details: Veröffentlichen Sie eine durchsetzbare Richtlinie in der Projektdokumentation, die erfordert, dass Code-Mitwirkende überprüft und genehmigt werden, bevor ihnen erweiterte Berechtigungen für sensible Ressourcen gewährt werden, wie z.B. Merge-Genehmigung oder Zugriff auf Secrets. Es wird empfohlen, dass die Überprüfung die Feststellung einer begründbaren Identitätslinie beinhaltet, wie z.B. die Bestätigung der Zugehörigkeit des Beitragsleistenden zu einer bekannten vertrauenswürdigen Organisation.
+      osps_qa_02_02:
+        description: Wenn das Projekt ein Release erstellt hat, MÜSSEN alle kompilierten veröffentlichten Software-Assets mit einer Software-Stückliste (Software Bill of Materials) ausgeliefert werden.
+        details: Es wird empfohlen, SBOMs zum Build-Zeitpunkt automatisch mit einem Tool zu generieren, das auf Genauigkeit geprüft wurde. Dies ermöglicht es Benutzern, diese Daten auf standardisierte Weise zusammen mit anderen Projekten in ihrer Umgebung aufzunehmen.
+      osps_qa_04_02:
+        description: Wenn das Projekt ein Release erstellt hat, das mehrere Quellcode-Repositorys umfasst, MÜSSEN alle Unterprojekte Sicherheitsanforderungen durchsetzen, die genauso streng oder strenger sind als die primäre Codebasis.
+        details: Alle zusätzlichen Unterprojekt-Code-Repositorys, die vom Projekt erstellt und in ein Release kompiliert wurden, müssen Sicherheitsanforderungen durchsetzen, die dem Status und der Absicht der jeweiligen Codebasis entsprechen. Zusätzlich zur Befolgung der entsprechenden OSPS Baseline-Anforderungen kann dies die Anforderung einer Sicherheitsüberprüfung, die Sicherstellung, dass es frei von Schwachstellen ist, und die Sicherstellung, dass es frei von bekannten Sicherheitsproblemen ist, umfassen.
+      osps_qa_06_02:
+        description: Während das Projekt aktiv ist, MUSS die Dokumentation des Projekts klar dokumentieren, wann und wie Tests ausgeführt werden.
+        details: Fügen Sie der Beitragsdokumentation einen Abschnitt hinzu, der erklärt, wie Tests lokal und in der CI/CD-Pipeline ausgeführt werden. Die Dokumentation sollte erklären, was die Tests testen und wie die Ergebnisse interpretiert werden.
+      osps_qa_06_03:
+        description: Während das Projekt aktiv ist, MUSS die Dokumentation des Projekts eine Richtlinie enthalten, dass alle wesentlichen Änderungen an der vom Projekt produzierten Software Tests der Funktionalität in einer automatisierten Testsuite hinzufügen oder aktualisieren sollten.
+        details: Fügen Sie der Beitragsdokumentation einen Abschnitt hinzu, der die Richtlinie zum Hinzufügen oder Aktualisieren von Tests erklärt. Die Richtlinie sollte erklären, was eine wesentliche Änderung darstellt und welche Tests hinzugefügt oder aktualisiert werden sollten.
+      osps_qa_07_01:
+        description: Wenn ein Commit in den primären Branch gemacht wird, MUSS das Versionskontrollsystem des Projekts mindestens eine menschliche Genehmigung der Änderungen durch einen Nicht-Autor vor dem Zusammenführen erfordern.
+        details: Konfigurieren Sie das Versionskontrollsystem des Projekts so, dass mindestens eine menschliche Genehmigung der Änderungen durch einen Nicht-Autor vor dem Zusammenführen in den Release- oder primären Branch erforderlich ist. Dies kann erreicht werden, indem ein Pull-Request von mindestens einem anderen Mitarbeiter überprüft und genehmigt werden muss, bevor er zusammengeführt werden kann.
+      osps_sa_03_02:
+        description: Wenn das Projekt ein Release erstellt hat, MUSS das Projekt eine Bedrohungsmodellierung und eine Analyse der Angriffsfläche durchführen, um Angriffe auf kritische Codepfade, Funktionen und Interaktionen innerhalb des Systems zu verstehen und sich davor zu schützen.
+        details: Bedrohungsmodellierung ist eine Aktivität, bei der das Projekt die Codebasis, zugehörige Prozesse und Infrastruktur, Schnittstellen, Schlüsselkomponenten betrachtet und "wie ein Hacker denkt" und darüber nachdenkt, wie das System kompromittiert werden könnte. Jede identifizierte Bedrohung wird aufgelistet, damit das Projekt dann darüber nachdenken kann, wie Lücken/Schwachstellen, die entstehen könnten, proaktiv vermieden oder geschlossen werden können. Stellen Sie sicher, dass dies für neue Funktionen oder Breaking Changes aktualisiert wird.
+      osps_vm_04_02:
+        description: Während das Projekt aktiv ist, MÜSSEN alle Schwachstellen in den Softwarekomponenten, die das Projekt nicht betreffen, in einem VEX-Dokument berücksichtigt werden, das den Schwachstellenbericht mit Details zur Nicht-Ausnutzbarkeit erweitert.
+        details: Richten Sie einen VEX-Feed ein, der den Ausnutzbarkeitsstatus bekannter Schwachstellen kommuniziert, einschließlich Bewertungsdetails oder aller vorhandenen Abhilfemaßnahmen, die verhindern, dass anfälliger Code ausgeführt wird.
+      osps_vm_05_01:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie enthalten, die einen Schwellenwert für die Behebung von SCA-Befunden in Bezug auf Schwachstellen und Lizenzen definiert.
+        details: Dokumentieren Sie eine Richtlinie im Projekt, die einen Schwellenwert für die Behebung von SCA-Befunden in Bezug auf Schwachstellen und Lizenzen definiert. Fügen Sie den Prozess zur Identifizierung, Priorisierung und Behebung dieser Befunde hinzu.
+      osps_vm_05_02:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie enthalten, um SCA-Verstöße vor jedem Release zu beheben.
+        details: Dokumentieren Sie eine Richtlinie im Projekt, um anwendbare Software Composition Analysis-Ergebnisse vor jedem Release zu beheben, und fügen Sie Statusprüfungen hinzu, die die Einhaltung dieser Richtlinie vor dem Release überprüfen.
+      osps_vm_05_03:
+        description: Während das Projekt aktiv ist, MÜSSEN alle Änderungen an der Codebasis des Projekts automatisch anhand einer dokumentierten Richtlinie für bösartige Abhängigkeiten und bekannte Schwachstellen in Abhängigkeiten bewertet und dann im Falle von Verstößen blockiert werden, außer wenn sie als nicht ausnutzbar deklariert und unterdrückt wurden.
+        details: Erstellen Sie eine Statusprüfung im Versionskontrollsystem des Projekts, die ein Software Composition Analysis-Tool bei allen Änderungen an der Codebasis ausführt. Fordern Sie an, dass die Statusprüfung bestanden wird, bevor Änderungen zusammengeführt werden können.
+      osps_vm_06_01:
+        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie enthalten, die einen Schwellenwert für die Behebung von SAST-Befunden definiert.
+        details: Dokumentieren Sie eine Richtlinie im Projekt, die einen Schwellenwert für die Behebung von Befunden aus Static Application Security Testing (SAST) definiert. Fügen Sie den Prozess zur Identifizierung, Priorisierung und Behebung dieser Befunde hinzu.
+      osps_vm_06_02:
+        description: Während das Projekt aktiv ist, MÜSSEN alle Änderungen an der Codebasis des Projekts automatisch anhand einer dokumentierten Richtlinie auf Sicherheitsschwachstellen bewertet und im Falle von Verstößen blockiert werden, außer wenn sie als nicht ausnutzbar deklariert und unterdrückt wurden.
+        details: Erstellen Sie eine Statusprüfung im Versionskontrollsystem des Projekts, die ein Static Application Security Testing (SAST) Tool bei allen Änderungen an der Codebasis ausführt. Verlangen Sie, dass die Statusprüfung erfolgreich ist, bevor Änderungen zusammengeführt werden können.
+      osps_br_01_04:
+        description: CI/CD-Pipelines, die vertrauenswürdige Mitarbeitereingaben akzeptieren, MÜSSEN diese Eingaben bereinigen und validieren, bevor sie in der Pipeline verwendet werden.
+        details: CI/CD-Pipelines sollten alle Mitarbeitereingaben bei expliziten Workflow-Ausführungen bereinigen (in Anführungszeichen setzen, escapen oder bei erwarteten Werten beenden). Obwohl Mitarbeiter im Allgemeinen vertrauenswürdig sind, können manuelle Eingaben in einen Workflow nicht überprüft werden und könnten durch eine Kontoübernahme oder eine Insider-Bedrohung missbraucht werden.
+  criteria_discussion:
+    intro_p01_html: "<h1 id='criteria_discussion'>Kriteriendiskussion</h1>"
+    intro_p02_html: "<p>Es gibt keine Auswahl an Praktiken, die <i>garantieren</i> können, dass Software niemals Fehler oder Schwachstellen hat. Selbst formale Methoden können fehlschlagen, wenn die Spezifikationen oder Annahmen falsch sind. Auch gibt es keine Auswahl an Praktiken, die garantieren können, dass ein Projekt eine gesunde und gut funktionierende Entwicklungsgemeinschaft aufrechterhalten wird.</p>"
+    intro_p03_html: "<p>Allerdings können Best Practices dabei helfen, die Ergebnisse von Projekten zu verbessern. Zum Beispiel ermöglichen einige Praktiken die Mehrpersonen-Überprüfung vor der Freigabe, die sowohl dabei helfen kann, ansonsten schwer zu findende technische Schwachstellen zu finden, als auch Vertrauen und den Wunsch nach wiederholter Zusammenarbeit zwischen Entwicklern verschiedener Organisationen aufzubauen.</p>"
+    intro_p04_html: "<p>Diese Seite diskutiert die Best Practices für Free/Libre and Open Source Software (FLOSS) Projekte, die für den Best Practices Badge der Open Source Security Foundation (OpenSSF) entwickelt wurden. Projekte, die diese Best Practices befolgen, können sich freiwillig selbst zertifizieren und zeigen, dass sie das relevante Badge erreicht haben. Projekte können dies kostenlos tun, indem sie eine Webanwendung (BadgeApp) verwenden, um zu erklären, wie sie diese Praktiken und deren detaillierte Kriterien erfüllen.</p>"
+    intro_p05_html: "<p>Diese Best Practices wurden erstellt, um:</p>"
+    intro_p06_html: "<ol> <li>Projekte zu ermutigen, Best Practices zu befolgen,</li> <li>neuen Projekten zu helfen, herauszufinden, was diese Praktiken sind, und</li> <li>Benutzern dabei zu helfen, zu wissen, welche Projekte Best Practices befolgen (damit Benutzer solche Projekte bevorzugen können).</li> </ol>"
+    intro_p07_html: '<p>Die Redewendung "Best Practices" bedeutet "ein Verfahren oder eine Reihe von Verfahren, die innerhalb einer Organisation, Branche usw. bevorzugt oder als Standard angesehen werden" (Quelle: <a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>). Diese Kriterien sind das, was wir glauben, dass in der breiteren FLOSS-Community weithin "bevorzugt oder als Standard angesehen" wird.</p>'
+    intro_p08_html: <p>Weitere Informationen darüber, wie diese Kriterien entwickelt wurden, finden Sie auf der <a href="https://github.com/ossf/best-practices-badge">OpenSSF Best Practices Badge GitHub-Seite</a>.</p> <p>Sie können auch <a href="/de/criteria">die vollständigen Kriterien sehen</a>.</p>
+    structure_p01_html: "<p></p> <h2 id='criteria_structure'>Kriterienstruktur</h2>"
+    structure_p02_html: "<p>Die Best Practices Kriterien sind in drei Stufen unterteilt:<ul> <li><b>Passing</b> konzentriert sich auf Best Practices, die gut geführte FLOSS-Projekte normalerweise bereits befolgen. Das Passing-Badge zu erhalten, ist eine Leistung; zu jedem Zeitpunkt erreichen nur etwa 10% der Projekte, die ein Badge anstreben, die Passing-Stufe. <li><b>Silver</b> ist eine strengere Gruppe von Kriterien als Passing, wird aber erwartet, dass sie von kleinen und Einzel-Organisations-Projekten erreichbar ist. <li><b>Gold</b> ist noch strenger als Silver und umfasst Kriterien, die für kleine oder Einzel-Organisations-Projekte nicht erreichbar sind. </ul>"
+    structure_p03_html: "<p>Jedes Kriterium hat einen Kurznamen, der als hochgestellter Text in eckigen Klammern nach dem Kriterientext angezeigt wird."
+    other_p01_html: "<p></p> <h2 id='criteria_other_projects'>Beziehung zu anderen Projekten</h2>"
+    other_p02_html: <p>Die Linux Foundation sponsert auch das <a href="https://www.openchainproject.org/" rel="nofollow">OpenChain-Projekt</a>, das Kriterien für ein "qualitativ hochwertiges Free and Open Source Software (FOSS) Compliance-Programm" identifiziert. OpenChain konzentriert sich darauf, wie Organisationen FLOSS am besten nutzen und zu FLOSS-Projekten beitragen können, während sich das OpenSSF Best Practices Badge auf die FLOSS-Projekte selbst konzentriert. Das OpenSSF Best Practices Badge und OpenChain arbeiten zusammen, um FLOSS und die Nutzung von FLOSS zu verbessern.</p>
+    automation_p01_html: "<p></p> <h2 id='criteria_automation'>Kriterienautomatisierung</h2>"
+    automation_p02_html: "<p>In einigen Fällen testen und füllen wir automatisch Informationen aus, wenn das Projekt Standardkonventionen folgt und auf einer Seite (z.B. GitHub) mit anständiger API-Unterstützung gehostet wird.</p>"
+    automation_p03_html: "<p> Wir beabsichtigen, diese Automatisierung in Zukunft zu verbessern. Verbesserungen der Automatisierung sind willkommen!</p>"
+    automation_p04_html: <p>Wir haben jedoch absichtlich Priorität auf "was wichtig ist" gelegt, auch wenn es nicht kostengünstig automatisiert werden kann. Wir lieben automatisierte Messungen, aber nicht alles Wichtige ist automatisierbar oder kann kostengünstig automatisiert werden.</p>
+    changes_p01_html: "<p></p> <h2 id='criteria_changes'>Änderungen im Laufe der Zeit</h2>"
+    changes_p02_html: <p> Wir erwarten, dass diese Praktiken und ihre detaillierten Kriterien im Laufe der Zeit aktualisiert werden. Wir planen, neue Kriterien hinzuzufügen, aber sie als "zukünftige" Kriterien zu kennzeichnen, sodass Projekte diese Informationen hinzufügen und ihr Badge behalten können.</p>
+    changes_p03_html: <p> Feedback ist <em>sehr</em> willkommen über die <a href="https://github.com/ossf/best-practices-badge" >GitHub-Website als Issues oder Pull-Requests</a>. Es gibt auch eine <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">Mailingliste für allgemeine Diskussionen</a>.</p>
+    keywords_p01_html: "<p></p> <h2 id='keywords'>Schlüsselwörter</h2>"
+    keywords_p02_html: <p> Die Schlüsselwörter "MUSS", "DARF NICHT", "SOLLTE", "SOLLTE NICHT" und "DARF" in diesem Dokument sind wie in <a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a> beschrieben zu interpretieren. Der zusätzliche Begriff EMPFOHLEN wird hinzugefügt. Zusammengefasst haben diese Schlüsselwörter die folgenden Bedeutungen:</p>
+    keywords_p03_html: "<ul> <li>Der Begriff MUSS ist eine absolute Anforderung, und DARF NICHT ist ein absolutes Verbot.</li>"
+    keywords_p04_html: "<li>Der Begriff SOLLTE weist auf ein Kriterium hin, das normalerweise erforderlich ist, aber es können gültige Gründe unter bestimmten Umständen bestehen, es zu ignorieren. Allerdings müssen die vollständigen Auswirkungen verstanden und sorgfältig abgewogen werden, bevor eine andere Vorgehensweise gewählt wird.</li>"
+    keywords_p05_html: "<li>Der Begriff EMPFOHLEN wird anstelle von SOLLTE verwendet, wenn das Kriterium berücksichtigt werden muss, aber die gültigen Gründe, dies nicht zu tun, noch häufiger sind als bei SOLLTE.</li>"
+    keywords_p06_html: "<li>Der Begriff DARF bietet eine Möglichkeit, wie etwas getan werden kann, z.B. um klarzustellen, dass die beschriebene Implementierung akzeptabel ist.</li> </ul>"
+    keywords_p07_html: "<p> Oft wird ein Kriterium als etwas angegeben, das getan werden SOLLTE oder EMPFOHLEN wird, weil es schwierig zu implementieren sein kann oder die Kosten dafür hoch sein können.</p>"
+    achieving_p01_html: "<p></p> <h2 id='criteria_achieving_badge'>Ein Badge erreichen</h2>"
+    achieving_p02_html: <p> Um ein Badge zu erhalten, müssen alle MUSS- und DARF NICHT-Kriterien erfüllt sein, alle SOLLTE-Kriterien müssen entweder erfüllt ODER nicht erfüllt mit Begründung sein, und alle EMPFOHLEN-Kriterien müssen berücksichtigt werden (sie müssen als erfüllt oder nicht erfüllt bewertet werden, aber eine Begründung ist nicht erforderlich, sofern nicht anders angegeben). Eine Antwort von N/A ("nicht zutreffend"), wo erlaubt, wird als erfüllt betrachtet. In einigen Fällen, insbesondere bei den höheren Stufen, können eine Begründung und/oder eine URL erforderlich sein.</p>
+    achieving_p03_html: <p> Einige Kriterien haben spezielle Kennzeichnungen, die dies beeinflussen:<ul> <li><b>{N/A erlaubt}</b> - "N/A" ("Nicht zutreffend") ist erlaubt. <li><b>{N/A Begründung}</b> - "N/A" ("Nicht zutreffend") ist erlaubt und erfordert eine Begründung. <li><b>{Erfüllt Begründung}</b> - "Erfüllt" erfordert eine Begründung. <li><b>{Erfüllt URL}</b> - "Erfüllt" erfordert eine Begründung mit einer URL. <li><b>{Zukünftig}</b> - die Antwort auf dieses Kriterium hat derzeit keine Auswirkung, kann aber in Zukunft erforderlich sein. </ul>
+    achieving_p04_html: "<p> Ein Projekt muss die vorherige Stufe erreichen, um die nächste Stufe zu erreichen. In einigen Fällen werden SOLLTE-Kriterien bei höheren Badge-Stufen zu MUSS, und einige EMPFOHLEN-Kriterien bei niedrigeren Stufen werden bei höheren Badge-Stufen zu SOLLTE oder MUSS. Die höheren Stufen erfordern auch mehr Begründung, weil wir möchten, dass andere verstehen, <i>wie</i> die Kriterien erfüllt werden.</p>"
+    achieving_p05_html: "<p> Die (vielen) kryptografischen Kriterien gelten nicht immer, da einige Software nicht direkt kryptografische Fähigkeiten verwenden muss. Geben Sie in diesen Fällen N/A an.</p>"
+    achieving_p06_html: "<p> Es gibt ein implizites Passing-Kriterium - jedes Projekt MUSS eine öffentliche Website mit einer stabilen URL haben. Dies ist erforderlich, um überhaupt einen Badge-Eintrag zu erstellen.</p>"
+    terminology_p01_html: "<p></p> <h2 id='criteria_terminology'>Terminologie</h2>"
+    terminology_p02_html: <p> Wenn Sie mit Softwareentwicklung oder dem Betreiben eines FLOSS-Projekts nicht vertraut sind, können Materialien wie <a href="http://producingoss.com/" rel="nofollow"><em>Producing Open Source Software</em> von Karl Fogel</a> für Sie hilfreich sein.</p>
+    terminology_p03_html: "<p>Hier sind einige wichtige Begriffe:</p><ul>"
+    terminology_p04_html: "<li>Ein <em>Projekt</em> ist eine aktive Einheit, die Projektmitglied(er) hat und Projektergebnis(se) hervorbringt. Seine Mitglieder nutzen Projektseiten, um die Ergebnisse zu koordinieren und zu verbreiten. Ein Projekt muss keine formale juristische Person sein.</li>"
+    terminology_p05_html: "<li>Projekt-<em>Mitglieder</em> sind die Gruppe von einer oder mehreren Personen oder Unternehmen, die zusammenarbeiten, um Projektergebnisse zu erzielen. Einige FLOSS-Projekte können verschiedene Arten von Mitgliedern mit unterschiedlichen Rollen haben, aber das liegt außerhalb unseres Bereichs.</li>"
+    terminology_p06_html: <li>Projekt-<em>Ergebnisse</em> sind das, was die Projektmitglieder zusammenarbeiten, um als ihr Endziel zu produzieren. Normalerweise ist dies Software, aber Projektergebnisse können auch andere Dinge beinhalten. Kriterien, die sich auf "vom Projekt produzierte Software" beziehen, beziehen sich auf Projektergebnisse.</li>
+    terminology_p07_html: <li>Projekt-<em>Seiten</em> sind die Seiten, die der Unterstützung der Entwicklung und Verbreitung von Projektergebnissen gewidmet sind, und umfassen die Projektwebsite, das Repository und gegebenenfalls die Download-Seiten (siehe <a href="#sites_https">sites_https</a>).</li>
+    terminology_p08_html: "<li>Die Projekt-<em>Website</em>, auch Projekt-Homepage genannt, ist die Hauptseite im World Wide Web (WWW), die ein neuer Benutzer typischerweise besuchen würde, um Informationen über das Projekt zu sehen; sie kann mit der Repository-Seite des Projekts identisch sein (dies ist oft auf GitHub der Fall).</li>"
+    terminology_p09_html: "<li>Das Projekt-<em>Repository</em> verwaltet und speichert die Projektergebnisse und die Revisionshistorie der Projektergebnisse. Dies wird auch als Projekt-<em>Quell-Repository</em> bezeichnet, da wir nur die Verwaltung und Speicherung der editierbaren Versionen verlangen, nicht der automatisch generierten Ergebnisse (in vielen Fällen werden generierte Ergebnisse nicht in einem Repository gespeichert).</li>"
+    terminology_p10_html: "<li>Ein <em>Projekt-Sicherheitsmechanismus</em> ist ein Sicherheitsmechanismus, der von der gelieferten Software des Projekts bereitgestellt wird. </ul>"
+    noncriteria_p01_html: <p></p> <h2 id="criteria_noncriteria">Nicht-Kriterien</h2>
+    noncriteria_p02_html: "<p> Die Kriterien:<ul>"
+    noncriteria_p03_html: "<li>erfordern <em>keine</em> spezifische Technologie, kein bestimmtes Produkt oder keinen bestimmten Dienst. Zum Beispiel erfordern sie <em>nicht</em> git, GitHub oder GitLab. Die Kriterien <em>bieten</em> jedoch Anleitungen und Hilfe für häufige Fälle, da diese Informationen Menschen helfen können, die Kriterien zu verstehen und zu erfüllen. Es gibt einige spezielle Automatisierungen für Projekte, die git oder GitHub verwenden, um Benutzern in diesen häufigen Fällen zu helfen, aber sie sind nicht <em>erforderlich</em>. Auf diese Weise können Projekte schnell zu neuen Tools und Fähigkeiten wechseln, sobald diese verfügbar werden. Als Ausnahmen erfordern die Kriterien eine Projekt-Webseite und TLS."
+    noncriteria_p04_html: "<li>erfordern oder verbieten <em>keine</em> bestimmte Programmiersprache. Sie erfordern jedoch, dass für bestimmte <em>Arten</em> von Programmiersprachen zusätzliche Maßnahmen ergriffen werden, aber das ist etwas anderes."
+    noncriteria_p05_html: <li>erfordern <em>niemals</em> die Verwendung proprietärer Software, proprietärer Dienste oder proprietärer Technologien, da viele <a href="https://www.gnu.org/philosophy/free-sw.en.html" rel="nofollow">Freie-Software</a>-Entwickler solche Kriterien ablehnen würden. Projekte <em>dürfen</em> sie verwenden und von ihnen abhängen.
+    noncriteria_p06_html: "<li>erfordern <em>keine</em> aktive Entwicklung oder Benutzerdiskussion innerhalb eines Projekts. Einige hochreife Projekte ändern sich selten und haben daher möglicherweise wenig Aktivität. Die Kriterien <em>erfordern</em> jedoch, dass das Projekt reaktionsfähig ist, wenn dem Projekt Schwachstellen gemeldet werden."
+    noncriteria_p07_html: "<li>erfordern <em>keine</em> Gebühren, um ein Badge zu erhalten."
+    noncriteria_p08_html: "<li>erfordern <em>nicht</em>, dass alle Kriterien auf einmal implementiert werden; die meisten Projekte implementieren sie im Laufe der Zeit. </ul>"
+    noncriteria_p09_html: "<p> Die Passing-Stufe beinhaltet keine Kriterien, die für ein Ein-Personen-Projekt unpraktisch wären, z.B. etwas, das einen erheblichen Geldbetrag erfordert. Viele FLOSS-Projekte sind klein, und wir wollen sie nicht benachteiligen."
+    identify_p01_html: <p></p> <h2 id="criteria_id_project">Ein Projekt identifizieren</h2>
+    identify_p02_html: <p> Unsere Anwendung gibt jedem Projekteintrag eine eindeutige ID, aber das hilft Leuten, die nach dem Projekt suchen, nicht. Für unsere Zwecke ist der <em>eigentliche</em> Name eines Projekts die URL für sein Repository, und wo dies nicht verfügbar ist, die URL der Projekt-"Startseite". Wir begrenzen Änderungen an der Repository-URL, um Unsinn zu verhindern. Projekte haben normalerweise einen von Menschen lesbaren Namen, aber diese Namen sind nicht eindeutig genug. <p></p>
+    criteria_why_p01_html: "<h2 id='criteria_why'>Warum haben wir Kriterien?</h2>"
+    criteria_why_p02_html: '<p> Das Papier <a href="http://www.researchinlearningtechnology.net/index.php/rlt/article/view/23563" rel="nofollow">Open Badges für Bildung: was sind die Auswirkungen an der Schnittstelle von offenen Systemen und Badging?</a> identifiziert drei allgemeine Gründe für Badge-Systeme (alle sind hierfür gültig):</p><ol>'
+    criteria_why_p03_html: "<li>Badges als Motivator von Verhalten. Wir hoffen, dass wir durch die Identifizierung von Best Practices Projekte ermutigen werden, diese Best Practices umzusetzen, wenn sie dies noch nicht tun.</li>"
+    criteria_why_p04_html: "<li>Badges als pädagogisches Werkzeug. Einige Projekte sind sich möglicherweise einiger Best Practices, die von anderen angewendet werden, nicht bewusst, oder wie sie praktisch angewendet werden können. Der Badge wird ihnen helfen, sich dieser bewusst zu werden und Wege zu ihrer Umsetzung zu finden.</li>"
+    criteria_why_p05_html: "<li>Badges als Kennzeichen oder Nachweis. Potenzielle Benutzer möchten Projekte verwenden, die Best Practices anwenden, um konsequent gute Ergebnisse zu erzielen; Badges machen es für Projekte einfach zu signalisieren, dass sie Best Practices folgen, und machen es für Benutzer einfach zu sehen, welche Projekte dies tun.</li> </ol>"
+    self_certification_p01_html: <h3 id="criteria_self_certification">Warum Selbstzertifizierung?</h3>
+    self_certification_p02_html: "<p> Wir haben uns für die Verwendung von Selbstzertifizierung entschieden, da dies es einer großen Anzahl von Projekten (sogar kleinen) ermöglicht, teilzunehmen. Es gibt Millionen von FLOSS-Projekten, und das Bezahlen Dritter, um jedes einzelne unabhängig zu bewerten, skaliert nicht. Es besteht das Risiko, dass Projekte falsche Behauptungen aufstellen, aber wir denken, das Risiko ist gering, Benutzer können die Behauptungen selbst überprüfen, und falsche Behauptungen können überschrieben werden. Wir verwenden auch Automatisierung, um falsche Behauptungen zu überschreiben, wo wir von den Ergebnissen überzeugt sein können. </p>"
+  headings:
+    Controls: Steuerelemente
+    General: Allgemein
+    General_project_info: Allgemein
+  activerecord:
+    errors:
+      messages:
+        comma_separated_list: " muss eine kommagetrennte Liste von Namen sein, die nur ASCII-Zeichen verwendet"
+        begin_with_cpe: ' muss mit "cpe:" beginnen'
+  layouts:
+    translation_disclaimer_html: Diese Übersetzung kann Fehler enthalten. Im Konfliktfall ist die englische Originalversion maßgebend.
+  account_activations:
+    delay:
+      many: Als Anti-Spam-Maßnahme müssen Sie %{count} Stunden nach der Aktivierung warten, bevor Sie sich anmelden können.
+  detectives:
+    github:
+      repo_public: Repository auf GitHub, das öffentliche Git-Repositorys mit URLs bereitstellt.
+      repo_track: Repository auf GitHub, das Git verwendet. Git kann die Änderungen verfolgen, wer sie vorgenommen hat und wann sie vorgenommen wurden.
+      repo_distributed: Repository auf GitHub, das Git verwendet. Git ist verteilt.
+      contribution: Projekte auf GitHub verwenden standardmäßig Issues und Pull-Requests, wie in der Dokumentation unter <https://guides.github.com/activities/contributing-to-open-source/> empfohlen.
+      discussion: GitHub unterstützt Diskussionen zu Issues und Pull-Requests.
+      osps_gv_02_01: GitHub unterstützt öffentliche Diskussionen zu vorgeschlagenen Änderungen (über Pull-Requests) und Nutzungshindernissen (über Issues).
+      osps_do_02_01: GitHub bietet standardmäßig Fehlermeldemechanismen (über Issues).
+      osps_ac_01_01: GitHub erfordert seit März 2023 2FA.
+      osps_qa_01_01: Repository ist öffentlich auf GitHub verfügbar.
+      osps_qa_01_02: Repository-Git-Metadaten sind öffentlich auf GitHub verfügbar.
+      name: GitHub-Name
+      description: GitHub-Beschreibung
+      license: GitHub-API-Lizenzanalyse
+      implementation_languages: GitHub-API-Implementierungssprachenanalyse
+    floss_license:
+      osi_approved: Die %{license}-Lizenz ist von der Open Source Initiative (OSI) genehmigt.
+      osi_approved_repository: Die %{license}-Lizenz für den Repository-Inhalt ist von der Open Source Initiative (OSI) genehmigt.
+      not_in_osi_list: Lizenz wurde nicht in der OSI-Liste gefunden.
+    hardened_sites:
+      all_headers_found: Alle erforderlichen Security-Hardening-Header gefunden.
+      headers_missing: 'Erforderliche Security-Hardening-Header fehlen: '
+      nosniff_not_set: X-Content-Type-Options wurde nicht auf "nosniff" gesetzt.
+    name_from_url:
+      domain_suggests: Der Domainname der Projekt-URL deutet darauf hin.
+      tail_suggests: Das Ende der Projekt-URL deutet darauf hin.
+      repo_tail_suggests: Das Ende der Repository-URL deutet darauf hin.
+    project_sites_https:
+      given_http: http:-URL angegeben.
+      official_http: Projekt-URLs listen http (nicht https) als offiziell auf.
+      url_uses_http: Uns wurde eine URL gegeben, die http (nicht https) verwendet.
+      given_https: Nur https:-URLs angegeben.
+    repo_files:
+      no_file_found: Keine %{description}-Datei gefunden.
+      file_found: 'Nicht-triviale %{description}-Datei im Repository: <%{url}>.'
+      contribution_documented: Beitragsprozess im Repository dokumentiert.
+      license_found: Lizenzdatei im Repository gefunden.
+      license_not_found: Lizenzdatei im Repository nicht gefunden.
+      license_not_in_releases: Lizenzdatei im Repository nicht gefunden (wahrscheinlich nicht in Releases enthalten).
+    subdir_files:
+      no_files_found: Keine %{description}-Datei(en) gefunden.
+      no_folder_found: Kein geeigneter Ordner für %{description} gefunden.
+      some_contents_found: Einige %{description}-Dateiinhalte gefunden.
+    test_forced:
+      test_automation: Testautomatisierung (Vertrauen %{confidence})
+    repo_json:
+      field_from_file: Wert aus der bestpractices JSON-Datei des Projekts
+    security_insights:
+      field_value: 'Gemäß %{location}: %{field}=%{value}'
+      array_match: 'Gemäß %{location}: %{field} %{match}'
+      comment_suffix: 'Kommentar lautet: "%{comment}".'
+  static_pages:
+    criteria_stats:
+      obsolete: Veraltet
+  criteria_overall:
+    obsolete: "{Veraltet}"

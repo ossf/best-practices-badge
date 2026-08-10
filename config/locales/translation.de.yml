@@ -40,7 +40,7 @@ de:
     footer_text_html: >-
       <small><strong>Brauchen Sie Hilfe? Haben Sie eine Frage?
       Sehen Sie ein Problem? Bitte <em><a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">senden
-      Sie eine E-Mail</a></em> oder <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      Sie eine E-Mail</a></em> oder <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">reichen Sie ein Problem ein</a></em>.</strong>
       © 2015-2018 <a href="https://openssf.org/" target="_blank"
       rel="noopener">Open Source Security Foundation</a>, ein
@@ -52,6 +52,7 @@ de:
       rel="noopener">Nutzungsbedingungen</a>.</small>
     choose_locale: Sprache auswählen
     toggle_navigation: Klappbare Navigation umschalten
+    translation_disclaimer_html:
   account_activations:
     activated: Konto aktiviert!
     failed_activation: Ungültiger Aktivierungslink
@@ -66,6 +67,9 @@ de:
         Als Anti-Spam-Maßnahme müssen Sie %{count} Stunden nach
         der Aktivierung warten, bevor Sie sich anmelden können.
       other: >-
+        Als Anti-Spam-Maßnahme müssen Sie %{count} Stunden nach
+        der Aktivierung warten, bevor Sie sich anmelden können.
+      many: >-
         Als Anti-Spam-Maßnahme müssen Sie %{count} Stunden nach
         der Aktivierung warten, bevor Sie sich anmelden können.
   password_resets:
@@ -141,6 +145,8 @@ de:
         tun.
       notification_emails:
       notification_emails_help:
+      important_notifications:
+      important_notifications_help:
     update:
       profile_updated: Profil aktualisiert
     show:
@@ -298,7 +304,6 @@ de:
         und keine Änderungen gemacht wurden (Sie können Erinnerungen
         in den Einstellungen jederzeit deaktivieren).
       select_one_github: Wählen eines GitHub-Repos
-      submit_github: GitHub-Repository einreichen
       url_of_homepage: >-
         Wie lautet die URL für die Projekt-Homepage (die URL für
         das Projekt als Ganzes)? Start mit http(s):// (viele Zeichen
@@ -314,7 +319,6 @@ de:
       placeholder_of_repo: >-
         http(s)://... für Projekt-Repo URL, verwende https://
         wenn möglich
-      submit_urls: Sende URL
       sign_in_first: Bitte melde dich an, um ein Projekt hinzuzufügen!
       thanks_adding: >-
         Danke für das Hinzufügen des Projekts! Bitte fülle den
@@ -324,7 +328,6 @@ de:
         Hinweis - Wenn sich Ihre Repository-URL auf GitHub befindet,
         kann jeder, der im Repository comitten kann, die Abzeicheninformationen
         bearbeiten.
-      new_badge_or: ODER
       original_repos: "=> Original GitHub-Repos"
       fork_repos: "=> Geforkte GitHub-Repos"
       tell_us: >-
@@ -336,6 +339,15 @@ de:
         da es den Benutzern schadet und SEO sowieso nicht hilft
         (alle Hyperlinks sind mit <tt>ugc</tt> und <tt>nofollow
         gekennzeichnet</tt>).
+      reminder_email_html:
+      github_repo_label:
+      github_reconnect_html:
+      github_reconnect_link:
+      submit:
+      badge_series:
+      badge_series_description:
+      badge_series_metal:
+      badge_series_baseline:
     show:
       edit: Bearbeiten
       delete: Löschen
@@ -373,6 +385,7 @@ de:
       last_lost_html: 'Letztes verlorenes Badge: %{when}.'
       last_achieved_html: 'Letztes erreichtes Badge: %{when}.'
       cdla_permissive_20_html:
+      section_selector:
     edit:
       submit_cc_by_3plus_html: >-
         Indem Sie diese Daten über das Projekt eingeben, stimmen
@@ -413,6 +426,29 @@ de:
       submit_cdla_permissive_20_html:
       new_owner:
       new_owner_repeat:
+      current_owner:
+      ownership_edit_hint:
+      not_authorized:
+      save_and_continue_tooltip:
+      automation:
+        aria_automated:
+        aria_overridden:
+        automated_tooltip:
+        overridden_tooltip:
+        aria_divergent:
+        overridden_detail:
+        overridden_old_justification_part:
+        overridden_explanation_part:
+        divergent_detail:
+        divergent_justification_part:
+        divergent_proposed_value:
+        chief_overrode:
+          one:
+          other:
+        override_detail:
+        analysis_failed:
+          one:
+          other:
     form_basics:
       project_name:
         description: Was ist der von Menschen lesbare Name des
@@ -511,6 +547,9 @@ de:
         placeholder: >-
           Ändern Sie mit + oder - gefolgt von einer durch Kommas
           getrennten Benutzer-ID-Liste
+      entry_locale:
+        description:
+        details:
     form_early:
       badge_intro:
         description: >-
@@ -541,7 +580,7 @@ de:
           wissen). Wenn lediglich ein allgemeiner Kommentar angebeben
           werden soll, keine direkte Begründung, dann ist das
           erlaubt, wenn der Text mit "//" und einem Leerzeichen
-          beginnt. Feedback ist willkommen auf der<a href="https://github.com/coreinfrastructure/best-practices-badge">GitHub-Website
+          beginnt. Feedback ist willkommen auf der<a href="https://github.com/ossf/best-practices-badge">GitHub-Website
           als Issue oder Pull-Request</a>. Es gibt auch eine <a
           href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">E-Mail-Liste
           für allgemeine Diskussionen</a>.<br /><br /> Wir stellen
@@ -565,7 +604,7 @@ de:
           später bearbeiten). <br> <br> Wenn Sie Hilfe benötigen,
           eine Frage haben, oder ein Problem sehen, bitte <em><a
           href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">schicken
-          Sie uns eine E-Mail</a></em> oder <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          Sie uns eine E-Mail</a></em> oder <em><a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">erstellen Sie ein Issue</a>/em>.
         badge_alt: Badge-Level für Projekt %{id} ist %{level}
       level:
@@ -584,6 +623,17 @@ de:
         '0': Passing
         '1': Silber
         '2': Gold
+        baseline-1:
+        baseline-1_html:
+        baseline-2:
+        baseline-2_html:
+        baseline-3:
+        baseline-3_html:
+      got_baseline_badge:
+        description_1:
+        badge_alt:
+        description_2:
+        details_html:
     misc:
       disabled_reminders: >-
         (Fortgeschritten) Inaktivierungserinnerung deaktivieren
@@ -669,6 +719,8 @@ de:
       reminder_notification_note:
         title:
         description_html:
+      obsolete_header_html:
+      obsolete_criterion:
     delete:
       done: Das Projekt wurde erfolgreich gelöscht.
     delete_form:
@@ -701,6 +753,16 @@ de:
       too_short: Muss mindestens 20 Zeichen haben.
       more_non_whitespace: Muss mindestens 15 Nicht-Leerzeichen
         enthalten.
+    choose_edit:
+      title:
+      instructions:
+      proposals_note:
+    choose_show:
+      title:
+      instructions:
+    baseline_version_notice:
+      current:
+      transition:
   report_mailer:
     new_project_heading: >-
       Vielen Dank, dass Sie Ihr Projekt dem Best-Practices-Badging-Program
@@ -724,7 +786,7 @@ de:
       Wenn Sie Fragen haben oder Hilfe benötigen, wenden Sie sich bitte an
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       oder erstellen Sie ein Issue unter
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (Klicken Sie auf "New Issue").
       </p>
       <p>
@@ -755,7 +817,7 @@ de:
       Wenn Sie Fragen haben oder Hilfe benötigen, wenden Sie sich bitte an
       cii-badges-questions@lists.coreinfrastructure.org
       oder erstellen Sie ein Issue unter
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (Klicken Sie auf "New Issue").
       Wir werden Ihnen niemals Werbung senden, und wir werden nur selten
       eine E-Mail senden.
@@ -837,7 +899,7 @@ de:
       Wenn Sie Fragen haben oder Hilfe benötigen, wenden Sie sich bitte an
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       oder ein Problem melden wollen
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues"> https://github.com/coreinfrastructure/best-practices-badge/issues </a>
+      <a href="https://github.com/ossf/best-practices-badge/issues"> https://github.com/ossf/best-practices-badge/issues </a>
       (Klicken Sie auf "New Issue").
       </p>
       <p>
@@ -871,7 +933,7 @@ de:
       Wenn Sie Fragen haben oder Hilfe benötigen, wenden Sie sich bitte an
       cii-badges-questions@lists.coreinfrastructure.org
       oder ein Problem melden wollen bei
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (Klicken Sie auf "Neue Angelegenheit").
       Wir senden keine Erinnerungen, wenn Sie weiterhin Ihren Badge-Eintrag aktualisieren.
       und wir senden nur ungefähr alle 30-60 Tage Erinnerungen. Jedoch,
@@ -883,6 +945,8 @@ de:
       Vielen Dank für Ihre Zeit.
     unsubscribe_notice_html:
     unsubscribe_notice_text:
+    subject_warned_level:
+    warned_level_message:
   user_mailer:
     account_activation:
       before_html: |-
@@ -2722,7 +2786,7 @@ de:
           (wie Saltzer und Schroeer) und gemeinsame Implementierungssicherheitsschwächen
           (wie die OWASP Top 10 oder CWE/SANS Top 25) aufzurufen
           und zu zeigen, wie diesen entgegengewirkt wird. Die
-          <a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp
+          <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">BadgeApp
           Assurance Case</a> kann ein nützliches Beispiel sein.
           Dies bezieht sich auf documentation_security, documentation_architecture
           und implement_secure_design.
@@ -2960,6 +3024,203 @@ de:
           der dynamischen Analyse überprüfen.
       achieve_silver:
         description: Das Projekt MUSS ein Silber-Siegel erreichen.
+    baseline-1:
+      osps_ac_01_01:
+        description:
+        details:
+      osps_ac_02_01:
+        description:
+        details:
+      osps_ac_03_01:
+        description:
+        details:
+      osps_ac_03_02:
+        description:
+        details:
+      osps_br_01_01:
+        description:
+        details:
+      osps_br_01_02:
+        description:
+      osps_br_03_01:
+        description:
+        details:
+      osps_br_03_02:
+        description:
+        details:
+      osps_br_07_01:
+        description:
+        details:
+      osps_do_01_01:
+        description:
+        details:
+      osps_do_02_01:
+        description:
+        details:
+      osps_gv_02_01:
+        description:
+        details:
+      osps_gv_03_01:
+        description:
+        details:
+      osps_le_02_01:
+        description:
+        details:
+      osps_le_02_02:
+        description:
+        details:
+      osps_le_03_01:
+        description:
+        details:
+      osps_le_03_02:
+        description:
+        details:
+      osps_qa_01_01:
+        description:
+        details:
+      osps_qa_01_02:
+        description:
+        details:
+      osps_qa_02_01:
+        description:
+        details:
+      osps_qa_04_01:
+        description:
+        details:
+      osps_qa_05_01:
+        description:
+        details:
+      osps_qa_05_02:
+        description:
+        details:
+      osps_vm_02_01:
+        description:
+        details:
+      osps_br_01_03:
+        description:
+        details:
+    baseline-2:
+      osps_ac_04_01:
+        description:
+        details:
+      osps_br_02_01:
+        description:
+        details:
+      osps_br_04_01:
+        description:
+        details:
+      osps_br_05_01:
+        description:
+        details:
+      osps_br_06_01:
+        description:
+        details:
+      osps_do_06_01:
+        description:
+        details:
+      osps_gv_01_01:
+        description:
+        details:
+      osps_gv_01_02:
+        description:
+        details:
+      osps_gv_03_02:
+        description:
+        details:
+      osps_le_01_01:
+        description:
+        details:
+      osps_qa_03_01:
+        description:
+        details:
+      osps_qa_06_01:
+        description:
+        details:
+      osps_sa_01_01:
+        description:
+        details:
+      osps_sa_02_01:
+        description:
+        details:
+      osps_sa_03_01:
+        description:
+        details:
+      osps_vm_01_01:
+        description:
+        details:
+      osps_vm_03_01:
+        description:
+        details:
+      osps_vm_04_01:
+        description:
+        details:
+      osps_do_07_01:
+        description:
+        details:
+    baseline-3:
+      osps_ac_04_02:
+        description:
+        details:
+      osps_br_02_02:
+        description:
+        details:
+      osps_br_07_02:
+        description:
+        details:
+      osps_do_03_01:
+        description:
+        details:
+      osps_do_03_02:
+        description:
+        details:
+      osps_do_04_01:
+        description:
+        details:
+      osps_do_05_01:
+        description:
+        details:
+      osps_gv_04_01:
+        description:
+        details:
+      osps_qa_02_02:
+        description:
+        details:
+      osps_qa_04_02:
+        description:
+        details:
+      osps_qa_06_02:
+        description:
+        details:
+      osps_qa_06_03:
+        description:
+        details:
+      osps_qa_07_01:
+        description:
+        details:
+      osps_sa_03_02:
+        description:
+        details:
+      osps_vm_04_02:
+        description:
+        details:
+      osps_vm_05_01:
+        description:
+        details:
+      osps_vm_05_02:
+        description:
+        details:
+      osps_vm_05_03:
+        description:
+        details:
+      osps_vm_06_01:
+        description:
+        details:
+      osps_vm_06_02:
+        description:
+        details:
+      osps_br_01_04:
+        description:
+        details:
   static_pages:
     home:
       badge_program: OpenSSF Best Practices Badge Programm
@@ -2981,7 +3242,7 @@ de:
       p2_html: >-
         Weitere Informationen und Hintergründe zum OpenSSF-Best-Practices-Badge-Programm,
         wie zum Beispiel die <a href='/de/criteria/0'>Kriterien</a>,
-        sind <a href='https://github.com/coreinfrastructure/best-practices-badge'>auf
+        sind <a href='https://github.com/ossf/best-practices-badge'>auf
         GitHub verfügbar</a>. Ebenfalls verfügbar sind <a href="/de/project_stats">Projektstatistiken</a>
         und <a href="/de/criteria_stats">Kriterienstatistiken</a>.
         Unter <a href="/de/projects">Projekte</a> sind alle Projekte
@@ -3094,6 +3355,7 @@ de:
         URL erforderlich
       see_actual_criteria: Sie können auch die tatsächlichen Kriterien
         einsehen.
+      obsolete:
     error_409:
       heading: 'Fehler 409: Konflikt'
       conflict: >-
@@ -3143,6 +3405,9 @@ de:
     Identification: Identifizierung
     Prerequisites: Voraussetzungen
     FLOSS license: FLOSS-Lizenz
+    Controls:
+    General:
+    General_project_info:
   last_entry: Letzter Übersetzungseintrag
   admin_only: Nur Administratoren.
   criterion_status:
@@ -3217,6 +3482,7 @@ de:
     na_justification_required: "{N/A Begründung}"
     met_justification_required: "{Begründung erfüllt}"
     met_url_required: "{URL erfüllt}"
+    obsolete:
   criteria_discussion:
     intro_p01_html:
     intro_p02_html:
@@ -3294,3 +3560,57 @@ de:
     missing_parameters:
     invalid_parameters:
     error:
+  do_not_translate_this:
+  test_pluralization_only_one:
+    one:
+  detectives:
+    github:
+      repo_public:
+      repo_track:
+      repo_distributed:
+      contribution:
+      discussion:
+      osps_gv_02_01:
+      osps_do_02_01:
+      osps_ac_01_01:
+      osps_qa_01_01:
+      osps_qa_01_02:
+      name:
+      description:
+      license:
+      implementation_languages:
+    floss_license:
+      osi_approved:
+      osi_approved_repository:
+      not_in_osi_list:
+    hardened_sites:
+      all_headers_found:
+      headers_missing:
+    name_from_url:
+      domain_suggests:
+      tail_suggests:
+      repo_tail_suggests:
+    project_sites_https:
+      given_http:
+      official_http:
+      url_uses_http:
+      given_https:
+    repo_files:
+      no_file_found:
+      file_found:
+      contribution_documented:
+      license_found:
+      license_not_found:
+      license_not_in_releases:
+    subdir_files:
+      no_files_found:
+      no_folder_found:
+      some_contents_found:
+    test_forced:
+      test_automation:
+    repo_json:
+      field_from_file:
+    security_insights:
+      field_value:
+      array_match:
+      comment_suffix:

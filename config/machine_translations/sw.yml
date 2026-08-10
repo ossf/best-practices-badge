@@ -1,0 +1,1287 @@
+---
+sw:
+  feed_title: OpenSSF Best Practices BadgeApp Miradi Iliyosasishwa
+  project_name_unknown: "(Jina halijulikani)"
+  locale_name:
+    pt-BR: Kireno cha Brazil
+  layouts:
+    toggle_navigation: Geuza urambazaji wa kuporomoka
+    signup_html: Jisajili
+    translation_disclaimer_html: Tafsiri hii inaweza kuwa na makosa. Ikiwa kuna migongano, Kiingereza cha asili ndicho kinachotawala.
+  password_resets:
+    forgot_password: Umesahau nenosiri
+    reset_password: Weka upya nenosiri
+    password_confirmation: Uthibitisho
+    password_empty: Nenosiri haliwezi kuwa tupu
+    password_reset: Nenosiri limewekwa upya
+    instructions_sent: Barua pepe imetumwa yenye maelekezo ya kuweka upya nenosiri (ikiwa akaunti ya ndani ipo)
+    reset_expired: Kuweka upya nenosiri kumekwisha muda wake.
+    update_password: Sasisha nenosiri
+  unsubscribe:
+    header: Jiondoe
+    description: Tunasikitika kwamba hutaki tena kupokea arifa. Ikiwa una hakika, tafadhali thibitisha ombi lako la kujiondoa kwa arifa.
+    email_label: Anwani ya Barua Pepe
+    issued_label: Tarehe ya Kutolewa
+    token_label: Tokeni ya Kujiondoa
+    submit: Jiondoe
+    confirm_message: Je, una uhakika unataka kujiondoa kwenye arifa zote?
+    processing: Inashughulikia...
+    success: Umejiondoa kwa mafanikio kutoka kwa arifa zetu.
+    invalid_token: Ishara ya kujiondoa si sahihi. Tafadhali angalia ishara kutoka kwa barua pepe yako.
+    no_matching_accounts: Hakuna akaunti zinazolingana zilizopatikana zenye arifa za barua pepe zimewezeshwa.
+    missing_parameters: 'Vigezo vinavyohitajika havipo: anwani ya barua pepe, ishara ya kujiondoa, na tarehe iliyotolewa.'
+    invalid_parameters: Vigezo visivyo sahihi vimetolewa.
+    error: Hitilafu imetokea wakati wa kushughulikia ombi lako. Tafadhali jaribu tena baadaye.
+  static_pages:
+    cookies:
+      cookies_info_html: <p> Ili kufanya tovuti hii ifanye kazi vizuri, wakati mwingine tunaweka faili ndogo za data zinazojulikana kama vidakuzi kwenye kifaa chako. Tovuti nyingi hufanya hivi. </p> <p> Kidakuzi ni faili ndogo ya maandishi ambayo tovuti huhifadhi kwenye kompyuta yako (ikiwa ni pamoja na kifaa chako cha mkononi) unapozuru tovuti. Inawawezesha tovuti kukumbuka vitendo vyako na mapendeleo yako (kama vile kuingia, lugha, ukubwa wa fonti na mapendeleo mengine ya kuonyesha) kwa muda, ili usije ukaziendelea kuziingiza tena kila unapo rudi kwenye tovuti au kuvinjari kutoka ukurasa mmoja hadi mwingine. Vidakuzi ni sehemu ya kawaida ya itifaki ya HTTP inayotekeleza Wavuti ya Ulimwengu (WWW), na imebainishwa katika <a href="https://tools.ietf.org/html/rfc6265">RFC 6265</a>. </p> <p> Tunatumia vidakuzi vya "kikao" vya mtu wa kwanza unapoingia. Kwa ufafanuzi, vidakuzi vya kikao vimeundwa kuisha muda unapotoka kwenye kivinjari chako au kujiondoa. Ikiwa utawasha "Nibaki nimelogiwa" (pia inajulikana kama "Nikumbuke"), pia tunahifadhi maelezo katika kidakuzi cha "kudumu" cha mtu wa kwanza kwenye kivinjari chako ili tuweze kukuingia kiotomatiki tena unapotembelea tovuti yetu hata baada ya kutoka kwenye kivinjari chako. Ikiwa unachagua kutumia tovuti zingine (kama vile GitHub) kwa uthibitishaji kwenye tovuti hii, basi tovuti hiyo nyingine inaweza kutumia vidakuzi (na hivyo kile wanachofanya na vidakuzi pia kitatumika). Tafadhali kumbuka kwamba hatuwezi kudhibiti kile tovuti zingine hufanya. </p> <p> Vidakuzi tunavyoweka vinatumika tu kusaidia uwezo unaohusiana na tovuti hii. Idhini inaweza kuondolewa - futa tu vidakuzi kwenye kivinjari chako. Unaweza kudhibiti na/au kufuta vidakuzi kama unavyotaka. Kwa maelezo zaidi, angalia <a href="https://www.aboutcookies.org">cookies.org</a>. Unaweza kufuta vidakuzi vyote ambavyo tayari vipo kwenye kompyuta yako na unaweza kuweka vivinjari vingi ili kuzuia kuwekwa. Ikiwa unafanya hivi, hata hivyo, huenda ukaondoa baadhi ya mapendeleo kwa mkono kila unapotembelea tovuti na baadhi ya huduma na vitendaji huenda visifanye kazi. Hasa, kuingia kwenye tovuti hii kunategemea vidakuzi vya kikao (kwenye tovuti hii na nyingine nyingi). </p> <p> Maandishi haya yanakusudiwa kutimiza "Sheria za Vidakuzi" za UK na EU. </p>
+    criteria_stats:
+      project_stats_html: Vigezo "hai" ni vigezo ambavyo vimejumuishwa katika hesabu za asilimia (tofauti na vigezo vya "baadaye"). Safu zilizofuata zinabainisha idadi ya vigezo hai katika kila kiwango ambavyo ni LAZIMA, INAPASWA, IMEPENDEKEZWA, kuruhusu "N/A" kama jibu, kuhitaji uthibitisho wakati "zimekidhi" ni jibu, kuhitaji URL, kuhitaji uthibitisho wakati "zimekidhi" ni jibu au URL, kujumuisha maelezo, au ni mpya katika kiwango hiki. Vigezo vya "baadaye" vinaonyeshwa kwenye fomu, na vinatarajiwa kuongezwa kama vigezo hai katika kiwango fulani baadaye, lakini havijajumuishwa katika hesabu za ukamilishaji. <br><br> Unaweza kuona takwimu kuhusu miradi kwa muda katika <a href="/sw/project_stats">ukurasa wa takwimu za miradi</a>.
+      obsolete: Imepitwa na Wakati
+  users:
+    edit:
+      notification_emails: Arifa za barua pepe
+      notification_emails_help: Pokea arifa za barua pepe kuhusu miradi yako
+      important_notifications: Arifa muhimu
+      important_notifications_help: Pokea arifa muhimu kama vile kupoteza nishani kwa sababu ya mahitaji yaliyobadilishwa
+  project_stats:
+    index:
+      project_stats_header: Takwimu za Miradi
+      all_projects: Miradi yote
+      projects_nontrivial: Miradi yenye maendeleo makubwa
+      projects_activity_30: Miradi yenye shughuli ya kuingiza beji katika siku 30 zilizopita
+      projects_silver: Maendeleo ya miradi kuelekea fedha
+      projects_gold: Maendeleo ya miradi kuelekea dhahabu
+      projects_completed_silver_and_gold: Miradi inayokamilisha fedha na dhahabu
+      percent_projects_earning_badges: Asilimia ya miradi yanayopata beji
+      daily_activity: Shughuli za kila siku za kuingiza beji
+      reminders: Vikumbusho
+      active_projects: Miradi hai (iliyoundwa/kusasishwa ndani ya siku 30)
+      active_in_progress: Miradi hai inayoendelea (iliyoundwa/kusasishwa ndani ya siku 30)
+      active_edited: Miradi hai iliyohaririwa (iliyosasishwa ndani ya siku 30)
+      active_edited_in_progress: Miradi hai inayoendelea iliyohaririwa (iliyosasishwa ndani ya siku 30)
+      projects_created_since_yesterday: miradi iliyoundwa tangu siku iliyopita
+      projects_updated_since_yesterday: miradi iliyosasishwa tangu siku iliyopita
+      projects_created_average_7_days: wastani wa miradi iliyoundwa kwa siku 7
+      projects_updated_average_7_days: wastani wa miradi iliyosasishwa kwa siku 7
+      projects_created_updated_daily: Seti ya data "miradi iliyoundwa tangu siku iliyopita" ni seti ya hesabu za miradi mingapi iliyoundwa ndani ya masaa 24 ya tarehe na muda uliopewa (bila kujumuisha miradi iliyofutwa pia katika kipindi hicho cha masaa 24). Vivyo hivyo, seti ya data "miradi iliyosasishwa tangu siku iliyopita" ni seti ya hesabu za miradi mingapi iliyohaririwa ndani ya masaa 24 ya tarehe na muda uliopewa (bila kujumuisha miradi iliyoundwa au kufutwa katika kipindi hicho cha masaa 24). Wastani wa siku 7 zinaonyesha wastani unaohusiana kwa siku 7. Unaweza kuchagua rangi katika uhakika ili kuficha na kuonyesha upya data inayohusiana.
+      reminders_sent_since_yesterday: Vikumbusho vilivyotumwa tangu jana
+      reactivated_projects: Miradi iliyowashwa tena katika siku 14 baada ya kupokea kikumbusho
+      admin_html: Kama msimamizi, unaweza pia kuona <a href="/sw/reminders">habari ya kina kuhusu vikumbusho</a> na <a href="/sw/project_stats?type=uncommon">grafu za takwimu zisizotumika sana</a>.
+      raw_data: 'Unaweza pia kuona data ghafi:'
+      json_format: muundo wa JSON
+      csv_format: muundo wa CSV unaopakuliwa
+      user_statistics: Takwimu za watumiaji
+      users: Watumiaji
+      github_users: Watumiaji wa GitHub
+      local_users: Watumiaji wa Kawaida (Wa Ndani)
+      users_created_since_yesterday: Watumiaji Waliotengenezwa Tangu Jana
+      users_updated_since_yesterday: Watumiaji Waliosasishwa Tangu Jana
+      users_with_projects: Watumiaji Wenye Miradi
+      users_without_projects: Watumiaji Wasio na Miradi
+      users_with_multiple_projects: Watumiaji Wenye Miradi Mingi
+      users_with_passing_projects: Watumiaji Wenye Miradi Inayopita
+      users_with_silver_projects: Watumiaji Wenye Miradi ya Fedha
+      users_with_gold_projects: Watumiaji Wenye Miradi ya Dhahabu
+  projects:
+    index:
+      all: Zote
+      passing_100: Inapita angalau (100%+ ngazi)
+      in_progress_variable: Inaendelea (%{percent}%+ ngazi)
+      silver_in_progress_variable: Inapita, fedha ya nusu (%{percent}%+ ngazi)
+      silver_200: Fedha (200%+ ngazi)
+      gold_in_progress_variable: Fedha, dhahabu ya nusu (%{percent}%+ ngazi)
+      gold_300: Dhahabu (300%)
+      in_progress_next: Inaendelea, %{percent}% imekamilika kwa kupita
+      passing_next: Inapita, %{percent}% imekamilika kwa fedha
+      silver_next: Fedha, %{percent}% imekamilika kwa dhahabu
+      add_link: Ongeza
+      add_new: Ongeza Mradi Mpya
+      badge_status: Hali ya Nishani
+      exclude_passing: Zitenge zilizopita
+      text_search: Tafuta maandishi
+      name_or_description: Jina au maelezo ya maandishi
+      search: Tafuta
+    table:
+      badge: Nishani
+      can_also_sort: 'Sehemu ya "tiered %" inaonyesha 300% kwa dhahabu, 200% kwa fedha, na 100% kwa kupita, na inaongeza maendeleo baada ya nishani ya juu zaidi iliyopatikana. Unaweza pia kupanga kwa ifuatavyo:'
+      repository_url: URL ya hifadhi
+      create_time: wakati wa uundaji (kwa ingizo la nishani)
+      update_time: wakati wa kusasisha la mwisho (kwa ingizo la nishani)
+      badge_level: Kiwango cha Nishani kwa mradi %{id} ni %{percent}%
+    new:
+      thanks_adding: Asante kwa kuongeza Mradi! Tafadhali jaza maelezo yaliyobakia kupata Nishani.
+      post_delay_warning: Kunaweza kuwa na ucheleweshaji mkubwa baada ya kuwasilisha tunapojaribu kujaza taarifa kiotomati.
+      new_badge: Nishani mpya
+      tell_us: 'Tafadhali tuambie kuhusu mradi wako wa programu huria/wazi (FLOSS). Hii <b>LAZIMA</b> iwe mradi wa FLOSS; hakuna kingine kinachoruhusiwa. <b>USISAHAU</b> kuongeza tovuti isiyohusiana ili kujaribu kuboresha utafutaji wa injini ya tovuti (SEO). Taka hii imepigwa marufuku kwa sababu inadhuru watumiaji, na haitasaidia SEO hata hivyo (viungo vyote vya hyperlink vimewekwa alama na <tt>ugc</tt> na <tt>nofollow</tt>).
+
+        '
+      may_select_html: Unaweza kuchagua kutoka kwa moja ya hifadhi yako ya GitHub <em>AU</em> kutoa taarifa kuhusu mradi mwingine. Ikiwa mradi wako haujapata nishani ya kupita na hujafanya marekebisho yoyote kwa angalau siku 30, tutakutumia barua pepe ya kukumbushia (unaweza kuzima ukumbusho wakati wowote ukitaka).
+      new_badge_or: AU
+      select_one_github: Chagua moja ya hifadhi yako ya GitHub
+      submit_github: Wasilisha Hifadhi ya GitHub
+      project_already_exists: Mradi huu tayari upo!
+      url_of_homepage: URL ya ukurasa wa nyumbani wa mradi (URL ya mradi kwa ujumla wake) ni ipi? Anza na http(s):// (herufi nyingi haziruhusiwi, ikiwa ni pamoja na "?")
+      placeholder_of_homepage: http(s)://... kwa URL ya ukurasa wa nyumbani wa mradi, tumia https:// ikiwezekana
+      url_of_repo: URL ya hifadhi ya kudhibiti toleo (inaweza kuwa sawa na ukurasa wa nyumbani wa mradi) ni ipi? Anza na http(s):// (herufi nyingi haziruhusiwi, ikiwa ni pamoja na "?")
+      placeholder_of_repo: http(s)://... kwa URL ya hifadhi ya mradi, tumia https:// ikiwezekana
+      submit_urls: Wasilisha URL
+      final_text_html: Kumbuka - ikiwa URL ya hifadhi yako iko GitHub, mtu yeyote anayeweza kujitolea kwenye hifadhi ataweza kuhariri taarifa za nishani.
+      sign_in_first: Tafadhali ingia ili kuongeza mradi!
+      original_repos: "=> Hifadhi za Asili za GitHub"
+      fork_repos: "=> Hifadhi za GitHub Zilizopigwa Forki"
+      reminder_email_html: Ikiwa mradi wako haujapata nishani na hukufanya marekebisho yoyote kwa angalau siku 30, tutakutumia barua pepe ya ukumbusho (unaweza kuzima vikumbusho wakati wowote ukitaka).
+      github_repo_label: Chagua hazina ya GitHub (si lazima)
+      submit: Wasilisha Mradi
+      badge_series: Mfululizo wa nishani
+      badge_series_description: Unaweza kuchagua ni mfululizo wa nishani upi kuanza nao. Mfululizo wa msingi ni orodha ya ukaguzi mdogo zaidi inayozingatia mahitaji ya usalama ya LAZIMA pekee na imetokana kwa sehemu kutoka kwa kanuni za usalama wa mtandao na miundo kote ulimwenguni. Mfululizo wa chuma ni seti kubwa zaidi ya vigezo ambavyo vinajumuisha mapendekezo na masuala ya ubora ambayo yanaathiri usalama, na imetokana kwa sehemu kutoka uzoefu wa miradi ya FLOSS salama. Zote mbili zinazingatia usalama, na tunawahimiza miradi hatimaye kufanya zote mbili; unachagua mahali pa kuanza.
+      badge_series_metal: Chuma (kuhitimu, fedha, dhahabu)
+      badge_series_baseline: Msingi (msingi-1, msingi-2, msingi-3)
+      github_reconnect_html: Hatukuweza kupakia hifadhi zako za GitHub. Kipindi chako cha GitHub kinaweza kuwa kimeisha muda wake.
+      github_reconnect_link: Unganisha tena na GitHub
+    delete_form:
+      info_html: "<b>Onyo</b> - unakaribia <b>kufuta kabisa</b> ingizo la nishani kwa %{project_name}. Hii <b>HAIWEZI</b> kutendeka upya kwa urahisi, kwa hivyo tunapendekeza kwamba <b>USIFUTE</b> ingizo hili la nishani. Huhitaji kukamilisha vigezo vya nishani kwa pamoja; miradi mingi hupata nishani kwa kutambua na kukidhi vigezo vilivyokosekana kwa muda. Ikiwa unafikiri baadhi ya vigezo havifanyi maana, huwezi kuelewa jinsi ya kukidhi baadhi ya vigezo, au una maswali mengine, tafadhali wasiliana nasi. Kumbuka kwamba si vigezo vyote lazima vikidhiwe ili kupata nishani (baadhi ya vigezo VINAPASWA kukidhiwa au ni VIPENDEKEZWA tu). Ikiwa hutaki ukumbusho utumwe kwako kwa barua pepe, hariri tu ingizo la mradi na uzime ukumbusho wa barua pepe badala yake. Hata hivyo, ikiwa una <i>uhakika</i> kwamba unataka <i>kufuta kabisa</i> ingizo hili la nishani, tafadhali eleza hapa chini kwa nini unafuta kabisa."
+      rationale_placeholder: "(Inahitajika) Tafadhali eleza kwa nini unafuta kabisa ingizo hili la nishani ya mradi, na ikiwa inafaa, unataka tufanye nini badala yake (herufi 20+, zisizo za nafasi 15+)"
+      delete_action: FUTA KABISA ingizo hili la nishani ya mradi!
+      too_short: Lazima iwe na angalau herufi 20.
+      more_non_whitespace: Lazima iwe na angalau herufi 15 zisizo za nafasi.
+    edit:
+      edit_status: Hariri Hali ya Nishani ya Mradi
+      repo_url_limits: Unaweza kubadilisha repo_url yako tu ikiwa ni (1) zaidi ya siku 180 tangu ilibadilishwa mwisho, au (2) ni kubadilisha tu kati ya http na https. Tafadhali wasilisha suala (na sababu) ikiwa unahitaji kuibadilisha mapema.
+      changed_since_html: Mtumiaji mwingine amefanya mabadiliko kwa rekodi hiyo tangu ulifikiria fomu ya kuhariri. <br>Tafadhali fungua <a href="%{edit_url}" target="_blank" rel="noopener">fomu mpya ya kuhariri</a> ili kuhamisha mabadiliko yako.
+      successfully_updated: Mradi umesasishwa kwa mafanikio.
+      congrats_new: HONGERA kwa kupata nishani ya %{new_badge_level}! Ikiwa bado hujafanya hivyo, tafadhali onyesha hali ya nishani yako kwenye ukurasa wa mradi wako (angalia maandishi ya "jinsi ya kuipachika" hapa chini ikiwa hujui jinsi ya kufanya hivyo).
+      lost_badge: Mradi umepoteza nishani.
+      new_owner: ID ya mmiliki (nambari chanya), badilisha ili kubadilisha umiliki
+      new_owner_repeat: ID ya mmiliki mpya iliyorudiwa (kuthibitisha mabadiliko ya umiliki)
+      current_owner: 'ID ya mmiliki wa sasa:'
+      ownership_edit_hint: "(Umiliki unaweza kuhamishwa wakati wa kuhariri sehemu hii.)"
+      static_analysis_updated_html: Tumesasisha mahitaji yetu kwa kigezo cha static_analysis. Tafadhali ongeza sababu kwa kigezo hiki.
+      save_and_continue: Hifadhi (na endelea)
+      submit_and_exit: Wasilisha (na uondoke)
+      submit_cc_by_3plus_html: Kwa kuwasilisha data hii kuhusu mradi unakubali kuiachia chini ya angalau <a href="https://creativecommons.org/licenses/by/3.0/us" target="_blank" rel="noopener">leseni ya Creative Commons Attribution toleo 3.0 au baadaye (CC-BY-3.0+)</a>. Hii inamaanisha kuwa wote wako huru kushiriki na kurekebisha data, lakini lazima watoe heshima inayofaa. Unabaki na hakimiliki (ikiwa ipo), na leseni ya mradi haijaadhiriwa.<br><br>
+      submit_cdla_permissive_20_html: Kwa kuwasilisha data hii kuhusu mradi unakubali kuiachia chini ya angalau <a href="https://cdla.dev/permissive-2-0/" >Community Data License Agreement – Permissive, Version 2.0</a>. Hii inamaanisha kuwa Mpokeaji wa Data anaweza kushiriki Data, na au bila marekebisho, mradi Mpokeaji wa Data anapatanisha maandishi ya mkataba huu na Data iliyoshirikiwa. Mkataba huu <i>haufanyi</i> kizuizi au wajibu chochote kuhusiana na matumizi, marekebisho, au kushiriki Matokeo. Unabaki na hakimiliki (ikiwa ipo), na leseni ya mradi haijaadhiriwa.<br><br>
+      not_authorized: Hauruhusiwi kuhariri mradi huu.
+      automation:
+        aria_automated: Sehemu hii ilijazwa kiatomati
+        aria_overridden: Thamani ya sehemu hii ilirekebishwa na mfumo wa kiatomati
+        automated_tooltip: Tulijaza hii kwa kutumia uchambuzi wa mradi wa kiatomati
+        overridden_tooltip: Tulirekebisha thamani hii kwa kutumia uchambuzi wa mradi wa kiatomati
+        chief_overrode:
+          one: 'Tulirekebisha sehemu 1 kulingana na uchambuzi wa mradi:'
+          other: 'Tulirekebisha sehemu %{count} kulingana na uchambuzi wa mradi:'
+        override_detail: "'%{criterion}' imebadilishwa kutoka '%{old}' hadi '%{new}' — %{explanation}"
+        analysis_failed:
+          one: 'Onyo: Uchambuzi wa kiatomati ulishindwa kwa sehemu 1 (%{fields}). Mabadiliko yako mengine yalihifadhiwa.'
+          other: 'Onyo: Uchambuzi wa kiatomati ulishindwa kwa sehemu %{count} (%{fields}). Mabadiliko yako mengine yalihifadhiwa.'
+        aria_divergent: Otomatiki ilikuwa na jibu tofauti
+        overridden_detail: 'Thamani ya awali: %{old_status}.%{old_justification_part}%{explanation_part}'
+        overridden_old_justification_part: " Sababu ya awali: %{old_justification}"
+        overridden_explanation_part: " Sababu ya otomatiki: %{explanation}"
+        divergent_detail: Otomatiki badala yake iliamua %{status}.%{justification_part}
+        divergent_justification_part: " %{justification}"
+        divergent_proposed_value: 'Otomatiki ilipendekeza: %{proposed_value}'
+      save_and_continue_tooltip: Inaendesha automation kujaza thamani zisizojulikana
+      automation_hint_html: Unaweza kutumia zana na mifumo ya AI kupendekeza mabadiliko kupitia URL rahisi, kama vile <tt>https://%{badge_hostname}/%{app_locale}/projects/%{project_id}/choose/edit?osps_ac_01_01_status=Met&amp;osps_ac_01_01_justification=GitHub+enforced</tt>. Angalia <a href="%{automation_proposals_url}">mfumo wetu wa mapendekezo ya otomatiki</a> kwa jinsi ya kufanya hivyo.
+    show:
+      section_selector: Sehemu
+      edit: Hariri
+      delete: Futa
+      confirm_delete: Una UHAKIKA kwamba unataka KUFUTA mradi MZIMA %{project_id}?
+      back: Rudi
+      owned_by: 'Ingizo la nishani ya mradi linamilikiwa na:'
+      created_at_html: "<strong>Ingizo liliundwa siku</strong> %{when},"
+      updated_at_html: "<strong>iliyosasishwa mara ya mwisho siku</strong> %{when}."
+      last_lost_html: Ilipoteza mara ya mwisho nishani ya kupita siku %{when}.
+      last_achieved_html: Ilipata mara ya mwisho nishani ya kupita siku %{when}.
+      cdla_permissive_20_html: Data hii inapatikana chini ya <a href="https://cdla.dev/permissive-2-0/" >Community Data License Agreement – Permissive, Version 2.0 (CDLA-Permissive-2.0)</a>. Hii inamaanisha kuwa Mpokeaji wa Data anaweza kushiriki Data, na au bila marekebisho, mradi Mpokeaji wa Data anapatanisha maandishi ya mkataba huu na Data iliyoshirikiwa. Tafadhali tambua %{user} na wachangiaji wa nishani ya Mazoea Bora ya OpenSSF.<br><br>
+      cc_by_3plus_html: Data hii inapatikana chini ya <a href="https://creativecommons.org/licenses/by/3.0/us" target="_blank" rel="noopener">Creative Commons Attribution version 3.0 au leseni ya baadaye (CC-BY-3.0+)</a>. Wote wanaweza kushiriki na kubadilisha data, lakini lazima watoe sifa sahihi. Tafadhali tambua %{user} na wachangiaji wa nishani ya Mazoea Bora ya OpenSSF.<br><br>
+      cc_by_3only_html: Data hii inapatikana chini ya <a href="https://creativecommons.org/licenses/by/3.0/us" target="_blank" rel="noopener">Creative Commons Attribution version 3.0 license (CC-BY-3.0)</a> kwa mujibu wa <a href="https://www.linuxfoundation.org/terms" target="_blank" rel="noopener">masharti ya utumiaji</a>. Wote wanaweza kushiriki na kubadilisha data, lakini lazima watoe sifa sahihi. Tafadhali tambua %{user} na wachangiaji wa nishani ya Mazoea Bora ya OpenSSF.<br><br>
+    form_early:
+      badge_intro:
+        description: Miradi inayofuata mazoea bora hapa chini inaweza kujihakikisha kwa hiari na kuonyesha kuwa wamepata nishani ya mazoea bora ya Open Source Security Foundation (OpenSSF).
+        details_html: Hakuna seti ya mazoea yawezayo kuhakikisha kuwa programu haitakuwa na kasoro au udhaifu; hata mbinu rasmi zinaweza kushindwa ikiwa vipimo au dhana ni sahihi. Wala hakuna seti ya mazoea yawezayo kuhakikisha kuwa mradi utaendelea kuwa na jamii ya maendeleo yenye afya na inayofanya kazi vizuri. Hata hivyo, kufuata mazoea bora kunaweza kusaidia kuboresha matokeo ya miradi. Kwa mfano, baadhi ya mazoea huwezesha ukaguzi wa watu wengi kabla ya kutolewa, ambayo inaweza kusaidia kupata udhaifu wa kiufundi ambao vinginevyo ni vigumu kupata na kusaidia kujenga uaminifu na hamu ya mwingiliano wa kurudia kati ya wasanidi programu kutoka makampuni tofauti. Ili kupata nishani, vigezo vyote vya LAZIMA na LAZIMA WALA USIWAHI lazima vifuatwe, vigezo vyote vya INAPASWA lazima vifuatwe AU visivyo fufufutiliana na thibitisho, <em>na</em> vigezo vyote vya PENDEKEZA lazima vifuatwe AU visivyo fufufutiliana (tunataka vifikiwe angalau). Ikiwa unataka kuingiza maandishi ya thibitisho kama maoni ya jumla, badala ya kuwa maelezo ya busara kwamba hali ni inakubaliwa, anza kifungu cha maandishi na '//' ikifuatiwa na nafasi. Maoni ni karibu kupitia <a href="https://github.com/ossf/best-practices-badge">tovuti ya GitHub kama masuala au maombi ya kuvuta</a> Kuna pia <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">orodha ya barua pepe kwa majadiliano ya jumla</a>.<br /><br /> Tunafuraha kutoa habari katika lugha nyingi, hata hivyo, ikiwa kuna mgongano au kutokuwa na usawa kati ya tafsiri, toleo la Kiingereza ni toleo lenye mamlaka.
+      level:
+        '0': Kupita
+        0_html: Hizi ni vigezo vya kiwango cha %{passing}. Unaweza pia kuangalia vigezo vya kiwango cha %{silver} au %{gold}.
+        '1': Fedha
+        1_html: Hizi ni vigezo vya kiwango cha %{silver}. Unaweza pia kuangalia vigezo vya kiwango cha %{passing} au %{gold}.
+        '2': Dhahabu
+        2_html: Hizi ni vigezo vya kiwango cha %{gold}. Unaweza pia kuangalia vigezo vya kiwango cha %{passing} au %{silver}.
+        baseline-1: Kiwango cha Msingi 1
+        baseline-1_html: Hizi ni vigezo vya Kiwango cha Msingi 1.
+        baseline-2: Kiwango cha Msingi 2
+        baseline-2_html: Hizi ni vigezo vya Kiwango cha Msingi 2.
+        baseline-3: Kiwango cha Msingi 3
+        baseline-3_html: Hizi ni vigezo vya Kiwango cha Msingi 3.
+      got_badge:
+        description_1: 'Ikiwa huu ni mradi wako, tafadhali onyesha hadhi ya nishani yako kwenye ukurasa wa mradi wako! Hadhi ya nishani inaonekana kama hii:'
+        badge_alt: Kiwango cha nishani kwa mradi %{id} ni %{level}
+        description_2: 'Hapa ni jinsi ya kuiweka:'
+        details_html: Unaweza kuonyesha hali ya nishani yako kwa kuweka hii katika faili yako ya markdown:<br /> %{markdown_embedding}<br /> au kwa kuweka hii katika HTML yako:<br /> %{html_embedding}<br />
+        editing_description_html: <strong>Tafadhali 'wasilisha' mara kwa mara</strong> kuhifadhi kazi yako (unaweza kurudi na kuhariri zaidi baadaye). <br><br> Ikiwa unahitaji msaada, una swali, au unaona hitilafu, tafadhali <em><a href="https://github.com/ossf/best-practices-badge/issues" target="_blank" rel="noopener">wasilisha suala</a></em>.
+      got_baseline_badge:
+        description_1: 'Ikiwa huu ni mradi wako, tafadhali onyesha hali ya nishani yako ya msingi kwenye ukurasa wa mradi wako! Hali ya nishani ya msingi inaonekana kama hii:'
+        badge_alt: Kiwango cha nishani ya msingi kwa mradi %{id} ni %{level}
+        description_2: 'Huu ndiyo jinsi ya kuweka nishani ya msingi:'
+        details_html: Unaweza kuonyesha hali ya nishani yako ya msingi kwa kuweka hii katika faili yako ya markdown:<br /> %{markdown_embedding}<br /> au kwa kuweka hii katika HTML yako:<br /> %{html_embedding}<br />
+    form_basics:
+      project_name:
+        description: Jina la mradi linalosomeka na binadamu ni lipi?
+        details: Kumbuka kwamba miradi mingine inaweza kutumia jina sawa.
+        placeholder: Jina la Mradi wa FLOSS
+      description:
+        description: Maelezo mafupi ya mradi ni yapi?
+        details: Jumuisha maoni muhimu kuhusu mradi. Tumia markdown. Habari hii hutumiwa wakati wa kuonyesha taarifa za nishani.
+        placeholder: Maelezo ya Mradi
+      homepage_url:
+        description: URL ya mradi (kwa ujumla wake) ni ipi?
+        placeholder: URL ya Tovuti ya Mradi
+      repo_url:
+        description: URL ya hifadhi ya kudhibiti toleo ni ipi (inaweza kuwa sawa na URL ya mradi)?
+        placeholder: URL ya Hifadhi ya Mradi
+      implementation_languages:
+        description: Lugha gani za programu zinatumiwa kutekeleza mradi?
+        details: Ikiwa kuna lugha zaidi ya moja, ziorodhe kama thamani zilizotengwa kwa koma (nafasi ni za hiari) na ziorodhe kuanzia iliyotumiwa zaidi hadi iliyotumiwa kidogo. Ikiwa kuna orodha ndefu, tafadhali orodhesha angalau tatu za kawaida zaidi. Ikiwa hakuna lugha (k.m., huu ni mradi wa nyaraka tu au wa majaribio tu), tumia herufi moja "-". Tafadhali tumia herufi kubwa za kawaida kwa kila lugha, k.m., "JavaScript".
+        placeholder: Lugha za utekelezaji zinazotumika kama orodha iliyotengwa kwa koma, zilizoainishwa kwa kiasi cha matumizi
+      additional_rights_changes:
+        description: "(Kiwango cha juu) Ni watumiaji wengine wapi wanazo haki za ziada za kuhariri ingizo hili la nishani? Kwa sasa: %{current_rights}"
+        details_html: Miradi mingi inapaswa kupuuza sehemu hii. Maingizo ya nishani ya mradi yanaweza kurekebishwa wakati wote na mmiliki wa nishani (muundaji), wasimamizi wa BadgeApp, na yeyote anayeweza kuwasilisha kwenye hifadhi ya GitHub (ikiwa iko kwenye GitHub). Ikiwa unataka mtu mwingine aweze kuhariri ingizo hili la nishani, na tayari una haki za kuhariri ingizo hili la nishani ya mradi, unaweza kuongeza watumiaji wengine wenye haki za kuhariri. Ingiza tu "+" ikifuatiwa na orodha ya vitambulisho vya watumiaji (namba kamili) vilivyotengwa kwa koma. Watumiaji hao pia wataruhusiwa kuhariri ingizo hili la mradi. Ikiwa wewe ni mmiliki wa ingizo la nishani au msimamizi wa BadgeApp, unaweza kuondoa watumiaji kutoka orodha hii kwa kuingiza "-" ikifuatiwa na orodha ya vitambulisho vya watumiaji (namba kamili) vilivyotengwa kwa koma. Tunatumaini kuwa kawaida mtu mmoja tu atakuwa akihariri ingizo maalum la nishani kwa wakati mmoja. Programu hii inatumia kufunga kwa matumaini ili kuzuia kuhifadhi data iliyopitwa na wakati ikiwa watumiaji wengi wanajaribu kuhariri ingizo la nishani kwa wakati mmoja. Ikiwa una wahariri wengi, tunapendekeza kuhifadhi data ya ingizo la nishani kwa hatua na mara kwa mara (hiyo ni zoezi la busara hata hivyo).
+        placeholder: Badilisha kwa kutumia + au - ikifuatiwa na orodha ya kitambulisho cha mtumiaji iliyotengwa kwa koma
+      cpe:
+        description_html: Jina la <a href="https://nvd.nist.gov/cpe.cfm">Common Platform Enumeration (CPE)</a> kwa mradi (ikiwa una) ni lipi?
+        details_html: <a href="https://nvd.nist.gov/cpe.cfm">Common Platform Enumeration (CPE)</a> ni mpango wa kuweka majina yenye muundo kwa mifumo ya teknolojia ya habari, programu, na vifurushi. Inatumika katika mifumo na hifadhidata nyingi wakati wa kuripoti udhaifu.
+        placeholder: "(Hiari) Jina la CPE"
+      license:
+        description_html: Mradi umetolewa chini ya leseni zipi?
+        details_html: Tafadhali tumia <a href="https://spdx.org/licenses/">muundo wa maneno ya leseni ya SPDX</a>; mifano ni pamoja na "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "GPL-2.0+", "LGPL-3.0+", "MIT", na "(BSD-2-Clause OR Ruby)". <b>Usitumie</b> alama za nukuu za moja au mbili.
+        title: Leseni katika muundo wa maneno ya leseni ya SPDX, k.m., "MIT" au "GPL-3.0+", bila alama za nukuu za moja au mbili
+        placeholder: Leseni ya FLOSS
+      entry_locale:
+        description: Ni lugha gani inayotumiwa kwa maelezo ya ingizo hili la nishani na sababu zake?
+        details: Chagua lugha inayotumiwa kwa maelezo ya mradi na maandishi ya sababu za kigezo. Hii husaidia zana za tafsiri ya kivinjari kutambua lugha ya maudhui haya kwa usahihi. Miradi mingi hutumia Kiingereza.
+    misc:
+      in_javascript:
+        collapse_all_title: Kunja paneli zote
+        collapse_all: Kunja paneli
+        expand_all_title: Panua paneli zote
+        expand_all: Panua paneli
+        show_details: Onyesha maelezo
+        hide_details: Ficha maelezo
+        show_all_details: Onyesha maelezo yote
+        hide_all_details: Ficha maelezo yote
+        show_met_title: Onyesha vigezo vilivyokamilika na visivyokamilika
+        show_met_html: Onyesha vigezo vilivyokamilika na visivyokamilika
+        hide_met_title: Onyesha vigezo visivyokamilika tu (kuonyesha tu vilivyo visivyotimizwa na visivyojulikana)
+        hide_met_html: Onyesha vigezo visivyokamilika tu
+        passing_alt: Ya kutosha kwa nishani!
+        barely_alt: Kwa shida ya kutosha kwa nishani.
+        failing_alt: Si ya kutosha kwa nishani.
+        unknown_alt: Taarifa inayohitajika haijulikani, si ya kutosha kwa nishani.
+        met_url_placeholder: "(URL inahitajika) Tafadhali eleza jinsi hii inavyotimizwa, ikiwa ni pamoja na URL 1+ muhimu."
+        met_justification_placeholder: "(Inahitajika) Tafadhali eleza jinsi hii inavyotimizwa, huenda ikijumuisha URL 1+ muhimu."
+        met_placeholder: "(Hiari) Tafadhali eleza jinsi hii inavyotimizwa, huenda ikijumuisha URL 1+ muhimu."
+        unmet_placeholder: Tafadhali eleza kwa nini ni sawa hii haijatimizwa, ikiwa ni pamoja na URL 1+ muhimu.
+        na_justification_placeholder: "(Inahitajika) Tafadhali eleza kwa nini hii haitekelezeki (N/A), huenda ikijumuisha URL 1+ muhimu."
+        na_placeholder: "(Hiari) Tafadhali eleza kwa nini hii haitekelezeki (N/A), huenda ikijumuisha URL 1+ muhimu."
+        unknown_placeholder: Tafadhali eleza
+      disabled_reminders: "(Kiwango cha juu) Zima kikumbusho cha kutokuwa hai (tunapendekeza uache hii haijakaguliwa; kumbuka kwamba ingizo la miradi lazima lihaririwe ili kubadilisha kama vikumbusho vinatumwa au la)"
+      reminder_notification_note:
+        title: Mipangilio ya Arifa ya Barua pepe
+        description_html: Ikiwa wewe ni mmiliki wa ingizo hili la nishani na unataka kuzima barua pepe za kikumbusho cha kutokuwa hai, tafadhali hariri <a href="/users/%{user_id}/edit">mipangilio ya wasifu wako wa mtumiaji</a>. Mpangilio huu unatekelezwa kwa miradi yako yote.
+      general_comments:
+        description: 'Maoni mengine ya jumla kuhusu mradi:'
+        placeholder: Maoni ya Ziada (katika markdown)
+      some_not_crypto_html: Kumbuka kwamba programu fulani haihitaji kutumia taratibu za usimbuaji. Ikiwa mradi wako unazalisha programu ambayo (1) inajumuisha, inaamilisha, au inafanya usimbuaji kuwa hai, na (2) inaweza kutolewa kutoka Marekani (US) kwenda nje ya Marekani au kwa raia asiye wa Marekani, inaweza kuwa ni lazima kisheria kuchukua hatua chache za ziada. Kawaida hii inahusisha tu kutuma barua pepe. Kwa maelezo zaidi, tazama sehemu ya usimbuaji ya <a href="https://www.linuxfoundation.org/resources/publications/understanding-us-export-controls-with-open-source-projects" ><i>Kuelewa Teknolojia ya Chanzo Wazi &amp; Udhibiti wa Usafirishaji wa Marekani</i></a>.
+      dont_use_crypto: Bonyeza hapa ikiwa programu inayozalishwa na mradi haitumii taratibu za usimbuaji
+      future_header_html: Haya ni vigezo tunakusudia kuongeza katika siku zijazo, lakini <em>sivyo</em> vinavyohitajika kwa sasa kwa nishani. Kipindi hiki cha neema huruhusu miradi kusasisha vigezo vilivyobadilika na kuhifadhi nishani zao kadiri mazoea mazuri yanavyoboresha.
+      toggle_details_title: Badilisha maelezo ya maandishi
+      details: Maelezo
+      url_required: URL inahitajika
+      future_criterion: Kigezo cha baadaye
+      url_required_warning: 'Onyo: URL inahitajika, lakini hakuna URL iliyopatikana.'
+      justification_required_warning: 'Onyo: Inahitaji sababu ndefu zaidi.'
+      in_development_warning_html: "<strong>Onyo!</strong> Hii si mfumo wa uzalishaji; hii ni kiwango cha majaribio."
+      close: Funga
+      obsolete_header_html: Hizi ni vigezo ambavyo vilikuwa vinahitajika hapo awali lakini vimeondolewa kutoka kwa msingi wa juu. Vinaonyeshwa kwa marejeleo na <em>havihitajiki</em> kwa beji.
+      obsolete_criterion: Kigezo kilichopitwa na wakati
+    delete:
+      done: Mradi ulifutwa kwa mafanikio.
+    baseline_version_notice:
+      current: Hizi ni vigezo vya toleo %{version}.
+      transition: Vigezo hivi vinatoka toleo la msingi %{current_version} na maandishi ya vigezo yaliyosasishwa kutoka toleo %{new_version}. Vigezo vipya katika toleo %{new_version} vimewekwa alama "mustakabali" na vitaanza kutekelezwa kuanzia %{enforce_date}. Tafadhali toa majibu kwa vigezo vya "mustakabali" kabla ya tarehe hiyo.
+    choose_edit:
+      title: Chagua Sehemu ya Kuhariri
+      instructions: Chagua sehemu ya kuhariri.
+      proposals_note: Mabadiliko yoyote yaliyopendekezwa yatatumika kwenye sehemu iliyochaguliwa.
+    choose_show:
+      title: Chagua Sehemu ya Kutazama
+      instructions: Chagua sehemu ya kutazama.
+  report_mailer:
+    new_project_heading: Asante kwa kuongeza mradi wako kwenye Programu ya Nishani za Mazoea Bora
+    new_project_part1: |-
+      Asante kwa kuongeza mradi wako
+      katika Programu ya Nishani za Mazoea Bora.
+      Jina la sasa tulilonacho kwa mradi huu ni:
+    new_project_part2: |-
+      Tafadhali tembelea ingizo lako la nishani
+      kukamilisha taarifa na kupata nishani yako!
+      Huu hapa URL kwa ingizo lako la nishani:
+    new_project_part3_html: |-
+      <p>
+      Tunakuhimiza kuendelea kufanya maendeleo.
+      </p>
+      <p>
+      Ikiwa unataka kuona vigezo <em>pekee</em> unavyovikosa,
+      tembelea ingizo lako la nishani, na
+      kisha bonyeza kifungo karibu na juu kilichoandikwa "Ficha vigezo vilivyokidhiwa au V/H"
+      Ikiwa una maswali, au unahitaji msaada, tafadhali wasiliana na
+      <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
+      au wasilisha suala kwenye
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
+      (bonyeza kwenye "suala jipya").
+      </p>
+      <p>
+      Hatutakutumia tangazo kamwe, na tutakutumia
+      barua pepe nadra tu.
+      Tutakutumia barua pepe kwenye matukio muhimu ya maombi ya nishani,
+      kama vile unapounda ingizo jipya la nishani ya mradi,
+      wakati mradi wako unapopata au kupoteza nishani,
+      au wakati mtu anapoagiza kuweka upya nenosiri kwenye akaunti yako ya mtumiaji.
+      Ikiwa mradi wako hauna nishani, na hujaisasisha ingizo
+      lake la nishani kwa angalau siku 30, kawaida tutakutumia ukumbusho
+      wa kutokuwa na shughuli kila siku 30-60.
+      Unaweza kuzima ujumbe huu wa ukumbusho wa kutokuwa na shughuli wakati wowote kwa
+      kuhariri <a href="/users/%{user_id}/edit">mipangilio ya akaunti yako ya mtumiaji</a>
+      ili kuzima "Arifa za barua pepe".
+      Ikiwa mradi wako umepata nishani ya kuhitimu, au ingizo
+      lake la nishani limehaririwa ndani ya siku 30,
+      basi hakuna ukumbusho wa kutokuwa na shughuli utakaotumwa.
+      </p>
+      <p>
+      Asante kwa muda wako.
+      </p>
+    new_project_part3_text: |-
+      Tunakuhimiza kuendelea kufanya maendeleo.
+      Ikiwa unataka kuona vigezo pekee unavyovikosa, tembelea ingizo lako la nishani, na
+      kisha bonyeza kifungo karibu na juu kilichoandikwa "Ficha vigezo vilivyokidhiwa au V/H".
+      Ikiwa una maswali, au unahitaji msaada, tafadhali wasiliana na
+      cii-badges-questions@lists.coreinfrastructure.org
+      au wasilisha suala kwenye
+      https://github.com/ossf/best-practices-badge/issues
+      (bonyeza kwenye "suala jipya").
+
+      Hatutakutumia tangazo kamwe, na tutakutumia
+      barua pepe nadra tu.
+      Tutakutumia barua pepe kwenye matukio muhimu ya maombi ya nishani,
+      kama vile unapounda ingizo jipya la nishani ya mradi,
+      wakati mradi wako unapopata au kupoteza nishani,
+      au wakati mtu anapoagiza kuweka upya nenosiri kwenye akaunti yako ya mtumiaji.
+      Ikiwa mradi wako hauna nishani, na hujaisasisha ingizo
+      lake la nishani kwa angalau siku 30, kawaida tutakutumia ukumbusho
+      wa kutokuwa na shughuli kila siku 30-60.
+      Unaweza kuzima ujumbe huu wa ukumbusho wa kutokuwa na shughuli wakati wowote kwa
+      kuhariri mipangilio ya akaunti yako ya mtumiaji kwenye /users/%{user_id}/edit ili kuzima "Arifa za barua pepe".
+      Hakikisha unahariri mipangilio ya wasifu wako wa mtumiaji ikiwa unataka kubadilisha ikiwa
+      unapokea vikumbusho vya kutokuwa na shughuli au la!
+      Ikiwa mradi wako umepata nishani ya kuhitimu, au ingizo
+      lake la nishani limehaririwa ndani ya siku 30,
+      basi hakuna ukumbusho wa kutokuwa na shughuli utakaotumwa.
+
+      Asante kwa muda wako.
+    reminder_body_html: |-
+      <h1>Ukumbusho Otomatiki wa Nishani ya Mazoea Bora kwa %{project_name}</h1>
+      <p>
+      Huu ni ukumbusho otomatiki kwamba mradi wako
+      "%{project_name}"
+      hauna nishani ya "mazoea bora" kwa sasa,
+      na ingizo lake la nishani halijasasishwa kwa muda.
+      </p>
+
+      <p>
+      Ingizo lako la nishani ya mazoea bora liko kwenye
+      <a href="%{project_info_url}">%{project_info_url}</a>
+      na lilisasishwa mwisho mnamo %{project_updated_at}.
+      Kwa sasa liko kwenye %{project_badge_percentage_0}% (kati ya 100%).
+      </p>
+
+      <p>
+      Tunakuhimiza kuendelea kufanya maendeleo.
+      Tafadhali tembelea ingizo lako la nishani kwenye
+      <a href="%{project_info_url}">%{project_info_url}</a>
+      kukamilisha taarifa na kupata nishani yako!
+      </p>
+
+      <p>
+      Ikiwa unataka kuona vigezo <em>pekee</em> unavyovikosa, tembelea ingizo lako la nishani,
+      chagua kifungo karibu na juu kilichoandikwa "Panua paneli zote", na
+      kisha chagua kifungo karibu na juu kilichoandikwa "Ficha vigezo vilivyokidhiwa au V/H".
+      Ikiwa una maswali, au unahitaji msaada, tafadhali wasiliana na
+      <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
+      au wasilisha suala kwenye
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
+      (bonyeza kwenye "suala jipya").
+      </p>
+
+      <p>
+      Hatutumi vikumbusho ikiwa unaendelea kusasisha ingizo lako la nishani,
+      na tunatuma vikumbusho takriban kila siku 30-60 tu. Hata hivyo,
+      ikiwa unataka kuzima ujumbe huu wa ukumbusho, hariri
+      <a href="/users/%{user_id}/edit">mipangilio ya akaunti yako ya mtumiaji</a>
+      ili kuzima "Arifa za barua pepe".
+      Mpangilio huu unatekelezwa kwa miradi yako yote.
+      Tunatumaini badala yake utaendelea kufanya kazi
+      na hatimaye utapata nishani.
+      </p>
+
+      <p>
+      Asante kwa muda wako.
+      </p>
+    reminder_body_text: |-
+      Huu ni ukumbusho otomatiki kwamba mradi wako
+      "%{project_name}"
+      hauna nishani ya "mazoea bora" kwa sasa,
+      na ingizo lake la nishani halijasasishwa kwa muda.
+
+      Ingizo lako la nishani ya mazoea bora liko kwenye
+      %{project_info_url}
+      na lilisasishwa mwisho mnamo %{project_updated_at}
+      Kwa sasa liko kwenye %{project_badge_percentage_0}% (kati ya 100%).
+
+      Tunakuhimiza kuendelea kufanya maendeleo.
+      Tafadhali tembelea ingizo lako la nishani kwenye
+      %{project_info_url}
+      kukamilisha taarifa na kupata nishani yako!
+
+      Ikiwa unataka kuona vigezo pekee unavyovikosa, tembelea ingizo lako la nishani,
+      chagua kifungo karibu na juu kilichoandikwa "Panua paneli zote", na
+      kisha chagua kifungo karibu na juu kilichoandikwa "Ficha vigezo vilivyokidhiwa au V/H".
+      Ikiwa una maswali, au unahitaji msaada, tafadhali wasiliana na
+      cii-badges-questions@lists.coreinfrastructure.org
+      au wasilisha suala kwenye
+      https://github.com/ossf/best-practices-badge/issues
+      (bonyeza kwenye "suala jipya").
+
+      Hatutumi vikumbusho ikiwa unaendelea kusasisha ingizo lako la nishani,
+      na tunatuma vikumbusho takriban kila siku 30-60 tu. Hata hivyo,
+      ikiwa unataka kuzima ujumbe huu wa ukumbusho, hariri
+      mipangilio ya akaunti yako ya mtumiaji kwenye /users/%{user_id}/edit ili kuzima "Arifa za barua pepe".
+      Mpangilio huu unatekelezwa kwa miradi yako yote.
+      Tunatumaini badala yake utaendelea kufanya kazi
+      na hatimaye utapata nishani.
+
+      Asante kwa muda wako.
+    gained_level_part1: |-
+      Hongera!
+      Kulingana na taarifa uliyotoa,
+      mradi wako umepata nishani ya mazoea bora ya OpenSSF '%{new_level}'.
+      Kwa maelezo zaidi, angalia URL hii:
+    gained_level_part2: |-
+      Tafadhali ongeza nishani yako kwenye tovuti yako ya mradi na/au hifadhi;
+      umeistahili:
+    gained_level_part3: |-
+      Tunakuhimiza sana kuongeza au kuboresha maandishi ya sababu,
+      ikijumuisha kuongeza URL zinazonyesha maelezo zaidi.
+      Ikiwa una mapendekezo ya jinsi ya kuboresha vigezo au
+      programu ya wavuti ya nishani, tafadhali wasilisha suala kwenye:
+      https://github.com/ossf/best-practices-badge/issues
+      Moja ya malengo yetu ni kuhimiza miradi kufanya maboresho.
+      Tunaweka baadhi ya ripoti hizi kwenye wiki ya umma; tafadhali tuambie
+      ikiwa HUTAKI mabadiliko yachapishwe hadharani kwenye
+      https://github.com/ossf/best-practices-badge/wiki/Impacts
+      Asante, na hongera.
+    in_markdown_add: 'Katika markdown unaweza kuongeza hii:'
+    in_html_add: 'Katika HTML unaweza kuongeza hii:'
+    lost_level_message: |-
+      Tunasikitika, lakini mradi wako hautana tena nishani ya \"%{old_level}\"
+      na sasa ni \"%{new_level}\".
+      Tafadhali angalia URL ifuatayo kwa maelezo zaidi:
+    ending: "--- David A. Wheeler, Kiongozi wa Nishani ya Mazoea Bora ya OpenSSF"
+    unsubscribe_notice_html: 'Ili kujiondoa kutoka kwa arifa hizi za barua pepe, tafadhali tembelea: <a href="%{unsubscribe_url}">%{unsubscribe_url}</a>'
+    unsubscribe_notice_text: 'Ili kujiondoa kutoka kwa arifa hizi za barua pepe, tafadhali tembelea: %{unsubscribe_url}'
+    subject_warned_level: Nishani yako ya mazoea bora inaweza kupoteza hali ya "%{old_level}"
+    warned_level_message: |-
+      Hii ni taarifa ya mapema kwamba nishani ya "%{old_level}" ya mradi wako inaweza
+      kupotea tarehe %{effective_date} wakati vigezo vilivyosasishwa vitakapoanza kutumika.
+      Tafadhali kagua ingizo lako la nishani kwenye URL ifuatayo kabla ya tarehe hiyo:
+  criteria:
+    '0':
+      description_good:
+        description: Tovuti ya mradi LAZIMA ieleze kwa ufupi programu inafanya nini (inasuluhu tatizo gani?).
+        details: Hii LAZIMA iwe katika lugha ambayo watumiaji watarajiwa wanaweza kuelewa (k.m., inatumia lugha ya kiufundi kidogo).
+        met_placeholder: "(Hiari) Wapi maelezo mafupi yapo? Fikiria kutoa URL."
+      interact:
+        description: 'Tovuti ya mradi LAZIMA itoe habari juu ya jinsi ya: kupata, kutoa maoni (kama ripoti za hitilafu au maboresho), na kuchangia kwenye programu.'
+        met_placeholder: "(Hiari) Wapi habari hii ipo? Fikiria kutoa URL."
+      floss_license:
+        description: Programu iliyozalishwa na mradi LAZIMA itolewa kama FLOSS.
+        details: 'FLOSS ni programu iliyotolewa kwa njia inayokidhi <a href="https://opensource.org/osd-annotated">Ufafanuzi wa Chanzo Wazi</a> au <a href="https://www.gnu.org/philosophy/free-sw.en.html">Ufafanuzi wa Programu Huria</a>. Mifano ya leseni kama hizo ni pamoja na <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a>, <a href="https://opensource.org/licenses/MIT">MIT</a>, <a href="https://opensource.org/licenses/BSD-2-Clause">BSD 2-clause</a>, <a href="https://opensource.org/licenses/BSD-3-Clause">BSD 3-clause revised</a>, <a href="https://opensource.org/licenses/Apache-2.0">Apache 2.0</a>, <a href="https://opensource.org/licenses/lgpl-license">Lesser GNU General Public License (LGPL)</a>, na <a href="https://opensource.org/licenses/gpl-license">GNU General Public License (GPL)</a>. Kwa madhumuni yetu, hii inamaanisha kuwa leseni LAZIMA iwe: <ul> <li><a href="https://opensource.org/licenses">leseni iliyoidhinishwa na Open Source Initiative (OSI)</a>, au</li> <li><a href="https://www.gnu.org/licenses/license-list.html">leseni huria kama ilivyoidhinishwa na Free Software Foundation (FSF)</a>, au</li> <li><a href="https://www.debian.org/legal/licenses/">leseni huria inayokubalika kwa Debian main</a>, au</li> <li><a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing">leseni "nzuri" kulingana na Fedora</a>.</li> </ul> Programu YAWEZA pia kupatiwa leseni kwa njia nyingine (k.m., "GPLv2 au ya kibinafsi" inakubaliwa).'
+      floss_license_osi:
+        description: INAPENDEKEZA kwamba leseni yoyote inayohitajika kwa programu iliyozalishwa na mradi iwe <a href="https://opensource.org/licenses">imeidhinishwa na Open Source Initiative (OSI).</a>
+        details: OSI inatumia mchakato mgumu wa uidhinishaji kuamua ni leseni zipi ni OSS.
+      license_location:
+        description: Mradi LAZIMA uweke leseni za matokeo yake mahali pa kawaida katika hazina yake ya chanzo.
+        details: 'Desturi moja ni kuweka leseni kama faili ya ngazi ya juu inayoitwa LICENSE au COPYING, ambayo YAWEZA kufuatiwa na kiendelezi kama ".txt" au ".md". Desturi mbadala ni kuwa na saraka inayoitwa LICENSES inayohifadhi faili za leseni; faili hizi kwa kawaida zinaitwa kama kitambulisho chao cha leseni ya SPDX kikifuatiwa na kiendelezi kinachofaa, kama ilivyoelezwa katika <a href="https://reuse.software/spec/">Maelezo ya REUSE</a>. Kumbuka kwamba kigezo hiki ni mahitaji tu kwenye hazina ya chanzo. Huhitaji kuingiza faili ya leseni wakati wa kuzalisha kitu kutoka kwenye msimbo wa chanzo (kama programu inayotekelezeka, kifurushi, au chombo). Kwa mfano, wakati wa kuzalisha kifurushi cha R kwa Mtandao wa Kumbukumbu Kamili wa R (CRAN), fuata mazoea ya kawaida ya CRAN: ikiwa leseni ni leseni ya kawaida, tumia maelezo mafupi ya kawaida ya leseni (ili kuepuka kusakinisha nakala nyingine ya maandishi) na orodhesha faili ya LICENSE katika faili ya kutengwa kama .Rbuildignore. Vivyo hivyo, wakati wa kuunda kifurushi cha Debian, unaweza kuweka kiungo katika faili ya hakimiliki kwa maandishi ya leseni katika /usr/share/common-licenses, na utenge faili ya leseni kutoka kwenye kifurushi kilichoundwa (k.m., kwa kufuta faili baada ya kuita dh_auto_install). Tunashauri jumuisha maelezo ya leseni yanayoweza kusomwa na mashine katika miundo iliyozalishwa mahali inapofaa.'
+      documentation_basics:
+        description: Mradi LAZIMA utoe nyaraka za msingi za programu iliyozalishwa na mradi.
+        details: 'Nyaraka hizi lazima ziwe katika vyombo fulani (kama maandishi au video) vinavyojumuisha: jinsi ya kuisakinisha, jinsi ya kuianzisha, jinsi ya kuitumia (huenda ikijumuisha mafunzo kwa kutumia mifano), na jinsi ya kuitumia kwa usalama (k.m., nini cha kufanya na nini cha kutofanya) ikiwa hiyo ni mada inayofaa kwa programu. Nyaraka za usalama lazima zisiwe ndefu. Mradi YAWEZA kutumia viungo vya hypertext kwa nyenzo zisizo za mradi kama nyaraka. Ikiwa mradi hauzalishi programu, chagua "haihusiki" (N/A).'
+        met_placeholder: "(Hiari) URL zipi ni hatua za kuanzia kwa nyaraka?"
+      documentation_interface:
+        description: Mradi LAZIMA utoe nyaraka za marejeleo zinazofafanua kiolesura cha nje (ingizo na matokeo) cha programu iliyozalishwa na mradi.
+        details: Nyaraka za kiolesura cha nje zinaeleza kwa mtumiaji wa mwisho au msanidi jinsi ya kuitumia. Hii itajumuisha kiolesura chake cha programu ya programu (API) ikiwa programu ina. Ikiwa ni maktaba, andika madarasa/aina kuu na mbinu/vitendakazi vinavyoweza kuitwa. Ikiwa ni programu ya wavuti, fafanua kiolesura chake cha URL (mara nyingi kiolesura chake cha REST). Ikiwa ni kiolesura cha mstari wa amri, andika vigezo na chaguo zinazosaidia. Katika hali nyingi ni bora ikiwa nyingi ya nyaraka hizi zinazalishwa kiotomatiki, ili nyaraka hizi zibaki zikisawazishwa na programu inavyobadilika, lakini hii haihitajiki. Mradi YAWEZA kutumia viungo vya hypertext kwa nyenzo zisizo za mradi kama nyaraka. Nyaraka ZIWEZA kuzalishwa kiotomatiki (ambapo ni vitendo hii mara nyingi ndiyo njia bora ya kufanya hivyo). Nyaraka za kiolesura cha REST zinaweza kuzalishwa kwa kutumia Swagger/OpenAPI. Nyaraka za kiolesura cha msimbo ZINAWEZA kuzalishwa kwa kutumia zana kama vile <a href="http://usejsdoc.org/">JSDoc</a> (JavaScript), <a href="https://esdoc.org/">ESDoc</a> (JavaScript), pydoc (Python), <a href="https://cran.r-project.org/web/packages/devtools/index.html">devtools</a> (R), <a href="https://cran.r-project.org/web/packages/pkgdown/index.html">pkgdown</a> (R), na Doxygen (nyingi). Kuwa na maoni tu katika msimbo wa utekelezaji haitoshi kutosheleza kigezo hiki; kunahitaji kuwa na njia rahisi ya kuona habari bila kusoma kupitia msimbo wote wa chanzo. Ikiwa mradi hauzalishi programu, chagua "haihusiki" (N/A).
+      sites_https:
+        description: Tovuti za mradi (tovuti, hifadhi, na URL za kupakua) LAZIMA zisaidie HTTPS kwa kutumia TLS.
+        details: Hii inahitaji kwamba URL ya ukurasa wa nyumbani wa mradi na URL ya hifadhi ya udhibiti wa toleo vianze na "https:", si "http:". Unaweza kupata vyeti vya bure kutoka <a href="https://letsencrypt.org/">Let's Encrypt</a>. Miradi YAWEZA kutekeleza kigezo hiki kwa kutumia (kwa mfano) <a href="https://help.github.com/articles/securing-your-github-pages-site-with-https/">GitHub pages</a>, <a href="https://about.gitlab.com/2016/12/24/were-bringing-gitlab-pages-to-community-edition/">GitLab pages</a>, au <a href="https://sourceforge.net/blog/introducing-https-for-project-websites/">SourceForge project pages</a>. Ikiwa unasaidia HTTP, tunakuhimiza uelekeze trafiki ya HTTP kwenda HTTPS.
+      discussion:
+        description: Mradi LAZIMA uwe na taratibu moja au zaidi za majadiliano (ikiwa ni pamoja na mabadiliko yaliyopendekezwa na masuala) yenye utafutaji, inaruhusu ujumbe na mada kuelekezwa kwa URL, inaruhusu watu wapya kushiriki katika baadhi ya majadiliano, na haihitaji usakinishaji wa upande wa mteja wa programu ya kibinafsi.
+        details: Mifano ya taratibu zinazokubalika ni pamoja na orodha za barua pepe zilizohifadhiwa, majadiliano ya suala la GitHub na ombi la kuvuta, Bugzilla, Mantis, na Trac. Taratibu za majadiliano yasiyo ya wakati mmoja (kama IRC) zinakubaliwa ikiwa zinakidhi vigezo hivi; hakikisha kuna utaratibu wa kuhifadhi unaoelekezwa kwa URL. JavaScript ya kibinafsi, ingawa haikubalika, inaruhusiwa.
+      english:
+        description: Mradi UNAPASWA kutoa nyaraka kwa Kiingereza na uweze kukubali ripoti za hitilafu na maoni kuhusu msimbo kwa Kiingereza.
+        details: Kiingereza kwa sasa ni <a href="https://en.wikipedia.org/wiki/Lingua_franca">lingua franca</a> ya teknolojia ya kompyuta; kusaidia Kiingereza huongeza idadi ya wasanidi na wakaguzi tofauti wa uwezekano duniani kote. Mradi unaweza kukidhi kigezo hiki hata ikiwa lugha ya msingi ya wasanidi wake wakuu si Kiingereza.
+      maintained:
+        description: Mradi LAZIMA utunzwe.
+        details: Kama kiwango cha chini, mradi unapaswa kujaribu kujibu ripoti za tatizo muhimu na udhaifu. Mradi unaofuata kwa bidii nishani pengine unatengenezwa. Miradi yote na watu wana rasilimali zilizowekewa mipaka, na miradi ya kawaida lazima ikatae baadhi ya mabadiliko yaliyopendekezwa, hivyo rasilimali zilizowekewa mipaka na kukataa mapendekezo sio ishara ya mradi usiotekelezwa. <br><br> Mradi unapojua kwamba hautatengenezwa tena, unapaswa kuweka kigezo hiki kama "Haikidhi" na utumie utaratibu sahihi ili kuwaonyesha wengine kwamba hautengenezwi. Kwa mfano, tumia "DEPRECATED" kama kichwa cha kwanza cha README yake, ongeza "DEPRECATED" karibu na mwanzo wa ukurasa wake wa nyumbani, ongeza "DEPRECATED" mwanzoni mwa maelezo ya mradi wa hifadhi ya msimbo, ongeza <a href="https://unmaintained.tech/">nishani isiyolindwa</a> katika README yake na/au ukurasa wa nyumbani, iweke kama iliyolemewa katika hifadhi yoyote ya kifurushi (k.m., <a href="https://docs.npmjs.com/deprecating-and-undeprecating-packages-or-package-versions">npm deprecate</a>), na/au utumie mfumo wa alama wa hifadhi ya msimbo ili kuihifadhi (k.m., mpangilio wa <a href="https://docs.github.com/en/enterprise-server@2.21/github/creating-cloning-and-archiving-repositories/archiving-a-github-repository">"archive" wa GitHub</a>, alama ya <a href="https://docs.gitlab.com/ee/user/project/settings/#archiving-a-project">"archived" ya GitLab</a>, hali ya "readonly" ya Gerrit, au hali ya mradi wa "abandoned" wa SourceForge). Majadiliano ya ziada yanaweza kupatikana <a href="https://medium.com/maintainer-io/how-to-deprecate-a-repository-on-github-8f0ceb9155e">hapa</a>.
+      repo_public:
+        description: Mradi LAZIMA uwe na hifadhi ya chanzo ya kudhibiti toleo ambayo inaweza kusomwa hadharani na ina URL.
+        details: URL YAWEZA kuwa sawa na URL ya mradi. Mradi YAWEZA kutumia matawi ya faragha (yasiyo ya umma) katika hali maalum wakati mabadiliko hayajatolewa hadharani (k.m., kwa kurekebisha udhaifu kabla haujafichuliwa kwa umma).
+      repo_track:
+        description: Hifadhi ya chanzo ya mradi LAZIMA ifuatilie mabadiliko yaliyofanywa, nani alifanya mabadiliko, na mabadiliko yalifanywa lini.
+      repo_interim:
+        description: Ili kuwezesha ukaguzi wa ushirikiano, hifadhi ya chanzo ya mradi LAZIMA ijumuishe matoleo ya kati kwa ukaguzi kati ya matoleo; HAIPASWA kujumuisha matoleo ya mwisho tu.
+        details: Miradi YAWEZA kuchagua kuondoa matoleo maalum ya kati kutoka hifadhi zao za chanzo za umma (k.m., zile zinazorekebi udhaifu maalum usiokuwa wa umma, huenda zisitolewe hadharani, au zijumuishe nyenzo ambazo haziwezi kuwekwa kisheria na haziko katika toleo la mwisho).
+      repo_distributed:
+        description: INASHAURIWA kwamba programu ya kawaida ya udhibiti wa toleo iliyosambazwa itumike (k.m., git) kwa hifadhi ya chanzo ya mradi.
+        details: Git haihitajiki kihususa na miradi inaweza kutumia programu ya udhibiti wa toleo iliyokusanyika (kama subversion) na sababu.
+      version_unique:
+        description: Matokeo ya mradi LAZIMA yawe na kitambulisho cha kipekee cha toleo kwa kila toleo linalokusudiwa kutumiwa na watumiaji.
+        details: Hii YAWEZA kukidhi kwa njia mbalimbali ikiwa ni pamoja na vitambulisho vya kuwasilisha (kama kitambulisho cha kuwasilisha cha git au kitambulisho cha seti ya mabadiliko cha mercurial) au nambari ya toleo (ikiwa ni pamoja na nambari za toleo zinazotumia uainishaji wa maana au mipango ya tarehe kama YYYYMMDD).
+      version_semver:
+        description: INASHAURIWA kwamba muundo wa nambari ya toleo ya <a href="https://semver.org">Semantic Versioning (SemVer)</a> au <a href="https://calver.org/">Calendar Versioning (CalVer)</a> itumike kwa matoleo. INASHAURIWA kwamba wale wanaotumia CalVer wajumuishe thamani ya kiwango cha mdogo.
+        details: Miradi kwa ujumla inapaswa kupendelea muundo wowote unaotarajiwa na watumiaji wao, k.m., kwa sababu ni muundo wa kawaida unaotumiwa na ikolojia yao. Ikolojia nyingi zinapendelea SemVer, na SemVer kwa ujumla hupendelewa kwa kiolesura cha programu ya programu (API) na zana za maendeleo ya programu (SDK). CalVer hutumiwa na miradi ambayo ni kubwa, ina idadi kubwa ya utegemezi ulioundwa kwa uhuru, ina upeo wa mara kwa mara unaobadilika, au ni ya muda muhimu. INASHAURIWA kwamba wale wanaotumia CalVer wajumuishe thamani ya kiwango cha mdogo, kwa sababu kujumuisha kiwango cha mdogo kunasaidia matawi yaliyotunzwa kwa wakati mmoja wakati wowote hilo linakuwa lazima. Miundo mingine ya nambari ya toleo inaweza kutumiwa kama nambari za toleo, ikiwa ni pamoja na vitambulisho vya kuwasilisha cha git au vitambulisho vya seti ya mabadiliko cha mercurial, mradi tu vikitambulisha matoleo kwa kipekee. Hata hivyo, baadhi ya mbadala (kama vitambulisho vya kuwasilisha cha git) vinaweza kusababisha matatizo kama vitambulisho vya toleo, kwa sababu watumiaji huenda wasiwe na uwezo wa kuamua kwa urahisi ikiwa wako na toleo la hivi karibuni. Muundo wa kitambulisho cha toleo unaweza kutokuwa wa maana kwa kutambulisha matoleo ya programu ikiwa wapokeaji wote wanaendesha toleo la hivi karibuni tu (k.m., ni msimbo wa tovuti moja au huduma ya mtandao ambayo inasasishwa mara kwa mara kupitia utoaji wa kuendelea).
+      version_tags:
+        description: INASHAURIWA kwamba miradi itambulishe kila toleo ndani ya mfumo wao wa udhibiti wa toleo. Kwa mfano, INASHAURIWA kwamba wale wanaotumia git watambulishe kila toleo kwa kutumia lebo za git.
+      release_notes:
+        description: Mradi LAZIMA utoe, katika kila toleo, maelezo ya toleo ambayo ni muhtasari unaosomeka na binadamu wa mabadiliko makuu katika toleo hilo ili kuwasaidia watumiaji kuamua ikiwa wanapaswa kusasisha na athari ya kusasisha itakuwa nini. Maelezo ya toleo LAZIMA yasiwe matokeo ghafi ya kumbukumbu ya udhibiti wa toleo (k.m., matokeo ya amri ya "git log" si maelezo ya toleo). Miradi ambayo matokeo yake hayakusudiwa kutumika tena katika maeneo mengi (kama programu kwa tovuti moja au huduma) NA wanaotumia utoaji wa kuendelea WAWEZA kuchagua "N/A".
+        details: Maelezo ya toleo YAWEZA kutekelezwa kwa njia mbalimbali. Miradi mingi hutoa katika faili inayoitwa "NEWS", "CHANGELOG", au "ChangeLog", kwa hiari na viendelezi kama ".txt", ".md", au ".html". Kihistoria neno "change log" lilimaanisha kumbukumbu ya <em>kila</em> mabadiliko, lakini ili kukidhi vigezo hivi kinachohitajika ni muhtasari unaosomeka na binadamu. Maelezo ya toleo YAWEZA badala yake kutolewa na taratibu za mfumo wa udhibiti wa toleo kama <a href="https://github.com/blog/1547-release-your-software">mtiririko wa Matoleo ya GitHub</a>.
+      release_notes_vulns:
+        description: Maelezo ya toleo LAZIMA yatambulishe kila udhaifu wa muda wa kutekeleza uliojulikana hadharani uliorekebishwa katika toleo hili ambao tayari ulikuwa na mgawanyo wa CVE au sawa wakati toleo lilipobuniwa. Kigezo hiki kinaweza kuwekwa alama kama haihusiki (N/A) ikiwa watumiaji kwa kawaida hawawezi kwa vitendo kusasisha programu wao wenyewe (k.m., kama inavyokuwa kweli mara nyingi kwa masasisho ya kernel). Kigezo hiki kinatumika tu kwa matokeo ya mradi, si kwa utegemezi wake. Ikiwa hakuna maelezo ya toleo au hakujawa na udhaifu uliojulikana hadharani, chagua N/A.
+        details: Kigezo hiki kinawasaidia watumiaji kuamua ikiwa sasisho fulani litarekebisha udhaifu ambao unajulikana hadharani, ili kuwasaidia watumiaji kufanya uamuzi wa habari kuhusu kusasisha. Ikiwa watumiaji kwa kawaida hawawezi kwa vitendo kusasisha programu wao wenyewe kwenye kompyuta zao, lakini badala yake lazima wategemee wapatanishi mmoja au zaidi kutekeleza sasisho (kama inavyokuwa mara nyingi kwa kernel na programu ya kiwango cha chini ambayo imefungwa na kernel), mradi unaweza kuchagua "haihusiki" (N/A) badala yake, kwani habari hii ya ziada haitakuwa ya msaada kwa watumiaji hao. Vivyo hivyo, mradi unaweza kuchagua N/A ikiwa wapokeaji wote wanaendesha toleo la hivi karibuni tu (k.m., ni msimbo wa tovuti moja au huduma ya mtandao ambayo inasasishwa mara kwa mara kupitia utoaji wa kuendelea). Kigezo hiki kinatumika tu kwa matokeo ya mradi, si kwa utegemezi wake. Kuorodhesha udhaifu wa utegemezi wote wa mpito wa mradi unakuwa mgumu kadiri utegemezi unavyoongezeka na kutofautiana, na haihitajiki kwani zana zinazochunguza na kufuatilia utegemezi zinaweza kufanya hivi kwa njia inayopanuka.
+      report_process:
+        description: Mradi LAZIMA utoe mchakato kwa watumiaji kuwasilisha ripoti za hitilafu (k.m., kwa kutumia kifuatiliaji cha masuala au orodha ya barua pepe).
+      report_tracker:
+        description: Mradi UNAPASWA kutumia kifuatiliaji cha masuala kwa kufuatilia masuala ya mtu binafsi.
+        unmet_placeholder: Kwa nini hakuna kifuatiliaji cha masuala?
+      report_responses:
+        description: Mradi LAZIMA uthibitishe wengi wa ripoti za hitilafu zilizowasilishwa katika miezi 2-12 iliyopita (ikiwemo); jibu halihitaji kuwa na marekebisho.
+      enhancement_responses:
+        description: Mradi UNAPASWA kujibu wengi (&gt;50%) wa maombi ya maboresho katika miezi 2-12 iliyopita (ikiwemo).
+        details: Jibu LIWEZA kuwa 'hapana' au majadiliano kuhusu manufaa yake. Lengo ni kwamba kuwe na jibu fulani kwa baadhi ya maombi, ambayo inaonyesha kwamba mradi bado unaishi. Kwa madhumuni ya kigezo hiki, miradi haihitaji kuhesabu maombi ya bandia (k.m., kutoka kwa wafanyabiashara haramu au mifumo ya kiotomatiki). Ikiwa mradi hauendelei kufanya maboresho tena, tafadhali chagua "haijatimizwa" na jumuisha URL inayofanya hali hii kuwa wazi kwa watumiaji. Ikiwa mradi huwa na msongo wa maombi ya maboresho, tafadhali chagua "haijatimizwa" na eleza.
+      report_archive:
+        description: Mradi LAZIMA uwe na kumbukumbu inayopatikana hadharani kwa ripoti na majibu kwa utaftaji wa baadaye.
+      vulnerability_report_process:
+        description: Mradi LAZIMA uchapishe mchakato wa kuripoti udhaifu kwenye tovuti ya mradi.
+        details: Miradi iliyohifadhiwa kwenye GitHub INAPASWA kuzingatia <a href="https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability">kuwezesha kuripoti udhaifu wa usalama kwa faragha</a>. Miradi kwenye GitLab INAPASWA kuzingatia kutumia uwezo wake wa <a href="https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability">kuripoti udhaifu kwa faragha</a>. Miradi YAWEZA kutambulisha anwani ya barua pepe kwenye https://PROJECTSITE/security, mara nyingi katika muundo wa security@example.org. Mchakato huu wa kuripoti udhaifu UWEZA kuwa sawa na mchakato wake wa kuripoti hitilafu. Ripoti za udhaifu ZIWEZA kuwa za umma kila wakati, lakini miradi mingi ina utaratibu wa kuripoti udhaifu wa faragha.
+      vulnerability_report_private:
+        description: Ikiwa ripoti za udhaifu wa faragha zinasaidiwa, mradi LAZIMA ujumuishe jinsi ya kutuma habari kwa njia ambayo inawekwa faragha.
+        details: Mifano ni pamoja na ripoti ya kasoro ya faragha iliyowasilishwa kwenye wavuti kwa kutumia HTTPS (TLS) au barua pepe iliyosimbwa kwa kutumia OpenPGP. Ikiwa ripoti za udhaifu ni za umma kila wakati (kwa hiyo hakuna ripoti za udhaifu za faragha), chagua "haihusiki" (N/A).
+      vulnerability_report_response:
+        description: Muda wa majibu ya awali ya mradi kwa ripoti yoyote ya udhaifu iliyopokelewa katika miezi 6 iliyopita LAZIMA uwe chini ya au sawa na siku 14.
+        details: Ikiwa hakujawa na udhaifu ulioripotiwa katika miezi 6 iliyopita, chagua "haihusiki" (N/A).
+      test:
+        description: Mradi LAZIMA utumie angalau seti moja ya majaribio ya kiotomatiki ambayo imetolewa hadharani kama FLOSS (seti hii ya majaribio inaweza kutunzwa kama mradi tofauti wa FLOSS). Mradi LAZIMA uonyeshe wazi au uandike jinsi ya kuendesha seti za majaribio (k.m., kupitia hati ya uingizaji wa kuendelea (CI) au kupitia nyaraka katika faili kama BUILD.md, README.md, au CONTRIBUTING.md).
+        details: Mradi YAWEZA kutumia seti nyingi za majaribio ya kiotomatiki (k.m., moja inayoendesha haraka, dhidi ya nyingine ambayo ni ya kina zaidi lakini inahitaji vifaa maalum). Kuna mifumo mingi ya majaribio na mifumo ya kusaidia majaribio inayopatikana, ikiwemo <a href="https://www.seleniumhq.org/">Selenium</a> (uendeshaji kiotomatiki wa kivinjari cha wavuti), <a href="https://junit.org">Junit</a> (JVM, Java), <a href="https://CRAN.R-project.org/package=RUnit">RUnit</a> (R), <a href="https://cran.r-project.org/web/packages/testthat/index.html">testthat</a> (R).
+      test_invocation:
+        description: Seti ya majaribio INAPASWA kuwa inaweza kuitwa kwa njia ya kawaida kwa lugha hiyo.
+        details: Kwa mfano, "make check", "mvn test", au "rake test" (Ruby).
+      test_most:
+        description: INAPENDEKEZWA kwamba seti ya majaribio ifuate wengi (au kwa kawaida wote) matawi ya msimbo, sehemu za kuingiza, na utendakazi.
+      test_continuous_integration:
+        description: INAPENDEKEZWA kwamba mradi utekeleze ujumuishaji wendeleo (ambapo msimbo mpya au uliobadiishwa unajumuishwa mara kwa mara katika hifadhi ya msimbo ya kati na majaribio otomatiki hufanyika kwenye matokeo).
+      test_policy:
+        description: Mradi LAZIMA uwe na sera ya jumla (rasmi au la) kwamba utendakazi mkubwa mpya unavyoongezwa kwenye programu inayotengenezwa na mradi, majaribio ya utendakazi huo unapaswa kuongezwa kwenye seti ya majaribio otomatiki.
+        details: Mradi uwe na sera tu, hata kwa maneno ya mdomo, inayosema wasanidi programu wanapaswa kuongeza majaribio kwenye seti ya majaribio otomatiki kwa utendakazi mkubwa mpya, chagua "Kukidhi."
+      tests_are_added:
+        description: Mradi LAZIMA uwe na ushahidi kwamba <a href="#test_policy">test_policy</a> ya kuongeza majaribio imefuatwa katika mabadiliko makubwa ya hivi karibuni kwenye programu inayotengenezwa na mradi.
+        details: Utendakazi mkubwa kawaida ungetajwa katika maelezo ya toleo. Ukamilifu hauhitajiki, ni ushahidi tu kwamba majaribio kawaida huongezwa kimakosa kwenye seti ya majaribio otomatiki utendakazi mkubwa mpya unavyoongezwa kwenye programu inayotengenezwa na mradi.
+      tests_documented_added:
+        description: INAPENDEKEZWA kwamba sera hii ya kuongeza majaribio (angalia <a href="#test_policy">test_policy</a>) iwe <em>imeandikwa</em> katika maelekezo ya mapendekezo ya mabadiliko.
+        details: Hata hivyo, hata sheria isiyo rasmi inakubaliwa mradi majaribio yaongezwe kimakosa.
+      warnings:
+        description: Mradi LAZIMA uwashe bendera moja au zaidi za onyo la mkusanyaji, hali ya lugha "salama", au tumia zana tofauti ya "linter" kutafuta makosa ya ubora wa msimbo au makosa rahisi ya kawaida, ikiwa kuna angalau zana moja ya FLOSS inaweza kutekeleza kigezo hiki katika lugha iliyochaguliwa.
+        details: Mifano ya bendera za onyo la mkusanyaji ni pamoja na gcc/clang "-Wall". Mifano ya hali ya lugha "salama" ni pamoja na JavaScript "use strict" na perl5's "use warnings". Zana tofauti ya "linter" ni zana tu inayoangalia msimbo wa chanzo kutafuta makosa ya ubora wa msimbo au makosa rahisi ya kawaida. Hizi kawaida huwashwa ndani ya msimbo wa chanzo au maelekezo ya ujenzi.
+      warnings_fixed:
+        description: Mradi LAZIMA ukabiliane na maonyo.
+        details: Haya ni maonyo yaliyotambuliwa na utekelezaji wa kigezo cha <a href="#warnings">warnings</a>. Mradi unapaswa kurekebisha maonyo au kuyaweka alama katika msimbo wa chanzo kama hasi za uwongo. Kwa kawaida pasingeweza kuwa na maonyo, lakini mradi YAWEZA kukubali baadhi ya maonyo (kawaida chini ya onyo 1 kwa mistari 100 au chini ya maonyo 10).
+      warnings_strict:
+        description: INAPENDEKEZWA kwamba miradi iwe na ukali mkubwa sana na maonyo katika programu inayotengenezwa na mradi, ambapo ni ya vitendo.
+        details: Baadhi ya maonyo hayawezi kuwashwa kwa ufanisi kwenye miradi fulani. Kinachohitajika ni ushahidi kwamba mradi unajitahidi kuwasha bendera za onyo ambapo inaweza, ili makosa yagundulika mapema.
+      know_secure_design:
+        description: Mradi LAZIMA uwe na angalau msanidi mmoja mkuu anayejua jinsi ya kuunda programu salama. (Angalia 'maelezo' kwa mahitaji halisi.)
+        details: 'Hii inahitaji kuelewa kanuni zifuatazo za muundo, ikiwa ni pamoja na kanuni 8 kutoka <a href="https://web.mit.edu/Saltzer/www/publications/protection/">Saltzer na Schroeder</a>: <ul> <li>uchumi wa utaratibu (weka muundo kuwa rahisi na mdogo iwezekanavyo, k.m., kwa kupitisha urahisishaji wa kufunga) <li>mipangilio ya kuzuia makosa (maamuzi ya kuingia yanapaswa kukataa kwa chaguo-msingi, na usakinishaji wa miradi unapaswa kuwa salama kwa chaguo-msingi) <li>kikuu cha kati kikamilifu (kuingia kote kunaweza kuwekwa kikomo lazima kufanyiwa ukaguzi wa mamlaka na kutowezesha kuvukwa) <li>muundo wazi (taratibu za usalama hazipaswi kutegemea ujinga wa mshambuliaji wa muundo wake, lakini badala yake kwenye habari iliyolindwa na kubadilishwa kwa urahisi kama funguo na nywila) <li>kutenganisha kwa upendeleo (kwa kawaida, ufikiaji kwa vitu muhimu unapaswa kutegemea zaidi ya sharti moja, ili kushinda mfumo mmoja wa ulinzi hautawasha ufikiaji kamili. K.m., uthibitishaji wa vipengele vingi, kama vile kuhitaji nywila na ishara za vifaa, ni imara zaidi kuliko uthibitishaji wa kipengele kimoja) <li>upendeleo mdogo zaidi (michakato inapaswa kufanya kazi na upendeleo mdogo zaidi unaohitajika) <li>utaratibu wa kawaida mdogo zaidi (muundo unapaswa kupunguza utaratibu wa kawaida kwa zaidi ya mtumiaji mmoja na kutegemewa na watumiaji wote, k.m., saraka za mafaili ya muda) <li>kukubalika kwa kisaikolojia (kiolesura cha binadamu lazima kiwe kimeundwa kwa urahisi wa matumizi - kuunda kwa "mshangao mdogo" kunaweza kusaidia) <li>uso wa shambulio uliowekewa mipaka (uso wa shambulio - seti ya sehemu tofauti ambapo mshambuliaji anaweza kujaribu kuingia au kutoa data - unapaswa kuwekwa mipaka) <li>uthibitishaji wa ingizo na orodha zinazokubalika (pembejeo kawaida zinapaswa kuangaliwa ili kuamua kama ni halali kabla ya kukubalika; uthibitishaji huu unapaswa kutumia orodha zinazokubalika (zinazokubali tu thamani zinazojulikana-nzuri), siyo orodha zinazokana (zinaozojaribu kuorodhesha thamani zinazojulikana-mbaya)). </ul> "Msanidi mkuu" katika mradi ni mtu yeyote ambaye anajua msingi wa msimbo wa mradi, ana faraja kufanya mabadiliko kwake, na anatambuliwa hivyo na washiriki wengine wengi katika mradi. Msanidi mkuu kawaida atafanya michango mingi kwa mwaka uliopita (kupitia msimbo, nyaraka, au kujibu maswali). Wasanidi kawaida wangeweza kuchukuliwa wasanidi wakuu ikiwa walianzisha mradi (na hawajatoka kwenye mradi zaidi ya miaka mitatu iliyopita), wana chaguo la kupokea habari kwenye kituo cha kuripoti udhaifu wa kibinafsi (ikiwa kuna), wanaweza kukubali ahadi kwa niaba ya mradi, au kufanya matoleo ya mwisho ya programu ya mradi. Ikiwa kuna msanidi mmoja tu, mtu huyo ndiye msanidi mkuu. Vitabu vingi na kozi zinapatikana kukusaidia kuelewa jinsi ya kuunda programu salama zaidi na kujadili muundo. Kwa mfano, kozi ya <a href="https://openssf.org/edx-courses/">Misingi ya Maendeleo ya Programu Salama</a> ni seti huru ya kozi tatu zinazoeleza jinsi ya kuunda programu salama zaidi (ni bure ukiifanyia ukaguzi; kwa ada ya ziada unaweza kupata cheti kuthibitisha ulijifunza nyenzo).'
+      know_common_errors:
+        description: Angalau mmoja wa wasanidi wakuu wa mradi LAZIMA wajue aina za kawaida za makosa ambayo husababisha udhaifu katika aina hii ya programu, pamoja na angalau mbinu moja ya kukabiliana au kupunguza kila moja.
+        details: Mifano (kulingana na aina ya programu) ni pamoja na uvamizi wa SQL, uvamizi wa OS, mtiririko wa kipengele cha kawaida, uandishi wa tovuti-tofauti, uthibitishaji unaokosekana, na uidhinishaji unaokosekana. Angalia <a href="https://cwe.mitre.org/top25/">CWE/SANS top 25</a> au <a href="https://www.owasp.org/index.php/Category:OWASP_Top_Ten_Project">OWASP Top 10</a> kwa orodha zinazotumika kawaida. Vitabu vingi na kozi zinapatikana kukusaidia kuelewa jinsi ya kuunda programu salama zaidi na kujadili makosa ya kawaida ya utekelezaji ambayo husababisha udhaifu. Kwa mfano, kozi ya <a href="https://openssf.org/edx-courses/">Misingi ya Maendeleo ya Programu Salama</a> ni seti huru ya kozi tatu zinazoeleza jinsi ya kuunda programu salama zaidi (ni bure ukiifanyia ukaguzi; kwa ada ya ziada unaweza kupata cheti kuthibitisha ulijifunza nyenzo).
+      crypto_working:
+        description: Mifumo ya usalama ya chaguo-msingi ndani ya programu inayozalishwa na mradi LAZIMA ISITEGEMEE algoriti zilizovunjika za kriptologia (k.m., MD4, MD5, DES moja, RC4, Dual_EC_DRBG), au kutumia hali za cipher ambazo si sahihi kwa muktadha, isipokuwa ni muhimu kutekeleza itifaki inayoweza kushirikiana (ambapo itifaki iliyotekelezwa ni toleo la hivi karibuni zaidi la kiwango hicho kinachotegemeana sana na mfumo wa mtandao, mfumo huo unahitaji matumizi ya algoriti au hali hiyo, na mfumo huo haupatii chaguo lolote salama zaidi). Nyaraka LAZIMA zieleze hatari zozote za usalama husika na upungufu wowote unaojulikana ikiwa algoriti hizi zilizovunjika au hali ni muhimu kwa itifaki inayoweza kushirikiana.
+        details: Hali ya ECB ni karibu kamwe haifai kwa sababu inaonyesha block zinazofanana ndani ya ciphertext kama ilivyoonyeshwa na <a href="https://blog.filippo.io/the-ecb-penguin/">penguin wa ECB</a>, na hali ya CTR mara nyingi si sahihi kwa sababu haifanyi uthibitishaji na husababisha nakala ikiwa hali ya ingizo inarudiwa. Katika hali nyingi ni bora kuchagua hali ya algoriti ya block cipher iliyoundwa kuchanganya siri na uthibitishaji, k.m., Galois/Counter Mode (GCM) na EAX. Miradi YAWEZA kuwaruhusu watumiaji kuwasha taratibu zilizovunjika (k.m., wakati wa usanidi) ambapo ni muhimu kwa upatanifu, lakini hapo watumiaji wanajua wanafanya hivyo.
+      crypto_weaknesses:
+        description: Mifumo ya usalama ya chaguo-msingi ndani ya programu inayozalishwa na mradi INAPASWA ISITEGEMEE algoriti za kriptologia au hali zenye udhaifu mkubwa unaojulikana (k.m., algoriti ya hash ya kriptologia ya SHA-1 au hali ya CBC katika SSH).
+        details: 'Wasiwasi kuhusu hali ya CBC katika SSH unajadiliwa katika <a href="https://www.kb.cert.org/vuls/id/958563">CERT: SSH CBC vulnerability</a>.'
+      crypto_random:
+        details: Kitengeneza cha nambari za bahati nasibu za kriptologia salama kinaweza kuwa kitengeneza cha nambari za bahati nasibu za vifaa, au kinaweza kuwa kitengeneza cha nambari za bahati nasibu za kriptologia salama (CSPRNG) kwa kutumia algoriti kama vile Hash_DRBG, HMAC_DRBG, CTR_DRBG, Yarrow, au Fortuna. Mifano ya simu kwa vitengeneza cha nambari za bahati nasibu <em>salama</em> ni pamoja na java.security.SecureRandom ya Java na window.crypto.getRandomValues ya JavaScript. Mifano ya simu kwa vitengeneza cha nambari za bahati nasibu <em>zisizo salama</em> ni pamoja na java.util.Random ya Java na Math.random ya JavaScript.
+      delivery_mitm:
+        description: Mradi LAZIMA utumie utaratibu wa utoaji ambao unakabiliana na mashambulizi ya MITM. Kutumia https au ssh+scp ni inakubaliwa.
+        details: Utaratibu wenye nguvu zaidi ni kutoa programu na vifurushi vilivyosainiwa kidigitali, kwa kuwa hiyo inapunguza mashambulizi kwenye mfumo wa usambazaji, lakini hii inafanya kazi tu ikiwa watumiaji wanaweza kuwa na uhakika kwamba funguo za umma kwa saini ni sahihi <em>na</em> ikiwa watumiaji watakagua saini kweli kweli.
+      delivery_unsigned:
+        description: Hash ya kriptologia (k.m., sha1sum) LAZIMA ISICHUKULIWE kupitia http na kutumika bila kuangalia saini ya kriptologia.
+        details: Hash hizi zinaweza kurekebishwa wakati wa usafiri.
+      vulnerabilities_fixed_60_days:
+        description: LAZIMA kuwe hakuna udhaifu usiorekebishwa wa kiwango cha kati au juu zaidi ambao umejulikana hadharani kwa zaidi ya siku 60.
+        details: 'Udhaifu lazima urekebishwe na kutolewa na mradi wenyewe (rekebisho zinaweza kutengenezwa mahali pengine). Udhaifu unakuwa unajulikana hadharani (kwa kusudi hili) mara tu unapata CVE yenye taarifa zilizotolewa hadharani zisizolipwa (zilizoripotiwa, kwa mfano, katika <a href="https://nvd.nist.gov/">Hifadhidata ya Taifa ya Udhaifu</a>) au wakati mradi umefahamishwa na taarifa imetolewa kwa umma (labda na mradi). Udhaifu unazingatiwa kuwa wa kiwango cha kati au juu ikiwa alama yake ya <a href="https://www.first.org/cvss/">Common Vulnerability Scoring System (CVSS)</a> ya msingi ya ubora ni kati au juu. Katika matoleo ya CVSS 2.0 hadi 3.1, hii ni sawa na alama ya CVSS ya 4.0 au zaidi. Miradi inaweza kutumia alama ya CVSS kama ilivyochapishwa katika hifadhidata ya udhaifu inayotumika sana (kama vile <a href="https://nvd.nist.gov">Hifadhidata ya Taifa ya Udhaifu</a>) kwa kutumia toleo la hivi karibuni la CVSS lililoripotiwa katika hifadhidata hiyo. Miradi badala yake inaweza kuhesabu ukali wao wenyewe kwa kutumia toleo la hivi karibuni la <a href="https://www.first.org/cvss/">CVSS</a> wakati wa ufunuzi wa udhaifu, ikiwa ingizo la hesabu linatangazwa hadharani mara tu udhaifu unajulikana hadharani. <strong>Kumbuka</strong>: hii inamaanisha kwamba watumiaji wanaweza kuachwa katika hatari kwa washambuliaji wote duniani kwa siku hadi 60. Kigezo hiki ni rahisi zaidi kukidhi kuliko yale Google inapendekeza katika <a href="https://security.googleblog.com/2010/07/rebooting-responsible-disclosure-focus.html">Rebooting responsible disclosure</a>, kwa sababu Google inapendekeza kwamba kipindi cha siku 60 kianze wakati mradi unafahamishwa <em>hata</em> ikiwa ripoti si ya umma. Pia kumbuka kwamba kigezo hiki cha nishani, kama vigezo vingine, kinatumika kwa mradi wa mtu binafsi. Baadhi ya miradi ni sehemu ya mashirika makubwa ya mwavuli au miradi mikubwa, labda katika safu nyingi, na miradi mingi inatoa matokeo yao kwa mashirika mengine na miradi kama sehemu ya mnyororo wa usambazaji wenye utata. Mradi wa mtu binafsi mara nyingi hauwezi kudhibiti wengine, lakini mradi wa mtu binafsi unaweza kufanya kazi kutoa rekebisho ya udhaifu kwa wakati. Kwa hiyo, tunazingatia tu muda wa jibu wa mradi wa mtu binafsi. Mara tu rekebisho inapatikana kutoka kwa mradi wa mtu binafsi, wengine wanaweza kuamua jinsi ya kushughulikia rekebisho (k.m., wanaweza kusasisha kwenye toleo jipya au wanaweza kutumia rekebisho tu kama suluhisho lililochaguliwa-cherry).'
+      vulnerabilities_critical_fixed:
+        description: Miradi INAPASWA kurekebisha udhaifu wote muhimu haraka baada ya kuripotiwa.
+      no_leaked_credentials:
+        description: Hazina za umma LAZIMA ZISIVUJE uthibitisho halali wa faragha (k.m., nywila inayofanya kazi au funguo ya faragha) ambayo imekusudiwa kupunguza upatikanaji wa umma.
+        details: Mradi UNAWEZA kuvuja uthibitisho wa "sampuli" kwa majaribio na hifadhidata zisizo muhimu, mradi tu hazikusudiwa kupunguza upatikanaji wa umma.
+      static_analysis:
+        description: Angalau zana moja ya uchambuzi wa msimbo tuli (zaidi ya maonyo ya mkusanyaji na hali za lugha "salama") LAZIMA itumike kwa toleo lolote lililopendekezwa kubwa la uzalishaji wa programu kabla ya toleo lake, ikiwa kuna angalau zana moja ya FLOSS inayotekeleza kigezo hiki katika lugha iliyochaguliwa.
+        details: Zana ya uchambuzi wa msimbo tuli inachunguza msimbo wa programu (kama msimbo wa chanzo, msimbo wa kati, au utekelezaji) bila kuutekeleza na ingizo maalum. Kwa madhumuni ya kigezo hiki, maonyo ya mkusanyaji na hali za lugha "salama" hazihesabiwi kama zana za uchambuzi wa msimbo tuli (hizi kwa kawaida huepuka uchambuzi wa kina kwa sababu kasi ni muhimu). Baadhi ya zana za uchambuzi wa msimbo tuli zinazingatia kugundua hitilafu za jumla, nyingine zinazingatia kupata aina fulani za hitilafu (kama vile udhaifu), na baadhi hufanya mchanganyiko. Mifano ya zana hizo za uchambuzi wa msimbo tuli ni pamoja na <a href="http://cppcheck.sourceforge.net/">cppcheck</a> (C, C++), <a href="https://clang-analyzer.llvm.org/">clang static analyzer</a> (C, C++), <a href="https://spotbugs.github.io/">SpotBugs</a> (Java), <a href="http://findbugs.sourceforge.net/">FindBugs</a> (Java) (ikiwa ni pamoja na <a href="https://h3xstream.github.io/find-sec-bugs/">FindSecurityBugs</a>), <a href="https://pmd.github.io/">PMD</a> (Java), <a href="https://brakemanscanner.org/">Brakeman</a> (Ruby on Rails), <a href="https://cran.r-project.org/web/packages/lintr/index.html">lintr</a> (R), <a href="https://cran.r-project.org/web/packages/goodpractice/index.html">goodpractice</a> (R), <a href="https://scan.coverity.com/">Coverity Quality Analyzer</a>, <a href="https://www.sonarqube.org/">SonarQube</a>, <a href="https://www.codacy.com/">Codacy</a>, na <a href="https://saas.hpe.com/en-us/software/sca">HP Enterprise Fortify Static Code Analyzer</a>. Orodha kubwa za zana zinaweza kupatikana katika maeneo kama vile <a href="https://en.wikipedia.org/wiki/List_of_tools_for_static_code_analysis">orodha ya Wikipedia ya zana za uchambuzi wa msimbo tuli</a>, <a href="https://www.owasp.org/index.php/Static_Code_Analysis">taarifa za OWASP kuhusu uchambuzi wa msimbo tuli</a>, <a href="https://samate.nist.gov/index.php/Source_Code_Security_Analyzers.html">orodha ya NIST ya vichambua usalama wa msimbo wa chanzo</a>, na <a href="https://www.dwheeler.com/essays/static-analysis-tools.html">orodha ya Wheeler ya zana za uchambuzi tuli</a>. Ikiwa hakuna zana za uchambuzi tuli za FLOSS zinazopatikana kwa lugha za utekelezaji zilizotumika, unaweza kuchagua 'N/A'.
+        na_placeholder: Kwa nini hii haiwezi kukidhi (k.m., hakuna zana za FLOSS zinazopatikana kwa lugha hiyo)?
+        met_placeholder: Ni zana zipi za uchambuzi tuli zinatumika?
+      static_analysis_common_vulnerabilities:
+        description: INAPENDEKEZWA kwamba angalau moja ya zana za uchambuzi tuli zilizotumika kwa kigezo cha static_analysis ijumuishe sheria au njia za kutafuta udhaifu wa kawaida katika lugha au mazingira yaliyochambuliwa.
+        details: Zana za uchambuzi tuli ambazo zimeundwa hasa kutafuta udhaifu wa kawaida zina uwezekano mkubwa wa kuzipata. Hata hivyo, kutumia zana zozote za tuli kwa kawaida itasaidia kupata baadhi ya matatizo, kwa hivyo tunashauri lakini hatunahitaji hii kwa kiwango cha nishani ya 'kupita'.
+      static_analysis_fixed:
+        description: Udhaifu wote wenye ukali wa kati na juu zaidi unaoweza kudhoofishwa uliogundulika kupitia uchambuzi wa msimbo tuli LAZIMA urekebishwe kwa wakati baada ya kuthibitishwa.
+        details: Udhaifu unazingatiwa kuwa wa kiwango cha kati au juu zaidi ikiwa alama yake ya <a href="https://www.first.org/cvss/">Common Vulnerability Scoring System (CVSS)</a> ya msingi ya ubora ni kati au juu. Katika matoleo ya CVSS 2.0 hadi 3.1, hii ni sawa na alama ya CVSS ya 4.0 au zaidi. Miradi inaweza kutumia alama ya CVSS kama ilivyochapishwa katika hifadhidata ya udhaifu inayotumika sana (kama vile <a href="https://nvd.nist.gov">Hifadhidata ya Taifa ya Udhaifu</a>) kwa kutumia toleo la hivi karibuni la CVSS lililoripotiwa katika hifadhidata hiyo. Miradi badala yake inaweza kuhesabu ukali wao wenyewe kwa kutumia toleo la hivi karibuni la <a href="https://www.first.org/cvss/">CVSS</a> wakati wa ufunuzi wa udhaifu, ikiwa ingizo la hesabu linatangazwa hadharani mara tu udhaifu unajulikana hadharani. Kumbuka kwamba kigezo cha vulnerabilities_fixed_60_days kinahitaji kwamba udhaifu wote kama huo urekebishwe ndani ya siku 60 baada ya kuwa wa umma.
+      static_analysis_often:
+        description: INAPENDEKEZWA kwamba uchambuzi wa msimbo wa chanzo tuli ufanyike kwenye kila ahadi au angalau kila siku.
+      dynamic_analysis:
+        description: INAPENDEKEZWA kwamba angalau zana moja ya uchambuzi wa nguvu itumike kwenye toleo kubwa lolote la uzalishaji lililopendekezwa la programu kabla ya kutolewa kwake.
+        details: Zana ya uchambuzi wa nguvu inachunguza programu kwa kuitekeleza na ingizo maalum. Kwa mfano, mradi YAWEZA kutumia zana ya fuzzing (k.m., <a href="http://lcamtuf.coredump.cx/afl/">American Fuzzy Lop</a>) au kitafutaji cha programu ya wavuti (k.m., <a href="https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project">OWASP ZAP</a> au <a href="https://w3af.org/">w3af</a>). Katika hali fulani mradi wa <a href="https://github.com/google/oss-fuzz#introduction">OSS-Fuzz</a> unaweza kuwa tayari kutumia majaribio ya fuzz kwenye mradi wako. Kwa madhumuni ya kigezo hiki zana ya uchambuzi wa nguvu inahitaji kubadilisha ingizo kwa njia fulani kutafuta aina mbalimbali za matatizo <em>au</em> kuwa seti kiotomatiki ya majaribio yenye angalau asilimia 80 ya ukaguzi wa tawi. <a href="https://en.wikipedia.org/wiki/Dynamic_program_analysis">Ukurasa wa Wikipedia kuhusu uchambuzi wa nguvu</a> na <a href="https://www.owasp.org/index.php/Fuzzing">ukurasa wa OWASP kuhusu fuzzing</a> hutambulisha baadhi ya zana za uchambuzi wa nguvu. Zana za uchambuzi ZINAWEZA kuzingatia kutafuta udhaifu wa usalama, lakini hii haihitajiki.
+      dynamic_analysis_unsafe:
+        description: INAPENDEKEZWA kwamba ikiwa programu iliyozalishwa na mradi inajumuisha programu iliyoandikwa kwa kutumia lugha isiyosalama ya kumbukumbu (k.m., C au C++), basi angalau zana moja ya nguvu (k.m., fuzzer au kitafutaji cha programu ya wavuti) itumike kwa kawaida kwa pamoja na utaratibu wa kugundua matatizo ya usalama wa kumbukumbu kama vile uandikaji zaidi wa kipengele. Ikiwa mradi hauzalishi programu iliyoandikwa katika lugha isiyosalama ya kumbukumbu, chagua "haihusiki" (N/A).
+        details: Mifano ya taratibu za kugundua matatizo ya usalama wa kumbukumbu ni pamoja na <a href="https://github.com/google/sanitizers/wiki/AddressSanitizer">Address Sanitizer (ASAN)</a> (inapatikana katika GCC na LLVM), <a href="https://clang.llvm.org/docs/MemorySanitizer.html">Memory Sanitizer</a>, na <a href="http://valgrind.org/">valgrind</a>. Zana nyingine zinazoweza kutumika ni pamoja na <a href="https://clang.llvm.org/docs/ThreadSanitizer.html">thread sanitizer</a> na <a href="https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html">undefined behavior sanitizer</a>. Madai ya kila mahali pia yaweza kufanya kazi.
+      dynamic_analysis_enable_assertions:
+        description: INAPENDEKEZWA kwamba mradi utumie usanidi wa angalau baadhi ya uchambuzi wa nguvu (kama vile majaribio au fuzzing) ambao huwezesha madai mengi. Katika hali nyingi madai haya yasipaswi <i>kuwa</i> yamewezeshwa katika mijengo ya uzalishaji.
+        details: Kigezo hiki <i>hakipendekezi</i> kuwezesha madai wakati wa uzalishaji; hilo ni kabisa kwa mradi na watumiaji wake kuamua. Lengo la kigezo hiki ni badala yake kuboresha ugunduzaji wa hitilafu wakati wa uchambuzi wa nguvu <i>kabla ya</i> kusambazwa. Kuwezesha madai katika matumizi ya <i>uzalishaji</i> ni <i>tofauti kabisa</i> na kuwezesha madai wakati wa uchambuzi wa nguvu (kama vile majaribio). Katika hali fulani kuwezesha madai katika matumizi ya uzalishaji ni busara sana (hasa katika vipengele vya uadilifu wa juu). Kuna hoja nyingi dhidi ya kuwezesha madai katika uzalishaji, k.m., maktaba hazipaswi kuvuruga waita, uwepo wao unaweza kusababisha kukataliwa na maduka ya programu, na/au kuamilisha madai katika uzalishaji kunaweza kufunua data za faragha kama vile funguo za faragha. Kumbuka kwamba katika usambazaji mwingi wa Linux <tt>NDEBUG</tt> haijafafanuliwa, hivyo C/C++ <tt>assert()</tt> kwa chaguo-msingi itawezeshwa kwa uzalishaji katika mazingira hayo. Inaweza kuwa muhimu kutumia utaratibu tofauti wa madai au kufafanua <tt>NDEBUG</tt> kwa uzalishaji katika mazingira hayo.
+      dynamic_analysis_fixed:
+        description: Udhaifu wote wenye ukali wa kati na juu zaidi unaoweza kudhoofishwa uliogundulika kupitia uchambuzi wa msimbo wa nguvu LAZIMA urekebishwe kwa wakati baada ya kuthibitishwa.
+        details: Ikiwa haujafanya uchambuzi wa msimbo wa nguvu na kwa hivyo hukupata udhaifu wowote kwa njia hii, chagua "haihusiki" (N/A). Udhaifu unazingatiwa kuwa wa kiwango cha kati au juu zaidi ikiwa alama yake ya <a href="https://www.first.org/cvss/">Common Vulnerability Scoring System (CVSS)</a> ya msingi ya ubora ni kati au juu. Katika matoleo ya CVSS 2.0 hadi 3.1, hii ni sawa na alama ya CVSS ya 4.0 au zaidi. Miradi inaweza kutumia alama ya CVSS kama ilivyochapishwa katika hifadhidata ya udhaifu inayotumika sana (kama vile <a href="https://nvd.nist.gov">Hifadhidata ya Taifa ya Udhaifu</a>) kwa kutumia toleo la hivi karibuni la CVSS lililoripotiwa katika hifadhidata hiyo. Miradi badala yake inaweza kuhesabu ukali wao wenyewe kwa kutumia toleo la hivi karibuni la <a href="https://www.first.org/cvss/">CVSS</a> wakati wa ufunuzi wa udhaifu, ikiwa ingizo la hesabu linatangazwa hadharani mara tu udhaifu unajulikana hadharani.
+    '1':
+      achieve_passing:
+        description: Mradi LAZIMA ufikie nishani ya kiwango cha kuhitimu.
+      contribution_requirements:
+        description: Habari juu ya jinsi ya kuchangia LAZIMA ijumuishe mahitaji ya michango inayokubalika (k.m., rejea kwa kiwango chochote kinachohitajika cha msimbo).
+      dco:
+        description: Mradi UNAPASWA kuwa na utaratibu wa kisheria ambapo wasanidi wote wa kiasi kisicho kidogo cha programu ya mradi wanathibitisha kwamba wameruhusiwa kisheria kufanya michango hii. Mbinu ya kawaida na rahisi ya kutekeleza hii ni kwa kutumia <a href="https://developercertificate.org/">Cheti cha Msanidi cha Asili (DCO)</a>, ambapo watumiaji huongeza "signed-off-by" katika ahadi zao na mradi unaunganisha kwenye tovuti ya DCO. Hata hivyo, hii YAWEZA kutekelezwa kama Makubaliano ya Leseni ya Mchangiaji (CLA), au utaratibu mwingine wa kisheria.
+        details: DCO ni utaratibu unaopendekeza kwa sababu ni rahisi kutekeleza, kufuatilia katika msimbo wa chanzo, na git inasaidia moja kwa moja kipengele cha "signed-off" kwa kutumia "commit -s". Ili kuwa na ufanisi zaidi ni bora ikiwa nyaraka za mradi zinaeleza maana ya "signed-off" kwa mradi huo. CLA ni makubaliano ya kisheria yanayofafanua masharti ambayo kazi za kiakili zimetolewa leseni kwa shirika au mradi. Makubaliano ya mgawo wa mchangiaji (CAA) ni makubaliano ya kisheria yanayohamisha haki katika kazi ya kiakili kwa chama kingine; miradi haihitajiki kuwa na CAA, kwa kuwa kuwa na CAA huongeza hatari kwamba wachangiaji watarajiwa hawatachangia, hasa ikiwa mpokeaji ni shirika la faida. <a href="https://www.apache.org/licenses/">Apache Software Foundation CLAs (leseni ya mchangiaji wa mtu binafsi na CLA ya kampuni)</a> ni mifano ya CLA, kwa miradi ambayo inaamua kwamba hatari za aina hizi za CLA kwa mradi ni chini ya manufaa yao.
+      governance:
+        description: Mradi LAZIMA ufafanue kwa uwazi na kuandika muundo wake wa utawala wa mradi (njia ya kufanya maamuzi, ikiwa ni pamoja na majukumu muhimu).
+        details: Kunahitaji kuwa na njia fulani iliyowekwa vyema ya kuandikwa ya kufanya maamuzi na kutatua migogoro. Katika miradi midogo, hii inaweza kuwa rahisi kama "mmiliki wa mradi na kiongozi hufanya maamuzi yote ya mwisho". Kuna miundo mbalimbali ya utawala, ikiwa ni pamoja na dictator wa wema na meritocracy rasmi; kwa maelezo zaidi, angalia <a href="http://oss-watch.ac.uk/resources/governancemodels">Miundo ya utawala</a>. Mbinu zote mbili za kati (k.m., mtunzaji mmoja) na zisizo za kati (k.m., watunzaji wa kikundi) zimetumika kwa mafanikio katika miradi. Habari za utawala hazihitajiki kuandika uwezekano wa kuunda uma wa mradi, kwa kuwa hiyo ni iwezekanavyo kila wakati kwa miradi ya FLOSS.
+      code_of_conduct:
+        description: Mradi LAZIMA upitishe kanuni ya mwenendo na kuiweka mahali pa kawaida.
+        details: Miradi inaweza kuweza kuboresha uadilifu wa jamii yao na kuweka matarajio kuhusu tabia inayokubalika kwa kupitisha kanuni ya mwenendo. Hii inaweza kusaidia kuepuka matatizo kabla hayajatokea na kufanya mradi kuwa mahali pa kukaribishwa zaidi ili kuhimiza michango. Hii inapaswa kuzingatia tu tabia ndani ya jamii/mahali pa kazi pa mradi. Mifano ya kanuni za mwenendo ni <a href="https://www.kernel.org/doc/html/latest/process/code-of-conduct.html">kanuni ya mwenendo ya kernel ya Linux</a>, <a href="https://contributor-covenant.org/">Kanuni ya Mwenendo ya Agano la Mchangiaji</a>, <a href="https://www.debian.org/code_of_conduct">Kanuni ya Mwenendo ya Debian</a>, <a href="https://www.ubuntu.com/about/about-ubuntu/conduct">Kanuni ya Mwenendo ya Ubuntu</a>, <a href="https://getfedora.org/code-of-conduct">Kanuni ya Mwenendo ya Fedora</a>, <a href="https://wiki.gnome.org/action/show/Foundation/CodeOfConduct">Kanuni ya Mwenendo ya GNOME</a>, <a href="https://www.kde.org/code-of-conduct/">Kanuni ya Mwenendo ya Jamii ya KDE</a>, <a href="https://www.python.org/psf/codeofconduct/">Kanuni ya Mwenendo ya Jamii ya Python</a>, <a href="https://www.ruby-lang.org/en/conduct/">Mwongozo wa Mwenendo wa Jamii ya Ruby</a>, na <a href="https://www.rust-lang.org/en-US/conduct.html">Kanuni ya Mwenendo ya Rust</a>.
+      roles_responsibilities:
+        description: Mradi LAZIMA ufafanue kwa uwazi na kuandika hadharani majukumu muhimu katika mradi na wajibu wao, ikiwa ni pamoja na kazi zozote ambazo majukumu hayo lazima yafanywe. Lazima iwe wazi ni nani ana jukumu lipi, ingawa hii haiwezi kuandikwa kwa njia ile ile.
+        details: Nyaraka kwa <a href="#governance">utawala</a> na majukumu na wajibu zinaweza kuwa mahali pamoja.
+      access_continuity:
+        description: Mradi LAZIMA uweze kuendelea kwa usumbufu mdogo ikiwa mtu yeyote anakufa, anakuwa katika hali ya kudhoofika, au vinginevyo hawezi au hataki kuendelea kusaidia mradi. Hasa, mradi LAZIMA uweze kuunda na kufunga masuala, kukubali mabadiliko yaliyopendekezwa, na kutoa matoleo ya programu, ndani ya wiki moja ya uthibitishaji wa upotevu wa msaada kutoka kwa mtu yeyote mmoja. Hii INAWEZA kufanywa kwa kuhakikisha mtu mwingine ana funguo zozote zinazohitajika, nywila, na haki za kisheria ili kuendelea mradi. Watu binafsi wanaoendesha mradi wa FLOSS WANAWEZA kufanya hii kwa kuweka funguo katika sanduku la kufungia na wosia unaowezesha haki zozote zinazohitajika za kisheria (k.m., kwa majina ya DNS).
+      bus_factor:
+        description: Mradi INAPASWA kuwa na "bus factor" ya 2 au zaidi.
+        details: '"Bus factor" (pia inajulikana kama "truck factor") ni idadi ya chini ya washiriki wa mradi ambao wanapaswa kutoweka ghafla kutoka kwenye mradi ("kupigwa na basi") kabla ya mradi kusimama kwa sababu ya ukosefu wa wafanyakazi wenye elimu au wenye uwezo. Zana ya <a href="https://github.com/mtov/truck-factor">truck-factor</a> inaweza kukadiria hii kwa miradi kwenye GitHub. Kwa maelezo zaidi, angalia <a href="https://www.researchgate.net/publication/272824568_assessing_the_bus_factor_of_git_repositories">Kutathmini Bus Factor ya Hifadhi za Git</a> na Cosentino et al.'
+      documentation_roadmap:
+        description: Mradi LAZIMA uwe na ramani ya barabara iliyoandikwa inayoeleza kile mradi unakusudia kufanya na kutofanya kwa angalau mwaka unaofuata.
+        details: Mradi huenda usitimiza ramani ya barabara, na hiyo ni sawa; kusudi la ramani ya barabara ni kusaidia watumiaji na wachangiaji watarajiwa kuelewa mwelekeo unaokusudiwa wa mradi. Haihitaji kuwa na maelezo mengi.
+      documentation_architecture:
+        description: Mradi LAZIMA ujumuishe nyaraka za muundo (pia inajulikana kama muundo wa kiwango cha juu) wa programu inayozalishwa na mradi. Ikiwa mradi hauzalishi programu, chagua "haihusiki" (N/A).
+        details: Muundo wa programu unaeleza miundo ya msingi ya programu, yaani, vipengele vikuu vya programu, uhusiano kati yao, na mali muhimu za vipengele na uhusiano hivi.
+      documentation_security:
+        description: Mradi LAZIMA uandike kile mtumiaji anaweza na asiweze kutarajia kwa suala la usalama kutoka kwa programu inayozalishwa na mradi ("mahitaji yake ya usalama").
+        details: Haya ni mahitaji ya usalama ambayo programu inakusudiwa kukidhi.
+      documentation_quick_start:
+        description: Mradi LAZIMA utoe mwongozo wa "kuanza haraka" kwa watumiaji wapya kuwasaidia kufanya kitu haraka na programu.
+        details: Wazo ni kuonyesha watumiaji jinsi ya kuanza na kufanya programu ifanye chochote. Hii ni muhimu sana kwa watumiaji watarajiwa kuanza.
+      assurance_case:
+        description: 'Mradi LAZIMA utoe kesi ya uhakika inayosababisha kwa nini mahitaji yake ya usalama yanakidhi. Kesi ya uhakika LAZIMA ijumuishe: maelezo ya muundo wa tishio, utambulisho wazi wa mipaka ya kuaminiwa, hoja kwamba kanuni za muundo salama zimetumika, na hoja kwamba udhaifu wa kawaida wa utekelezaji wa usalama umekabiliana nao.'
+        details: Kesi ya uhakika ni "mwili wa ushahidi ulioandikwa unaotoa hoja inayoshawishi na halali kwamba seti maalum ya madai muhimu kuhusu mali za mfumo ziko na sababu za kutosha kwa programu maalum katika mazingira maalum" (<a href="https://www.nist.gov/publications/software-assurance-using-structured-assurance-case-models">"Uhakika wa Programu Kwa kutumia Miundo ya Kesi ya Uhakika Iliyopangwa", Thomas Rhodes et al, NIST Interagency Report 7608</a>). Mipaka ya kuaminiwa ni mipaka ambapo data au utekelezaji hubadilisha kiwango chake cha kuaminiwa, k.m., mipaka ya seva katika programu ya kawaida ya wavuti. Ni ya kawaida kuorodhesha kanuni za muundo salama (kama vile Saltzer na Schroeer) na udhaifu wa kawaida wa utekelezaji wa usalama (kama vile OWASP top 10 au CWE/SANS top 25), na kuonyesha jinsi kila moja unavyokabiliana. <a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">Kesi ya uhakika ya BadgeApp</a> inaweza kuwa mfano wenye manufaa. Hii inahusiana na documentation_security, documentation_architecture, na implement_secure_design.
+      documentation_current:
+        description: Mradi LAZIMA ufanye jitihada ya kuweka nyaraka kulingana na toleo la sasa la matokeo ya mradi (ikiwa ni pamoja na programu inayozalishwa na mradi). Kasoro yoyote <em>inayojulikana</em> ya nyaraka inayofanya isilingane LAZIMA irekebishwe. Ikiwa nyaraka kwa ujumla ni za sasa, lakini kwa makosa inajumuisha baadhi ya maelezo ya zamani ambayo sio ya kweli tena, ichukue tu kama kasoro, kisha ifuatilie na urekebishe kama kawaida.
+        details: Nyaraka ZINAWEZA kujumuisha habari kuhusu tofauti au mabadiliko kati ya matoleo ya programu na/au kuunganisha kwa matoleo ya zamani ya nyaraka. Kusudi la kigezo hiki ni kwamba jitihada inafanywa ili kuweka nyaraka kulingana, siyo kwamba nyaraka lazima ziwe kamili.
+      documentation_achievements:
+        description: Ukurasa wa mbele wa hifadhi ya mradi na/au tovuti LAZIMA utambulishe na kuunganisha kiungo kwa mafanikio yoyote, ikiwa ni pamoja na nishani hii ya mazoea bora, ndani ya masaa 48 ya kutambua hadharani kwamba ufanikio umepatikana.
+        details: Ufanikio ni seti yoyote ya vigezo vya nje ambavyo mradi umefanya kazi mahususi kukidhi, ikiwa ni pamoja na nishani fulani. Habari hii haihitaji kuwa kwenye ukurasa wa mbele wa tovuti ya mradi. Mradi unaotumia GitHub unaweza kuweka mafanikio kwenye ukurasa wa mbele wa hifadhi kwa kuyaongeza kwenye faili ya README.
+      accessibility_best_practices:
+        description: Mradi (tovuti zote za mradi na matokeo ya mradi) INAPASWA kufuata mazoea bora ya ufikiaji ili watu wenye ulemavu bado waweze kushiriki katika mradi na kutumia matokeo ya mradi ambapo ni busara kufanya hivyo.
+        details: |-
+          Kwa programu za wavuti, angalia <a href="https://www.w3.org/TR/WCAG20/">Miongozo ya Ufikiaji wa Maudhui ya Wavuti (WCAG 2.0)</a> na hati yake inayosaidia <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/Overview.html">Kuelewa WCAG 2.0</a>; angalia pia <a href="https://www.w3.org/standards/webdesign/accessibility">habari za ufikiaji za W3C</a>. Kwa programu za GUI, zingatia kutumia miongozo ya ufikiaji ya mazingira maalum (kama vile <a href="https://developer.gnome.org/accessibility-devel-guide/stable/">Gnome</a>, <a href="https://accessibility.kde.org/">KDE</a>, <a href="https://docs.xfce.org/xfce/xfce4-settings/accessibility">XFCE</a>, <a href="https://developer.android.com/guide/topics/ui/accessibility/">Android</a>, <a href="https://developer.apple.com/accessibility/ios/">iOS</a>, <a href="https://www.apple.com/accessibility/osx/voiceover/">Mac</a>, na <a href="https://msdn.microsoft.com/en-us/windows/uwp/accessibility/accessibility-overview">Windows</a>). Baadhi ya programu za TUI (k.m., programu za `ncurses`) zinaweza kufanya mambo fulani ili kuzifanya kufikika zaidi (kama mpangilio wa `force-arrow-cursor` wa `alpine`). Programu nyingi za mstari wa amri zinafikika vizuri kama zilivyo. Kigezo hiki mara nyingi ni N/A, k.m., kwa maktaba za programu. Hapa kuna baadhi ya mifano ya hatua za kuchukua au masuala ya kuzingatia: <ul> <li>Toa mbadala za maandishi kwa maudhui yoyote yasiyo ya maandishi ili
+                      yaweze kubadilishwa kuwa aina nyingine watu wanahitaji, kama vile
+                      chapa kubwa, braille, hotuba, alama au lugha rahisi zaidi (
+                      <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/text-equiv.html">mwongozo wa WCAG 2.0 1.1</a>)
+                    <li>Rangi haitumiwi kama njia pekee ya kuona ya kuwasilisha
+                      habari, kuashiria kitendo, kuchochea jibu, au
+                      kutofautisha kipengele cha kuona. (
+                      <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-without-color.html">mwongozo wa WCAG 2.0 1.4.1</a>)
+                    <li>Uwasilishaji wa kuona wa maandishi na picha za maandishi una uwiano wa
+                      tofauti wa angalau 4.5:1, isipokuwa kwa maandishi makubwa, maandishi ya bahati mbaya,
+                      na nembo (
+                      <a href="https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html">mwongozo wa WCAG 2.0 1.4.3</a>)
+                    <li>Fanya kazi zote zipatikane kutoka kwenye kibodi (mwongozo wa WCAG 2.1) <li>Mradi wa GUI au wa wavuti INAPASWA kupima na angalau kipaza sauti kimoja cha
+                      skrini kwenye jukwaa la lengo (k.m., NVDA, Jaws, au
+                      WindowEyes kwenye Windows; VoiceOver kwenye Mac &amp; iOS; Orca kwenye Linux/BSD;
+                      TalkBack kwenye Android). Programu za TUI ZINAWEZA kufanya kazi kupunguza uchanganyiko wa ziada
+                      ili kuzuia usomaji wa ziada na vipaza sauti vya skrini.
+                    </ul>
+      internationalization:
+        description: Programu iliyozalishwa na mradi INAPASWA kuwa kimataifa ili kuwezesha upatanifu wa lugha wa rahisi kwa utamaduni, eneo, au lugha ya hadhira lengo. Ikiwa kimataifa (i18n) haihusiki (k.m., programu haizalishi maandishi yanayokusudiwa kwa watumiaji wa mwisho na haipangi maandishi yanayosomeka na binadamu), chagua "haihusiki" (N/A).
+        details: Upatanifu wa lugha "unarejelea upatanifu wa bidhaa, programu au maudhui ya hati ili kukidhi lugha, utamaduni na mahitaji mengine ya soko mahususi la lengo (eneo)." Kimataifa ni "muundo na maendeleo ya bidhaa, programu au maudhui ya hati ambayo huwezesha upatanifu wa lugha wa rahisi kwa hadhira lengo zinazotofautiana katika utamaduni, eneo, au lugha." (Ona <a href="https://www.w3.org/International/questions/qa-i18n">"Upatanifu wa Lugha dhidi ya Kimataifa" ya W3C</a>.) Programu inakidhi kigezo hiki kwa kuwa kimataifa tu. Hakuna upatanifu wa lugha kwa lugha nyingine mahususi unaohitajika, kwa kuwa mara tu programu imekuwa kimataifa inawezekana kwa wengine kufanya kazi kwenye upatanifu wa lugha.
+      sites_password_security:
+        description: Ikiwa tovuti za mradi (tovuti, hifadhi, na URL za kupakua) zinahifadhi nywila kwa ajili ya uthibitishaji wa watumiaji wa nje, nywila LAZIMA zihifadhiwe kama mificho iliyorudiwa na chumvi kwa-mtumiaji kwa kutumia kanuni ya upanuaji (iliyorudiarudia) wa funguo (k.m., Argon2id, Bcrypt, Scrypt, au PBKDF2). Ikiwa tovuti za mradi hazihifadhi nywila kwa kusudi hili, chagua "haihusiki" (N/A).
+        details: Kumbuka kwamba matumizi ya <a href="https://help.github.com/articles/github-security/">GitHub</a> yanakidhi kigezo hiki. Kigezo hiki kinatumika tu kwa nywila zinazotumika kwa ajili ya uthibitishaji wa watumiaji wa nje kwenye tovuti za mradi (pia inaitwa uthibitishaji wa ndani). Ikiwa tovuti za mradi lazima ziingie kwenye tovuti zingine (pia inaitwa uthibitishaji wa nje), zinaweza kuhitaji kuhifadhi ishara za uidhinishaji kwa kusudi hilo kwa njia tofauti (kwa kuwa kuhifadhi mficho hakuna maana). Hii inatumia kigezo cha crypto_password_storage kwa tovuti za mradi, sawa na sites_https.
+      maintenance_or_update:
+        description: Mradi LAZIMA utunze matoleo ya zamani yaliyotumika mara nyingi ya bidhaa <em>au</em> kutoa njia ya usasishaji kwa matoleo mapya. Ikiwa njia ya usasishaji ni ngumu, mradi LAZIMA uandike jinsi ya kufanya usasishaji (k.m., violesura vilivyobadilika na hatua zilizoanishwa kwa undani ili kusaidia usasishaji).
+      report_tracker:
+        description: Mradi LAZIMA utumie kifuatiliaji cha masuala kwa ajili ya kufuatilia masuala ya mtu binafsi.
+      vulnerability_report_credit:
+        description: Mradi LAZIMA utoe sifa kwa waripoti wa ripoti zote za udhaifu zilizotatuliwa katika miezi 12 iliyopita, isipokuwa kwa waripoti wanaoomba kutojulikana. Ikiwa hakuna udhaifu uliotatuliwa katika miezi 12 iliyopita, chagua "haihusiki" (N/A).
+      vulnerability_response_process:
+        description: Mradi LAZIMA uwe na mchakato ulioandikwa kwa ajili ya kujibu ripoti za udhaifu.
+        details: Hii ina uhusiano mkubwa na vulnerability_report_process, ambayo inahitaji kuwa kuna njia iliyoandikwa ya kuripoti udhaifu. Pia inahusiana na vulnerability_report_response, ambayo inahitaji majibu kwa ripoti za udhaifu ndani ya kipindi fulani cha muda.
+      coding_standards:
+        description: Mradi LAZIMA utambulishe miongozo mahususi ya mtindo wa kuandika msimbo kwa lugha kuu inazotumia, na uhitaji kwamba michango kwa ujumla ikidhi.
+        details: Katika hali nyingi hii inafanywa kwa kurejelea baadhi ya miongozo ya mtindo iliyopo, huenda ikiorodhesha tofauti. Miongozo hii ya mtindo inaweza kujumuisha njia za kuboresha usomaji na njia za kupunguza uwezekano wa kasoro (ikiwa ni pamoja na udhaifu). Lugha nyingi za programu zina miongozo moja au zaidi ya mtindo inayotumika sana. Mifano ya miongozo ya mtindo ni pamoja na <a href="https://github.com/google/styleguide">miongozo ya mtindo ya Google</a> na <a href="https://www.securecoding.cert.org/">Viwango vya Kuandika Msimbo wa SEI CERT</a>.
+      coding_standards_enforced:
+        description: Mradi LAZIMA utekeleze kiotomatiki mtindo wake wa kuandika msimbo uliochaguliwa ikiwa kuna angalau zana moja ya FLOSS inayoweza kufanya hivyo katika lugha zilizochaguliwa.
+        details: Hii INAWEZA kutekelezwa kwa kutumia zana za uchambuzi mkako na/au kwa kulazimisha msimbo kupitia vifaa vya kurekebisha msimbo. Katika hali nyingi usanidi wa zana umejumuishwa katika hifadhi ya mradi (kwa kuwa miradi tofauti inaweza kuchagua usanidi tofauti). Miradi INAWEZA kuruhusu vighairi vya mtindo (na kwa kawaida itaruhusu); ambapo vighairi vinatokea, LAZIMA viwe nadra na viandikwe katika msimbo katika maeneo yao, ili vighairi hivi viweze kukaguliwa na ili zana ziweze kuzishughulikia kiotomatiki baadaye. Mifano ya zana kama hizo ni pamoja na ESLint (JavaScript), Rubocop (Ruby), na <a href="https://cran.r-project.org/web/packages/devtools/index.html">devtools check</a> (R).
+      build_standard_variables:
+        description: Mifumo ya kujenga kwa binari za asili LAZIMA iheshimu vigezo (vya mazingira) vya mkusanyaji na vya kiunganishi vilivyopitishwa kwao (k.m., CC, CFLAGS, CXX, CXXFLAGS, na LDFLAGS) na kuvipitisha kwenye viito vya mkusanyaji na vya kiunganishi. Mfumo wa kujenga UNAWEZA kuvipanua na bendera za ziada; LAZIMA USIBADILISHE thamani zilizotolewa na zake mwenyewe. Ikiwa hakuna binari za asili zinazozalishwa, chagua "haihusiki" (N/A).
+        details: Inapaswa kuwa rahisi kuwezesha vipengele maalum vya kujenga kama Address Sanitizer (ASAN), au kutii mazoea bora ya ugumu wa usambazaji (k.m., kwa kuwezesha kwa urahisi bendera za mkusanyaji kufanya hivyo).
+      build_preserve_debug:
+        description: Mfumo wa kujenga na usakinishaji UNAPASWA kuhifadhi taarifa za utatuzi ikiwa zimeombwa katika bendera husika (k.m., "install -s" haitumiwa). Ikiwa hakuna mfumo wa kujenga au usakinishaji (k.m., maktaba za kawaida za JavaScript), chagua "haihusiki" (N/A).
+        details: K.m., kuweka CFLAGS (C) au CXXFLAGS (C++) inapaswa kuunda taarifa husika za utatuzi ikiwa lugha hizo zinatumika, na hazipaswi kuondolewa wakati wa usakinishaji. Taarifa za utatuzi zinahitajika kwa msaada na uchambuzi, na pia ni muhimu kwa kupima uwepo wa vipengele vya ugumu katika binari zilizokusanywa.
+      build_non_recursive:
+        description: Mfumo wa kujenga kwa programu iliyozalishwa na mradi LAZIMA USIJENGA kwa njia ya kujirudia saraka ndogo ikiwa kuna utegemezi wa kukatana katika saraka ndogo. Ikiwa hakuna mfumo wa kujenga au usakinishaji (k.m., maktaba za kawaida za JavaScript), chagua "haihusiki" (N/A).
+        details: Taarifa ya utegemezi wa ndani ya mfumo wa kujenga wa mradi inahitaji kuwa sahihi, vinginevyo, mabadiliko ya mradi huenda yasijenge vizuri. Mijengo isiyo sahihi inaweza kusababisha kasoro (ikiwa ni pamoja na udhaifu). Kosa la kawaida katika mifumo mikubwa ya kujenga ni kutumia "ujenzi wa kujirudia" au "make ya kujirudia", yaani, mlingano wa saraka ndogo zinazojumuisha faili za chanzo, ambapo kila saraka ndogo inajengwa kwa uhuru. Isipokuwa kila saraka ndogo ni huru kabisa, hii ni kosa, kwa sababu taarifa ya utegemezi si sahihi.
+      build_repeatable:
+        description: Mradi LAZIMA uweze kurudia mchakato wa kuzalisha taarifa kutoka faili za chanzo na kupata matokeo sawa ya biti-kwa-biti. Ikiwa hakuna ujenzi unaofanyika (k.m., lugha za uandishi ambapo msimbo wa chanzo unatumika moja kwa moja badala ya kukusanywa), chagua "haihusiki" (N/A).
+        details: Watumiaji wa GCC na clang wanaweza kupata chaguo la -frandom-seed kuwa na manufaa; katika hali fulani, hii inaweza kutatuliwa kwa kulazimisha aina fulani ya mpangilio. Mapendekezo zaidi yanaweza kupatikana kwenye tovuti ya <a href="https://reproducible-builds.org/">ujenzi unaorudiwa</a>.
+      installation_common:
+        description: Mradi LAZIMA utoe njia ya kusakinisha na kuondoa kwa urahisi programu iliyozalishwa na mradi kwa kutumia mkataba unaotumika sana.
+        details: Mifano ni pamoja na kutumia meneja wa kifurushi (kwa mfumo au kiwango cha lugha), "make install/uninstall" (inasaidia DESTDIR), chombo katika muundo wa kawaida, au picha ya mashine pepe katika muundo wa kawaida. Mchakato wa usakinishaji na uondoaji (k.m., kifurushi chake) UNAWEZA kutekelezwa na mtu wa tatu mradi tu ni FLOSS.
+      installation_standard_variables:
+        description: Mfumo wa usakinishaji kwa watumiaji wa mwisho LAZIMA uheshimu mkataba wa kawaida kwa kuchagua eneo ambapo vitu vilivyojengwa vinaandikwa kwa wakati wa usakinishaji. Kwa mfano, ikiwa inasakinisha faili kwenye mfumo wa POSIX lazima iheshimu kigezo cha mazingira cha DESTDIR. Ikiwa hakuna mfumo wa usakinishaji au hakuna mkataba wa kawaida, chagua "haihusiki" (N/A).
+      installation_development_quick:
+        description: Mradi LAZIMA utoe njia kwa wasanidi programu wanaoweza kusakinisha haraka matokeo yote ya mradi na mazingira ya msaada yanayohitajika kufanya mabadiliko, ikiwa ni pamoja na majaribio na mazingira ya majaribio. Hii LAZIMA ifanywe kwa kutumia mkataba unaotumika sana.
+        details: Hii INAWEZA kutekelezwa kwa kutumia chombo kilichozalishwa na/au hati za usakinishaji. Utegemezi wa nje kwa kawaida utasakinishwa kwa kuita mfumo na/au meneja wa kifurushi cha lugha, kwa external_dependencies.
+      external_dependencies:
+        description: Mradi LAZIMA uorodheshe utegemezi wa nje kwa njia inayoweza kuchakatwa na kompyuta.
+        details: Kwa kawaida hii inafanywa kwa kutumia mkataba wa meneja wa kifurushi na/au mfumo wa ujenzi. Kumbuka kwamba hii inasaidia kutekeleza <a href="#installation_development_quick">installation_development_quick</a>.
+      dependency_monitoring:
+        description: Miradi LAZIMA ifuatilie au kwa muda mrefu iangalie utegemezi wao wa nje (ikiwa ni pamoja na nakala za urahisi) kugundua udhaifu unaojulikana, na kurekebisha udhaifu unaoweza kutumiwa vibaya au kuthibitisha kuwa hauwezi kutumiwa vibaya.
+        details: Hii inaweza kufanywa kwa kutumia zana ya kichambua chanzo / zana ya kuangalia utegemezi / zana ya uchambuzi wa muundo wa programu kama <a href="https://www.owasp.org/index.php/OWASP_Dependency_Check">OWASP's Dependency-Check</a>, <a href="https://www.sonatype.com/nexus-auditor">Sonatype's Nexus Auditor</a>, <a href="https://www.synopsys.com/software-integrity/security-testing/software-composition-analysis.html">Synopsys' Black Duck Software Composition Analysis</a>, na <a href="https://github.com/rubysec/bundler-audit">Bundler-audit (kwa Ruby)</a>. Baadhi ya waendesha kifurushi wanajumuisha taratibu za kufanya hii. Ni kubaliwa ikiwa udhaifu wa vipengele hauwezi kutumiwa vibaya, lakini uchambuzi huu ni mgumu na wakati mwingine ni rahisi kusasisha au kurekebisha sehemu.
+      updateable_reused_components:
+        description: |-
+          Mradi LAZIMA au:
+          <ol>
+          <li> fanya iwe rahisi kutambua na kusasisha vipengele vinavyotumiwa tena vilivyotunzwa nje; <strong>au</strong></li>
+          <li> tumia vipengele vya kawaida vinavyotolewa na mfumo au lugha ya programu.</li>
+          </ol>
+          Kisha, ikiwa udhaifu unapatikana katika kipengele kilichotumiwa tena, itakuwa
+          rahisi kusasisha kipengele hicho.
+        details: 'Njia ya kawaida ya kutimiza kigezo hiki ni kutumia mifumo ya usimamizi wa kifurushi ya mfumo na lugha ya programu. Programu nyingi za FLOSS zinasambazwa na "maktaba za urahisi" ambazo ni nakala za ndani za maktaba za kawaida (labda zilizoachana). Kwa yenyewe, hiyo ni sawa. Hata hivyo, ikiwa programu *lazima* itumie nakala hizi za ndani (zilizoachanishwa), basi kusasisha maktaba za "kawaida" kama sasisho la usalama litaacha nakala hizi za ziada bado zenye udhaifu. Hii ni suala hasa kwa mifumo ya wingu; ikiwa mtoa huduma ya wingu anasasisha maktaba zao za "kawaida" lakini programu haitazitumia, basi masasisho hayasaidii kweli. Angalia, k.m., <a href="https://spot.livejournal.com/312320.html">"Chromium: Kwa nini bado haiko katika Fedora kama kifurushi sahihi" na Tom Callaway</a>.'
+      interfaces_current:
+        description: Mradi UNAPASWA kuepuka kutumia vitendakazi na API zilizokubaliwa kuwa hazitumiki tena au zilizopitwa na wakati ambapo mbadala wa FLOSS zinapatikana katika seti ya teknolojia inayotumia ("kifurushi cha teknolojia" yake) na kwa wengi wa watumiaji ambao mradi unasaidia (ili watumiaji wawe na ufikiaji wa haraka wa mbadala).
+      automated_integration_testing:
+        description: Seti ya majaribio ya kiotomatiki LAZIMA itumike kwenye kila ukaguzi wa kuingia kwenye hifadhi iliyoshirikiwa kwa angalau tawi moja. Seti hii ya majaribio LAZIMA itoe ripoti ya mafanikio au kushindwa kwa majaribio.
+        details: Mahitaji haya yanaweza kuonekana kama sehemu ndogo ya test_continuous_integration, lakini yanazingatia majaribio tu, bila kuhitaji uunganisho wa kuendelea.
+      regression_tests_added50:
+        description: Mradi LAZIMA uongeze majaribio ya kurudi nyuma kwa seti ya majaribio ya kiotomatiki kwa angalau 50% ya hitilafu zilizorekebisha ndani ya miezi sita iliyopita.
+      test_statement_coverage80:
+        description: Mradi LAZIMA uwe na seti ya majaribio ya kiotomatiki ya FLOSS inayotoa angalau 80% ya usakinishaji wa taarifa ikiwa kuna angalau zana moja ya FLOSS inayoweza kupima kigezo hiki katika lugha iliyochaguliwa.
+        details: Zana nyingi za FLOSS zinapatikana kupima usakinishaji wa majaribio, ikiwa ni pamoja na gcov/lcov, Blanket.js, Istanbul, JCov, na <a href="https://cran.r-project.org/web/packages/covr/index.html">covr</a> (R). Kumbuka kwamba kutimiza kigezo hiki sio uhakika kwamba seti ya majaribio ni ya kina, badala yake, kushindwa kutimiza kigezo hiki ni kiashiria kizito cha seti ya majaribio mbaya.
+      test_policy_mandated:
+        description: Mradi LAZIMA uwe na sera rasmi iliyoandikwa kwamba kadri utendakazi mkubwa mpya unaongezwa, majaribio ya utendakazi mpya LAZIMA yaongezwe kwenye seti ya majaribio ya kiotomatiki.
+      tests_documented_added:
+        description: Mradi LAZIMA ujumuishe, katika maelekezo yake yaliyoandikwa kwa mapendekezo ya mabadiliko, sera kwamba majaribio yataongezwa kwa utendakazi mkubwa mpya.
+      warnings_strict:
+        description: Miradi LAZIMA iwe na ukali wa juu zaidi na maonyo katika programu iliyozalishwa na mradi, iwezekanavyo vitendo.
+      implement_secure_design:
+        description: Mradi LAZIMA utekeleze kanuni za muundo salama (kutoka "know_secure_design"), pale inapohusika. Ikiwa mradi hauzalishi programu, chagua "haihusiki" (N/A).
+        details: Kwa mfano, matokeo ya mradi yanapaswa kuwa na mipangilio salama ya kuzuia makosa (maamuzi ya ufikiaji yanapaswa kukataa kwa chaguo-msingi, na usakinishaji wa mradi unapaswa kuwa salama kwa chaguo-msingi). Pia yanapaswa kuwa na kikuu cha kati kikamilifu (kila ufikiaji ambao unaweza kuwekwa kikomo lazima ufanyiwe ukaguzi wa mamlaka na usiweze kuvukwa). Kumbuka kwamba katika hali fulani kanuni zitagombana, na katika hali hiyo chaguo lazima lifanywe (k.m., taratibu nyingi zinaweza kufanya mambo kuwa magumu zaidi, kukiuka "uchumi wa utaratibu" / iweke rahisi).
+      crypto_weaknesses:
+        description: Mifumo ya usalama ya chaguo-msingi ndani ya programu inayozalishwa na mradi LAZIMA ISITEGEMEE algoriti za kriptologia au hali zenye udhaifu mkubwa unaojulikana (k.m., algoriti ya hash ya kriptologia ya SHA-1 au hali ya CBC katika SSH).
+      crypto_algorithm_agility:
+        description: Mradi INAPASWA kusaidia algoriti nyingi za kriptologia, ili watumiaji waweze kubadilisha haraka ikiwa moja imevunjwa. Algoriti za kawaida za funguo za simetria ni pamoja na AES, Twofish, na Serpent. Mbadala wa algoriti za hash za kriptologia za kawaida ni pamoja na SHA-2 (ikiwa ni pamoja na SHA-224, SHA-256, SHA-384 NA SHA-512) na SHA-3.
+      crypto_credential_agility:
+        description: Mradi LAZIMA usaidie kuhifadhi vitambulisho vya uthibitishaji (kama vile nywila na ishara za nguvu) na funguo za kibinafsi za kriptologia katika mafaili ambayo yametengwa na habari nyingine (kama vile mafaili ya usanidi, hifadhidata, na kumbukumbu), na kuruhusu watumiaji kusasisha na kubadilisha bila ukusanyaji upya wa msimbo. Ikiwa mradi haufanyi usindikaji wa vitambulisho vya uthibitishaji na funguo za kibinafsi za kriptologia, chagua "haihusiki" (N/A).
+      crypto_used_network:
+        description: Programu iliyozalishwa na mradi INAPASWA kusaidia itifaki salama kwa mawasiliano yake yote ya mtandao, kama vile SSHv2 au zaidi, TLS1.2 au zaidi (HTTPS), IPsec, SFTP, na SNMPv3. Itifaki zisizo salama kama vile FTP, HTTP, telnet, SSLv3 au mapema zaidi, na SSHv1 ZINAPASWA kuzimwa kwa chaguo-msingi, na kuzimwa tu ikiwa mtumiaji anaisanidi mahususi. Ikiwa programu iliyozalishwa na mradi haiesaidii mawasiliano ya mtandao, chagua "haihusiki" (N/A).
+      crypto_tls12:
+        description: Programu iliyozalishwa na mradi INAPASWA, ikiwa inasaidia au inatumia TLS, kusaidia angalau toleo la TLS 1.2. Kumbuka kuwa kilichotangulia TLS kiliitwa SSL. Ikiwa programu haitumii TLS, chagua "haihusiki" (N/A).
+      crypto_certificate_verification:
+        description: Programu iliyozalishwa na mradi LAZIMA, ikiwa inasaidia TLS, ifanye uthibitishaji wa cheti cha TLS kwa chaguo-msingi inapotumia TLS, ikiwa ni pamoja na rasilimali ndogo. Ikiwa programu haitumii TLS, chagua "haihusiki" (N/A).
+        details: 'Kumbuka kuwa uthibitishaji usio sahihi wa cheti cha TLS ni kosa la kawaida. Kwa maelezo zaidi, angalia <a href="https://crypto.stanford.edu/~dabo/pubs/abstracts/ssl-client-bugs.html">"The Most Dangerous Code in the World: Validating SSL Certificates in Non-Browser Software" na Martin Georgiev et al.</a> na <a href="https://blogs.gnome.org/mcatanzaro/2016/03/12/do-you-trust-this-application/">"Do you trust this application?" na Michael Catanzaro</a>.'
+      crypto_verification_private:
+        description: Programu iliyozalishwa na mradi LAZIMA, ikiwa inasaidia TLS, ifanye uthibitishaji wa cheti kabla ya kutuma vichwa vya HTTP na habari ya kibinafsi (kama vile vidakuzi salama). Ikiwa programu haitumii TLS, chagua "haihusiki" (N/A).
+      signed_releases:
+        description: Mradi LAZIMA uweke saini kwa kriptologia matoleo ya matokeo ya mradi yanayokusudiwa kwa matumizi ya kila mahali, na LAZIMA kuwe na mchakato ulioandikwa unaoweleza watumiaji jinsi wanaweza kupata funguo za umma za saini na kuthibitisha saini. Funguo ya kibinafsi kwa saini hizi LAZIMA ISIWE kwenye tovuti zinazosambaza moja kwa moja programu kwa umma. Ikiwa matoleo hayakusudiwa kwa matumizi ya kila mahali, chagua "haihusiki" (N/A).
+        details: Matokeo ya mradi ni pamoja na msimbo wa chanzo na matokeo yoyote yaliyozalishwa pale inapohusika (k.m., mifumo inayotekelezeka, vifurushi, na vyombo). Matokeo yaliyozalishwa YANAWEZA kuwekwa saini tofauti na msimbo wa chanzo. Hizi ZINAWEZA kutekelezwa kama lebo za git zilizowekwa saini (kwa kutumia saini za kidijitali za kriptologia). Miradi YAWEZA kutoa matokeo yaliyozalishwa tofauti na zana kama vile git, lakini katika hali hizo, matokeo tofauti LAZIMA yawekwe saini tofauti.
+      version_tags_signed:
+        description: INAPENDEKEZWA kuwa katika mfumo wa udhibiti wa toleo, kila lebo muhimu ya toleo (lebo ambayo ni sehemu ya toleo kuu, toleo dogo, au kurekebishwa udhaifu uliotangazwa hadharani) iwekwe saini kwa kriptologia na iweze kuthibitishwa kama ilivyoelezwa katika <a href="#signed_releases">signed_releases</a>.
+      input_validation:
+        description: Matokeo ya mradi LAZIMA yafanye ukaguzi wa pembejeo zote kutoka vyanzo visivyoaminika ili kuhakikisha ni halali (*orodha zinazokubalika*), na kukataa pembejeo zisizo halali, ikiwa kuna vizuizi vyovyote kwenye data kabisa.
+        details: Kumbuka kuwa kulinganisha ingizo dhidi ya orodha ya "miundo mibaya" (aka *orodha za kukataza*) kwa kawaida haitoshi, kwa sababu washambuliaji mara nyingi wanaweza kuepuka orodha ya kukataza. Hasa, nambari zinabadilishwa kuwa miundo ya ndani na kisha kuangaliwa ikiwa ziko kati ya chini na juu zao (ikiwa ni pamoja), na vifungu vya maandishi vinaangaliwa ili kuhakikisha kuwa ni ruwaza halali za maandishi (k.m., UTF-8 halali, urefu, sintaksia, n.k.). Baadhi ya data inaweza kuhitaji kuwa "chochote kabisa" (k.m., kipakia faili), lakini hizi kwa kawaida zingekuwa nadra.
+      hardening:
+        description: Taratibu za kuimarisha ZINAPASWA kutumiwa katika programu iliyozalishwa na mradi ili kasoro za programu ziwe na uwezekano mdogo wa kusababisha udhaifu wa usalama.
+        details: Taratibu za kuimarisha zinaweza kujumuisha vichwa vya HTTP kama Sera ya Usalama wa Maudhui (CSP), bendera za mkusanyaji ili kupunguza mashambulizi (kama vile -fstack-protector), au bendera za mkusanyaji ili kuondoa tabia isiyofafanuliwa. Kwa madhumuni yetu upendeleo mdogo hauhesabiwi kuwa utaratibu wa kuimarisha (upendeleo mdogo ni muhimu, lakini tofauti).
+      static_analysis_common_vulnerabilities:
+        description: Mradi LAZIMA utumie angalau zana moja ya uchanganuzi tuli yenye sheria au mbinu za kutafuta udhaifu wa kawaida katika lugha au mazingira yaliyochanganuliwa, ikiwa kuna angalau zana moja ya FLOSS inayoweza kutekeleza kigezo hiki katika lugha iliyochaguliwa.
+      dynamic_analysis_unsafe:
+        description: Ikiwa programu iliyozalishwa na mradi inajumuisha programu iliyoandikwa kwa kutumia lugha isiyosalama ya kumbukumbu (k.m., C au C++), basi angalau zana moja ya nguvu (k.m., fuzzer au kitafutaji cha programu ya wavuti) LAZIMA itumike kwa kawaida kwa pamoja na utaratibu wa kugundua matatizo ya usalama wa kumbukumbu kama vile uandikaji zaidi wa kipengele. Ikiwa mradi hauzalishi programu iliyoandikwa katika lugha isiyosalama ya kumbukumbu, chagua "haihusiki" (N/A).
+    '2':
+      achieve_silver:
+        description: Mradi LAZIMA ufikie kiwango cha nishani ya fedha.
+      contributors_unassociated:
+        details: 'Wachangiaji wanahusianishwa ikiwa wanalipwa kufanya kazi na shirika moja (kama mwajiriwa au mkandarasi) na shirika lile linapata faida kutokana na matokeo ya mradi. Misaada ya kifedha haihesabiwi kuwa kutoka shirika sawa ikiwa inapitia mashirika mengine (k.m., misaada ya sayansi inayolipwa kwa mashirika tofauti kutoka serikali ya kawaida au chanzo cha NGO haifanyi wachangiaji kuhusianishwa). Mtu ni mchangiaji muhimu ikiwa amefanya michango isiyojulikana kwa mradi katika mwaka uliopita. Mifano ya viashiria vizuri vya mchangiaji muhimu ni: ameandika angalau mistari 1,000 ya msimbo, amechangia commits 50, au amechangia angalau kurasa 20 za nyaraka.'
+      copyright_per_file:
+        description: Mradi LAZIMA ujumuishe tamko la hakimiliki katika kila faili ya chanzo, ikitambulisha mmiliki wa hakimiliki (k.m., wachangiaji wa [jina la mradi]).
+        details: 'Hii YAWEZA kufanyika kwa kujumuisha yafuatayo ndani ya maoni karibu na mwanzo wa kila faili: "<tt>Copyright the [project name] contributors.</tt>". Angalia <a href="https://www.linuxfoundation.org/blog/2020/01/copyright-notices-in-open-source-software-projects/" >"Copyright Notices in Open Source Software Projects" na Steve Winslow</a>.'
+      license_per_file:
+        description: 'Mradi LAZIMA ujumuishe tamko la leseni katika kila faili ya chanzo. Hii YAWEZA kufanyika kwa kujumuisha yafuatayo ndani ya maoni karibu na mwanzo wa kila faili: <a href="https://spdx.dev/ids/#how"><tt>SPDX-License-Identifier: [maneno ya leseni ya SPDX kwa mradi]</tt></a>.'
+        details: Hii pia YAWEZA kufanyika kwa kujumuisha tamko katika lugha asilia ikitambulisha leseni. Mradi pia YAWEZA kujumuisha URL thabiti inayoelekeza kwenye maandishi ya leseni, au maandishi kamili ya leseni. Kumbuka kwamba kigezo cha license_location kinahitaji leseni ya mradi iwe mahali pa kawaida. Angalia <a href="https://github.com/david-a-wheeler/spdx-tutorial">mafunzo haya ya SPDX</a> kwa maelezo zaidi kuhusu maneno ya leseni ya SPDX. Kumbuka uhusiano na <a href="#copyright_per_file">copyright_per_file</a>, ambayo yaliyomo yake kwa kawaida yangetangulia maelezo ya leseni.
+      repo_distributed:
+        description: Hifadhi ya chanzo ya mradi LAZIMA itumie programu ya kawaida ya kudhibiti toleo linalosambazwa (k.m., git au mercurial).
+      small_tasks:
+        description: Mradi LAZIMA utambulishe kazi ndogo ambazo zinaweza kufanywa na wachangiaji wapya au wa mara kwa mara.
+        details: Utambulisho huu kwa kawaida unafanyika kwa kuweka alama masuala yaliyochaguliwa katika kifuatiliaji cha masuala kwa lebo moja au zaidi ambazo mradi unatumia kwa madhumuni hayo, k.m., <a href="https://up-for-grabs.net/#/">up-for-grabs</a>, <a href="https://www.firsttimersonly.com/">first-timers-only</a>, "Marekebisho madogo", microtask, au IdealFirstBug. Kazi hizi mpya hazihitaji kujumuisha kuongeza utendaji; zinaweza kuwa kuboresha nyaraka, kuongeza hali za majaribio, au chochote kingine kinachosaidia mradi na kusaidia mchangiaji kuelewa zaidi kuhusu mradi.
+      require_2FA:
+        description: Mradi LAZIMA uhitaji uthibitishaji wa mambo mawili (2FA) kwa wasanidi programu ili kubadilisha hifadhi ya kati au kupata data nyeti (kama ripoti za faragha za udhaifu). Utaratibu huu wa 2FA YAWEZA kutumia taratibu bila taratibu za usimbuaji kama SMS, ingawa hii hairuhusiwi.
+      secure_2FA:
+        description: Uthibitishaji wa mambo mawili (2FA) ya mradi INAPASWA kutumia taratibu za usimbuaji ili kuzuia ujigeuzi. Uthibitishaji wa 2FA unaotegemea Huduma ya Ujumbe Mfupi (SMS), peke yake, HAUKIDHI kigezo hiki, kwa kuwa haufichui.
+        details: Utaratibu wa 2FA unaokidhi kigezo hiki unaweza kuwa programu ya Nywila ya Mara Moja Inayotegemea Muda (TOTP) ambayo inazalisha kiotomatiki msimbo wa uthibitishaji unaobadilika baada ya muda fulani. Kumbuka kwamba <a href="https://help.github.com/articles/configuring-two-factor-authentication-via-a-totp-mobile-app/">GitHub inasaidia TOTP</a>.
+      code_review_standards:
+        details: Angalia pia <a href="#two_person_review">two_person_review</a> na contribution_requirements.
+      two_person_review:
+        description: Mradi LAZIMA uwe na angalau 50% ya marekebisho yote yaliyopendekezwa kupitishwa kabla ya kutolewa na mtu mwingine isipokuwa mwandishi, ili kuamua ikiwa ni marekebisho ya manufaa na huru ya masuala yaliyojulikana ambayo yangepingana na ujumuishaji wake
+      build_reproducible:
+        description: Mradi LAZIMA uwe na <a href="https://reproducible-builds.org/">ujenzi unaorudiwa</a>. Ikiwa hakuna ujenzi unaofanyika (k.m., lugha za uandishi ambapo msimbo wa chanzo unatumika moja kwa moja badala ya kukusanywa), chagua "haihusiki" (N/A).
+        details: Ujenzi unaorudiwa unamaanisha kwamba pande nyingi zinaweza kwa uhuru kurudia mchakato wa kuzalisha taarifa kutoka faili za chanzo na kupata matokeo sawa ya biti-kwa-biti. Katika hali fulani, hii inaweza kutatuliwa kwa kulazimisha mpangilio fulani wa aina. Wasanidi wa JavaScript wanaweza kuzingatia kutumia npm shrinkwrap na webpack OccurrenceOrderPlugin. Watumiaji wa GCC na clang wanaweza kupata chaguo la -frandom-seed kuwa na manufaa. Mazingira ya ujenzi (ikijumuisha zana) kwa kawaida yanaweza kufafanuliwa kwa pande za nje kwa kubainisha hash ya usimbuaji ya chombo maalum au mashine ya kawaida ambayo wanaweza kutumia kwa kujenga upya. <a href="https://reproducible-builds.org/docs/">Mradi wa majengo yanayorudiwa una nyaraka za jinsi ya kufanya hivi</a>.
+      test_invocation:
+        description: Seti ya majaribio LAZIMA iweze kuitwa kwa njia ya kawaida kwa lugha hiyo.
+      test_continuous_integration:
+        description: Mradi LAZIMA utekeleze ujumuishaji wa kuendelea, ambapo msimbo mpya au uliobadilishwa unajumuishwa mara kwa mara katika hifadhi ya msimbo ya kati na majaribio ya kiotomatiki yanafanywa kwenye matokeo.
+        details: Katika hali nyingi hii inamaanisha kwamba kila msanidi programu anayefanya kazi kikamilifu kwenye mradi anajumuisha angalau kila siku.
+      test_statement_coverage90:
+        description: Mradi LAZIMA uwe na seti ya majaribio ya kiotomatiki ya FLOSS ambayo inatoa angalau 90% ya ufikio wa tamko ikiwa kuna angalau zana moja ya FLOSS ambayo inaweza kupima kigezo hiki katika lugha iliyochaguliwa.
+      test_branch_coverage80:
+        description: Mradi LAZIMA uwe na seti ya jaribio zilizofanywa kiotomatiki za FLOSS ambazo zinatoa angalau asilimia 80 ya uangaliaji wa tawi ikiwa kuna angalau zana moja ya FLOSS inayoweza kupima kigezo hiki katika lugha iliyochaguliwa.
+      crypto_used_network:
+        description: Programu iliyozalishwa na mradi LAZIMA isaidie itifaki salama kwa mawasiliano yake yote ya mtandao, kama vile SSHv2 au zaidi, TLS1.2 au zaidi (HTTPS), IPsec, SFTP, na SNMPv3. Itifaki zisizo salama kama vile FTP, HTTP, telnet, SSLv3 au mapema zaidi, na SSHv1 LAZIMA zizimwe kwa chaguo-msingi, na kuzimwa tu ikiwa mtumiaji anaisanidi mahususi. Ikiwa programu iliyozalishwa na mradi haiesaidii mawasiliano ya mtandao, chagua "haihusiki" (N/A).
+      crypto_tls12:
+        description: Programu iliyozalishwa na mradi LAZIMA, ikiwa inasaidia au inatumia TLS, isaidie angalau toleo la TLS 1.2. Kumbuka kwamba kabla ya TLS kuitwa SSL. Ikiwa programu haitumii TLS, chagua "haihusiki" (N/A).
+      hardened_site:
+        description: Tovuti ya mradi, hifadhi (ikiwa inapatikana kupitia wavuti), na tovuti ya kupakua (ikiwa ni tofauti) LAZIMA ijumuishe vichwa muhimu vya kuimarisha na thamani zisizo na ruhusa.
+        details: 'Kumbuka kwamba GitHub na GitLab zinajulikana kukidhi hii. Tovuti kama vile https://securityheaders.com/ zinaweza kuangalia hii haraka. Vichwa muhimu vya kuimarisha ni: Sera ya Usalama wa Maudhui (CSP), Usalama wa Usafiri wa HTTP Mkali (HSTS), X-Content-Type-Options (kama "nosniff"), na X-Frame-Options. Tovuti za wavuti zilizo za tuli kabisa bila uwezo wa kuingia kupitia kurasa za wavuti zinaweza kuacha baadhi ya vichwa vya kuimarisha na hatari ndogo, lakini hakuna njia ya kuaminika ya kugundua tovuti kama hizo, kwa hivyo tunahitaji vichwa hivi hata kama ni tovuti za tuli kabisa.'
+      security_review:
+        description: Mradi LAZIMA uwe umefanya ukaguzi wa usalama ndani ya miaka 5 iliyopita. Ukaguzi huu LAZIMA uzingatie mahitaji ya usalama na mpaka wa usalama.
+        details: Hii YAWEZA kufanywa na wanachama wa mradi na/au tathmini huru. Tathmini hii YAWEZA kusaidiwa na zana za uchambuzi za tuli na zenye nguvu, lakini lazima pia kuwe na ukaguzi wa binadamu ili kutambua matatizo (hasa katika muundo) ambayo zana haziwezi kugundua.
+      hardening:
+        description: Taratibu za kuimarisha LAZIMA zitumike katika programu iliyozalishwa na mradi ili kasoro za programu ziwe na uwezekano mdogo wa kusababisha udhaifu wa usalama.
+      dynamic_analysis:
+        description: Mradi LAZIMA utumie angalau zana moja ya uchambuzi wenye nguvu kwa toleo lolote lililopendekezwa kuu la uzalishaji wa programu iliyozalishwa na mradi kabla ya kutolewa kwake.
+      dynamic_analysis_enable_assertions:
+        description: Mradi INAPASWA kujumuisha madai mengi ya muda wa kutekeleza katika programu inayozalisha na kuangalia madai hayo wakati wa uchambuzi wenye nguvu.
+    baseline-1:
+      osps_ac_01_01:
+        description: Wakati mtumiaji anajaribu kusoma au kurekebisha rasilimali nyeti katika hifadhi ya mamlaka ya mradi, mfumo LAZIMA uhitaji mtumiaji kukamilisha mchakato wa uthibitishaji wa vipengele vingi.
+        details: Tekeleza uthibitishaji wa vipengele vingi kwa mfumo wa udhibiti wa toleo wa mradi, ikihitaji washirika kutoa aina ya pili ya uthibitishaji wakati wa kufikia data nyeti au kurekebisha mipangilio ya hifadhi. Funguo za kupitisha zinakubaliwa kwa udhibiti huu.
+      osps_ac_02_01:
+        description: Wakati mshirika mpya anaongezwa, mfumo wa udhibiti wa toleo LAZIMA uhitaji mgawanyo wa ruhusa wa mikono, au kuzuia ruhusa za mshirika kwa upendeleo wa chini unapatikana kwa chaguo-msingi.
+        details: Mifumo mingi ya umma ya udhibiti wa toleo imesanidiwa kwa njia hii. Hakikisha mfumo wa udhibiti wa toleo wa mradi daima unapeana ruhusa za chini zinazopatikana kwa washirika kwa chaguo-msingi wanapongezwa, ikitoa ruhusa za ziada tu zinapohitajika.
+      osps_ac_03_01:
+        description: Wakati ahadi ya moja kwa moja inajaribiwa kwenye tawi kuu la mradi, utaratibu wa kutekeleza LAZIMA uzuie mabadiliko yasitekelezwe.
+        details: Ikiwa VCS ni ya kati, weka ulinzi wa tawi kwenye tawi kuu katika VCS ya mradi. Vinginevyo, tumia mbinu isiyokuwa ya kati, kama ile ya kernel ya Linux, ambapo mabadiliko kwanza hupendekeza katika hifadhi nyingine, na kuunganisha mabadiliko katika hifadhi kuu kunahitaji kitendo tofauti mahususi.
+      osps_ac_03_02:
+        description: Wakati jaribio linafanywa kufuta tawi kuu la mradi, mfumo wa udhibiti wa toleo LAZIMA uichukulie hii kama shughuli nyeti na kuhitaji uthibitishaji wa wazi wa nia.
+        details: Weka ulinzi wa tawi kwenye tawi kuu katika mfumo wa udhibiti wa toleo wa mradi ili kuzuia ufutaji.
+      osps_br_01_01:
+        description: Wakati bomba la CI/CD linakubali kigezo cha ingizo, kigezo hicho LAZIMA kisafishwe na kuthibitishwa kabla ya kutumika katika bomba.
+        details: Mifuko ya CI/CD inapaswa kusafisha (kunukuu, kutoroka au kutoka kwa maadili yanayotarajiwa) pembejeo zote za metadata zinazohusiana na vyanzo visivyoaminika. Hii inajumuisha data kama vile majina ya matawi, ujumbe wa kujitolea, lebo, majina ya maombi ya kuvuta, na taarifa za mwandishi.
+      osps_br_01_02:
+        description: Wakati bomba la CI/CD linatumia jina la tawi katika utendaji wake, thamani ya jina hiyo LAZIMA isafishwe na kuthibitishwa kabla ya kutumika katika bomba.
+      osps_br_03_01:
+        description: Wakati mradi unaorodhesha URI kama njia rasmi ya mradi, URI hiyo LAZIMA itolewa pekee kwa kutumia njia zilizosimbwa.
+        details: Sanidi tovuti za mradi na mifumo ya udhibiti wa toleo ili kutumia njia zilizosimbwa kama SSH au HTTPS kwa maambukizi ya data. Hakikisha zana zote na vikoa vilivyorejelewa katika nyaraka za mradi vinaweza kufikika tu kupitia njia zilizosimbwa.
+      osps_br_03_02:
+        description: Wakati mradi unaorodhesha URI kama njia rasmi ya usambazaji, URI hiyo LAZIMA itolwe pekee kwa kutumia njia zilizosimbwa.
+        details: Sanidi mfumo wa kutolewa kwa mradi ili kuchukua data tu kutoka kwenye tovuti, majibu ya API, na huduma nyingine ambazo zinatumia njia zilizosimbwa kama SSH au HTTPS kwa maambukizi ya data.
+      osps_br_07_01:
+        description: Mradi LAZIMA uzuie uhifadhi wa bila makusudi wa data nyeti isiyo-imeimbwa, kama siri na vyeti, katika mfumo wa udhibiti wa toleo.
+        details: Sanidi .gitignore au sawa ili kutofautisha faili ambazo zinaweza kuwa na maelezo nyeti. Tumia vizuizi vya kabla ya kujitolea na zana za uchunguzi zilizosaidiwa na kompyuta ili kugundua na kuzuia ujumuishaji wa data nyeti katika michango.
+      osps_do_01_01:
+        description: Wakati mradi umefanya utoaji, nyaraka za mradi LAZIMA zijumuishe miongozo ya watumiaji kwa utendaji wote wa kimsingi.
+        details: Unda miongozo ya watumiaji au nyaraka kwa utendaji wote wa kimsingi wa mradi, ikieleza jinsi ya kusakinisha, kusanidi, na kutumia vipengele vya mradi. Ikiwa kuna vitendo vinavyojulikana kuwa hatari au vya kuharibu, jumuisha maonyo yaliyo-wazi kabisa.
+      osps_do_02_01:
+        description: Wakati mradi umefanya utoaji, nyaraka za mradi LAZIMA zijumuishe mwongozo wa kuripoti hitilafu.
+        details: Inashauriwa kwamba miradi itumie kifuatiliaji cha masuala cha chaguo-msingi cha VCS yao. Ikiwa chanzo cha nje kinatumiwa, hakikisha kwamba nyaraka za mradi na mwongozo wa kuchangia zinaeleza wazi na kwa uonekano jinsi ya kutumia mfumo wa kuripoti. Inashauriwa kwamba nyaraka za mradi pia ziweke matarajio ya jinsi hitilafu zitatolewa kipaumbele na kutatuliwa.
+      osps_gv_02_01:
+        description: Wakati ukiwa hai, mradi LAZIMA uwe na taratibu moja au zaidi za mijadala ya umma kuhusu mabadiliko yaliyopendekezwa na vizuizi vya matumizi.
+        details: Unda taratibu moja au zaidi za mijadala ya umma ndani ya mradi, kama orodha za barua, ujumbe wa papo hapo, au vifuatiliaji vya masuala, ili kuwezesha mawasiliano ya wazi na maoni.
+      osps_gv_03_01:
+        description: Wakati ukiwa hai, nyaraka za mradi LAZIMA zijumuishe maelezo ya mchakato wa kuchangia.
+        details: Unda CONTRIBUTING.md au saraka ya CONTRIBUTING/ ili kuainisha mchakato wa kuchangia ukijumuisha hatua za kuwasilisha mabadiliko, na kushirikiana na watunzaji wa mradi.
+      osps_le_02_01:
+        description: Wakati ukiwa hai, leseni kwa msimbo wa chanzo LAZIMA ikidhi Ufafanuzi wa Chanzo Wazi wa OSI au Ufafanuzi wa Programu Huria wa FSF.
+        details: Ongeza faili ya LICENSE kwenye hazina ya mradi na leseni ambayo ni leseni iliyoidhinishwa na Open Source Initiative (OSI), au leseni huria kama ilivyoidhinishwa na Free Software Foundation (FSF). Mifano ya leseni kama hizo ni pamoja na MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), na GNU General Public License (GPL). Kutolewa kwa umma kukidhi udhibiti huu ikiwa hakuna vizuizi vingine kama vile vimiliki.
+      osps_le_02_02:
+        description: Wakati ukiwa hai, leseni kwa mali za programu iliyotolewa LAZIMA ikidhi Ufafanuzi wa Chanzo Wazi wa OSI au Ufafanuzi wa Programu Huria wa FSF.
+        details: Ikiwa leseni tofauti imejumuishwa na mali za programu zilizotolewa, hakikisha ni leseni iliyoidhinishwa na Open Source Initiative (OSI), au leseni huria kama ilivyoidhinishwa na Free Software Foundation (FSF). Mifano ya leseni kama hizo ni pamoja na MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), na GNU General Public License (GPL). Kumbuka kwamba leseni kwa mali za programu zilizotolewa inaweza kuwa tofauti na msimbo wa chanzo.
+      osps_le_03_01:
+        description: Wakati ukiwa hai, leseni kwa msimbo wa chanzo LAZIMA itunzwe katika faili ya LICENSE ya hazina inayohusiana, faili ya COPYING, au saraka ya LICENSE/.
+        details: Jumuisha leseni ya msimbo wa chanzo wa mradi katika faili ya LICENSE ya mradi, faili ya COPYING, au saraka ya LICENSE/ ili kutoa uonekano na uwazi juu ya masharti ya leseni. Jina la faili LINAWEZA kuwa na kiendelezi. Ikiwa mradi una hazina nyingi, hakikisha kwamba kila hazina inajumuisha faili ya leseni.
+      osps_le_03_02:
+        description: Wakati mradi ukiwa hai, leseni kwa rasilimali za programu iliyotolewa LAZIMA ijumuishwe ndani ya msimbo wa chanzo uliotolewa, au katika faili ya LICENSE, faili ya COPYING, au saraka ya LICENSE/ pembeni na rasilimali za toleo linalohusiana.
+        details: Jumuisha leseni ya rasilimali za programu zilizotolewa za mradi katika msimbo wa chanzo uliotolewa, au katika faili ya LICENSE, faili ya COPYING, au saraka ya LICENSE/ pembeni na rasilimali za toleo linalohusiana ili kutoa mwonekano na uwazi wa masharti ya leseni. Jina la faili YAWEZA kuwa na kiendelezi. Ikiwa mradi una hazina nyingi, hakikisha kwamba kila hazina inajumuisha faili ya leseni.
+      osps_qa_01_01:
+        description: Wakati mradi ukiwa hai, hazina ya msimbo wa chanzo wa mradi LAZIMA iweze kusomwa hadharani kwenye URL isiyobadilika.
+        details: Tumia VCS ya kawaida kama GitHub, GitLab, au Bitbucket. Hakikisha hazina inaweza kusomwa hadharani. Epuka kunakili au kuakisi hazina isipokuwa nyaraka zinazoonekana sana zinatoa wazi chanzo kikuu. Epuka mabadiliko ya mara kwa mara kwenye hazina ambayo ingeathiri URL ya hazina. Hakikisha hazina ni ya umma.
+      osps_qa_01_02:
+        description: Mfumo wa udhibiti wa toleo LAZIMA uwe na kumbukumbu inayoweza kusomwa hadharani ya mabadiliko yote yaliyofanywa, nani alifanya mabadiliko, na mabadiliko yalifanywa lini.
+        details: Tumia VCS ya kawaida kama GitHub, GitLab, au Bitbucket ili kudumisha historia ya kuwasilisha inayoweza kusomwa hadharani. Epuka kusonga au kuandika upya miwasilisho kwa namna ambayo ingeweza kuficha mwandishi wa miwasilisho yoyote.
+      osps_qa_02_01:
+        description: Wakati mfumo wa usimamizi wa kifurushi unaposaidia, hazina ya msimbo wa chanzo LAZIMA iwe na orodha ya utegemezi inayohesabu utegemezi wa moja kwa moja wa lugha.
+        details: Hii inaweza kuwa kwa namna ya faili ya usimamizi wa kifurushi au faili ya utegemezi wa lugha inayoorodhesha utegemezi wote wa moja kwa moja kama package.json, Gemfile, au go.mod.
+      osps_qa_04_01:
+        description: Wakati mradi ukiwa hai, nyaraka za mradi LAZIMA ziwe na orodha ya hazina zozote za msimbo zinazozingatiwa kama miradi midogo.
+        details: Weka kwenye nyaraka hazina zozote za ziada za msimbo wa miradi midogo zinazozalishwa na mradi na kukusanywa katika toleo. Nyaraka hii inapaswa kujumuisha hali na nia ya hazina ya msimbo husika.
+      osps_qa_05_01:
+        description: Wakati mradi ukiwa hai, mfumo wa udhibiti wa toleo LAZIMA USIWE na vitu vilivyozalishwa vinavyoweza kutekelezwa.
+        details: Ondoa vitu vilivyozalishwa vinavyoweza kutekelezwa katika mfumo wa udhibiti wa toleo wa mradi. Inashauriwa kwamba hali yoyote ambapo kifaa kilichozalishwa kinachoweza kutekelezwa kinaonekana muhimu kwa mchakato kama vile majaribio, badala yake kinapaswa kuzalishwa wakati wa ujenzi au kuhifadhiwa kando na kuchukuliwa wakati wa hatua maalum ya mfumo wa kuendeshea iliyoandikwa vizuri.
+      osps_qa_05_02:
+        description: Wakati mradi ukiwa hai, mfumo wa udhibiti wa toleo LAZIMA USIWE na vitu vya binary visivyoweza kukaguliwa.
+        details: Usiongeze vitu vyovyote vya binary visivyoweza kukaguliwa katika mfumo wa udhibiti wa toleo wa mradi. Hii inajumuisha programu za binary za maombi, faili za maktaba, na vitu sawa. Haijumuishi mali kama picha za kigraphiki, faili za sauti au muziki, na maudhui sawa ambayo kwa kawaida huhifadhiwa katika muundo wa binary.
+      osps_vm_02_01:
+        description: Wakati mradi ukiwa hai, nyaraka za mradi LAZIMA ziwe na anwani za kuwasiliana za usalama.
+        details: Unda faili ya security.md (au inayoitwa sawa) inayohifadhi anwani za kuwasiliana za usalama kwa mradi.
+      osps_br_01_03:
+        description: Wakati mfuko wa CI/CD unafanya kazi kwenye picha za nambari za kanuni ambazo haziaminiki, LAZIMA uzuie upatikanaji wa vitambulisho vya CI/CD vilivyopendelewa na mali.
+        details: Mifuko ya CI/CD inapaswa kutenga picha za nambari za kanuni ambazo haziaminiki kutoka kwa vitambulisho vilivyopendelewa na mali. Hasa, miradi inapaswa kuwa makini kuhakikisha kwamba mtiririko wa kazi ambao hujenga au kutekeleza nambari kabla ya ukaguzi na mshirika hana upatikanaji wa vitambulisho vya CI/CD.
+    baseline-2:
+      osps_ac_04_01:
+        description: Wakati kazi ya CI/CD inatekelezwa bila ruhusa zilizobainishwa, mfumo wa CI/CD LAZIMA uweke chaguomsingi ruhusa za kazi kuwa ruhusa za chini kabisa zinazotolewa katika mfumo wa kuendeshea.
+        details: Sanidi mipangilio ya mradi ili kupeana ruhusa za chini zaidi zinazopatikana kwa mifumo mipya ya kuendeshea kwa chaguomsingi, ukitoa ruhusa za ziada tu zinapohitajika kwa kazi maalum.
+      osps_br_02_01:
+        description: Wakati toleo rasmi linapotengenezwa, toleo hilo LAZIMA lipatiwe kitambulisho cha pekee cha toleo.
+        details: Peana kitambulisho cha pekee cha toleo kwa kila toleo linalozalishwa na mradi, ukifuata mkondo thabiti wa kutaja au mpango wa nambari. Mifano ni pamoja na SemVer, CalVer, au kitambulisho cha kuwasilisha cha git.
+      osps_br_04_01:
+        description: Wakati toleo rasmi linapotengenezwa, toleo hilo LAZIMA liwe na kumbukumbu ya maelezo ya marekebisho ya utendakazi na usalama.
+        details: Hakikisha kuwa matoleo yote yanajumuisha kumbukumbu ya mabadiliko ya maelezo. Inashauriwa kuhakikisha kuwa kumbukumbu ya mabadiliko inaweza kusomwa na binadamu na inajumuisha maelezo zaidi ya ujumbe wa ahadi, kama vile maelezo ya athari za usalama au uhusiano na matumizi tofauti. Ili kuhakikisha kusomwa kwa mashine, weka maudhui chini ya kichwa cha markdown kama "## Changelog".
+      osps_br_05_01:
+        description: Wakati mfululizo wa ujenzi na toleo unaingia utegemezi, LAZIMA utumie zana zilizowekwa viwango ambapo zinapatikana.
+        details: Tumia zana za kawaida kwa ikolojia yako, kama vile wasimamizi wa vifurushi au zana za usimamizi wa utegemezi kuingia utegemezi wakati wa ujenzi. Hii inaweza kujumuisha kutumia faili ya utegemezi, faili ya kufuli, au orodha ya kudhibitisha utegemezi unaohitajika, ambayo kisha unavutwa na mfumo wa ujenzi.
+      osps_br_06_01:
+        description: Wakati toleo rasmi linapotengenezwa, toleo hilo LAZIMA liwe na saini au kuhesabiwa kwenye orodha iliyosainiwa ikiwa ni pamoja na hashes za usimbuaji za mali kila moja.
+        details: Saini mali zote za programu zilizotolewa wakati wa ujenzi kwa saini ya usimbuaji au uthibitisho, kama vile saini ya GPG au PGP, saini za Sigstore, utokeo wa SLSA, au SLSA VSAs. Jumuisha hashes za usimbuaji za mali kila moja katika orodha iliyosainiwa au faili ya metadata.
+      osps_do_06_01:
+        description: Wakati mradi umefanya toleo, nyaraka za mradi LAZIMA zijumuishe maelezo ya jinsi mradi unavyochagua, kupata, na kufuatilia utegemezi wake.
+        details: Inashauriwa kuchapisha habari hii pamoja na nyaraka za kiufundi na muundo wa mradi kwenye rasilimali inayoweza kuonwa hadharani kama vile hifadhi ya msimbo wa chanzo, tovuti ya mradi, au kituo kingine.
+      osps_gv_01_01:
+        description: Wakati ikiwa hai, nyaraka za mradi LAZIMA zijumuishe orodha ya wanachama wa mradi walio na ufikiaji wa rasilimali nyeti.
+        details: Andika washiriki wa mradi na majukumu yao kupitia vitu kama members.md, governance.md, maintainers.md, au faili sawa ndani ya hifadhi ya msimbo wa chanzo wa mradi. Hii inaweza kuwa rahisi kama kujumuisha majina au alama za akaunti katika orodha ya watunzaji, au changamano zaidi kulingana na utawala wa mradi.
+      osps_gv_01_02:
+        description: Wakati ikiwa hai, nyaraka za mradi LAZIMA zijumuishe maelezo ya majukumu na wajibu wa wanachama wa mradi.
+        details: Andika washiriki wa mradi na majukumu yao kupitia vitu kama members.md, governance.md, maintainers.md, au faili sawa ndani ya hifadhi ya msimbo wa chanzo wa mradi.
+      osps_gv_03_02:
+        description: Wakati ikiwa hai, nyaraka za mradi LAZIMA zijumuishe mwongozo kwa wachangiaji wa msimbo ambao unajumuisha mahitaji ya michango inayokubalika.
+        details: Panua yaliyomo ya CONTRIBUTING.md au CONTRIBUTING/ katika nyaraka za mradi ili kuorodhesha mahitaji ya michango inayokubalika, ikiwa ni pamoja na viwango vya kuandika msimbo, mahitaji ya majaribio, na miongozo ya kuwasilisha kwa wachangiaji wa msimbo. Inashauriwa kuwa mwongozo huu ni chanzo cha ukweli kwa wachangiaji na waidhinishaji.
+      osps_le_01_01:
+        description: Wakati ikiwa hai, mfumo wa kudhibiti toleo LAZIMA uhitaji wachangiaji wote wa msimbo kudai kuwa wanaruhusiwa kisheria kufanya michango husika kwenye ahadi kila moja.
+        details: Jumuisha DCO katika hifadhi ya mradi, kuhitaji wachangiaji wa msimbo kudai kuwa wanaruhusiwa kisheria kuwasilisha michango husika kwenye ahadi kila moja. Tumia ukaguzi wa hali kuhakikisha dai linafanywa. CLA pia inakidhi mahitaji haya. Mifumo fulani ya kudhibiti toleo, kama vile GitHub, inaweza kujumuisha hii katika masharti ya huduma ya jukwaa.
+      osps_qa_03_01:
+        description: Wakati ahadi inafanywa kwenye tawi kuu, ukaguzi wowote wa kiotomatiki wa hali za ahadi LAZIMA upite au upuuzwe kwa mikono.
+        details: Sanidi mfumo wa kudhibiti toleo wa mradi kuhitaji kuwa ukaguzi wote wa kiotomatiki wa hali upite au kuhitaji thibitisho la mikono kabla ya ahadi kuweza kuunganishwa kwenye tawi kuu. Inashauriwa kuwa ukaguzi wowote wa hiari HAUPASWI kusanidiwa kama mahitaji ya kupita au kushindwa ambayo waidhinishaji wanaweza kuwa na msukumo wa kupuuza.
+      osps_qa_06_01:
+        description: Kabla ya ahadi kukubalika, mifululizo ya CI/CD ya mradi LAZIMA iendeshe angalau seti moja ya majaribio ya kiotomatiki kuhakikisha mabadiliko yanakidhi matarajio.
+        details: Majaribio ya kiotomatiki yanapaswa kuendeshwa kabla ya kuunganisha kila moja kwenye tawi kuu. Seti ya majaribio inapaswa kuendeshwa katika mfululizo wa CI/CD na matokeo yanapaswa kuonekana kwa wachangiaji wote. Seti ya majaribio inapaswa kuendeshwa katika mazingira thabiti na inapaswa kuendeshwa kwa njia inayoruhusu wachangiaji kuendesha majaribio kienyeji. Mifano ya seti za majaribio ni pamoja na majaribio ya kitengo, majaribio ya uunganishaji, na majaribio ya mwisho-hadi-mwisho.
+      osps_sa_01_01:
+        description: Mradi ulipotoa toleo, nyaraka za mradi LAZIMA zijumuishe nyaraka za muundo zinazoonyesha matendo yote na watendaji ndani ya mfumo.
+        details: Jumuisha miundo katika nyaraka za mradi inayoeleza matendo na watendaji. Watendaji ni pamoja na mfumo wowote mdogo au kipengele ambacho kinaweza kuathiri sehemu nyingine katika mfumo. Hakikisha hii inasasishwa kwa vipengele vipya au mabadiliko ya kuvunja.
+      osps_sa_02_01:
+        description: Mradi ulipotoa toleo, nyaraka za mradi LAZIMA zijumuishe maelezo ya kiolesura vyote vya nje vya programu vya mali za programu zilizotolewa.
+        details: Eleza kiolesura vyote vya programu (APIs) vya mali za programu zilizotolewa, ukieleza jinsi watumiaji wanaweza kuingiliana na programu na data gani inatarajiwa au inazalishwa. Hakikisha hii inasasishwa kwa vipengele vipya au mabadiliko ya kuvunja.
+      osps_sa_03_01:
+        description: Mradi ulipotoa toleo, mradi LAZIMA ufanye tathmini ya usalama ili kuelewa matatizo ya uwezekano wa usalama ambayo ni ya uwezekano zaidi na yenye athari kubwa ambayo yangeweza kutokea ndani ya programu.
+        details: Kufanya tathmini ya usalama huwaelimisha wajumbe wa mradi na pia watumiaji wa chini kwamba mradi unaelewa matatizo ambayo yangeweza kutokea ndani ya programu. Kuelewa vitisho ambavyo vingeweza kutambuliwa husaidia mradi kudhibiti na kushughulikia hatari. Habari hii ni muhimu kwa watumiaji wa chini ili kuonyesha ujuzi wa usalama na mazoea ya mradi. Hakikisha hii inasasishwa kwa vipengele vipya au mabadiliko ya kuvunja.
+      osps_vm_01_01:
+        description: Ikiwa iko hai, nyaraka za mradi LAZIMA zijumuishe sera ya ufichuaji wa udhaifu wa pamoja (CVD), yenye muda maalum wa kujibu.
+        details: Unda faili ya SECURITY.md mzizini mwa saraka, ikielezea sera ya mradi ya ufichuaji wa udhaifu wa pamoja. Jumuisha njia ya kuripoti udhaifu. Weka matarajio ya jinsi mradi utajibu na kushughulikia masuala yaliyoripotiwa.
+      osps_vm_03_01:
+        description: Ikiwa iko hai, nyaraka za mradi LAZIMA zitoe njia ya kuripoti udhaifu wa faragha moja kwa moja kwa mawasiliano ya usalama ndani ya mradi.
+        details: Toa njia kwa watafiti wa usalama kuripoti udhaifu kwa faragha kwa mradi. Hii inaweza kuwa anwani ya barua pepe mahususi, fomu ya wavuti, zana maalum za VCS, anwani za barua pepe kwa mawasiliano ya usalama, au mbinu nyingine.
+      osps_vm_04_01:
+        description: Ikiwa iko hai, nyaraka za mradi LAZIMA zichapisha hadharani data kuhusu udhaifu uliogundulika.
+        details: Toa habari kuhusu udhaifu unaojulikana katika kituo cha hadharani kinachoweza kutabirika, kama vile ingizo la CVE, chapisho la blogi, au njia nyingine. Kwa kiwango kinachowezekana, habari hii inapaswa kujumuisha toleo(matoleo) lililoathirika, jinsi mtumiaji anavyoweza kubaini kama wanaathirika, na maelekezo ya kuzuia au kurekebisha.
+      osps_do_07_01:
+        description: Nyaraka za mradi LAZIMA zijumuishe maelekezo ya jinsi ya kujenga programu, ikiwa ni pamoja na maktaba zinazohitajika, mifumo, SDK, na utegemezi.
+        details: Inashauriwa kuchapisha taarifa hii pamoja na nyaraka za wachangiaji wa mradi, kama vile katika CONTRIBUTING.md au nyaraka nyingine za kazi za msanidi. Hii inaweza pia kuandikwa kwa kutumia malengo ya Makefile au hati nyingine za uendeshaji.
+    baseline-3:
+      osps_ac_04_02:
+        description: Ruhusa zinapopeana kwa kazi katika mfumo wa CI/CD, msimbo wa chanzo au usanidi LAZIMA upee tu ruhusa za chini zaidi zinazohitajika kwa shughuli zinazohusiana.
+        details: Sanidi mifumo ya CI/CD ya mradi ili kupea ruhusa za chini zinazopatikana kwa watumiaji na huduma kwa chaguomsingi, ukipandisha ruhusa tu inapohitajika kwa kazi maalum. Katika baadhi ya mifumo ya udhibiti wa toleo, hii inaweza kufanyika katika kiwango cha shirika au hifadhi. Ikiwa sivyo, weka ruhusa katika kiwango cha juu cha mfumo.
+      osps_br_02_02:
+        description: Toleo rasmi linapobuniwa, mali zote ndani ya toleo hilo LAZIMA zihusianishwe wazi na kitambulisho cha toleo au kitambulisho kingine cha kipekee kwa mali hiyo.
+        details: Panga kitambulisho cha kipekee cha toleo kwa kila mali ya programu inayozalishwa na mradi, ukifuata kawaida ya uainishaji thabiti au mpango wa nambari. Mifano ni pamoja na SemVer, CalVer, au kitambulisho cha git commit.
+      osps_br_07_02:
+        description: Mradi LAZIMA ufafanue sera ya kudhibiti siri na ushahidi unaotumika na mradi. Sera inapaswa kujumuisha mwongozo wa kuhifadhi, kufikia, na kuzungusha siri na ushahidi.
+        details: Eleza jinsi siri na ushahidi vinavyodhibitiwa na kutumika ndani ya mradi. Hii inapaswa kujumuisha maelezo ya jinsi siri zinavyohifadhiwa (k.m., kwa kutumia zana ya usimamizi wa siri), jinsi ufikiaji unavyodhibitiwa, na jinsi siri zinavyozungushwa au kusasishwa. Hakikisha kwamba habari nyeti haziingizwi kwa msimbo katika msimbo wa chanzo au kuhifadhiwa katika mifumo ya udhibiti wa toleo.
+      osps_do_03_01:
+        description: Mradi ulipotoa toleo, nyaraka za mradi LAZIMA ziwe na maelekezo ya kuthibitisha uadilifu na uhalali wa mali za toleo.
+        details: Maelekezo katika mradi yanapaswa kuwa na habari kuhusu teknolojia iliyotumika, amri za kuendesha, na matokeo yanayotarajiwa. Inapowezekana, epuka kuhifadhi nyaraka hizi katika mahali pamoja na mfumo wa ujenzi na utoaji wa toleo ili kuepuka ukiukaji mmoja kuhatarisha programu na nyaraka za kuthibitisha uadilifu wa programu.
+      osps_do_03_02:
+        description: Mradi unapotoa toleo, nyaraka za mradi LAZIMA ziwe na maelekezo ya kuthibitisha utambulisho unaotarajiwa wa mtu au mchakato unaothibitisha toleo la programu.
+        details: Utambulisho unaotarajiwa unaweza kuwa katika muundo wa vitambulisho vya funguo vilivyotumika kusaini, mtoa na utambulisho kutoka cheti cha sigstore, au aina nyingine zinazofanana. Inapowezekana, epuka kuhifadhi nyaraka hii mahali palipo sawa na mirija ya kujenga na kutoa ili kuepuka ukiukaji mmoja kuhatarisha programu na nyaraka za kuthibitisha uadilifu wa programu.
+      osps_do_04_01:
+        description: Mradi unapotoa toleo, nyaraka za mradi LAZIMA zijumuishe kauli ya maelezo kuhusu wigo na muda wa msaada kwa kila toleo.
+        details: Ili kuwasilisha wigo na muda wa msaada kwa rasilimali za programu zilizotolewa za mradi, mradi unapaswa kuwa na faili ya SUPPORT.md, sehemu ya "Msaada" katika SECURITY.md, au nyaraka nyingine zinazoweka wazi mzunguko wa maisha wa msaada, ikijumuisha muda unaotarajiwa wa msaada kwa kila toleo, aina za msaada zinazotolewa (k.m., marekebisho ya hitilafu, sasisho za usalama), na sera au taratibu yoyote husika ya kupata msaada.
+      osps_do_05_01:
+        description: Mradi unapotoa toleo, nyaraka za mradi LAZIMA zitoe kauli ya maelezo ya wakati matoleo au matoleo hayatapokea tena sasisho za usalama.
+        details: Ili kuwasilisha wigo na muda wa msaada kwa marekebisho ya usalama, mradi unapaswa kuwa na SUPPORT.md au nyaraka nyingine zinazoweka wazi sera ya mradi ya sasisho za usalama.
+      osps_gv_04_01:
+        description: Inapokuwa hai, nyaraka za mradi LAZIMA ziwe na sera kwamba washirikiano wa msimbo wanapimwa kabla ya kupewa ruhusa zilizopandishwa kwa rasilimali nyeti.
+        details: Chapisha sera inayoweza kutekelezwa katika nyaraka za mradi inayohitaji washirikiano wa msimbo kupimwa na kuidhinishwa kabla ya kupewa ruhusa zilizopandishwa kwa rasilimali nyeti, kama vile idhini ya kuunganisha au ufikiaji kwa siri. Inashauriwa kwamba upimaji ujumuishe kuanzisha mfululizo wa utambulisho unaoweza kuhalalishwa kama vile kuthibitisha ushirikiano wa mchangiaji na shirika linalojulikana na kuaminika.
+      osps_qa_02_02:
+        description: Mradi unapotoa toleo, rasilimali zote za programu zilizotolewa na zilizokusanywa LAZIMA zikabidhi pamoja na orodha ya bili ya programu.
+        details: Inashauriwa kuzalisha SBOM kiotomatiki wakati wa kujenga kwa kutumia zana ambayo imepimwa kwa usahihi. Hii huwezesha watumiaji kuingiza data hii kwa njia ya kiwango pamoja na miradi mingine katika mazingira yao.
+      osps_qa_04_02:
+        description: Mradi unapotoa toleo linalojumuisha hifadhi nyingi za chanzo cha msimbo, miradi yote midogo LAZIMA ilazimishe mahitaji ya usalama ambayo ni kali au kali zaidi kuliko msimbo wa msingi.
+        details: Hifadhi yoyote ya ziada ya msimbo wa miradi midogo iliyozalishwa na mradi na kukusanywa katika toleo lazima ilazimishe mahitaji ya usalama kama inavyolingana na hali na nia ya msimbo husika. Kwa kuongeza kufuata mahitaji ya msingi wa OSPS yanayolingana, hii inaweza kujumuisha kuhitaji ukaguzi wa usalama, kuhakikisha kuwa haina udhaifu, na kuhakikisha kuwa haina masuala ya usalama yanayojulikana.
+      osps_qa_06_02:
+        description: Inapokuwa hai, nyaraka za mradi LAZIMA ziweke wazi lini na jinsi majaribio yanavyotekelezwa.
+        details: Ongeza sehemu kwenye nyaraka za kuchangia inayoweka wazi jinsi ya kutekeleza majaribio kienyeji na jinsi ya kutekeleza majaribio katika mirija ya CI/CD. Nyaraka zinapaswa kuweka wazi majaribio yanajaribu nini na jinsi ya kutafsiri matokeo.
+      osps_qa_06_03:
+        description: Inapokuwa hai, nyaraka za mradi LAZIMA zijumuishe sera kwamba mabadiliko yote makubwa kwa programu inayozalishwa na mradi yanapaswa kuongeza au kusasisha majaribio ya utendaji katika seti ya majaribio ya kiatomati.
+        details: Ongeza sehemu kwenye nyaraka za kuchangia inayoweka wazi sera ya kuongeza au kusasisha majaribio. Sera inapaswa kuweka wazi ni nini kinachojumuisha mabadiliko makubwa na majaribio yapi yanapaswa kuongezwa au kusasishwa.
+      osps_qa_07_01:
+        description: Wakati kuruhusu kumefanywa kwa tawi kuu, mfumo wa udhibiti wa toleo la mradi LAZIMA uhitaji angalau idhini moja ya binadamu asiye mwandishi ya mabadiliko kabla ya kuunganisha.
+        details: Sanidi mfumo wa udhibiti wa toleo la mradi kuhitaji angalau idhini moja ya binadamu asiye mwandishi ya mabadiliko kabla ya kuunganisha katika toleo au tawi kuu. Hii inaweza kupatikana kwa kuhitaji ombi la kuvuta kupimwa na kuidhinishwa na angalau mshirikiano mmoja mwingine kabla ya kunaweza kuunganishwa.
+      osps_sa_03_02:
+        description: Mradi unapotoa toleo, mradi LAZIMA ufanye ufuatiliaji wa tisho na uchambuzi wa uso wa shambulio ili kuelewa na kulinda dhidi ya mashambulizi kwenye njia za msimbo muhimu, majukumu, na mwingiliano ndani ya mfumo.
+        details: Ufuatiliaji wa tisho ni shughuli ambapo mradi unaangalia msimbo, michakato na miundombinu inayohusiana, viunganishi, vipengele muhimu na "kufikiria kama kibogoyo" na kufanya mapendekezo ya jinsi mfumo unaweza kuvunjwa au kuhatarisha. Kila tisho iliyotambuliwa imeorodheshwa ili mradi uweze kufikiria jinsi ya kuepuka au kufunga pengo/udhaifu wowote unaoweza kutokea kwa kujihadhari. Hakikisha hii imesasishwa kwa vipengele vipya au mabadiliko ya kuvunja.
+      osps_vm_04_02:
+        description: Wakati uko hai, udhaifu wowote katika vipengele vya programu visivyoathiri mradi LAZIMA viwe vimeainishwa katika hati ya VEX, ikiendeleza ripoti ya udhaifu na maelezo ya kutokutumiwa vibaya.
+        details: Weka mfumo wa mlisho wa VEX unaowasiliana hali ya utumiaji vibaya wa udhaifu unaojulikana, ikiwa ni pamoja na maelezo ya tathmini au marekebisho yoyote yaliyowekwa kusimamisha msimbo ulio na udhaifu usiotekelezwa.
+      osps_vm_05_01:
+        description: Wakati uko hai, nyaraka za mradi LAZIMA zijumuishe sera inayofafanua kiwango cha marekebisho ya matokeo ya SCA yanayohusiana na udhaifu na leseni.
+        details: Andika sera katika mradi inayofafanua kiwango cha marekebisho ya matokeo ya SCA yanayohusiana na udhaifu na leseni. Jumuisha mchakato wa kutambua, kutanguliza, na kurekebisha matokeo haya.
+      osps_vm_05_02:
+        description: Wakati uko hai, nyaraka za mradi LAZIMA zijumuishe sera ya kushughulikia ukiukaji wa SCA kabla ya toleo lolote.
+        details: Andika sera katika mradi wa kushughulikia matokeo ya Uchambuzi wa Muundo wa Programu yanayotumika kabla ya toleo lolote, na ongeza ukaguzi wa hali unaothibitisha kufuata sera hiyo kabla ya toleo.
+      osps_vm_05_03:
+        description: Wakati uko hai, mabadiliko yote kwenye msingi wa msimbo wa mradi LAZIMA yaangaliwe kiatomati dhidi ya sera iliyoandikwa ya utegemezi mbaya na udhaifu unaojulikana katika utegemezi, kisha yazuiliwe katika hali ya ukiukaji, isipokuwa inapotangazwa na kuzuiliwa kama isiyotumiwa vibaya.
+        details: Unda ukaguzi wa hali katika mfumo wa kudhibiti toleo la mradi unaoendesha zana ya Uchambuzi wa Muundo wa Programu kwenye mabadiliko yote ya msingi wa msimbo. Hitaji kwamba ukaguzi wa hali upite kabla mabadiliko kusanywa.
+      osps_vm_06_01:
+        description: Wakati uko hai, nyaraka za mradi LAZIMA zijumuishe sera inayofafanua kiwango cha marekebisho ya matokeo ya SAST.
+        details: Andika sera katika mradi inayofafanua kiwango cha marekebisho ya matokeo ya Upimaji wa Usalama wa Programu Tuli (SAST). Jumuisha mchakato wa kutambua, kutanguliza, na kurekebisha matokeo haya.
+      osps_vm_06_02:
+        description: Wakati uko hai, mabadiliko yote kwenye msingi wa msimbo wa mradi LAZIMA yaangaliwe kiatomati dhidi ya sera iliyoandikwa ya udhaifu wa usalama na kuzuiliwa katika hali ya ukiukaji isipokuwa inapotangazwa na kuzuiliwa kama isiyotumiwa vibaya.
+        details: Unda ukaguzi wa hali katika mfumo wa kudhibiti toleo la mradi unaoendesha zana ya Upimaji wa Usalama wa Programu Tuli (SAST) kwenye mabadiliko yote ya msingi wa msimbo. Hitaji kwamba ukaguzi wa hali upite kabla mabadiliko kusanywa.
+      osps_br_01_04:
+        description: Mifuko ya CI/CD inayokubali pembejeo za mshirika anayeaminika LAZIMA isafishe na kuthibitisha pembejeo hiyo kabla ya kutumia katika mfuko.
+        details: Mifuko ya CI/CD inapaswa kusafisha (kunukuu, kutoroka au kutoka kwa maadili yanayotarajiwa) pembejeo zote za mshirika kwenye utekelezaji wa mtiririko wa kazi wa wazi. Ingawa washirika kwa ujumla wanaaminika, pembejeo za mwongozo kwa mtiririko wa kazi haiwezi kukaguliwa na inaweza kutumiwa vibaya na utekaji wa akaunti au tishio la ndani.
+  criteria_overall:
+    beginning_header_all: Vigezo vya Mazoea Bora vya FLOSS (Viwango Vyote)
+    beginning_header_0: Vigezo vya Mazoea Bora vya FLOSS (Nishani Inayopita)
+    beginning_header_1: Vigezo vya Mazoea Bora vya FLOSS (Nishani ya Fedha)
+    beginning_header_2: Vigezo vya Mazoea Bora vya FLOSS (Nishani ya Dhahabu)
+    beginning_all_html: <p> Hii ni seti ya mazoea bora kwa miradi ya Programu Huru na Zana Huria (FLOSS) ili kupata nishani za Mazoea Bora za Open Source Security Foundation (OpenSSF) katika viwango vya nishani inayopita, fedha, na dhahabu. Unaweza kuonyesha orodha hii na <a href="/sw/criteria">vigezo tu</a> au na <a href="/sw/criteria?details=true&rationale=true">taarifa za ziada</a>. Pia unaweza kuona tu vigezo vya <a href="/sw/criteria/0">kupita</a>, <a href="/sw/criteria/1">fedha</a>, na <a href="/sw/criteria/2">dhahabu</a>, pamoja na <a href="/sw/criteria_stats">takwimu za vigezo</a>.
+    beginning_0_html: <p> Hii ni seti ya mazoea bora kwa miradi ya Programu Huru na Zana Huria (FLOSS) ili kupata nishani inayopita ya Mazoea Bora za Open Source Security Foundation (OpenSSF). Unaweza kuonyesha orodha hii na <a href="/sw/criteria/0">vigezo tu</a> au na <a href="/sw/criteria/0?details=true&rationale=true">taarifa za ziada</a>. <a href="/sw/criteria">Seti kamili ya vigezo kwa viwango vyote vya nishani</a> pia inapatikana.
+    beginning_1_html: <p> Hii ni seti ya mazoea bora kwa miradi ya Programu Huru na Zana Huria (FLOSS) ili kupata nishani ya fedha ya Mazoea Bora za Open Source Security Foundation (OpenSSF). Unaweza kuonyesha orodha hii na <a href="/sw/criteria/1">vigezo tu</a> au na <a href="/sw/criteria/1?details=true&rationale=true">taarifa za ziada</a>. <a href="/sw/criteria">Seti kamili ya vigezo</a> pia inapatikana.
+    beginning_2_html: <p> Hii ni seti ya mazoea bora kwa miradi ya Programu Huru na Zana Huria (FLOSS) ili kupata nishani ya dhahabu ya Mazoea Bora za Open Source Security Foundation (OpenSSF). Unaweza kuonyesha orodha hii na <a href="/sw/criteria/2">vigezo tu</a> au na <a href="/sw/criteria/2?details=true&rationale=true">taarifa za ziada</a>. <a href="/sw/criteria">Seti kamili ya vigezo</a> pia inapatikana.
+    see_discussion_html: <p> Ona <a href="/sw/criteria_discussion">mjadala wa vigezo</a> kwa maelezo zaidi kuhusu vigezo hivi.
+    future: "{Usoni}"
+    na_allowed: "{N/A inaruhusiwa}"
+    na_justification_required: "{N/A sababu}"
+    met_justification_required: "{Sababu iliyokidiwa}"
+    met_url_required: "{URL iliyokidiwa}"
+    obsolete: "{Obsolete}"
+  criteria_discussion:
+    intro_p01_html: "<h1 id='criteria_discussion'>Mjadala wa Vigezo</h1>"
+    intro_p02_html: "<p> Hakuna seti ya mazoea yawezayo <i>kuhakikisha</i> kwamba programu haitakuwa na kasoro au udhaifu kamwe. Hata mbinu rasmi zinaweza kushindwa ikiwa vipimo au dhana ni sahihi. Wala hakuna seti ya mazoea yawezayo kuhakikisha kuwa mradi utaendelea kuwa na jamii ya maendeleo yenye afya na inayofanya kazi vizuri.</p>"
+    intro_p03_html: "<p> Hata hivyo, kufuata mazoea bora kunaweza kusaidia kuboresha matokeo ya miradi. Kwa mfano, baadhi ya mazoea huwezesha ukaguzi wa watu wengi kabla ya kutolewa, ambayo inaweza kusaidia kupata udhaifu wa kiufundi ambao vinginevyo ni vigumu kupata na kusaidia kujenga uaminifu na hamu ya mwingiliano wa kurudia kati ya wasanidi programu kutoka mashirika tofauti.</p>"
+    intro_p04_html: "<p> Ukurasa huu unajadili seti ya mazoea bora kwa miradi ya Programu Huru/Libre na Zana Huria (FLOSS) iliyoundwa kwa ajili ya nishani ya Mazoea Bora ya Open Source Security Foundation (OpenSSF). Miradi inayofuata mazoea haya bora itaweza kujihakikisha kwa hiari yao na kuonyesha kwamba wamepata nishani husika. Miradi yanaweza kufanya hivyo, bila malipo, kwa kutumia programu ya wavuti (BadgeApp) kueleza jinsi wanavyokidhi mazoea haya na vigezo vyao vya kina.</p>"
+    intro_p05_html: "<p> Mazoea haya bora yameundwa ili:</p>"
+    intro_p06_html: "<ol> <li>kuhamasisha miradi kufuata mazoea bora,</li> <li>kusaidia miradi mipya kugundua mazoea hayo ni yapi, na</li> <li>kusaidia watumiaji kujua ni miradi ipi inayofuata mazoea bora (ili watumiaji waweze kupendelea miradi kama hiyo).</li> </ol>"
+    intro_p07_html: '<p> Msemo "mazoea bora" unamaanisha "njia au seti ya taratibu inayopendelewa au kuchukuliwa kuwa kiwango ndani ya shirika, sekta, n.k." (chanzo: <a href="http://www.dictionary.com/browse/best-practice" rel="nofollow">Dictionary.com</a>). Vigezo hivi ni kile tunachosadiki kuwa "vinavyopendelewa au kuchukuliwa kuwa kiwango" katika jamii pana ya FLOSS.</p>'
+    intro_p08_html: <p> Kwa maelezo zaidi ya jinsi vigezo hivi vilivyoundwa, ona <a href="https://github.com/ossf/best-practices-badge" >tovuti ya GitHub ya nishani ya Mazoea Bora ya OpenSSF</a>.</p> <p> Unaweza pia <a href="/sw/criteria">kuona vigezo kamili</a>.</p>
+    structure_p01_html: "<p></p> <h2 id='criteria_structure'>Muundo wa Vigezo</h2>"
+    structure_p02_html: "<p> Vigezo vya mazoea bora vimegawanywa katika viwango vitatu:<ul> <li><b>Kupita</b> inazingatia mazoea bora ambayo miradi ya FLOSS inayoendeshwa vizuri kwa kawaida tayari inafuata. Kupata nishani ya kupita ni ushindi; wakati wowote mmoja tu karibu asilimia 10 ya miradi yanayofuata nishani hufikia kiwango cha kupita. <li><b>Fedha</b> ni seti ya vigezo vikali zaidi kuliko kupita lakini inatarajiwa kupatikana na miradi midogo na ya shirika moja. <li><b>Dhahabu</b> ni vikali zaidi kuliko fedha na inajumuisha vigezo ambavyo haviwezi kupatikana na miradi midogo au ya shirika moja. </ul>"
+    structure_p03_html: "<p> Kila kigezo kina jina fupi, kinachoonyeshwa kama maandishi ya juu ya juu ndani ya mabano ya mraba baada ya maandishi ya vigezo."
+    other_p01_html: "<p></p> <h2 id='criteria_other_projects'>Uhusiano na Miradi Mingine</h2>"
+    other_p02_html: <p> The Linux Foundation pia inafadhili <a href="https://www.openchainproject.org/" rel="nofollow">Mradi wa OpenChain</a>, ambayo hutambua vigezo vya "programu ya ubora wa juu ya ufuatiliaji wa Programu Huru na Zana Huria (FOSS)." OpenChain inazingatia jinsi mashirika yanavyoweza kutumia FLOSS vizuri na kuchangia kurudi kwa miradi ya FLOSS, wakati nishani ya Mazoea Bora ya OpenSSF inazingatia miradi ya FLOSS yenyewe. Nishani ya Mazoea Bora ya OpenSSF na OpenChain wanafanya kazi pamoja kusaidia kuboresha FLOSS na jinsi FLOSS inavyotumiwa.</p>
+    automation_p01_html: "<p></p> <h2 id='criteria_automation'>Utawala wa Vigezo</h2>"
+    automation_p02_html: "<p> Katika baadhi ya hali tunajaribu kiotomatiki na kujaza habari ikiwa mradi unafuata mila ya kawaida na unahostishwa kwenye tovuti (k.m., GitHub) yenye msaada mzuri wa API.</p>"
+    automation_p03_html: "<p> Tunakusudia kuboresha uanzishaji huu kiotomatiki siku zijazo. Maboresho kwa uanzishaji huu kiotomatiki yanakaribishwa!</p>"
+    automation_p04_html: <p>Hata hivyo, tumekusudia kuipa kipaumbele "kile kinachosomeka", hata kama hakiwezi kufanywa kiotomatiki kwa bei nafuu. Tunapenda vipimo vya kiotomatiki, lakini si kila kitu muhimu kinaweza kufanywa kiotomatiki au kinaweza kufanywa kiotomatiki kwa bei nafuu.</p>
+    changes_p01_html: "<p></p> <h2 id='criteria_changes'>Mabadiliko kwa muda</h2>"
+    changes_p02_html: <p> Tunatarajia kuwa mazoea haya na vigezo vyao vya kina vitaboreshwa kwa muda. Tunapanga kuongeza vigezo vipya lakini kuviweka alama kama vigezo vya "baadaye", ili miradi iweze kuongeza habari hiyo na kudumisha nishani zao.</p>
+    changes_p03_html: <p> Maoni ni <em>sana</em> yanakaribishwa kupitia <a href="https://github.com/ossf/best-practices-badge" >tovuti ya GitHub kama masuala au maombi ya kuvuta</a>. Pia kuna <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges" rel="nofollow">orodha ya barua pepe kwa majadiliano ya jumla</a>.</p>
+    keywords_p01_html: "<p></p> <h2 id='keywords'>Maneno muhimu</h2>"
+    keywords_p02_html: <p> Maneno muhimu "LAZIMA", "LAZIMA WALA USIWAHI", "INAPASWA", "INAPASWA WALA USIWAHI", na "YAWEZA" katika hati hii yatatafsiriwa kama ilivyoelezwa katika <a href="https://tools.ietf.org/html/rfc2119" rel="nofollow">RFC 2119</a>. Neno la ziada PENDEKEZA limeongezwa. Kwa muhtasari, maneno haya muhimu yana maana zifuatazo:</p>
+    keywords_p03_html: "<ul> <li>Neno LAZIMA ni mahitaji kabisa, na LAZIMA WALA USIWAHI ni marufuku kabisa.</li>"
+    keywords_p04_html: "<li>Neno INAPASWA linaonyesha kigezo ambacho kawaida kinahitajika, lakini kunaweza kuwepo sababu halali katika hali maalum kuikimbia. Hata hivyo, maana kamili lazima zieleweke na kupimwa kwa uangalifu kabla ya kuchagua njia tofauti.</li>"
+    keywords_p05_html: "<li>Neno PENDEKEZA linatumika badala ya INAPASWA wakati kigezo lazima kifikiwe, lakini sababu halali za kutofanya hivyo ni za kawaida zaidi kuliko kwa INAPASWA.</li>"
+    keywords_p06_html: "<li>Neno YAWEZA linatoa njia moja ambayo kitu kinaweza kufanywa, k.m., ili kufanya wazi kuwa utekelezaji ulioelezwa unakubaliwa.</li> </ul>"
+    keywords_p07_html: "<p> Mara nyingi kigezo kinafafanuliwa kama kitu ambacho KINAPASWA kufanywa, au KIPENDEKEZWA, kwa sababu inaweza kuwa vigumu kutekeleza au gharama za kufanya hivyo zinaweza kuwa juu.</p>"
+    achieving_p01_html: "<p></p> <h2 id='criteria_achieving_badge'>Kupata nishani</h2>"
+    achieving_p02_html: <p> Ili kupata nishani, vigezo vyote vya LAZIMA na LAZIMA WALA USIWAHI lazima vifuatwe, vigezo vyote vya INAPASWA lazima vifuatwe AU visivyo fufufutiliana na thibitisho, na vigezo vyote vya PENDEKEZA lazima vifikiwe (lazima vipimwe kama vimefuatwa au visivyo fufufutiliana, lakini thibitisho hahitajiki isipokuwa imeelezwa vinginevyo). Jibu la N/A ("haihusiki"), ambapo inaruhusiwa, linachukuliwa kama kufuatwa. Katika hali fulani, hasa katika viwango vya juu, thibitisho na/au URL inaweza kuhitajika.</p>
+    achieving_p03_html: <p> Baadhi ya vigezo vina alama maalum zinazosaidia hii:<ul> <li><b>{N/A inaruhusiwa}</b> - "N/A" ("Haihusiki") inaruhusiwa. <li><b>{N/A thibitisho}</b> - "N/A" ("Haihusiki") inaruhusiwa na inahitaji thibitisho. <li><b>{Kukabiliana na thibitisho}</b> - "Kumefuatwa" kunahitaji thibitisho. <li><b>{Kukabiliana na URL}</b> - "Kumefuatwa" kunahitaji thibitisho na URL. <li><b>{Baadaye}</b> - jibu la kigezo hiki kwa sasa hakina athari, lakini linaweza kuhitajika siku zijazo. </ul>
+    achieving_p04_html: "<p> Mradi lazima ufike kiwango cha awali ili kufikia kiwango kinachofuata. Katika hali fulani vigezo vya INAPASWA vinakuwa LAZIMA katika nishani za viwango vya juu, na baadhi ya vigezo vya PENDEKEZA katika viwango vya chini vinakuwa INAPASWA au LAZIMA katika nishani za viwango vya juu. Viwango vya juu pia vinahitaji thibitisho zaidi, kwa sababu tunataka wengine kuelewa <i>jinsi</i> vigezo vinavyofuatwa.</p>"
+    achieving_p05_html: "<p> Vigezo (vingi) vya usimbuaji havitumiki kila wakati, kwa sababu programu fulani haina haja ya kutumia moja kwa moja uwezo wa usimbuaji. Katika hali hizo, jibu N/A.</p>"
+    achieving_p06_html: "<p> Kuna kigezo kimoja cha kupita kilichoonyeshwa - kila mradi LAZIMA kuwa na tovuti ya umma yenye URL thabiti. Hii inahitajika kuunda ingizo la nishani kwanza.</p>"
+    terminology_p01_html: "<p></p> <h2 id='criteria_terminology'>Istilahi</h2>"
+    terminology_p02_html: <p> Ikiwa huna ufahamu wa ukuzaji wa programu au kuendesha mradi wa FLOSS, nyenzo kama vile <a href="http://producingoss.com/" rel="nofollow"><em>Producing Open Source Software</em> na Karl Fogel</a> zinaweza kukusaidia.</p>
+    terminology_p03_html: "<p>Hapa ni baadhi ya maneno muhimu:</p><ul>"
+    terminology_p04_html: "<li>Mradi <em>project</em> ni kipengele chenye shughuli ambacho kina mwanachama/wanachama wa mradi na kinazalisha matokeo ya mradi. Mwanachama wake hutumia tovuti za mradi kuandaa na kusambaza matokeo. Mradi hauhitaji kuwa chombo rasmi cha kisheria.</li>"
+    terminology_p05_html: "<li><em>Wanachama</em> wa mradi ni kikundi cha mtu mmoja au zaidi au makampuni ambao wanafanya kazi pamoja kujaribu kuzalisha matokeo ya mradi. Baadhi ya miradi ya FLOSS inaweza kuwa na aina tofauti za wanachama, wenye majukumu tofauti, lakini hilo liko nje ya wigo wetu.</li>"
+    terminology_p06_html: <li><em>Matokeo</em> ya mradi ni kile wanachama wa mradi wanafanya kazi pamoja kuzalisha kama lengo lao la mwisho. Kawaida hii ni programu, lakini matokeo ya mradi yanaweza kujumuisha vitu vingine pia. Vigezo vinavyorejelea "programu iliyozalishwa na mradi" vinaonelea matokeo ya mradi.</li>
+    terminology_p07_html: <li><em>Tovuti</em> za mradi ni tovuti zilizotengwa kusaidia ukuzaji na usambazaji wa matokeo ya mradi, na ni pamoja na tovuti ya mradi, hifadhi, na tovuti za kupakua inapohusika (angalia <a href="#sites_https">sites_https</a>).</li>
+    terminology_p08_html: "<li><em>Tovuti</em> ya mradi, pia inajulikana kama ukurasa wa nyumbani wa mradi, ni ukurasa mkuu kwenye wavuti ya ulimwengu (WWW) ambayo mtumiaji mpya atatembelea kawaida kuona habari kuhusu mradi; inaweza kuwa sawa na tovuti ya hifadhi ya mradi (hii mara nyingi ni kweli kwenye GitHub).</li>"
+    terminology_p09_html: "<li><em>Hifadhi</em> ya mradi husimamia na kuhifadhi matokeo ya mradi na historia ya marekebisho ya matokeo ya mradi. Hii pia inajulikana kama <em>hifadhi ya chanzo</em> ya mradi, kwa sababu tunahitaji tu kusimamia na kuhifadhi matoleo ya kuhaririwa, si matokeo yaliyozalishwa kiatomati (katika hali nyingi matokeo yaliyozalishwa hayahifadhiwi katika hifadhi).</li>"
+    terminology_p10_html: "<li><em>Utaratibu wa usalama wa mradi</em> ni utaratibu wa usalama uliotolewa na programu ya mradi iliyowasilishwa. </ul>"
+    noncriteria_p01_html: "<p></p> <h2 id='criteria_noncriteria'>Visivyo Vigezo</h2>"
+    noncriteria_p02_html: "<p> Vigezo:<ul>"
+    noncriteria_p03_html: "<li>havihitaji <em>si</em> teknolojia maalum, bidhaa, au huduma. Kwa mfano, havihitaji <em>si</em> git, GitHub, au GitLab. Vigezo <em>vinatoa</em> mwongozo na msaada kwa visa vya kawaida, kwa kuwa habari hiyo inaweza kusaidia watu kuelewa na kukidhi vigezo. Kuna kiatomati maalum kwa miradi inayotumia git au GitHub, kusaidia watumiaji katika visa hivyo vya kawaida, lakini havihitajiki <em>si</em>. Hivyo, vigezo vipya na uwezo vinapokuwa vinapatikana, miradi inaweza kubadilika haraka kwavyo. Kama vigeuzo, vigezo vinahitaji ukurasa wa wavuti wa mradi na TLS.</li>"
+    noncriteria_p04_html: "<li>havihitaji <em>si</em> au kukataza lugha yoyote maalum ya upangaji programu. Wanahitaji hatua za ziada kuchukuliwa kwa <em>aina</em> fulani za lugha za upangaji programu, lakini hiyo ni tofauti.</li>"
+    noncriteria_p05_html: <li>kamwe <em>never</em> kuhitaji matumizi ya programu ya kibinafsi, huduma ya kibinafsi, au teknolojia ya kibinafsi, kwa kuwa wasanidi programu wengi wa <a href="https://www.gnu.org/philosophy/free-sw.en.html" rel="nofollow">programu huria</a> wangekataa vigezo kama hivyo. Miradi <em>inaruhusiwa</em> kuzitumia na kutegemea.</li>
+    noncriteria_p06_html: "<li>havihitaji <em>si</em> maendeleo ya shughuli au majadiliano ya watumiaji ndani ya mradi. Baadhi ya miradi iliyokomaa sana hubadilika nadra na hivyo inaweza kuwa na shughuli kidogo. Vigezo <em>vinahitaji</em>, hata hivyo, kuwa mradi uwe na majibu ikiwa udhaifu unaripotiwa kwenye mradi.</li>"
+    noncriteria_p07_html: "<li>havihitaji <em>si</em> ada kupata nishani.</li>"
+    noncriteria_p08_html: "<li>havihitaji <em>si</em> kuwa vigezo vyote vitekelezwe mara moja; miradi mingi huviendelesha kwa wakati. </ul></li>"
+    noncriteria_p09_html: "<p> Kiwango cha kupita hakijumuishi vigezo ambavyo vinaweza kuwa vigumu kwa mradi wa mtu mmoja, k.m., kitu kinachohitaji kiasi kikubwa cha fedha. Miradi mingi ya FLOSS ni ndogo, na hatutaki kuwanyima haki.</p>"
+    identify_p01_html: "<p></p> <h2 id='criteria_id_project'>Kutambua mradi</h2>"
+    identify_p02_html: <p> Programu yetu inatoa kila ingizo la mradi kitambulisho kipekee, lakini hicho hakiwasaidii watu wanaotafuta mradi. Kwa madhumuni yetu, jina <em>halisi</em> la mradi ni URL ya hifadhi yake, na pale hapo hapatakuwa papo, URL ya "ukurasa wa mbele" wa mradi. Tunaweka kikomo cha kiwango cha mabadiliko kwenye URL ya hifadhi ili kuzuia upuuzi fulani. Miradi kawaida ina jina linalosomeka na binadamu, lakini majina haya hayana kipekee cha kutosha. <p></p>
+    criteria_why_p01_html: "<h2 id='criteria_why'>Kwa nini kuwa na vigezo?</h2>"
+    criteria_why_p02_html: '<p> Karatasi <a href="http://www.researchinlearningtechnology.net/index.php/rlt/article/view/23563" rel="nofollow">Nishani Wazi kwa elimu: ni zipi athari kwenye makutano ya mifumo wazi na mifumo ya nishani?</a> inabainisha sababu tatu za jumla kwa mifumo ya nishani (zote ni halali kwa hii):</p><ol>'
+    criteria_why_p03_html: "<li>Nishani kama msukumo wa tabia. Tunatumaini kwamba kwa kutambua mazoea bora, tutashawishi miradi kutekeleza mazoea hayo bora ikiwa hawayafanyi tayari.</li>"
+    criteria_why_p04_html: "<li>Nishani kama chombo cha kielimu. Baadhi ya miradi inaweza kutofahamu baadhi ya mazoea bora yanayotumika na wengine, au jinsi yanavyoweza kutumika kwa vitendo. Nishani itawawezesha kufahamu yao na njia za kuyatekeleza.</li>"
+    criteria_why_p05_html: "<li>Nishani kama kiashiria au cheti. Watumiaji wanaotarajiwa wanataka kutumia miradi inayotumia mazoea bora ili kuzalisha matokeo mazuri mara kwa mara; nishani hufanya iwe rahisi kwa miradi kuashiria kuwa wanafuata mazoea bora, na kufanya iwe rahisi kwa watumiaji kuona ni miradi ipi inayofanya hivyo.</li> </ol>"
+    self_certification_p01_html: <h3 id="criteria_self_certification">Kwa nini uhakikisho binafsi?</h3>
+    self_certification_p02_html: "<p> Tumechagua kutumia uhakikisho binafsi, kwa sababu hii inafanya iwezekane kwa idadi kubwa ya miradi (hata midogo) kushiriki. Kuna mamilioni ya miradi ya FLOSS, na kulipa wahusika wa tatu ili kutathmini kila moja kwa uhuru haizidi. Kuna hatari kwamba miradi inaweza kufanya madai ya uongo, lakini tunafikiri hatari ni ndogo, watumiaji wanaweza kuangalia madai wenyewe, na madai ya uongo yanaweza kubatilishwa. Pia tunatumia otomatiki kubatilisha madai ya uongo ambapo tunaweza kuwa na uhakika wa matokeo. </p>"
+  headings:
+    Accessibility and internationalization: Ufikiaji na kimataifa
+    Analysis: Uchanganuzi
+    Automated test suite: Seti ya majaribio otomatiki
+    Identification: Utambulisho
+    Prerequisites: Mahitaji ya awali
+    Basic project website content: Maudhui ya kimsingi ya tovuti ya mradi
+    Basics: Misingi
+    Bug-reporting process: Mchakato wa kuripoti hitilafu
+    Change Control: Udhibiti wa Mabadiliko
+    Coding standards: Viwango vya msimbo
+    Controls: Udhibiti
+    Documentation: Nyaraka
+    General: Jumla
+    Dynamic code analysis: Uchambuzi wa msimbo wa nguvu za ziada
+    Externally-maintained components: Vipengee vilivyotunzwa nje
+    FLOSS license: Leseni ya FLOSS
+    Future: Siku zijazo
+    future: siku zijazo
+    Installation system: Mfumo wa usakinishaji
+    New functionality testing: Upimaji wa utendaji mpya
+    Other: Mengine
+    Other security issues: Masuala mengine ya usalama
+    Previous versions: Matoleo ya awali
+    Project oversight: Usimamizi wa mradi
+    Public version-controlled source repository: Hifadhi ya chanzo ya kudhibiti toleo ya hadharani
+    Publicly known vulnerabilities fixed: Udhaifu uliofahamika hadharani umeshughulikiwa
+    Quality: Ubora
+    Release notes: Maelezo ya kutolewa
+    Reporting: Kuripoti
+    Secure development knowledge: Maarifa ya maendeleo yenye usalama
+    Secure release: Kutolewa kwa usalama
+    Secured delivery against man-in-the-middle (MITM) attacks: Utoaji salama dhidi ya mashambulizi ya mtu-katikati (MITM)
+    Security: Usalama
+    Static code analysis: Uchambuzi tuli wa msimbo
+    Unique version numbering: Unambari wa toleo wa kipekee
+    Use basic good cryptographic practices: Tumia mazoea mazuri ya msingi ya usimbuaji
+    Vulnerability report process: Mchakato wa kuripoti udhaifu
+    Warning flags: Bendera za maonyo
+    Working build system: Mfumo wa ujenzi unaofanya kazi
+    General_project_info: Jumla
+  criterion_status:
+    Met: Umetimizwa
+    Unmet: Haujatimizwa
+    NA: Haihusiani
+  error_messages:
+    need_home_page_or_url: Inahitaji angalau ukurasa wa nyumbani au URL ya hazina
+    form_contains:
+      one: Fomu ina hitilafu 1.
+      few: Fomu ina hitilafu %{count}.
+      many: Fomu ina hitilafu %{count}.
+      other: Fomu ina hitilafu %{count}.
+    not_an_email: " si barua pepe"
+    known_bad_password: " ni nywila inayojulikana (mbaya)"
+    valid_text: |2-
+       lazima iwe na usimbaji halali wa UTF-8 na hakuna herufi za udhibiti
+      zisizo halali
+    url_message: " lazima ianze na http: au https: na kutumia seti ya herufi iliyowekwa"
+  activerecord:
+    errors:
+      messages:
+        comma_separated_list: " lazima iwe orodha ya majina yaliyotengwa kwa koma ikiwa hutumia herufi za ASCII tu"
+        begin_with_cpe: ' lazima ianze na "cpe:"'
+  last_entry: Ingizo la mwisho la tafsiri
+  account_activations:
+    delay:
+      many: Kama hatua ya kupambana na taka, lazima usubiri masaa %{count} baada ya uanzishaji kabla hujaingia.
+  detectives:
+    github:
+      repo_public: Hifadhi kwenye GitHub, ambayo inatoa hifadhi za git za umma zenye URL.
+      repo_track: Hifadhi kwenye GitHub, ambayo hutumia git. git inaweza kufuatilia mabadiliko, ni nani aliyoyafanya, na wakati walipofanyika.
+      repo_distributed: Hifadhi kwenye GitHub, ambayo hutumia git. git imegawanywa.
+      contribution: Miradi kwenye GitHub kwa chaguo-msingi hutumia masuala na maombi ya kuvuta, kama inavyohimizwa na nyaraka kama vile <https://guides.github.com/activities/contributing-to-open-source/>.
+      discussion: GitHub inasaidia majadiliano kuhusu masuala na maombi ya kuvuta.
+      osps_gv_02_01: GitHub inasaidia majadiliano ya umma kuhusu mabadiliko yaliyopendekezwa (kupitia maombi ya kuvuta) na vikwazo vya matumizi (kupitia masuala).
+      osps_do_02_01: GitHub hutoa taratibu za kuripoti hitilafu kwa chaguo-msingi (kupitia masuala).
+      osps_ac_01_01: GitHub inahitaji 2FA tangu Machi 2023.
+      osps_qa_01_01: Hifadhi inapatikana kwa umma kwenye GitHub.
+      osps_qa_01_02: Metadata ya git ya hifadhi inapatikana kwa umma kwenye GitHub.
+      name: Jina la GitHub
+      description: Maelezo ya GitHub
+      license: Uchambuzi wa leseni wa API ya GitHub
+      implementation_languages: Uchambuzi wa lugha ya utekelezaji wa API ya GitHub
+    floss_license:
+      osi_approved: Leseni ya %{license} imeidhinishwa na Open Source Initiative (OSI).
+      osi_approved_repository: Leseni ya %{license} kwa maudhui ya hifadhi imeidhinishwa na Open Source Initiative (OSI).
+      not_in_osi_list: Haikupata leseni katika orodha ya OSI.
+    hardened_sites:
+      all_headers_found: Kupata vichwa vyote vinavyohitajika vya kuimarisha usalama.
+      headers_missing: 'Vichwa vinavyohitajika vya kuimarisha usalama havijumuishwa: '
+      nosniff_not_set: X-Content-Type-Options haikuwekwa kuwa "nosniff".
+    name_from_url:
+      domain_suggests: Jina la kikoa cha URL ya mradi linapendekeza hili.
+      tail_suggests: Mwisho wa URL ya mradi unapendekeza hili.
+      repo_tail_suggests: Mwisho wa URL ya hazina unapendekeza hili.
+    project_sites_https:
+      given_http: Tulipewa URL ya http:.
+      official_http: Orodha ya URL za mradi zinaonyesha http (sio https) kama rasmi.
+      url_uses_http: Tulipewa URL inayotumia http (sio https).
+      given_https: Tulipewa tu URL za https:.
+    repo_files:
+      no_file_found: Hakuna faili ya %{description} iliyopatikana.
+      file_found: 'Faili isiyo ya kawaida ya %{description} katika hazina: <%{url}>.'
+      contribution_documented: Mchakato wa mchango umeandikwa katika hazina.
+      license_found: Faili ya leseni imepatikana katika hazina.
+      license_not_found: Faili ya leseni haikupatikana katika hazina.
+      license_not_in_releases: Faili ya leseni haikupatikana katika hazina (pengine haikujumuishwa katika matoleo).
+    subdir_files:
+      no_files_found: Hakuna faili za %{description} zilizopatikana.
+      no_folder_found: Hakuna folda inayofaa iliyopatikana kwa %{description}.
+      some_contents_found: Baadhi ya yaliyomo ya faili ya %{description} yamepatikana.
+    test_forced:
+      test_automation: Utomatiaji wa majaribio (kujiamini %{confidence})
+    repo_json:
+      field_from_file: Thamani kutoka faili ya JSON ya bestpractices ya mradi
+    security_insights:
+      field_value: 'Kulingana na %{location}: %{field}=%{value}'
+      array_match: 'Kulingana na %{location}: %{field} %{match}'
+      comment_suffix: 'Maoni yanasema: "%{comment}".'

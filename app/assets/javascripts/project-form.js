@@ -1,5 +1,5 @@
 // Copyright 2015-2017, the Linux Foundation, IDA, and the
-// CII Best Practices badge contributors
+// OpenSSF Best Practices badge contributors
 // SPDX-License-Identifier: MIT
 
 // This JavaScript implements the per-project form used
@@ -58,7 +58,10 @@ function getLocale() {
 
 // Return current level based upon parameters in location.search
 function getLevel() {
-  var levelFromUrl = location.pathname.match('projects/[0-9]*/([0-2])');
+  // Match named levels (passing/silver/gold/baseline) or numeric (0/1/2)
+  var levelPattern =
+    'projects/[0-9]*/(passing|silver|gold|baseline-[123]|[0-2])';
+  var levelFromUrl = location.pathname.match(levelPattern);
   if (levelFromUrl) {
     return levelFromUrl[1];
   }
@@ -92,17 +95,18 @@ function containsURL(justification) {
   if (!justification || (!!possibleComment && possibleComment.index === 0)) {
     return false;
   } else {
-    return !!justification.match(/https?:\/\/[^ ]{5}/);
+    return !!justification.match(/https?:\/\/[^\/. ]+\.[^ ]/);
   }
 }
 
 // Return if criterion's value for key is true in CRITERIA_HASH (default false)
 function criterionHashTrue(criterion, key) {
-  return CRITERIA_HASH[criterion][key] === true;
+  return CRITERIA_HASH[criterion] && CRITERIA_HASH[criterion][key] === true;
 }
 
 function criterionStatus(criterion) {
-  return globalCriteriaResultHash[criterion]['status'];
+  return globalCriteriaResultHash[criterion] ?
+    globalCriteriaResultHash[criterion]['status'] : '?';
 }
 
 // Return true if the justification is good enough for a SHOULD criterion.
@@ -164,13 +168,23 @@ function getUnmetResult(criterion, justification) {
 // If you change this function change "get_criterion_result" accordingly.
 function getCriterionResult(criterion) {
   var status = criterionStatus(criterion);
-  var justification = $('#project_' + criterion + '_justification');
-  if (justification.length > 0) {
-    justification = $(justification)[0].value;
+  var justification = '';
+
+  // In edit mode, always read from form inputs (they're live and editable)
+  // In view-only mode, read from data attributes (form inputs don't exist)
+  if (globalisEditing) {
+    var justificationInput = $('#project_' + criterion + '_justification');
+    if (justificationInput.length > 0) {
+      justification = justificationInput[0].value || '';
+    }
+  } else {
+    var criterionDiv = $('#' + criterion);
+    var dataJustification = criterionDiv.attr('data-justification');
+    if (dataJustification !== undefined && dataJustification !== null) {
+      justification = dataJustification;
+    }
   }
-  if (!justification) {
-    justification = '';
-  }
+
   if (status === '?') {
     return 'criterion_unknown';
   } else if (status === 'Met') {
@@ -202,10 +216,17 @@ function setPanelSatisfactionLevel(panelID) {
     }
   });
   var panel = $('#' + panelID);
-  $(panel).find('.satisfaction-text')
-                 .text(enough.toString() + '/' + total.toString());
-  $(panel).find('.satisfaction-bullet')
-                 .css({ 'color' : getColor(enough / total) });
+  var satisfactionSpan = $(panel).find('.satisfaction');
+  if (total === 0) {
+    // Hide satisfaction indicator when there are no criteria
+    satisfactionSpan.hide();
+  } else {
+    satisfactionSpan.show();
+    $(panel).find('.satisfaction-text')
+                   .text(enough.toString() + '/' + total.toString());
+    $(panel).find('.satisfaction-bullet')
+                   .css({ 'color' : getColor(enough / total) });
+  }
 }
 
 function resetProgressBar() {
@@ -214,7 +235,9 @@ function resetProgressBar() {
   var percentage;
   var percentAsString;
   $.each(CRITERIA_HASH, function(criterion, value) {
-    if (!criterionHashTrue(criterion, 'future')) { // Ignore "future" criteria
+    // Ignore "future" and "obsolete" criteria in progress calculation
+    if (!criterionHashTrue(criterion, 'future') &&
+        !criterionHashTrue(criterion, 'obsolete')) {
       total++;
       if (isEnough(criterion)) {
         enough++;
@@ -223,7 +246,7 @@ function resetProgressBar() {
   });
   percentage = enough / total;
   percentAsString = Math.round(percentage * 100).toString() + '%';
-  $('#badge-progress').attr('aria-valuenow', percentage)
+  $('.badge-progress').attr('aria-valuenow', percentage)
                       .text(percentAsString).css('width', percentAsString);
 }
 
@@ -293,12 +316,19 @@ function hasFieldTextInside(e) {
 }
 
 function fillCriteriaResultHash() {
+  var level = getLevel();
   $.each(CRITERIA_HASH, function(key, value) {
     globalCriteriaResultHash[key] = {};
-    globalCriteriaResultHash[key]['status'] = $('input[name="project[' + key +
-                                                '_status]"]:checked')[0].value;
+    var inputSelector = 'input[name="project[' + key + '_status]"]:checked';
+    var checkedInput = $(inputSelector)[0];
+    var status = checkedInput ? checkedInput.value : '?';
+    globalCriteriaResultHash[key]['status'] = status;
     globalCriteriaResultHash[key]['result'] = getCriterionResult(key);
-    globalCriteriaResultHash[key]['panelID'] = value['major']
+
+    // Baseline levels use minor category for panel ID, others use major
+    var panelCategory = (level && level.startsWith('baseline-')) ?
+      value['minor'] : value['major'];
+    globalCriteriaResultHash[key]['panelID'] = panelCategory
                                               .toLowerCase()
                                               .replace(/\s+/g, '');
   });
@@ -537,10 +567,8 @@ function getAllPanelsReady() {
         .removeClass('glyphicon-chevron-up');
     }
   }
-  // Set the satisfaction level in each panel
-  $('.satisfaction-bullet').each(function(index) {
-    $(this).css({ 'color' : $(this).attr('data-color')});
-  });
+  // Note: satisfaction-bullet colors are now set by setPanelSatisfactionLevel()
+  // which is called after fillCriteriaResultHash() completes
 }
 
 // Implement "press this button to make all crypto N/A"
@@ -665,9 +693,17 @@ function TogglePanel(e) {
 function setupProjectForm() {
   // We're told progress, so don't recalculate - just display it.
   T_HASH = TRANSLATION_HASH_FULL[getLocale()];
-  var percentageScaled = $('#badge-progress').attr('aria-valuenow');
-  var percentAsString = percentageScaled.toString() + '%';
-  $('#badge-progress').css('width', percentAsString);
+  // Use class selector to handle multiple progress bars
+  // (collapsed and expanded)
+  $('.badge-progress').each(function() {
+    var badgeProgress = $(this);
+    var percentageScaled = badgeProgress.attr('aria-valuenow');
+    if (percentageScaled !== undefined && percentageScaled !== null &&
+        percentageScaled !== '') {
+      var percentAsString = percentageScaled.toString() + '%';
+      badgeProgress.css('width', percentAsString);
+    }
+  });
 
 
   // By default, hide details.  We do the hiding in JavaScript, so
@@ -704,13 +740,46 @@ function setupProjectForm() {
     }
   });
 
+  // Get current level and populate CRITERIA_HASH for both view and edit modes
+  var level = getLevel();
+  // Normalize named levels to numeric for CRITERIA_HASH_FULL access
+  if (level === 'passing' || level === 'bronze') {
+    level = '0';
+  }
+  if (level === 'silver') {
+    level = '1';
+  }
+  if (level === 'gold') {
+    level = '2';
+  }
+  // Note: baseline levels (baseline-1, baseline-2, baseline-3) are NOT
+  // normalized
+
+  CRITERIA_HASH = CRITERIA_HASH_FULL[level];
+
   if (globalisEditing) {
-    CRITERIA_HASH = CRITERIA_HASH_FULL[getLevel()];
     $('#project_entry_form').on('criteriaResultHashComplete', function(e) {
       setupProjectFields();
       resetProgressBar();
+      // Set initial panel satisfaction levels in edit mode
+      $('.satisfaction-bullet').each(function() {
+        var panelID = $(this).closest('.panel-heading').attr('id');
+        if (panelID) {
+          setPanelSatisfactionLevel(panelID);
+        }
+      });
     });
     fillCriteriaResultHash();
+  } else {
+    // In view-only mode, still need to populate satisfaction levels
+    fillCriteriaResultHash();
+    // Set panel satisfaction levels after criteria hash is filled
+    $('.satisfaction-bullet').each(function() {
+      var panelID = $(this).closest('.panel-heading').attr('id');
+      if (panelID) {
+        setPanelSatisfactionLevel(panelID);
+      }
+    });
   }
 
   getAllPanelsReady();
@@ -756,4 +825,13 @@ $(document).ready(function() {
 
   // Polyfill datalist (for Safari users)
   polyfillDatalist();
+
+  // When a GitHub repo is selected from the dropdown, copy its URL
+  // to the repo_url text field. No-op if dropdown doesn't exist.
+  $('#github_repo_selector').on('change', function() {
+    var repoUrl = $(this).val();
+    if (repoUrl) {
+      $('#project_repo_url').val(repoUrl);
+    }
+  });
 });

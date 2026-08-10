@@ -1,0 +1,29 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.fastly.com/service//purge/foo
+    body:
+      encoding: UTF-8
+      string: ''
+    headers:
+      Fastly-Key:
+      - ''
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+    body:
+      encoding: UTF-8
+      string: '{"status":"ok"}'
+  recorded_at: Wed, 20 May 2026 20:00:00 GMT
+recorded_with: VCR 6.1.0

@@ -10,7 +10,11 @@
 
 class SubdirFileContentsDetective < Detective
   INPUTS = [:repo_files].freeze
-  OUTPUTS = [:documentation_basics_status].freeze
+  OUTPUTS = %i[documentation_basics_status].freeze
+
+  # This detective can override documentation criteria with moderate confidence
+  OVERRIDABLE_OUTPUTS = %i[documentation_basics_status].freeze
+
   DOCS_BASICS = {
     folder: /\Adoc(s|umentation)?\Z/i,
     file: /(\.md|\.markdown|\.txt|\.html)?\Z/i,
@@ -19,23 +23,25 @@ class SubdirFileContentsDetective < Detective
 
   def unmet_result(result_description)
     {
-      value: 'Unmet', confidence: 1,
-      explanation: "// No #{result_description} file(s) found."
+      value: CriterionStatus::UNMET, confidence: 1,
+      explanation: I18n.t('detectives.subdir_files.no_files_found',
+                          description: result_description)
     }
   end
 
   def unmet_result_folder(result_description)
     {
-      value: 'Unmet', confidence: 3,
-      explanation: "// No appropriate folder found for #{result_description}."
+      value: CriterionStatus::UNMET, confidence: 3,
+      explanation: I18n.t('detectives.subdir_files.no_folder_found',
+                          description: result_description)
     }
   end
 
   def met_result(result_description)
     {
-      value: 'Met', confidence: 3,
-      explanation:
-        "Some #{result_description} file contents found."
+      value: CriterionStatus::MET, confidence: 3,
+      explanation: I18n.t('detectives.subdir_files.some_contents_found',
+                          description: result_description)
     }
   end
 
@@ -50,15 +56,38 @@ class SubdirFileContentsDetective < Detective
     nil
   end
 
+  # Maximum size (bytes) of a repo file we will decode and scan for content
+  # matches. Matches the cap used by the JSON and security-insights detectives
+  # so a malicious repo cannot make us decode and scan an oversized file.
+  # GitHub's contents API already inlines the (base64) content in the metadata
+  # response, so we enforce the cap without an extra request.
+  MAX_FILE_SIZE = 100_000
+
+  # Fetch and decode the content of a single file entry.
+  # Returns nil when get_info returns 404 ([] or nil), the entry has no
+  # content, or the file exceeds MAX_FILE_SIZE (untrusted repo data).
+  def fetch_file_content(repo_files, fso)
+    file_entry = repo_files.get_info(fso['path'])
+    return if file_entry.blank? || file_entry.is_a?(Array)
+    return if file_entry['content'].blank?
+    # Skip oversized files using GitHub's reported size before decoding.
+    return if file_entry['size'].to_i > MAX_FILE_SIZE
+
+    content = Base64.decode64(file_entry['content'])
+    # Defense in depth: re-check the actual decoded size in case the reported
+    # size was missing or understated.
+    return if content.bytesize > MAX_FILE_SIZE
+
+    content
+  end
+
   def match_file_content(repo_files, folder, patterns, description)
     files = repo_files.get_info(folder)
     files = files.select { |f| match_fso?(f, 'file', patterns[:file]) }
-    files.select do |fso|
-      patterns[:contents].each do |pattern|
-        file_entry = repo_files.get_info(fso['path'])
-        content = Base64.decode64(file_entry['content'])
-        return met_result description if content.match?(pattern)
-      end
+    files.each do |fso|
+      content = fetch_file_content(repo_files, fso)
+      next if content.nil?
+      return met_result description if patterns[:contents].any? { |p| content.match?(p) }
     end
     unmet_result description
   end
@@ -85,6 +114,14 @@ class SubdirFileContentsDetective < Detective
       repo_files, :documentation_basics_status, DOCS_BASICS,
       'documentation basics'
     )
+
+    set_baseline_documentation_status
+
     @results
+  end
+
+  # Set baseline README criterion if documentation basics are met
+  def set_baseline_documentation_status
+    return unless @results[:documentation_basics_status]&.dig(:value) == CriterionStatus::MET
   end
 end

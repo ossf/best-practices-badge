@@ -10,7 +10,7 @@
    url_pattern = 'https?:\/\/' + domain_pattern + \
      '(\/([-A-Za-z0-9_.:\/\+!,#@~]|%(20|[89A-Ea-e][0-9A-Fa-f]|[Ff][0-7]))*)?'
 %>
-<% if logged_in? %>
+<% if current_user %>
   <div class='row'>
   <div class="col-md-12">
   <br>
@@ -18,46 +18,73 @@
   <br>
   <%= raw t('.tell_us') %>
   <br>
-  <% if current_user.provider == 'github'%>
-     <h4><%= t '.may_select_html' %></h4>
-     <br>
-     <!-- For convenience we provide a list of GitHub repos (sorted by
-          the datetime of their most recent push).  We limit the length
-          of this list to prevent a timeout.  -->
-     <%= form_for(@project) do |f| %>
-       <%= render 'shared/error_messages', object: f.object %>
-       <%= f.collection_select :repo_url, github_select, :last, :first,
-                               { prompt: t('.select_one_github'),
-                                 disabled: lambda{ |repo| repo.last == 'none' }}
-       %>
-       <%= f.submit t('.submit_github'), class: 'btn btn-primary',
-                    'data-toggle' => 'tooltip',
-                    title: t('.post_delay_warning') %>
-     <% end %>
-
-     <br><h2 class='center'><%= t('.new_badge_or') %></h2>
-  <% end %>
-  <br>
   <%= form_for(@project) do |f| %>
-      <% if current_user.provider == 'local'%>
-        <%= render 'shared/error_messages', object: f.object %>
+    <%= render 'shared/error_messages', object: f.object %>
+    <% if current_user.provider == 'github' %>
+      <br>
+      <% repo_groups = github_repo_select_groups %>
+      <% if repo_groups.nil? %>
+        <p><%= t('.github_reconnect_html') %>
+        <%= link_to t('.github_reconnect_link'),
+              "/auth/github?locale=#{I18n.locale}",
+              method: 'post', class: 'btn btn-sm btn-default' %>
+        </p>
+      <% elsif repo_groups.present? %>
+        <%= raw t('.may_select_html') %>
+        <!-- GitHub repo dropdown (not model-bound); JS copies value to repo_url -->
+        <div class="form-group">
+          <label for="github_repo_selector"><%= t('.github_repo_label') %></label>
+          <%= select_tag :github_repo,
+                grouped_options_for_select(repo_groups),
+                prompt: t('.select_one_github'),
+                id: 'github_repo_selector',
+                class: 'form-control' %>
+        </div>
       <% end %>
-      <span><%= f.label :homepage_url, t('.url_of_homepage') %></span>
-      <!-- Note: Server tests URLs, this is just sanity checking -->
-      <%= f.text_field :homepage_url, class:"form-control",
-            type: 'url', skip_label: true,
-            pattern: url_pattern,
-            placeholder: t('.placeholder_of_homepage') %>
-      <span><%= f.label :repo_url, t('.url_of_repo') %></span>
-      <%= f.text_field :repo_url, class:"form-control",
-            type: 'url', skip_label: true,
-            pattern: url_pattern,
-            placeholder: t('.placeholder_of_repo') %>
-     <%= f.submit t('.submit_urls'), class: 'btn btn-primary',
-                  'data-toggle' => 'tooltip', title: t('.post_delay_warning') %>
+    <% end %>
+    <span><%= f.label :repo_url, t('.url_of_repo') %></span>
+    <%= f.text_field :repo_url, class: "form-control",
+          type: 'url', skip_label: true,
+          pattern: url_pattern,
+          placeholder: t('.placeholder_of_repo') %>
+    <span><%= f.label :homepage_url, t('.url_of_homepage') %></span>
+    <%= f.text_field :homepage_url, class: "form-control",
+          type: 'url', skip_label: true,
+          pattern: url_pattern,
+          placeholder: t('.placeholder_of_homepage') %>
+    <% if I18n.locale != :en %>
+      <div class="form-group">
+        <%= t('projects.form_basics.entry_locale.description') %>
+        <%= f.select :entry_locale,
+                     Rails.application.config.locale_select_options[I18n.locale.to_s],
+                     {skip_label: true}, {class: 'form-control'} %>
+      </div>
+    <% end %>
+    <div class="form-group">
+      <label><%= t('.badge_series') %></label><br>
+      <small><%= t('.badge_series_description') %></small>
+      <div class="radio">
+        <label>
+          <%= radio_button_tag :starting_section, 'passing', true %>
+          <%= t('.badge_series_metal') %>
+        </label>
+      </div>
+      <div class="radio">
+        <label>
+          <%= radio_button_tag :starting_section, 'baseline-1', false %>
+          <%= t('.badge_series_baseline') %>
+        </label>
+      </div>
+    </div>
+    <%= f.submit t('.submit'), class: 'btn btn-primary',
+                 'data-toggle' => 'tooltip',
+                 title: t('.post_delay_warning') %>
+    <br><br>
+    <%= raw t('.reminder_email_html') %>
+    <br>
   <% end %>
   <p>
-  <br><br>
+  <br>
   <%= t('.final_text_html') %>
   </div>
   </div>

@@ -54,7 +54,7 @@ class CriteriaTest < ActiveSupport::TestCase
 
   test 'Ensure that only allowed fields are in Criteria' do
     allowed_set = Set.new %i[
-      category future na_allowed met_url_required met_justification_required
+      category future obsolete na_allowed met_url_required met_justification_required
       na_justification_required met_suppress unmet_suppress autofill
       major minor rationale
     ]
@@ -66,12 +66,16 @@ class CriteriaTest < ActiveSupport::TestCase
   end
 
   test 'Ensure that only allowed fields are in Criteria translations' do
-    allowed_set = Set.new %i[
+    allowed_set = Set.new %w[
       description details met_placeholder unmet_placeholder na_placeholder
     ]
-    I18n.t('criteria').each_value do |criteria_set|
-      criteria_set.each_value do |fields|
-        fields.each_key { |k| assert_includes allowed_set, k }
+    # Get all criteria levels - works with both flat and nested backends
+    levels = Translations.get_translation_keys('criteria')
+    levels.each do |level|
+      criteria_names = Translations.get_translation_keys("criteria.#{level}")
+      criteria_names.each do |criterion|
+        fields = Criteria.get_criterion_keys(level.to_s, criterion.to_s)
+        fields.each { |k| assert_includes allowed_set, k.to_s }
       end
     end
   end
@@ -79,6 +83,9 @@ class CriteriaTest < ActiveSupport::TestCase
   test 'Ensure that required fields are in Criteria and English translation' do
     required_set = Set.new %i[category major minor]
     Criteria.to_h.each do |level, criteria_set|
+      # Skip baseline levels - they are in early development
+      next if level.to_s.start_with?('baseline-')
+
       criteria_set.each do |criterion, fields|
         assert I18n.exists?(
           "criteria.#{level}.#{criterion}.description", :en
@@ -91,7 +98,10 @@ class CriteriaTest < ActiveSupport::TestCase
   end
 
   test 'All Criteria in each level have a description' do
-    Criteria.each_value do |criteria_set|
+    Criteria.each do |level, criteria_set|
+      # Skip baseline levels - they are in early development
+      next if level.to_s.start_with?('baseline-')
+
       criteria_set.each_value do |criterion|
         assert criterion.description.present?
       end

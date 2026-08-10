@@ -55,6 +55,14 @@ The application is configured by various environment variables:
   to inactive projects when running "rake reminders".
   This rate limit is best set low to start,
   and relatively low afterwards, to limit impact if there's an error.
+* BADGEAPP_MAX_BADGE_LOSS_NOTIFICATIONS (default 10): Maximum number of
+  badge-loss notification emails to send per "rake reminders" run.
+  These notify owners whose badge was lost due to a criteria change.
+  Set higher to drain the queue faster after a criteria update.
+* BADGEAPP_MAX_BADGE_WARNING_NOTIFICATIONS (default 10): Maximum number of
+  advance-warning emails to send per "rake reminders" run.
+  These warn owners that their badge will be lost when updated criteria
+  take effect. See docs/baseline_update.md for the full workflow.
 * LOST_PASSING_REMINDER (default 30): Minimum number of days since
   last lost a badge before sending reminder
 * LAST_UPDATED_REMINDER (default 30): Minimum number of days
@@ -120,6 +128,12 @@ The application is configured by various environment variables:
   Note that application admins cannot log in, or use their privileges,
   when this mode is enabled.  Only hosting site admins can turn this mode
   on or off (since they're the only ones who can set environment variables).
+* BADGEAPP_PROJECTS_COUNT_TTL (default 60): Seconds to cache the unfiltered
+  projects-index total count, avoiding a redundant `COUNT(*)` on every index
+  and pagination request (most importantly on rapid crawler "next page"
+  walks). The count is also invalidated immediately when a project is created
+  or destroyed, so this mainly bounds cross-process staleness and acts as a
+  backstop. See docs/pagy-43.md.
 * RATE_details - a rate limit setting.  Rate limits provide an automated
   partial countermeasure against denial-of-service and
   password-guessing attacks.
@@ -365,8 +379,17 @@ to make sure that migrations by *themselves* don't directly execute
 the time-consuming process of recalculating all projects.)
 
 **If your migration will change some percentage calculations**,
-make *sure* you run `rake production_to_main` before merging into `main`,
-to prevent spurious warnings to projects about them losing badges.
+the tier it runs on needs current production data first, or projects
+will get spurious warnings about losing badges.
+You don't have to remember to do this: CircleCI's deploy job restores
+production's latest backup into staging, under maintenance mode,
+whenever the branch being deployed is exactly `staging`. That happens
+however the `staging` branch was advanced, so it does not depend on
+using `rake deploy_staging`; see
+[deployment instructions](./INSTALL.md#deployment-instructions) for the
+ways to advance it, including ones needing no development environment.
+`rake production_to_staging` still exists for refreshing staging out of
+band, without a deploy.
 
 Once you've created the migration file, check it first by running
 "rake rubocop".  This will warn you of some potential issues, and
@@ -474,12 +497,12 @@ See [security.md](./security.md) for more information.
 
 Users indicate the locale via the URL.
 The recommended form is at the beginning of that path, e.g.,
-<https://bestpractices.coreinfrastructure.org/fr/projects/>
+<https://www.bestpractices.dev/fr/projects/>
 selects the locale "fr" (French) when displaying "/projects".
 This even works at the top page, e.g.,
-<https://bestpractices.coreinfrastructure.org/fr/>.
+<https://www.bestpractices.dev/fr/>.
 It also supports the locale as a query parameter, e.g.,
-<https://bestpractices.coreinfrastructure.org/projects?locale=fr>
+<https://www.bestpractices.dev/projects?locale=fr>
 
 ### Fixing locale data
 
@@ -686,7 +709,7 @@ and so on. Neverthess it is fundamentally the same as this SQL command:
 
 ~~~~
 echo "UPDATE projects SET user_id = {OWNER_NUM} WHERE id = {PROJECT_NUM}" | \
-  heroku pg:psql --app production-bestpractices
+  heroku pg:psql DATABASE_URL --app production-bestpractices
 ~~~~
 
 ## Database content viewing and editing
@@ -717,14 +740,21 @@ Here are a few examples (replace the "heroku pg:psql..." with "rails db"
 to do it locally):
 
 ~~~~sh
+# Who is user 1?
 echo "SELECT * FROM users WHERE users.id = 1" | \
-  heroku pg:psql --app master-bestpractices
+  heroku pg:psql DATABASE_URL --app production-bestpractices
+# Find user by name
 echo "SELECT * FROM users WHERE name = 'David A. Wheeler'" | \
-  heroku pg:psql --app master-bestpractices
+  heroku pg:psql DATABASE_URL --app production-bestpractices
+# List all current web application admins
+echo "SELECT id,name FROM users WHERE role = 'admin'" | \
+  heroku pg:psql DATABASE_URL -a production-bestpractices
+# Give the specified user admin privileges
 echo "UPDATE users SET role = 'admin' where id = 25" | \
-  heroku pg:psql --app master-bestpractices
+  heroku pg:psql DATABASE_URL --app production-bestpractices
+# Change owner of project, forcibly
 echo "UPDATE projects SET user_id = 25 WHERE id = 1" | \
-  heroku pg:psql --app master-bestpractices
+  heroku pg:psql DATABASE_URL --app production-bestpractices
 ~~~~
 
 You can force-create new users and make them admins
@@ -741,7 +771,7 @@ echo "INSERT INTO users (provider,uid,name,nickname,email,role,activated,
   created_at,updated_at)
   VALUES ('github',GITHUB_UID,FULL_USER_NAME,
   GITHUB_USERNAME,EMAIL,'admin',t,now(),now());" | \
-  heroku pg:psql --app master-bestpractices
+  heroku pg:psql DATABASE_URL --app production-bestpractices
 ~~~~
 
 You can
@@ -790,9 +820,9 @@ was created as part of the rationale.
 
 ~~~~sh
 echo "UPDATE users SET blocked=true, blocked_rationale='...' WHERE id = 13323;"|
-  heroku pg:psql --app production-bestpractices
+  heroku pg:psql DATABASE_URL --app production-bestpractices
 echo "DELETE FROM projects WHERE user_id = 13323;" | \
-  heroku pg:psql --app production-bestpractices
+  heroku pg:psql DATABASE_URL --app production-bestpractices
 ~~~~
 
 ## Recovering a deleted or mangled project entry
@@ -828,7 +858,7 @@ If you want the data to be on the true production site, you'll need
 privileges to execute database commands, then run this:
 
 ~~~~
-    heroku pg:psql --app production-bestpractices < project.sql
+    heroku pg:psql DATABASE_URL --app production-bestpractices < project.sql
 ~~~~
 
 ## Server-side data cache store
@@ -949,26 +979,26 @@ be busy serving badge files.
 Here's how to reset the heroku-local plugin:
 
 ~~~~sh
-heroku plugins:uninstall heroku-local --app master-bestpractices
-heroku plugins --app master-bestpractices
+heroku plugins:uninstall heroku-local --app production-bestpractices
+heroku plugins --app production-bestpractices
 ~~~~
 
 The latter automatically reinstalls heroku-local.
 This information is from: <https://github.com/heroku/heroku/issues/1690>.
 
 Normally you should just push changes to "master" first, so that
-CircleCI will test it.  If you want to push directly to Heroku
+CircleCI will test it.  If you want to push directly to Heroku staging
 (and have the necessary rights):
 
 ~~~~
-git remote add heroku https://git.heroku.com/master-bestpractices.git
+git remote add heroku-staging https://git.heroku.com/staging-bestpractices.git
 ~~~~
 
 Now you can directly deploy to Heroku:
 
 ~~~~
-git checkout master
-git push heroku master
+git checkout staging
+git push heroku-staging staging
 ~~~~
 
 ## Auditing
@@ -1125,6 +1155,132 @@ We use the ZAP web application scanner to find potential
 vulnerabilities.
 This lets us fulfill the "dynamic analysis" criterion.
 
+## Deploying in detail
+
+The commands are in
+[INSTALL.md](./INSTALL.md#deploying-to-staging-without-a-development-environment).
+This is why they are what they are.
+
+**Deploying is copying one branch into the next, and nothing else.**
+`main` goes into `staging`, and later `staging` goes into `production`.
+CircleCI watches those branches, runs the suite again, and deploys the
+branch to its tier. No deploy command holds a Heroku credential; the
+credential lives in CircleCI, which is the only thing that needs it.
+
+**That is why no development environment is needed.** `rake
+deploy_staging` is two `git` commands. What made deploying appear to
+need a development environment was never the task: it is that `rake`
+loads `config/boot`, and therefore Bundler, whatever task you ask for.
+Running the `git` commands directly skips that.
+
+**The copy must be a fast-forward.** `staging` has to stay a commit that
+also exists on `main`, because that is what lets the next deploy copy
+`main` in cleanly, and what makes the deployed tree identical to a tree
+that passed on `main`. Nothing enforces this by policy: it is enforced
+by not passing `--force` to `git push`, and by not passing `force` over
+the API, both of which make the far end refuse an update that is not a
+fast-forward.
+
+**Why it fetches into the deploy branch** rather than checking out
+`staging` and merging, which is what it used to do. `git fetch origin
+main:staging` needs no checkout, so it works from any branch, leaves the
+working tree alone and tolerates a dirty one. The checkout-and-merge
+form assumed you were on `main`, moved you if you were not, carried
+uncommitted changes across two branch switches, and failed outright in a
+`--single-branch` or `--depth` clone where `git switch staging` answers
+"invalid reference".
+
+**The fetch source is origin's branch, not your clone's.** That is the
+property that keeps unreviewed work out of production:
+`git push origin main:staging` would have deployed your local `main`,
+unpushed commits and all, and it is four characters shorter than the
+right thing.
+
+**Fetching into the branch is why your local copy stays honest.** Local
+`staging` is created if absent and fast-forwarded if present, so
+`git log staging` describes what is deployed rather than wherever the
+branch sat when you last looked. In a full clone the push updates
+`origin/staging` as well; in a `--single-branch` clone it does not,
+because that clone's configured refspec never mapped it.
+
+**The second refspec exists because the first one silences the usual
+one.** Giving `git fetch` an explicit `src:dst` overrides the clone's
+configured `+refs/heads/*:refs/remotes/origin/*`, so no remote-tracking
+ref is touched at all. Left there, `origin/main` would go stale while
+deploys kept succeeding, and `git status` on `main` would stop reporting
+how far behind you were: the deploy would be quietly costing you the
+normal way of noticing drift. `+main:refs/remotes/origin/main` puts that
+back. It writes to a tracking ref rather than to `refs/heads/main`, so
+it works while `main` is checked out, and it is forced because a tracking
+ref is a mirror of the remote, unlike `main:staging`, which must stay
+unforced so a divergence stops the deploy.
+
+**The price is that you cannot be standing on the branch you deploy.**
+Git refuses to fetch into a checked-out branch, stopping with "refusing
+to fetch into branch". `staging` and `production` are branches to read
+rather than work on, so this costs nothing in practice, and the refusal
+is a useful signal when it does fire.
+
+**The `&&` carries more weight than it looks.** A rejected fetch, which
+is what a diverged local `staging` produces, exits 1 and leaves the
+divergent commit in place. An unguarded push would then send exactly
+that commit to the deploy branch. Not passing `--force` is the other
+half: the fetch must be a fast-forward of your local branch and the push
+must be one on GitHub's side.
+
+**Never deploy by merging a pull request.** GitHub can merge only by
+creating a merge commit, squashing, or rebasing; it has no fast-forward
+merge. Each of those leaves a commit on `staging` that is not on `main`,
+so the two diverge and every later deploy is refused as a
+non-fast-forward. One convenient pull request breaks deploying from then
+on, and the repair is manual.
+
+**A staging deploy reports on your local `main` afterwards**, and only
+when there is something to report. Being behind is ordinary and gets the
+cure without a number, since how far behind you are does not change what
+to do. Being *ahead* is not ordinary: it means commits exist on your
+machine and nowhere else, unreviewed, untested and undeployed, which is
+what happens when work starts without a branch. That case names the
+commits and offers `git branch SAVED-WORK main` followed by
+`git switch main && git reset --keep origin/main`. `--keep` rather than
+`--hard` because it refuses rather than discards when uncommitted
+changes are in the way. Both comparisons use `origin/main`, which the
+fetch has just refreshed, so they cost nothing and need no network, and
+the report runs after the push so it can neither delay nor fail a
+deploy.
+
+**Staging deploys need not wait for main's checks, production deploys
+must.** Staging is a test tier, and CircleCI runs the suite again on the
+staging branch, so starting a staging deploy while main is still being
+checked simply runs two suites at once. Production gets no such excuse,
+so `rake deploy_production` asks GitHub whether `staging` passed and
+refuses otherwise.
+
+**That question needs two endpoints, and neither is redundant.**
+`ci/circleci: static` is reported as a commit STATUS and never appears
+among the check runs, while CodeQL, brakeman and codespell are check
+RUNS and never appear among the statuses. Asking only for statuses once
+reported a commit as green whose three CodeQL analyses had failed, which
+is how we know to ask for both.
+
+**The grep pair is inverted on purpose.** It reports anything that is
+not `success` or `completed`, rather than hunting for known bad words,
+so a conclusion GitHub invents later stops a deploy instead of slipping
+past. A `null` conclusion, meaning a check still running, stops it too.
+`curl -sSf` and its `|| exit 1` matter for the same reason: curl exits
+22 when `-f` meets an error, and without that check an empty reply would
+read as an empty list of problems, which is to say as success.
+
+**Deploying refreshes staging's database.** CircleCI's deploy job
+restores production's latest backup into staging, under maintenance
+mode, whenever the branch being deployed is exactly `staging`. It is
+keyed on the branch, not on how the branch was advanced, so every route
+in INSTALL.md gets it. `rake production_to_staging` remains for doing
+that refresh out of band, without a deploy.
+
+**One detail about the `gh` form**: reading a ref uses `git/ref` and
+updating one uses `git/refs`. That is GitHub's inconsistency, not a typo.
+
 ## Setup for deployment
 
 If you want to deploy this yourself, you need to set some things up.
@@ -1167,8 +1323,8 @@ and were researched separately:
 * colored: URL <https://github.com/defunkt/colored/blob/master/LICENSE> reveals this to be license MIT.
 
 For more on license decisions see docs/dependency_decisions.yml.
-You can also run 'rake' and see the generated report
-license_finder_report.html.
+You can also run 'rake license_finder_report.html' and read the
+report it generates.
 
 ## HTML link checking
 
@@ -1208,7 +1364,7 @@ You can then run, e.g.:
 
 ~~~~
 checklink-norobots -b -e \
-  https://github.com/coreinfrastructure/best-practices-badge | tee results
+  https://github.com/ossf/best-practices-badge | tee results
 ~~~~
 
 ## Spam countering: Markdown, nofollow, and ogc
@@ -1255,8 +1411,8 @@ Here’s a quick example that may help:
 rails console
 p = Project.new
 # Set values for project to evaluate.  We'll examine our own project.
-p[:repo_url] = 'https://github.com/coreinfrastructure/best-practices-badge'
-p[:homepage_url] = 'https://github.com/coreinfrastructure/best-practices-badge'
+p[:repo_url] = 'https://github.com/ossf/best-practices-badge'
+p[:homepage_url] = 'https://github.com/ossf/best-practices-badge'
 # Setup chief to analyze things:
 new_chief = Chief.new(p, proc { Octokit::Client.new })
 # Ask chief to find probable values:
@@ -1375,7 +1531,7 @@ Per the Heroku instructions, add the public key here:
 
 CircleCI needs to prove it's authorized, so we need to give it the
 private key (sigh). Go to this page:
-https://app.circleci.com/settings/project/github/coreinfrastructure/best-practices-badge/ssh
+https://app.circleci.com/settings/project/github/ossf/best-practices-badge/ssh
 
 Under "Additional SSH keys" (for keys to the builid VMs that you need to
 deploy to your machines), remove any heroku.com keys, add a new key
@@ -1392,7 +1548,7 @@ these keys from anywhere else:
 ## Project stats omission on 2017-02-28
 
 The production site maintains a number of daily statistics and can
-[display the statistics graphically](https://bestpractices.coreinfrastructure.org/project_stats), but it is
+[display the statistics graphically](https://www.bestpractices.dev/project_stats), but it is
 missing a report for 2017-02-28.
 This was due to a multi-hour downtime in
 Amazon’s S3 web-based storage service, part of
@@ -1538,6 +1694,35 @@ Some discussions about this:
 * [Malloc doubles Ruby memory](https://www.speedshop.co/2017/12/04/malloc-doubles-ruby-memory.html)
 * [Benchmark of memory allocators](https://medium.com/@andresakata/benchmark-of-memory-allocators-on-a-multi-threaded-ruby-program-354ec4dc2e7e)
 
+## Known harmless warnings (Ruby 3.4 + Bundler 2.5.x)
+
+When running Ruby 3.4+ with Bundler 2.5.x, you may see harmless warnings like:
+
+```
+warning: already initialized constant Gem::Platform::JAVA
+warning: previous definition of JAVA was here
+```
+
+**Cause**: Bundler 2.5.23 was released before Ruby 3.4 and redefines platform
+constants that Ruby 3.4's RubyGems already defines. This is a known
+compatibility issue between Bundler 2.5.x and Ruby 3.4's RubyGems 3.7.2.
+
+**Impact**: None. The warnings are cosmetic; the constants have identical
+values and functionality is unaffected.
+
+**Solution**: Update to Bundler 2.7.x or later, which is designed for
+Ruby 3.4 compatibility:
+
+```bash
+gem install bundler --version '~> 2.7.0'
+bundle update --bundler
+# Update CircleCI Docker images to include Bundler 2.7.x
+```
+
+**Note**: We intentionally deferred this Bundler update to separate concerns
+from the Ruby 3.4 upgrade. The warnings can be safely ignored until the
+Bundler update is performed.
+
 ## See also
 
 Project participation and interface:
@@ -1551,8 +1736,8 @@ Project participation and interface:
 
 Criteria:
 
-* [Criteria for passing badge](https://bestpractices.coreinfrastructure.org/criteria/0)
-* [Criteria for all badge levels](https://bestpractices.coreinfrastructure.org/criteria)
+* [Criteria for passing badge](https://www.bestpractices.dev/criteria/0)
+* [Criteria for all badge levels](https://www.bestpractices.dev/criteria)
 
 Development processes and security:
 

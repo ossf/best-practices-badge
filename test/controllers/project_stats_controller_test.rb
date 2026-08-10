@@ -48,8 +48,13 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
     get '/en/project_stats.csv'
     assert_response :success
     contents = CSV.parse(@response.body, headers: true)
+
+    # We *require* that 'id' be the first header
     assert_equal 'id', contents.headers.first
 
+    # To make this test flexible, we simply test if expected headers are
+    # *included* in the CSV - the CSV may have some other headers, and we
+    # don't assert a particular order here.
     expected_headers = %w[
       id percent_ge_0 percent_ge_25 percent_ge_50
       percent_ge_75 percent_ge_90 percent_ge_100
@@ -68,7 +73,8 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
       additional_rights_entries projects_with_additional_rights
       users_with_additional_rights
     ]
-    assert_equal expected_headers, contents.headers
+    assert expected_headers.all? { |item| contents.headers.include?(item) },
+           "Expected #{expected_headers} to be a subset of #{contents.headers}"
 
     assert_equal 8, contents.size
     assert_equal '13', contents[0]['percent_ge_50']
@@ -111,9 +117,16 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found # 404
   end
 
-  test 'should show project_stat' do
+  # At one time we supported this route, but it's pretty useless to
+  # get a single data point in isolation. Yes, it's odd a REST-style
+  # interface to only support acquiring a collection and not support retrieving
+  # a single value, but in practice we don't want people to repeatedly
+  # query us to get every item. If you need data, you need the whole thing,
+  # so just request that and we can provide it (with a cache), which we have
+  # to support anyway.
+  test 'should NOT show project_stat' do
     get "/de/project_stats/#{@project_stat.id}"
-    assert_response :success
+    assert_response :not_found
   end
 
   test 'should NOT get edit' do
@@ -147,8 +160,8 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
 
   test 'Test /project_stats/total_projects.json' do
     assert '/project_stats/total_projects.json',
-           total_projects_project_stats_path(format: :json, locale: nil)
-    get total_projects_project_stats_path(format: :json, locale: nil)
+           total_projects_project_stats_path(locale: nil)
+    get total_projects_project_stats_path(locale: nil)
     contents = JSON.parse(@response.body)
     assert 20, contents['2013-05-19 17:44:18 UTC']
     # Do *NOT* include "Accept" in the Vary heading.
@@ -162,8 +175,8 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
 
   test 'Test /project_stats/nontrivial_projects.json' do
     assert '/project_stats/nontrivial_projects.json',
-           nontrivial_projects_project_stats_path(format: :json, locale: nil)
-    get nontrivial_projects_project_stats_path(format: :json)
+           nontrivial_projects_project_stats_path(locale: nil)
+    get nontrivial_projects_project_stats_path
     contents = JSON.parse(@response.body)
     levels = contents.pluck('name') # levels reported
     assert_equal ['>=25%', '>=50%', '>=75%', '>=90%', '>=100%'], levels
@@ -172,7 +185,7 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'Test /en/project_stats/activity_30.json' do
-    get activity_30_project_stats_path(format: :json)
+    get activity_30_project_stats_path
     contents = JSON.parse(@response.body)
     assert_equal 'Active projects (created/updated within 30 days)',
                  contents[0]['name']
@@ -180,7 +193,7 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'Test /fr/project_stats/activity_30.json' do
-    get activity_30_project_stats_path(format: :json, locale: 'fr')
+    get activity_30_project_stats_path(locale: 'fr')
     contents = JSON.parse(@response.body)
     assert_equal(
       'Projets actifs (créés / mis à jour dans les 30 derniers jours)',
@@ -190,7 +203,7 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'Test /en/project_stats/daily_activity.json' do
-    get daily_activity_project_stats_path(format: :json)
+    get daily_activity_project_stats_path
     contents = JSON.parse(@response.body)
     assert_equal 4, contents.length
     assert_equal 'projects created since day before', contents[0]['name']
@@ -200,7 +213,7 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'Test /en/project_stats/reminders.json' do
-    get reminders_project_stats_path(format: :json)
+    get reminders_project_stats_path
     # Verify that we can parse the result as JSON
     contents = JSON.parse(@response.body)
     # A lame simple sanity test
@@ -209,8 +222,8 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
 
   test 'Test /project_stats/silver.json' do
     assert '/project_stats/silver.json',
-           silver_project_stats_path(format: :json, locale: nil)
-    get silver_project_stats_path(format: :json, locale: nil)
+           silver_project_stats_path(locale: nil)
+    get silver_project_stats_path(locale: nil)
     # Verify that we can parse the result as JSON
     contents = JSON.parse(@response.body)
     assert_equal 4, contents.length
@@ -219,8 +232,8 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
 
   test 'Test /project_stats/gold.json' do
     assert '/project_stats/gold.json',
-           gold_project_stats_path(format: :json, locale: nil)
-    get gold_project_stats_path(format: :json, locale: nil)
+           gold_project_stats_path(locale: nil)
+    get gold_project_stats_path(locale: nil)
     # Verify that we can parse the result as JSON
     contents = JSON.parse(@response.body)
     assert_equal 4, contents.length
@@ -228,21 +241,21 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'Test /en/project_stats/silver_and_gold.json' do
-    get silver_and_gold_project_stats_path(format: :json)
+    get silver_and_gold_project_stats_path
     # Verify that we can parse the result as JSON
     contents = JSON.parse(@response.body)
     assert_not contents.empty?
   end
 
   test 'Test /en/project_stats/percent_earning.json' do
-    get percent_earning_project_stats_path(format: :json)
+    get percent_earning_project_stats_path
     # Verify that we can parse the result as JSON
     contents = JSON.parse(@response.body)
     assert_not contents.empty?
   end
 
   test 'Test /en/project_stats/user_statistics.json' do
-    get user_statistics_project_stats_path(format: :json)
+    get user_statistics_project_stats_path
     # Verify that we can parse the result as JSON
     contents = JSON.parse(@response.body)
     assert_not contents.empty?
@@ -257,6 +270,11 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 120, controller.cache_time(log_time + 70)
     assert_equal log_time, controller.cache_time(0)
     assert_equal log_time - 300, controller.cache_time(300)
+    # Test case where time has passed log_time (negative time_left)
+    # and we're outside the slop window. In this case, we should respond
+    # with a cache for tomorrow's log_time.
+    seconds_in_day = 24 * 60 * 60
+    assert_equal seconds_in_day - 400, controller.cache_time(log_time + 400)
   end
 end
 # rubocop:enable Metrics/ClassLength

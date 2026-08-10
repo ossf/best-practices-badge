@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# The trusted proxies' IP addresses are *not* being used for user
+# authentication; they're being used to counter CDN piercing and to
+# ensure that our rate limits apply to the correct IP addresses.
+
 # Copyright 2015-2017, the Linux Foundation, IDA, and the
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
@@ -21,6 +25,33 @@ module BadgeApp
     # here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
+
+    # Load framework defaults cumulatively from 5.0 through 8.1. Each version
+    # includes all defaults from earlier versions. Key effects per version:
+    #   5.0: per-form CSRF tokens, origin-header CSRF check, belongs_to required
+    #   5.2: AES-256-GCM cookie encryption (rotation in cookies_rotations.rb)
+    #   6.0: cookie metadata, modern mail delivery job
+    #   6.1: has_many_inversing, SameSite=Lax, jitter on job retries
+    #   7.0: SHA-256 key derivation, partial_inserts=false, open-redirect raise
+    #   7.1: autoload path isolation, secure-token on initialize
+    #   7.2: PostgreSQL date decoding
+    #   8.0: Regexp.timeout (ReDoS defense), strict ETag freshness
+    #   8.1: YJIT off in dev/test, no JSON HTML-escaping, relative-redirect raise
+    config.load_defaults 8.1
+
+    # Add lib/ to autoload paths so modules there are automatically loaded
+    config.autoload_paths << Rails.root.join('lib')
+
+    # Do NOT let Rails load lib/tasks/*.rake. The Rakefile loads them
+    # itself, before deciding whether this application is needed at all,
+    # so letting Rails load them again would give every task two bodies:
+    # Rake appends actions rather than replacing them, and
+    # "rake deploy_production" would deploy twice.
+    #
+    # The glob must be truthy but match nothing. Setting it to nil or ""
+    # makes Rails::Paths hand the DIRECTORY to Kernel#load instead, which
+    # fails. So this names what is going on, and matches no file.
+    config.paths['lib/tasks'].glob = 'loaded-by-the-Rakefile-instead'
   end
 end
 
@@ -28,10 +59,4 @@ Rails.application.configure do
   config.middleware.use Rack::Attack
 end
 
-# Prepare for future deprecation.
-# to_time will always preserve the full timezone rather than the
-# offset of the receiver in Rails 8.1.
-# This opts into the new 8.1 behavior.
-# In our case it doesn't matter, the only timezone we use is UTC.
-
-ActiveSupport.to_time_preserves_timezone = :zone
+# NOTE: the only timezone we use is UTC.

@@ -4,6 +4,10 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile '~/.gitignore_global'
 
+# Ignore local environment overrides (contain dev-only secrets like encryption keys).
+.env.local
+.env.*.local
+
 # Ignore bundler config.
 /.bundle
 
@@ -17,10 +21,17 @@
 /db/*.sqlite3
 /db/*.sqlite3-journal
 
-# Ignore all logfiles and tempfiles.
+# Ignore all logfiles and tempfiles. Ignore the contents of these
+# directories rather than the directories themselves, so the exceptions
+# below can be re-included: git does not descend into an excluded
+# directory, and cannot re-include a path underneath one.
 /log/*
 !/log/.keep
-/tmp
+/tmp/*
+# These two ARE tracked on purpose. They hold a fixed non-secret used by
+# development and test, which tmp/local_secret.notes.md explains.
+!/tmp/local_secret.txt
+!/tmp/local_secret.notes.md
 
 # Don't include precompiled assets
 /public/assets
@@ -28,13 +39,21 @@
 # Dropbox
 .DS_Store
 
-# Rake output files
+# Rake output files and generated documentation
 /*.html
 doc/*.html
+docs/*.html
 license_okay
+tags
+papertrail-logs
+requested-paths-*.txt
 
 # Temporary files
 ,*
+# ... except this fixture, which is tracked on purpose. It holds trailing
+# whitespace, so `rake whitespace_check` passing is live proof that the
+# linters really do skip comma-prefixed temporary files.
+!/,whitespace.txt
 *.temp
 *.TEMP
 *.tmp
@@ -50,7 +69,66 @@ license_okay
 # Ignore railroader directory
 /railroader/
 
-# Ignore rake and byebug files
+# Ignore rake and byebug files especially
 .byebug_history
 .rake_tasks~
 
+# Baseline criteria sync cache and metadata
+tmp/baseline_cache/
+.baseline_sync_metadata.json
+
+# Let's just ignore .files in general. The safe default for a dot path is
+# that it holds local state or credentials (editor scratch files, .aws,
+# .ssh, .env.local) which must never be committed, so a dot path we have not
+# vouched for stays out of the repository.
+.*
+
+# ... except the dot paths below, which are real project configuration and
+# MUST be tracked. Every tracked dot path needs an entry here. Ignore rules
+# do not apply to files git already tracks, so omitting one leaves the
+# existing file working while a NEW or deleted-then-restored file becomes
+# silently invisible: absent from `git status` and refused by `git add`. It
+# then looks committed while never leaving the local machine.
+#
+# Directories are re-included as directories rather than by a pattern for
+# the files inside them, because git does not descend into an excluded
+# directory and so would never consult such a pattern.
+#
+# To confirm the list is complete, this must print nothing:
+#   git ls-files | git check-ignore --no-index --stdin
+# You do not have to remember to run it. "rake gitignore_check" runs
+# exactly that, as one of the static checks in "rake default", and it
+# covers the exceptions to the /tmp and ",*" rules above as well.
+
+# Rails marks otherwise-empty tracked directories with a placeholder.
+!.keep
+!.gitkeep
+
+# CI and repository configuration.
+!/.github/
+!/.circleci/
+
+# Served to the public by the site itself, e.g. /.well-known/security.txt.
+!/public/.well-known/
+
+# translation.io project state.
+!/config/locales/.translation_io
+
+# Tool configuration, one file each. SimpleCov auto-loads .simplecov on
+# `require 'simplecov'`, so it is what keeps the test processes and the
+# coverage-merging rake task using identical settings.
+!/.bundler-audit.yml
+!/.codespellignore
+!/.codespellrc
+!/.env
+!/.eslintignore
+!/.eslintrc
+!/.fasterer.yml
+!/.gitignore
+!/.mdlrc
+!/.pryrc
+!/.rubocop.yml
+!/.ruby-version
+!/.simplecov
+!/.slugignore
+!/.tool-versions

@@ -1,0 +1,14 @@
+// frozen_string_literal: true
+
+// Responsive breakpoint variables
+// Following Bootstrap 3 naming conventions for consistency
+// These must be imported before any files that use them
+
+$screen-xs-max: 767px;  // Max width for extra-small screens (mobile)
+$screen-sm-min: 768px;  // Min width for small screens and above (tablet+)
+$screen-xs-custom: 481px;  // Custom breakpoint for specific layouts
+
+// Navbar collapse breakpoint - width at which hamburger menu appears
+// This is the maximum width where hamburger shows;
+// items are horizontal above this
+$navbar-collapse-breakpoint: 1200px;

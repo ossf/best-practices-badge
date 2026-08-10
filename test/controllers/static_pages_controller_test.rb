@@ -22,7 +22,7 @@ class StaticPagesControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes @response.body, 'target=[^ >]+>'
     # Check that our preload statements are present
     assert_select(
-      'head link[rel="preload"][as="stylesheet"][type="text/css"]' \
+      'head link[rel="preload"][as="style"][type="text/css"]' \
       '[href^="/assets/"]'
     )
     assert_select(

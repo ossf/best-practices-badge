@@ -21,20 +21,29 @@ class UsersController < ApplicationController
   # These are the permitted parameters in compute_user_params.
   PERMITTED_PARAMS = %i[
     name email password password_confirmation
-    preferred_locale notification_emails
+    preferred_locale notification_emails important_notifications
   ].freeze
+
+  # Maximum number of user search results to prevent system overwhelm
+  MAX_USER_SEARCH_RESULTS = 500
 
   # Displays list of resources.
   # @return [void]
   def index
     user_result = search_users
-    @pagy, @users = pagy(user_result)
-    @pagy_locale = I18n.locale.to_s # Pagy requires a string version
+    @pagy, @users = pagy(:offset, user_result)
   end
 
   # Search users for desired_name (which is presumed to be non-empty)
   # @param desired_name [String] The name to search for (case-insensitive partial match)
-  def search_name(desired_name)
+  # @param limit [Integer] Maximum number of IDs to return
+  # @return [Array<Integer>] Array of user IDs matching the name
+  def search_name(desired_name, limit = MAX_USER_SEARCH_RESULTS + 1)
+    # We *only* allow search of names and/or email by admins.
+    # Email search reveals confidential info; name search would permit
+    # possibly-excessive load by untrusted users.
+    return [] unless current_user&.admin?
+
     # To maximize finding, use a case-insensitive "find anywhere" search.
     # An exact case-sensitive search would for names look like this:
     # result = result.where(name: params[:name])
@@ -44,41 +53,152 @@ class UsersController < ApplicationController
     # and legal requests. This allows admins to use % for zero or more
     # characters and _ for exactly one character in their search patterns.
     # This is safe because only admin users can access this functionality.
+    # Return only IDs to minimize memory usage.
     User.where('lower(name) LIKE ?', "%#{desired_name.strip.downcase}%")
+        .limit(limit).ids
   end
 
   # Search users for desired_email (which is presumed to be non-empty)
   # @param desired_email [String] The email address to search for (exact match)
-  def search_email(desired_email)
+  # @param limit [Integer] Maximum number of IDs to return
+  # @return [Array<Integer>] Array of user IDs matching the email
+  def search_email(desired_email, limit = MAX_USER_SEARCH_RESULTS + 1)
+    # We *only* allow search of names and/or email by admins.
+    # Email search reveals confidential info; name search would permit
+    # possibly-excessive load by untrusted users.
+    return [] unless current_user&.admin?
+
+    # Handle "Fullname <email@domain>" format
+    email_to_search = desired_email.strip
+    # Check if '>' is the last non-space character
+    if email_to_search.rstrip.end_with?('>')
+      # Remove trailing '>' and spaces
+      email_to_search = email_to_search.rstrip.chomp('>')
+      # If there's a '<', extract everything after it
+      if email_to_search.include?('<')
+        email_to_search = email_to_search.split('<').last
+      end
+      email_to_search = email_to_search.strip
+    end
     # We presume email is stored as citext, which is case-insensitive.
-    User.where(email: desired_email.strip)
+    # Return only IDs to minimize memory usage.
+    User.where(email: email_to_search).limit(limit).ids
   end
+
+  # Validate email has @ with character around it
+  # @param email [String] The email to validate
+  # @return [Boolean] true if valid basic format
+  def valid_email_format?(email)
+    return false if email.blank?
+
+    # Must have @ with at least one character before and after
+    email.match?(/\S@\S/)
+  end
+
+  # Search users by lists of names and/or emails
+  # @param search_names_list [String] Newline-separated names (can be nil)
+  # @param search_emails_list [String] Newline-separated emails (can be nil)
+  # @param max_num_results [Integer] Maximum number of results allowed
+  # @return [Hash] { user_ids: Array<Integer>, error: String|nil }
+  # rubocop: disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
+  def search_users_by_lists(
+    search_names_list,
+    search_emails_list,
+    max_num_results = MAX_USER_SEARCH_RESULTS
+  )
+    # We *only* allow search of names and/or email by admins.
+    # Email search reveals confidential info; name search would permit
+    # possibly-excessive load by untrusted users.
+    return { user_ids: [], error: nil } unless current_user&.admin?
+
+    # Validate UTF-8 encoding; check before .present? to avoid ArgumentError
+    if search_names_list && !search_names_list.valid_encoding?
+      return { user_ids: [], error: 'Invalid UTF-8 in name search' }
+    end
+    if search_emails_list && !search_emails_list.valid_encoding?
+      return { user_ids: [], error: 'Invalid UTF-8 in email search' }
+    end
+
+    # Use limit + 1 to detect when we've exceeded the maximum
+    query_limit = max_num_results + 1
+    found_user_ids = Set.new
+
+    # Process names
+    if search_names_list.present?
+      # Split by \n; .strip will remove any \r from CRLF line endings
+      search_names_list.split("\n").each do |name|
+        next if name.strip.empty?
+
+        found_user_ids.merge(search_name(name, query_limit))
+
+        # Early termination if too many results
+        next if found_user_ids.size <= max_num_results
+
+        return {
+          user_ids: [],
+          error: "Too many results (>#{max_num_results}). " \
+                 'Please refine your search.'
+        }
+      end
+    end
+
+    # Process emails - only works with production blind index key
+    if search_emails_list.present? && User.email_search_available?
+      # Split by \n; .strip will remove any \r from CRLF line endings
+      search_emails_list.split("\n").each do |email|
+        # Store stripped email once to avoid multiple .strip calls
+        email_stripped = email.strip
+        next if email_stripped.empty?
+
+        # Validate email format
+        unless valid_email_format?(email_stripped)
+          return {
+            user_ids: [],
+            error: "Invalid email format: #{email_stripped}"
+          }
+        end
+
+        found_user_ids.merge(search_email(email, query_limit))
+
+        # Early termination if too many results
+        next if found_user_ids.size <= max_num_results
+
+        return {
+          user_ids: [],
+          error: "Too many results (>#{max_num_results}). " \
+                 'Please refine your search.'
+        }
+      end
+    end
+
+    { user_ids: found_user_ids.to_a, error: nil }
+  end
+  # rubocop: enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
 
   # Search users. Search is ONLY supported for admin, so that we can't leak
   # email data about users, and to discourage people from being harassed
   # if they can be searched by name. It also counters DoS, since we will
   # refuse to provide a service we don't want to provide.
   # For normal users we ignore search parameters.
-  # rubocop: disable Metrics/MethodLength
+  # rubocop: disable Metrics/AbcSize
   def search_users
     result = User.all
-    if current_user.admin?
-      # Only admins can apply a search.
-      desired_name = params[:name]
-      desired_email = params[:email]
-      if desired_name.present? && desired_email.present?
-        # Use "or" not the usual "and", to maximize chances of finding
-        # a result (e.g., for a GDPR search).
-        result = search_name(desired_name).or(search_email(desired_email))
-      elsif desired_name.present?
-        result = search_name(desired_name)
-      elsif desired_email.present?
-        result = search_email(desired_email)
-      end
+    search_names = params[:search_names]
+    search_emails = params[:search_emails]
+    search = search_names.present? || search_emails.present?
+    if current_user.admin? && search
+      search_result = search_users_by_lists(search_names, search_emails)
+      return User.none.tap { flash[:danger] = search_result[:error] } if search_result[:error]
+
+      # If no match, result will be empty
+      result = User.where(id: search_result[:user_ids])
     end
     result
   end
-  # rubocop: enable Metrics/MethodLength
+  # rubocop: enable Metrics/AbcSize
+
+  private :search_name, :search_email, :valid_email_format?,
+          :search_users_by_lists, :search_users
 
   # rubocop: disable Metrics/MethodLength, Metrics/AbcSize
   def show
@@ -86,8 +206,8 @@ class UsersController < ApplicationController
     respond_to :html, :json
     # Paginate the list of user-owned projects.
     # Use "select_needed" to minimize the fields we extract
-    @pagy, @projects = pagy(select_needed(@user.projects))
-    @pagy_locale = I18n.locale.to_s # Pagy requires a string version
+    # Note: No need to eager-load user - all projects belong to @user
+    @pagy, @projects = pagy(:offset, select_needed(@user.projects))
 
     # Don't bother paginating the projects with additional rights,
     # we practically never have that many and the interface would be confusing.
@@ -100,6 +220,12 @@ class UsersController < ApplicationController
     # what is in these lists is radically different.
     return unless @user == current_user && @user.provider == 'github'
 
+    # NOTE: we intentionally only obtain a *subset* of the projects
+    # the user controls using github_user_projects (since otherwise we
+    # could wait a ridiculous amount of time). So in some cases
+    # this won't include all projects the user can actually edit.
+    # That's okay, since we *always* show the projects with additional rights;
+    # this is just an attempt to "sweep up" other data we otherwise lack.
     @edit_projects =
       select_needed(
         Project.includes(:user).where(repo_url: github_user_projects)
@@ -194,8 +320,10 @@ class UsersController < ApplicationController
     if @user.save
       # If user changed his own locale, switch to it.  It's possible for an
       # *admin* to change someone else's locale, in that case leave it alone.
-      if current_user == @user && user_parameter_values[:preferred_locale]
-        I18n.locale = user_parameter_values[:preferred_locale].to_sym
+      # Store preferred_locale once to avoid duplicate hash lookup
+      preferred_locale = user_parameter_values[:preferred_locale]
+      if current_user == @user && preferred_locale
+        I18n.locale = preferred_locale.to_sym
       end
       # Email user on every change.  That way, if the user did *not* initiate
       # the change (e.g., because it's by an admin or by someone who broke

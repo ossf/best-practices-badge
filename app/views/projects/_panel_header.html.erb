@@ -4,9 +4,11 @@
      id="<%= anchor_id %>">
   <h2 class="panel-title h3">
     <em class="glyphicon"></em>&nbsp;<%= t(panel_title, scope: :headings) %>
-    <span class="pull-right satisfaction">
-      <span class="satisfaction-text"><%= satisfaction_data[:text] %></span>
-      <span class="satisfaction-bullet" data-color="<%= satisfaction_data[:color] %>">&#9679;</span>
-    </span>
+    <% if satisfaction_data %>
+      <span class="pull-right satisfaction">
+        <span class="satisfaction-text"><%= satisfaction_data[:text] %></span>
+        <span class="satisfaction-bullet" data-color="<%= satisfaction_data[:color] %>">&#9679;</span>
+      </span>
+    <% end %>
   </h2>
 </div>

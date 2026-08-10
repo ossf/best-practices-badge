@@ -1,0 +1,49 @@
+// footer styles
+
+@import "variables";
+
+footer {
+  margin-top: 60px;
+  padding-top: 5px;
+  border-top: 1px solid #eaeaea;
+  overflow: hidden;
+  background-color: #000;
+}
+
+footer a {
+  color: #555;
+}
+
+footer small {
+  color: #666;
+  display: block;
+  margin: 10px 0 0 10px;
+}
+
+footer > .container {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+footer ul {
+  float: right;
+  list-style: none;
+}
+
+footer ul li {
+  float: left;
+  margin-left: 25px;
+}
+
+@media (max-width: $screen-sm-min) {
+  footer {
+    nav {
+      float: left;
+      margin-top: 5px;
+      margin-left: -50px;
+    }
+    small {
+      margin: 0;
+    }
+  }
+}

@@ -3,9 +3,9 @@
 
 <%= t 'report_mailer.gained_level_part2' %>
 * <%= t 'report_mailer.in_markdown_add' %>
-  [![OpenSSF Best Practices](https://<%= @hostname %>/projects/<%= @project.id %>/badge)](https://<%= @hostname %>/projects/<%= @project.id %>)
+  [![OpenSSF Best Practices](https://<%= @hostname %>/projects/<%= @project.id %>/<%= @badge_suffix %>)](https://<%= @hostname %>/projects/<%= @project.id %>)
 * <%= t 'report_mailer.in_html_add' %>
-  <a href="https://<%= @hostname %>/projects/<%= @project.id %>"><img src="https://<% @hostname %>/projects/<%= @project.id %>/badge"></a>
+  <a href="https://<%= @hostname %>/projects/<%= @project.id %>"><img src="https://<%= @hostname %>/projects/<%= @project.id %>/<%= @badge_suffix %>"></a>
 
 <%= t 'report_mailer.gained_level_part3' %>
 

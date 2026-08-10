@@ -2,11 +2,23 @@
 
 <!-- SPDX-License-Identifier: (MIT OR CC-BY-3.0+) -->
 
-[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/1/badge)](https://bestpractices.coreinfrastructure.org/projects/1)
-[![CircleCI Build Status](https://circleci.com/gh/coreinfrastructure/best-practices-badge.svg?&style=shield)](https://app.circleci.com/pipelines/github/coreinfrastructure/best-practices-badge)
-[![codecov](https://codecov.io/gh/coreinfrastructure/best-practices-badge/branch/master/graph/badge.svg)](https://codecov.io/gh/coreinfrastructure/best-practices-badge)
-[![License](https://img.shields.io/:license-mit-blue.svg)](https://badges.mit-license.org)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/coreinfrastructure/best-practices-badge/badge)](https://scorecard.dev/viewer/?uri=github.com/coreinfrastructure/best-practices-badge)
+<table border="0">
+  <tr>
+    <td align="left" border="0" valign="middle">
+      <a href="https://www.bestpractices.dev/projects/1"><img src="https://www.bestpractices.dev/projects/1/badge" alt="OpenSSF Best Practices" align="middle"></a>&nbsp;
+      <a href="https://www.bestpractices.dev/projects/1"><img src="https://www.bestpractices.dev/projects/1/baseline" alt="OpenSSF Baseline" align="middle"></a>&nbsp;
+      <a href="https://app.circleci.com/pipelines/github/ossf/best-practices-badge"><img src="https://circleci.com/gh/ossf/best-practices-badge.svg?&style=shield" alt="CircleCI Build Status" align="middle"></a>&nbsp;
+      <a href="https://codecov.io/gh/ossf/best-practices-badge"><img src="https://codecov.io/gh/ossf/best-practices-badge/branch/main/graph/badge.svg" alt="codecov" align="middle"></a>&nbsp;
+      <a href="https://badges.mit-license.org"><img src="https://img.shields.io/:license-mit-blue.svg" alt="License" align="middle"></a>&nbsp;
+      <a href="https://scorecard.dev/viewer/?uri=github.com/ossf/best-practices-badge"><img src="https://api.scorecard.dev/projects/github.com/ossf/best-practices-badge/badge" alt="OpenSSF Scorecard" align="middle"></a>
+    </td>
+    <td align="left" border="0" valign="middle">
+      <a href="https://github.com/ossf/tac/blob/main/process/project-lifecycle-documents/best_practices_badge_graduation_stage.md">
+        <img src="https://raw.githubusercontent.com/ossf/best-practices-badge/main/docs/graduated.svg" alt="OpenSSF graduated project" height="80">
+      </a>
+    </td>
+  </tr>
+</table>
 
 This project identifies best practices for
 Free/Libre and Open Source Software (FLOSS)
@@ -18,14 +30,16 @@ The real goal of this project is to encourage projects to
 apply best practices, and to help users determine which FLOSS projects do so.
 We believe that FLOSS projects that implement best practices are more likely
 to produce better software, including more secure software.
+We support both our original "metal" badge criteria and the
+OpenSSF Baseline criteria.
 
 See the
-*[OpenSSF Best Practices badge website](https://bestpractices.coreinfrastructure.org/)* if you want to try to actually get a badge.
+*[OpenSSF Best Practices badge website](https://www.bestpractices.dev/)* if you want to try to actually get a badge.
 
 This is the development site for the criteria and badge application
 software that runs the website.
 Feedback is very welcome via the
-[GitHub site](https://github.com/coreinfrastructure/best-practices-badge)
+[GitHub site](https://github.com/ossf/best-practices-badge)
 as issues or pull (merge) requests.
 There is also a
 [mailing list](https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges)
@@ -34,16 +48,18 @@ This project was originally developed under the CII, but it
 is now part of the
 [Open Source Security Foundation (OpenSSF)](https://openssf.org/)
 [Best Practices Working Group (WG)](https://github.com/ossf/wg-best-practices-os-developers).
-The original name of the project was the CII Best Practices badge, but
-it is now the OpenSSF Best Practices badge project.
+Its formal name is the OpenSSF Best Practices badge project, formerly named
+the CII Best Practices badge.
+
+## Interesting pages
 
 Interesting pages include:
 
-* Badging **[Criteria for the passing level](https://bestpractices.coreinfrastructure.org/criteria/0)**
-* **[Criteria for all badging levels](https://bestpractices.coreinfrastructure.org/criteria)**
+* Badging **[Criteria for the passing level](https://www.bestpractices.dev/criteria/0)**
+* **[Criteria for all badging levels](https://www.bestpractices.dev/criteria)**
 * Information on how to **[contribute](./CONTRIBUTING.md)**
 * Information on **[our own security, including how to report vulnerabilities in our badge application](./SECURITY.md)**
-* [Up-for-grabs](https://github.com/coreinfrastructure/best-practices-badge/labels/up-for-grabs)
+* [Up-for-grabs](https://github.com/ossf/best-practices-badge/labels/up-for-grabs)
   lists smaller tasks that may take 1-3 days, and are ideal for people
   new to the project (or FLOSS in general)
 * **[Background](./docs/background.md)** on Badging
@@ -58,6 +74,23 @@ Interesting pages include:
 * **[Installation](./docs/INSTALL.md)**  - Installation and quick start
 * **[Vetting](./docs/vetting.md)**  - More about our vetting approach
 * **[Roadmap](./docs/roadmap.md)**  - Roadmap (future plans)
+* **[Automation proposals](./docs/automation-proposals.md)** - a mechanism for external tools to easily propose changes (this is our recommended integration mechanism)
+
+## Baseline and Metal series
+
+The best practices badge site supports both the
+[OpenSSF Baseline](https://baseline.openssf.org/) criteria
+(baseline-1,2,3) and its own "Metal series" of criteria
+(passing, silver, gold).
+
+The baseline series is a more minimal checklist focusing only on MUST
+security requirements and is derived in part from global cybersecurity
+regulations and frameworks. The metal series is a larger set of criteria that
+includes suggestions and quality issues that impact security, and is derived
+in part from experiences of secure FLOSS projects. Both focus on security.
+
+We encourage projects to eventually do both. You choose where to start.
+Once you do one series, it's much easier to do the other.
 
 ## Summary of Best Practices Criteria "passing" level
 
@@ -177,16 +210,27 @@ subdirectory for documentation. We have renamed that to a `docs` subdirectory.
 
 ## Main site
 
-We have recently moved to the new main site
+Years ago we moved our main site to
 <https://www.bestpractices.dev>.
-For many years the main site was at
+
+For many years the main site previously was at
 <https://bestpractices.coreinfrastructure.org>.
-However, the Core Infrastructure Initiative (CII) has ended, and we have
-become part of the Open Source Security Foundation (OpenSSF).
-Therefore, it made sense to change the domain name so it's no longer tied
-to the CII. The domain name is much shorter, too.
+However, the Core Infrastructure Initiative (CII) ended and we
+became part of the Open Source Security Foundation (OpenSSF).
 We use the "www" subdomain because there are technical challenges using
 a top-level domain with our CDN; it's more efficient to use the subdomain.
+
+## Governance and administration
+
+See [governance](docs/governance.md) for how this project is governed,
+[TSC](docs/TSC.md) for current best practices badge
+project technical steering committee (TSC) members, and
+[admin](docs/admin.md) for information to web site application administrators.
+
+## Software Bill of Materials (SBOM)
+
+We generate an Software Bill of Materials (SBOM) in SPDX format.
+[Here is more information how to get our SPDX SBOMs](docs/sbom.md).
 
 ## License
 

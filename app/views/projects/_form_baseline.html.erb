@@ -1,0 +1,119 @@
+<%# Shared partial for baseline forms (baseline-1, baseline-2, baseline-3).
+    Each baseline level has a thin wrapper that renders this partial.
+    If a level needs custom behavior, expand its wrapper instead of modifying this partial.
+
+    Required locals:
+      - project: the Project instance
+      - view_only: boolean indicating if form is read-only
+      - criteria_level: string like 'baseline-1', 'baseline-2', 'baseline-3'
+%>
+<% badge_hostname = (ENV['PUBLIC_HOSTNAME'] || 'localhost') %>
+<% baseline_number = criteria_level.split('-').last %>
+<% percentage_method = "badge_percentage_baseline_#{baseline_number}" %>
+<% provide :insert_progress_bar do %>
+  <div class="progress-mobile progress">
+    <div class="progress-bar progress-bar-success badge-progress"
+         role="progressbar" aria-valuenow="<%= project.public_send(percentage_method) || 0 %>"
+         aria-valuemin="0" aria-valuemax="100">
+      <%= project.public_send(percentage_method) || 0 %>%
+    </div>
+  </div>
+<% end %>
+<%= render(partial: 'form_early',
+           locals:
+             {
+               project: project, view_only: view_only,
+               criteria_level: criteria_level, badge_hostname: badge_hostname
+             }) %>
+
+<div class="row">
+  <div class="col-md-12">
+ <div>
+  <%# In view_only mode the form is for display only and is never submitted,
+      so suppress the per-request authenticity_token. This keeps anonymous
+      show pages byte-identical (and free of a useless session-CSRF write) so
+      the CDN can share one cached object. See docs/cdn-cache-not-logged-in.md. %>
+  <%= bootstrap_form_for project, url: edit_project_section_path(project, criteria_level), authenticity_token: (false if view_only) do |f| %>
+    <%= render 'shared/error_messages', object: f.object %>
+    <%= f.hidden_field :lock_version %>
+
+  <br>
+
+  <div class="panel-group well well-lg well-color">
+    <div class="panel panel-primary">
+      <%= render(partial: 'panel_header',
+           locals:
+             {
+               panel_title: 'Basics', anchor_id: 'basics',
+               by_default: 'open',
+               satisfaction_data:
+                 project.get_satisfaction_data(criteria_level, 'basics')
+             }) %>
+      <div class="panel-collapse collapse in">
+        <ul class="list-group">
+          <li class="list-group-item"><h3 id="section_general_project_info"><%= t('headings.General_project_info') %></h3>
+            <%= render(partial: 'form_basics',
+                 locals:
+                   {
+                     project: project, view_only: view_only,
+                     badge_hostname: badge_hostname, f: f,
+                     criteria_level: criteria_level
+                   }) %>
+          </li>
+        </ul>
+
+        <% unless view_only %>
+          <div class="panel-footer text-center">
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+                value: 'controls', class:"btn btn-success btn-submit",
+                title: t('projects.edit.save_and_continue_tooltip') %>
+            <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="panel panel-primary">
+      <%= render(partial: 'panel_header',
+           locals:
+             {
+               panel_title: 'Controls', anchor_id: 'controls',
+               by_default: 'open',
+               satisfaction_data:
+                 project.get_satisfaction_data(criteria_level, 'controls')
+             }) %>
+      <div class="panel-collapse collapse in">
+        <ul class="list-group">
+          <%= render_minor_status(
+                criteria_level, 'General', 'Controls',
+                f, project, view_only
+              ) %>
+        </ul>
+        <% unless view_only %>
+          <div class="panel-footer text-center">
+            <%= render 'form_submit_notice', project: project %>
+            <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+      <br>
+      <div class="center">
+      <% if view_only %>
+        <%= t "projects.show.#{project.data_license_field}",
+              user: project.user_display_name %>
+      <% else %>
+        <%= render 'form_submit_notice', project: project %>
+        <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
+          value: 'Save', class:"btn btn-success btn-submit",
+          title: t('projects.edit.save_and_continue_tooltip') %>
+        <%= f.submit t('projects.edit.submit_and_exit'), class:"btn btn-success btn-submit" %>
+      <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+</div>

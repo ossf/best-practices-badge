@@ -3,8 +3,25 @@
       # Cache the value of "can_edit?".  In some cases it will cause us
       # to query GitHub, and we don't want to make duplicate external requests
       @cached_can_edit = can_edit?
-      if @cached_can_edit %>
-    <li><%= link_to Icon[:'fa-edit'] + t('.edit'), edit_project_path(@project, criteria_level: @criteria_level), rel: 'nofollow ugc' %></li>
+    %>
+
+    <%# Section selector dropdown - always visible %>
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+        <%= Icon[:'fa-bookmark'] %><%= t('.section_selector') %><b class="caret"></b>
+      </a>
+      <ul class="dropdown-menu reverse-dropdown">
+        <%# Use precomputed memoized hash (reduces object allocations) %>
+        <% ApplicationHelper.project_nav_sections[I18n.locale].each do |section| %>
+          <li class="<%= 'active' if @criteria_level == section[:level] %>">
+            <%= link_to section[:name], project_section_path(@project, section[:level]) %>
+          </li>
+        <% end %>
+      </ul>
+    </li>
+
+    <% if @cached_can_edit %>
+    <li><%= link_to Icon[:'fa-edit'] + t('.edit'), edit_project_section_path(@project, @criteria_level), rel: 'nofollow ugc' %></li>
     <% end %>
     <% if can_control? %>
       <li><%= link_to Icon[:'fa-times-circle'] + t('.delete'), project_path(@project) + '/delete_form', rel: 'nofollow ugc' %></li>
@@ -16,8 +33,9 @@
     <div class="main-badge-ques"></div>
   </div>
   <div class="col-md-7 col-sm-6">
-    <h1 class="m-t-0 h2"><%=@project.try(:name).presence || '(Name Unknown)' %></h2>
-    <%= render "form_#{@criteria_level}", project: @project, is_disabled: true %>
+    <h1 class="m-t-0 h2"><%=@project.try(:name).presence || ApplicationHelper::NAME_UNKNOWN %></h2>
+    <%= render "form_#{criteria_level_to_internal(@criteria_level)}", project: @project, criteria_level: @criteria_level, view_only: true %>
+
 <div class="row">
 <div class="col-md-12">
 <strong><%= t '.owned_by' %></strong>
@@ -31,16 +49,5 @@
 <% if ! @project.achieved_passing_at.nil? %>
   <%= t '.last_achieved_html', when: @project.achieved_passing_at %>
 <% end %>
-
-<br><br>
-<p>
-<%= link_to t('.back'), projects_path %>
-<% if @cached_can_edit %>
-  <%= link_to t('.edit'), edit_project_path(@project), rel: 'nofollow ugc' %>
-<% end %>
-<% if can_control? %>
-  <%= link_to t('.delete'), { action: :destroy, id: @project.id }, method: :delete, data: { confirm: t('.confirm_delete', project_id: @project.id) } %>
-<% end %>
-</p>
 </div>
 </div>

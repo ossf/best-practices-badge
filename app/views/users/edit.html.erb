@@ -15,16 +15,17 @@
        <%= f.email_field :email, class:"form-control" %>
 
        <%= f.label :preferred_locale, t('users.new.preferred_locale') %>
-       <%=
-         locale_names = I18n.available_locales.map do |loc|
-           [t("locale_name.#{loc.to_s}"), loc.to_s]
-         end
-         f.select :preferred_locale, locale_names, {}, {class: "form-control"}
-       %>
+       <%= f.select :preferred_locale,
+                    Rails.application.config.locale_select_options[I18n.locale.to_s],
+                    {}, {class: "form-control"} %>
 
        <%= f.label :notification_emails, t('users.edit.notification_emails') %>
        <%= f.check_box :notification_emails, class: "form-check-input" %>
        <small class="form-text text-muted"><%= t('users.edit.notification_emails_help') %></small>
+
+       <%= f.label :important_notifications, t('users.edit.important_notifications') %>
+       <%= f.check_box :important_notifications, class: "form-check-input" %>
+       <small class="form-text text-muted"><%= t('users.edit.important_notifications_help') %></small>
 
        <% if @user.provider == 'local' %>
          <%= f.label :password, t('users.new.password') %>

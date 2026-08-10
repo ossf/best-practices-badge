@@ -21,6 +21,8 @@ module UsersHelper
   # *choose* to navigate to a link, but we want to try to provide
   # additional privacy when the user is viewing information they may not
   # realize is being transcluded (because they did not actively select it).
+  # @param user [User] the user whose avatar to render
+  # @return [ActiveSupport::SafeBuffer] img tag HTML
   def avatar_for(user)
     image_tag(
       user.avatar_url, alt: user.name, class: 'avatar', size: '80x80',

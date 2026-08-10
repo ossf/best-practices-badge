@@ -71,7 +71,7 @@ class BadPassword < ApplicationRecord
         hashed_pw = hash_password(pw)
         bad_password_array.push({ forbidden_hash: hashed_pw })
         count += 1
-        break unless max.nil? || max < count
+        break unless max.nil? || count < max
       end
     end
     bad_password_array
@@ -85,11 +85,10 @@ class BadPassword < ApplicationRecord
   def self.force_load(max = nil)
     BadPassword.delete_all
     bad_password_array = bad_passwords_from_file(max)
-    # Update all in one transaction, or it will take a *long* time
-    transaction do
-      # TODO: Speed this up with Rails 6's "insert_all!" (bulk insert)
-      BadPassword.create!(bad_password_array)
-    end
+    # Bulk insert all records in a single SQL statement for performance
+    # rubocop:disable Rails/SkipsModelValidations
+    BadPassword.insert_all!(bad_password_array) # No validations to skip
+    # rubocop:enable Rails/SkipsModelValidations
   end
 
   # Check if a password exists in the "bad password" database.

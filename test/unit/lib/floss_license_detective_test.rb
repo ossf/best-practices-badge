@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Copyright 2015-2017, the Linux Foundation, IDA, and the
-# CII Best Practices badge contributors
+# OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
 require 'test_helper'
@@ -17,13 +17,18 @@ class FlossLicenseDetectiveTest < ActiveSupport::TestCase
 
     assert results.key?(:floss_license_osi_status)
     assert results[:floss_license_osi_status].key?(:value)
-    assert results[:floss_license_osi_status][:value] == 'Met'
+    assert results[:floss_license_osi_status][:value] == CriterionStatus::MET
     assert results[:floss_license_osi_status][:confidence] == 5
 
     assert results.key?(:floss_license_status)
     assert results[:floss_license_status].key?(:value)
-    assert results[:floss_license_status][:value] == 'Met'
+    assert results[:floss_license_status][:value] == CriterionStatus::MET
     assert results[:floss_license_status][:confidence] == 5
+
+    # Also checks baseline criteria (license meets OSI/FSF definition)
+    assert results.key?(:osps_le_02_01_status)
+    assert results[:osps_le_02_01_status][:value] == CriterionStatus::MET
+    assert results[:osps_le_02_01_status][:confidence] == 5
   end
 
   test 'GPL-2.0+ is OSS' do
@@ -31,12 +36,12 @@ class FlossLicenseDetectiveTest < ActiveSupport::TestCase
 
     assert results.key?(:floss_license_osi_status)
     assert results[:floss_license_osi_status].key?(:value)
-    assert results[:floss_license_osi_status][:value] == 'Met'
+    assert results[:floss_license_osi_status][:value] == CriterionStatus::MET
     assert results[:floss_license_osi_status][:confidence] == 5
 
     assert results.key?(:floss_license_status)
     assert results[:floss_license_status].key?(:value)
-    assert results[:floss_license_status][:value] == 'Met'
+    assert results[:floss_license_status][:value] == CriterionStatus::MET
     assert results[:floss_license_status][:confidence] == 5
   end
 
@@ -45,12 +50,12 @@ class FlossLicenseDetectiveTest < ActiveSupport::TestCase
 
     assert results.key?(:floss_license_osi_status)
     assert results[:floss_license_osi_status].key?(:value)
-    assert results[:floss_license_osi_status][:value] == 'Met'
+    assert results[:floss_license_osi_status][:value] == CriterionStatus::MET
     assert results[:floss_license_osi_status][:confidence] == 5
 
     assert results.key?(:floss_license_status)
     assert results[:floss_license_status].key?(:value)
-    assert results[:floss_license_status][:value] == 'Met'
+    assert results[:floss_license_status][:value] == CriterionStatus::MET
     assert results[:floss_license_status][:confidence] == 5
   end
 
@@ -59,7 +64,7 @@ class FlossLicenseDetectiveTest < ActiveSupport::TestCase
 
     assert results.key?(:floss_license_osi_status)
     assert results[:floss_license_osi_status].key?(:value)
-    assert results[:floss_license_osi_status][:value] == 'Unmet'
+    assert results[:floss_license_osi_status][:value] == CriterionStatus::UNMET
   end
 
   test 'Assume nothing for complicated situations' do

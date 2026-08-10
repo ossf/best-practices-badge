@@ -1,59 +1,49 @@
 /*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
+ * Rails asset pipeline manifest for application CSS
+ * Reorganized to use explicit @import order (we don't use require_tree)
  *
- * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
- * or any plugin's vendor/assets/stylesheets directory can be referenced here using a relative path.
+ * For ease of maintenance, we organize CSS in many files.
+ * However, the style commands are merged together on deployment.
+ * So if you want CSS to apply in only some cases, make sure that
+ * your CSS selector is adequately specific.
  *
- * You're free to add application-wide styles to this file and they'll appear at the bottom of the
- * compiled file so the styles you add here take precedence over styles defined in any styles
- * defined in the other CSS/SCSS files in this directory. It is generally better to create a new
- * file per style scope.
- *
- *= require_tree .
- *= require_self
- *= require rails_bootstrap_forms
- *= require bootstrap-social
+ * External gem CSS loaded via Sprockets directives:
  *= require font_awesome5_webfont
  */
 
-/* Work around a bug in Bootstrap's navigation bar. When the display is narrow,
-   the navigation bar gets longer, but the body padding doesn't adjust.
-   The result is that the navigation bar overlaps the beginning of the
-   body content below it.  This particular workaround is based on:
-   http://stackoverflow.com/questions/10336194/
-   twitter-bootstrap-top-nav-bar-blocking-top-content-of-the-page
-   but note that for us the key breakpoint is width 767px, not 979px.  */
+// IMPORTANT: Shared variables are in _variables.scss
+// Each SCSS file that uses variables must @import "variables" at the top.
+// This must be done in each such file for the variables to work
+// in Rails development mode, where files are compiled in isolation.
 
-body {
-  padding-top: 80px;
-}
-@media (max-width: 767px) {
-  body {
-    padding-top: 100px;
-  }
-}
+// 1. Bootstrap framework (must load FIRST)
+// Note: bootstrap-sprockets provides Sass variables/mixins needed by bootstrap
+// so you must import "bootstrap-sprockets" before "bootstrap".
+@import "bootstrap-sprockets";
+@import "bootstrap";
 
-html, body {
-  height: 100%;
-}
+// 2. Bootstrap extensions (must load AFTER bootstrap)
+@import "bootstrap-social";
+@import "rails_bootstrap_forms";
 
-.container_padding {
-  padding: 1em 0;
-}
+// 3. Configuration & shared resources
+@import "mixins";
 
-.container_margins {
-  min-height: 100%;
-  height: auto;
-  margin: 1.5em auto -9.6em;
-  padding-bottom: 100px;
-}
+// 4. Base styles (global elements and utilities)
+@import "base";
+@import "utilities";
+@import "forms";
 
-textarea {
-  min-height: 12ex;
-}
+// 5. Layout components (must load AFTER Bootstrap for proper overrides)
+@import "header";
+@import "footer";
 
-.btn {
-  padding-left: 3px;
-  padding-right: 3px;
-}
+// 6. Controller-specific styles
+@import "projects";
+@import "users";
+@import "sessions";
+@import "static_pages";
+
+// Empty placeholder files (included for completeness)
+@import "project_stats";
+@import "scaffolds";

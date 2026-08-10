@@ -1,17 +1,16 @@
-<% cache [locale, @criteria_level, @details, @rationale, @autofill] do -%>
+<%- internal_level = criteria_level_to_internal(@criteria_level) -%>
 <div class="row">
 <div class="col-xs-12">
-<h1><%= t("criteria_overall.beginning_header_#{@criteria_level}") %></h1>
-<%= t("criteria_overall.beginning_#{@criteria_level}_html") %>
+<h1><%= t("criteria_overall.beginning_header_#{internal_level}") %></h1>
+<%= t("criteria_overall.beginning_#{internal_level}_html") %>
 <%= t("criteria_overall.see_discussion_html") %>
 
 <%= render 'one_level',
             {
-              criteria_level: @criteria_level,
+              criteria_level: internal_level,
               details: @details, rationale: @rationale,
               autofill: @autofill,
               bare_key: true # True for "show"
             } -%>
 </div>
 </div>
-<% end # cache -%>

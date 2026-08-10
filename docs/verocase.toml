@@ -1,0 +1,15 @@
+# verocase configuration for the BadgeApp assurance case.
+# See: https://github.com/david-a-wheeler/verocase
+
+# Base URL for hyperlinks in SACM/GSN mermaid diagram click directives.
+# Required for GitHub: GitHub renders Mermaid in an isolated iframe at
+# viewscreen.githubusercontent.com, so fragment-only links (#anchor) resolve
+# against the renderer URL rather than the actual page.  Using the absolute
+# GitHub URL here makes click directives produce fully-qualified links that
+# navigate correctly regardless of rendering context.
+
+base_url = "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md"
+
+# Base URL for hyperlinks in ltac/markdown and ltac/html output.
+# Fragments work fine, so we won't override it.
+# markdown_base_url = "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md"

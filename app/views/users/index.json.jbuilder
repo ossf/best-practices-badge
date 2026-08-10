@@ -6,6 +6,6 @@ json.array!(@users) do |user|
     :created_at, :updated_at
   )
   # ONLY show email to admins
-  json.email user.email if current_user&.admin?
+  json.email user.email_if_decryptable if current_user&.admin?
   # json.url users_url(user, format: :json)
 end

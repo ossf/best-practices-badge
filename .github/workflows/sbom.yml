@@ -1,0 +1,227 @@
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge contributors
+# SPDX-License-Identifier: MIT
+
+name: Generate SBOM
+
+# Generate an SPDX SBOM on every push to staging or production, sign it with
+# cosign "keyless" (Sigstore) signing, and store the SBOM together with its
+# signature as GitHub Release assets. The latter steps counter
+# supply chain attacks by enabling cryptographic signature verification.
+# Signing is fully automatic in CI (OIDC-based: no
+# stored keys, no human action) and also lets OpenSSF Scorecard's
+# Signed-Releases check see that our releases are signed. A second job then
+# generates SLSA build provenance for the SBOM (a signed *.intoto.jsonl
+# attestation) and attaches it to the same release, which raises the
+# Signed-Releases score from signature-only (8) toward 10.
+# These improve our OpenSSF Scorecard score.
+
+on:
+  push:
+    branches: [staging, production]
+
+# Deny all permissions by default; grant only what's needed per job.
+# Note: contents: write (granted below) also allows branch pushes —
+# there is no finer-grained "releases only" permission in GitHub Actions.
+# Mitigations: harden-runner, all actions pinned to SHAs,
+# persist-credentials: false on checkout.
+permissions:
+  contents: none
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    # Exposed so the 'provenance' job below can attest the SBOM and upload
+    # the provenance to this same release.
+    outputs:
+      release_tag: ${{ steps.vars.outputs.release_tag }}
+      subjects: ${{ steps.hash.outputs.subjects }}
+    permissions:
+      contents: write  # Required to create GitHub Releases and upload assets
+      id-token: write  # Mint the short-lived GitHub OIDC token that cosign
+                       # exchanges for a keyless (Sigstore/Fulcio) signing
+                       # certificate. Required for signing (this job only).
+
+    steps:
+      # Harden the runner to log egress
+      # (consistent with main.yml / scorecard.yml).
+      # anchore/sbom-action downloads Syft at runtime, and the signing step
+      # below reaches Sigstore; all that network access is logged here.
+      #
+      # egress-policy is "audit" (log only), so nothing is blocked today. If
+      # it is ever tightened to "block", the allowlist must include cosign's
+      # keyless-signing egress, or the Sign step will fail:
+      # * fulcio.sigstore.dev: issues the signing certificate
+      # * rekor.sigstore.dev: transparency log entry
+      # * tuf-repo-cdn.sigstore.dev: Sigstore TUF trust root
+      # * token.actions.githubusercontent.com: GitHub OIDC token
+      #
+      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      # persist-credentials: false ensures git credentials are not stored in
+      # the workspace, so a compromised downstream step cannot push code.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # OSPS-BR-01.02: Validate branch name before use in pipeline.
+      # GITHUB_REF_NAME feeds into the release tag; validate it first.
+      - name: Validate branch name
+        run: script/validate_branch_name "$GITHUB_REF_NAME"
+
+      # Pre-compute all tag/filename components so shell expansions are not
+      # needed inside 'with:' blocks (which don't support $(…) syntax).
+      # Use UTC date to avoid timezone ambiguity across CI runners.
+      - name: Set SBOM filename and release tag
+        id: vars
+        run: |
+          SHA_SHORT="${GITHUB_SHA::8}"
+          DATE="$(date -u +%Y%m%d)"
+          BRANCH="$GITHUB_REF_NAME"
+          echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}" >> "$GITHUB_OUTPUT"
+          echo "sbom_filename=sbom-${BRANCH}-${DATE}-${SHA_SHORT}.spdx.json" >> "$GITHUB_OUTPUT"
+          echo "release_tag=sbom-${BRANCH}-${DATE}-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+
+      # Generate the SBOM from the checked-out source tree.
+      # Syft parses Gemfile.lock, package-lock.json, etc. directly, so
+      # no 'bundle install' is needed for a source-based SBOM.
+      # upload-artifact and upload-release-assets are disabled because
+      # we control the release tag ourselves in the next step.
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          format: spdx-json
+          output-file: ${{ steps.vars.outputs.sbom_filename }}
+          upload-artifact: false
+          upload-release-assets: false
+
+      # Make the SBOM reproducible from the source commit. Syft's output is
+      # already fully determined by the source and the pinned Syft version,
+      # except for two fields that vary every run: the "created" timestamp and
+      # a random "documentNamespace" UUID. Overwrite both with values derived
+      # only from the commit, so the same commit always yields byte-identical
+      # SBOM bytes (and therefore the same digest). Anyone can then regenerate
+      # the SBOM from source and confirm it matches what we signed and
+      # attested. Normalize BEFORE hashing, signing, and provenance so all
+      # three cover the reproducible SBOM. jq re-serializes with stable
+      # formatting, so its byte output is deterministic too.
+      - name: Normalize SBOM for reproducibility
+        env:
+          SBOM: ${{ steps.vars.outputs.sbom_filename }}
+        run: |
+          commit_epoch="$(git show -s --format=%ct "$GITHUB_SHA")"
+          created="$(date -u -d "@${commit_epoch}" +%Y-%m-%dT%H:%M:%SZ)"
+          namespace="https://bestpractices.dev/sbom/${GITHUB_SHA}"
+          jq --arg created "$created" --arg ns "$namespace" \
+             '.creationInfo.created = $created | .documentNamespace = $ns' \
+             "$SBOM" > "$SBOM.tmp"
+          mv "$SBOM.tmp" "$SBOM"
+
+      # Record the SBOM's SHA-256 digest (base64-encoded, in sha256sum's
+      # output format) as the subject the provenance job attests to. Binding
+      # the digest, rather than shipping the file between jobs, keeps the
+      # provenance tied to this exact SBOM, workflow run, and commit.
+      - name: Compute SBOM digest for provenance
+        id: hash
+        env:
+          SBOM: ${{ steps.vars.outputs.sbom_filename }}
+        run: |
+          digest="$(sha256sum "$SBOM" | base64 -w0)"
+          echo "subjects=${digest}" >> "$GITHUB_OUTPUT"
+
+      # Install cosign. Pinned to a specific commit (v4.1.2); this is
+      # Sigstore's own first-party installer action. cosign fetches its
+      # binary at runtime, so the harden-runner egress log above records it.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      # Sign the SBOM with cosign KEYLESS (Sigstore) signing. This is fully
+      # automatic in CI, with no stored private key. cosign obtains a
+      # short-lived GitHub OIDC token (via id-token: write above), exchanges
+      # it with Fulcio for an ephemeral certificate bound to this workflow's
+      # identity, signs the SBOM, and records the signature in the public
+      # Rekor transparency log. A human never handles a key.
+      #
+      # Output, uploaded as a release asset in the next step:
+      #   <sbom>.sigstore.json -- a self-contained Sigstore bundle holding
+      #     the signature, the signing certificate, and the transparency-log
+      #     proof. The ".sigstore.json" suffix is one of those Scorecard's
+      #     Signed-Releases check recognizes as a signed artifact.
+      #
+      # We pass --bundle (a single self-contained file) rather than the older
+      # --output-signature / --output-certificate flags: recent cosign
+      # defaults to its "new bundle format", under which those flags are
+      # deprecated and IGNORED -- leaving the bundle path empty and failing
+      # the step. See docs/improve-scorecard.md for how to verify a bundle.
+      - name: Sign the SBOM (cosign keyless)
+        env:
+          SBOM: ${{ steps.vars.outputs.sbom_filename }}
+        run: |
+          cosign sign-blob --yes \
+            --bundle "${SBOM}.sigstore.json" \
+            "${SBOM}"
+
+      # Create a GitHub Release and attach the SBOM as a release asset.
+      # Release tags use the form: sbom-<branch>-<YYYYMMDD>-<8-hex-SHA>
+      # e.g.: sbom-production-20260402-a1b2c3d4
+      # GH_TOKEN is the automatically provisioned github.token (repo-scoped,
+      # expires at job end — no long-lived PAT required).
+      #
+      # We use gh CLI, and do NOT use a third-party release action.
+      # Here is why:
+      # The OpenSSF Scorecard Token-Permissions check scores this job 9/10
+      # because contents: write at job level is a sensitive permission.
+      # Scorecard would waive that deduction only if the job uses
+      # a "recognized packaging action" but its recognized list covers
+      # package publishers (npm, docker, cargo, gem, etc.)
+      # and does NOT include GitHub Release creation, regardless
+      # of how the release is created. Switching to a third-party action
+      # such as softprops/action-gh-release would leave the
+      # Scorecard score unchanged at 9/10 while
+      # adding a supply chain dependency (and thus a supply chain risk)
+      # on an individual maintainer. The official
+      # actions/create-release was archived by GitHub in 2021
+      # and is unmaintained, so that would not help.
+      # The gh CLI is GitHub's own tool, pre-installed on every Actions runner,
+      # and more trustworthy than any third-party release action.
+      # As a result, 9/10 is the
+      # ceiling for any workflow that creates GitHub Releases.
+      # Do not change this step in pursuit of a higher Scorecard score
+      # unless you find a better resolution for the issue described here.
+      - name: Create GitHub Release and upload SBOM
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.vars.outputs.release_tag }}" \
+            --title "SBOM ${{ github.ref_name }} ${{ steps.vars.outputs.date }} (${{ steps.vars.outputs.sha_short }})" \
+            --notes "Auto-generated SBOM for commit ${{ github.sha }} on branch ${{ github.ref_name }}" \
+            "${{ steps.vars.outputs.sbom_filename }}" \
+            "${{ steps.vars.outputs.sbom_filename }}.sigstore.json"
+
+  # Generate SLSA build provenance for the SBOM and attach it to the release
+  # as a signed <sbom>.intoto.jsonl attestation. This is the OpenSSF SLSA
+  # GitHub generator, the standard way to produce verifiable provenance; it
+  # runs as an isolated reusable workflow and signs keylessly via Sigstore
+  # (no stored key, no human action), consistent with the signing job above.
+  # Its <sbom>.intoto.jsonl asset is what raises OpenSSF Scorecard's
+  # Signed-Releases score from 8 (signature only) to 10.
+  #
+  # Pinned to the version TAG v2.1.0, not a commit SHA, deliberately: the
+  # generator verifies that it was invoked from an official released tag as
+  # part of its own security model, and refuses to run from a raw SHA. This
+  # is the one sanctioned exception to our pin-to-SHA convention. To upgrade,
+  # pick a newer release from
+  # https://github.com/slsa-framework/slsa-github-generator/releases.
+  provenance:
+    needs: [sbom]
+    permissions:
+      actions: read    # read this run's metadata to build the provenance
+      id-token: write  # keyless Sigstore signing of the provenance
+      contents: write  # upload the .intoto.jsonl asset to the release
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: ${{ needs.sbom.outputs.subjects }}
+      upload-assets: true
+      upload-tag-name: ${{ needs.sbom.outputs.release_tag }}

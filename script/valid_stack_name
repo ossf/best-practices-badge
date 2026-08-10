@@ -1,0 +1,32 @@
+#!/bin/sh
+# Is this a Heroku stack name? THE definition, used everywhere.
+#
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+#
+# Usage:  script/valid_stack_name <name>
+# Exits 0 if it is one, or 1 with a reason on stderr if it is not.
+# Callers add their own context line; this one owns only the shape.
+#
+# It exists because the answer was written in two places, in different
+# jobs on different executor images, and two copies of a rule are a rule
+# that will disagree with itself eventually. Both jobs check out this
+# repository, so a script is a place both can reach.
+#
+# "heroku-" followed by something, deliberately NOT "heroku-" followed
+# by two digits. The names we know are heroku-22, heroku-24 and
+# heroku-26, and encoding that shape buys a check that rejects the
+# correct answer the day the shape changes, inside a deploy.
+set -eu
+
+case "${1:-}" in
+  heroku-?*)
+    exit 0
+    ;;
+  *)
+    echo "'${1:-}' is not a Heroku stack name." >&2
+    echo 'Expected "heroku-" followed by something, such as heroku-24.' >&2
+    exit 1
+    ;;
+esac

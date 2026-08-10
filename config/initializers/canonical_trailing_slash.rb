@@ -21,9 +21,9 @@ module Rack
     def call(env)
       request = Rack::Request.new env
       if %r{^/(.*)/$}.match?(request.path_info)
-        # Clean up URL and redirect a different URL
-        url = request.base_url + request.path.chomp('/') +
-              (request.query_string.empty? ? '' : '?' + request.query_string)
+        # Clean up URL and redirect a different URL (use string interpolation for memory efficiency)
+        query_suffix = request.query_string.empty? ? '' : "?#{request.query_string}"
+        url = "#{request.base_url}#{request.path.chomp('/')}#{query_suffix}"
         [301, { 'Location' => url, 'Content-Type' => 'text/html' }, []]
       else
         # Nothing to do, continue chain.

@@ -8,7 +8,6 @@ require 'test_helper'
 
 # rubocop:disable Metrics/ClassLength
 class ProjectTest < ActiveSupport::TestCase
-  using StringRefinements
   setup do
     @user = users(:test_user)
     @project_built = @user.projects.build(
@@ -25,9 +24,27 @@ class ProjectTest < ActiveSupport::TestCase
     assert @project_built.valid?
   end
 
+  # A misspelled entry here would withhold nothing and publish the real
+  # column silently, which is the failure this list exists to prevent.
+  test 'every bookkeeping field is a real column' do
+    unknown = Project::BOOKKEEPING_FIELDS - Project.column_names.to_set
+    assert_empty unknown, "not projects columns: #{unknown.to_a}"
+  end
+
   test 'user id should be present' do
     @project_built.user_id = nil
     assert_not @project_built.valid?
+  end
+
+  test 'invalid URLs should be rejected' do
+    @project_built.homepage_url = 'http://127.0.0.1'
+    assert_not @project_built.valid?
+    assert @project_built.errors[:homepage_url].any?
+
+    @project_built.homepage_url = 'https://www.example.org'
+    @project_built.repo_url = 'https://containrrr/watchtower'
+    assert_not @project_built.valid?
+    assert @project_built.errors[:repo_url].any?
   end
 
   test '#contains_url?' do
@@ -41,12 +58,14 @@ class ProjectTest < ActiveSupport::TestCase
       Project.new.contains_url?('See also http://x for more information.')
     )
     assert_not Project.new.contains_url? 'www.google.com'
+    # New regex requires a dot in the hostname to reject obvious nonsense
+    assert_not Project.new.contains_url? 'http://nodothost'
   end
 
   # rubocop:disable Metrics/BlockLength
   test 'Rigorous project and repo URL checker' do
     regex = UrlValidator::URL_REGEX
-    my_url = 'https://github.com/coreinfrastructure/best-practices-badge'
+    my_url = 'https://github.com/ossf/best-practices-badge'
     assert my_url =~ regex
 
     # Here we just the regex directly, to make sure it's okay.
@@ -71,6 +90,19 @@ class ProjectTest < ActiveSupport::TestCase
     assert_not validator.url_acceptable?('http://google.com?hello')
     # We do allow fragments, e.g., #
     assert_not validator.url_acceptable?('http://google.com#hello')
+
+    # Security: Reject all IP addresses (IPv4 and IPv6) and malformed domains
+    assert_not validator.url_acceptable?('http://127.0.0.1')
+    assert_not validator.url_acceptable?('http://10.0.0.1')
+    assert_not validator.url_acceptable?('http://192.168.1.1')
+    assert_not validator.url_acceptable?('http://8.8.8.8')
+    assert_not validator.url_acceptable?('http://3.6.47.234')
+    assert_not validator.url_acceptable?('http://[::1]')
+    assert_not validator.url_acceptable?('http://localhost')
+    assert_not validator.url_acceptable?('http://127.1') # Shorthand
+    assert_not validator.url_acceptable?('http://0x7f000001') # Hex bypass
+    assert_not validator.url_acceptable?('http://2130706433') # Integer bypass
+    assert_not validator.url_acceptable?('https://containrrr/watchtower') # Missing dot
 
     # Accept U+0020 (space) and U+00E9 c3 a9 "LATIN SMALL LETTER E WITH ACUTE"
     assert validator.url_acceptable?('https://github.com/linuxfoundation/' \
@@ -108,7 +140,22 @@ class ProjectTest < ActiveSupport::TestCase
     assert_not validator.text_acceptable?("The best practices badge\xe4")
     # Don't accept an invalid control character
     assert_not validator.text_acceptable?("The best practices badge\x0c")
+    # Reject NUL (PostgreSQL can't store it) and DEL, plus other C0 controls.
+    # Built from byte values so the source file stays control-char free.
+    assert_not validator.text_acceptable?("badge#{0x00.chr}here")
+    assert_not validator.text_acceptable?("badge#{0x7f.chr}here")
+    assert_not validator.text_acceptable?("badge#{0x01.chr}here")
+    # Accept the whitespace controls we intentionally allow: tab, LF, CR.
+    assert validator.text_acceptable?(
+      "line1#{0x09.chr}col2#{0x0a.chr}line2#{0x0d.chr}"
+    )
+    # Accept ordinary UTF-8 text including multibyte code points.
+    # Built from code points ("cafe" with an acute e, then a CJK character)
+    # so the source stays ASCII and free of any partial-word fragments.
+    # Otherwise the spelling checker will reject this.
     assert validator.text_acceptable?('The best practices badge.')
+    multibyte = [0x63, 0x61, 0x66, 0xE9, 0x20, 0x65E5].pack('U*')
+    assert validator.text_acceptable?(multibyte)
   end
 
   # rubocop:disable Metrics/BlockLength
@@ -158,11 +205,6 @@ class ProjectTest < ActiveSupport::TestCase
   end
   # rubocop:enable Metrics/BlockLength
 
-  # We had to add this test for coverage.
-  test 'unit test string_refinements na?' do
-    assert @unjustified_project.release_notes_status.na?
-  end
-
   test 'check correct badge levels are returned' do
     assert_equal 'in_progress', @unjustified_project.badge_level
     assert_equal 'passing', @project_passing.badge_level
@@ -173,40 +215,47 @@ class ProjectTest < ActiveSupport::TestCase
   # This test works because we don't set the higher level prereqs in the
   # fixture files.  Make sure not to change this.
   test 'check update_prereqs works correctly for level upgrades' do
-    assert_equal 'Unmet', @unjustified_project.achieve_passing_status
-    assert_equal 'Unmet', @project_passing.achieve_passing_status
-    assert_equal 'Unmet', @project_passing.achieve_silver_status
-    assert_equal 'Met', @project_silver.achieve_passing_status
-    assert_equal 'Unmet', @project_silver.achieve_silver_status
+    # Phase 3: Achievement status fields return raw integers (no custom readers)
+    assert_equal CriterionStatus::UNMET, @unjustified_project.achieve_passing_status
+    assert_equal CriterionStatus::UNMET, @project_passing.achieve_passing_status
+    assert_equal CriterionStatus::UNMET, @project_passing.achieve_silver_status
+    assert_equal CriterionStatus::MET, @project_silver.achieve_passing_status
+    assert_equal CriterionStatus::UNMET, @project_silver.achieve_silver_status
     assert @project_silver.achieved_silver_at.blank?
     assert @project_silver.first_achieved_silver_at.blank?
     Project.update_all_badge_percentages(Criteria.keys)
     assert_equal(
-      'Unmet', Project.find(@unjustified_project.id).achieve_passing_status
+      CriterionStatus::UNMET, Project.find(@unjustified_project.id).achieve_passing_status
     )
     assert_equal(
-      'Met', Project.find(@project_passing.id).achieve_passing_status
+      CriterionStatus::MET, Project.find(@project_passing.id).achieve_passing_status
     )
     assert_equal(
-      'Unmet', Project.find(@project_passing.id).achieve_silver_status
+      CriterionStatus::UNMET, Project.find(@project_passing.id).achieve_silver_status
     )
     updated_project = Project.find(@project_silver.id)
-    assert_equal 'Met', updated_project.achieve_passing_status
-    assert_equal 'Met', updated_project.achieve_silver_status
+    assert_equal CriterionStatus::MET, updated_project.achieve_passing_status
+    assert_equal CriterionStatus::MET, updated_project.achieve_silver_status
   end
 
   test 'update_prereqs works correctly for level downgrades' do
-    assert_equal 'Met', @project_silver.achieve_passing_status
-    @project_silver.update!(description_good_status: 'Unmet')
+    assert_equal CriterionStatus::MET, @project_silver.achieve_passing_status
+    @project_silver.update!(description_good_status: CriterionStatus::UNMET)
     assert_equal(
-      'Unmet', Project.find(@project_silver.id).achieve_passing_status
+      CriterionStatus::UNMET, Project.find(@project_silver.id).achieve_passing_status
     )
   end
 
   # The number of named badge levels must be equal to the number of
   # criteria levels + 1, because projects can be "in_progress"
   test 'test all possible badge "levels/statuses" are named' do
-    assert_equal Criteria.count + 1, Project::BADGE_LEVELS.size
+    # Metal series: in_progress + 3 levels (passing, silver, gold)
+    # Baseline series: 3 levels (baseline-1, baseline-2, baseline-3)
+    metal_count = Project::CRITERIA_SERIES[:metal].size
+    assert_equal metal_count + 1, Project::BADGE_LEVELS.size
+    # ALL_BADGE_LEVELS should equal all criteria levels (metal + baseline)
+    assert_equal metal_count + Project::CRITERIA_SERIES[:baseline].size,
+                 Project::ALL_BADGE_LEVELS.size
   end
 
   test 'Project counts from fixtures are as expected' do
@@ -252,7 +301,7 @@ class ProjectTest < ActiveSupport::TestCase
       'Project.find(projects(:one).id).badge_percentage_1'
     ] do
       project_one.update!(
-        crypto_weaknesses_status: 'Met',
+        crypto_weaknesses_status: CriterionStatus::MET,
         crypto_weaknesses_justification: 'It is good'
       )
     end
@@ -260,7 +309,7 @@ class ProjectTest < ActiveSupport::TestCase
     old_percentage0 = Project.find(projects(:one).id).badge_percentage_0
     old_percentage1 = Project.find(projects(:one).id).badge_percentage_1
     project_one.update!(
-      warnings_strict_status: 'Met',
+      warnings_strict_status: CriterionStatus::MET,
       warnings_strict_justification: 'It is good'
     )
     # Check the badge percentage changed
@@ -538,6 +587,187 @@ class ProjectTest < ActiveSupport::TestCase
       assert_respond_to rel, :limit, 'Should be chainable with limit'
       assert_respond_to rel, :order, 'Should be chainable with order'
     end
+  end
+
+  test 'badge_percentage_field_name returns correct field for baseline-1' do
+    project = projects(:perfect_passing)
+    assert_equal :badge_percentage_baseline_1,
+                 project.badge_percentage_field_name('baseline-1')
+  end
+
+  test 'badge_percentage_field_name returns correct field for baseline-2' do
+    project = projects(:perfect_passing)
+    assert_equal :badge_percentage_baseline_2,
+                 project.badge_percentage_field_name('baseline-2')
+  end
+
+  test 'badge_percentage_field_name returns correct field for baseline-3' do
+    project = projects(:perfect_passing)
+    assert_equal :badge_percentage_baseline_3,
+                 project.badge_percentage_field_name('baseline-3')
+  end
+
+  test 'badge_percentage_field_name handles unknown level with fallback' do
+    project = projects(:perfect_passing)
+    # Test the else branch with an unknown level
+    assert_equal :badge_percentage_unknown,
+                 project.badge_percentage_field_name('unknown')
+  end
+
+  test 'baseline_badge_level returns in_progress when no baseline achieved' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 50
+    project.badge_percentage_baseline_2 = 0
+    project.badge_percentage_baseline_3 = 0
+    assert_equal 'in_progress', project.baseline_badge_level
+  end
+
+  test 'baseline_badge_level returns baseline-1 when only level 1 achieved' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 50
+    project.badge_percentage_baseline_3 = 0
+    assert_equal 'baseline-1', project.baseline_badge_level
+  end
+
+  test 'baseline_badge_level returns baseline-2 when level 2 achieved' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 100
+    project.badge_percentage_baseline_3 = 50
+    assert_equal 'baseline-2', project.baseline_badge_level
+  end
+
+  test 'baseline_badge_level returns baseline-3 when level 3 achieved' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 100
+    project.badge_percentage_baseline_3 = 100
+    assert_equal 'baseline-3', project.baseline_badge_level
+  end
+
+  test 'baseline_badge_level ignores past achievements if percentage dropped' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 50
+    project.badge_percentage_baseline_2 = 0
+    project.badge_percentage_baseline_3 = 0
+    # Past achievement doesn't count - only current percentage matters
+    project.achieved_baseline_1_at = 1.day.ago
+    assert_equal 'in_progress', project.baseline_badge_level
+  end
+
+  test 'baseline_badge_value returns percentage badge when in_progress' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 42
+    project.badge_percentage_baseline_2 = 0
+    project.badge_percentage_baseline_3 = 0
+    assert_equal 'baseline-pct-42', project.baseline_badge_value
+  end
+
+  test 'baseline_badge_value returns level name when achieved' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 100
+    project.badge_percentage_baseline_3 = 0
+    assert_equal 'baseline-2', project.baseline_badge_value
+  end
+
+  test 'baseline_badge_value returns highest achieved level' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 100
+    project.badge_percentage_baseline_3 = 100
+    assert_equal 'baseline-3', project.baseline_badge_value
+  end
+
+  test 'baseline_badge_src_url returns static URL when recently updated' do
+    project = projects(:perfect_passing)
+    project.updated_at = 1.hour.ago
+    project.badge_percentage_baseline_1 = 42
+    assert_equal '/badge_static/baseline-pct-42', project.baseline_badge_src_url
+  end
+
+  test 'baseline_badge_src_url returns project URL when not recently updated' do
+    project = projects(:perfect_passing)
+    project.updated_at = 2.days.ago
+    assert_equal "/projects/#{project.id}/baseline", project.baseline_badge_src_url
+  end
+
+  test 'compute_baseline_tiered_percentage returns 0-99 when working on baseline-1' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 42
+    project.badge_percentage_baseline_2 = 0
+    project.badge_percentage_baseline_3 = 0
+    assert_equal 42, project.compute_baseline_tiered_percentage
+  end
+
+  test 'compute_baseline_tiered_percentage returns 100-199 when baseline-1 complete' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 50
+    project.badge_percentage_baseline_3 = 0
+    assert_equal 150, project.compute_baseline_tiered_percentage
+  end
+
+  test 'compute_baseline_tiered_percentage returns 200-299 when baseline-2 complete' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 100
+    project.badge_percentage_baseline_3 = 75
+    assert_equal 275, project.compute_baseline_tiered_percentage
+  end
+
+  test 'compute_baseline_tiered_percentage returns 300 when all baseline levels complete' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 100
+    project.badge_percentage_baseline_3 = 100
+    assert_equal 300, project.compute_baseline_tiered_percentage
+  end
+
+  test 'compute_baseline_tiered_percentage handles nil values' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = nil
+    project.badge_percentage_baseline_2 = nil
+    project.badge_percentage_baseline_3 = nil
+    assert_equal 0, project.compute_baseline_tiered_percentage
+  end
+
+  test 'update_baseline_tiered_percentage sets the field correctly' do
+    project = projects(:perfect_passing)
+    project.badge_percentage_baseline_1 = 100
+    project.badge_percentage_baseline_2 = 40
+    project.badge_percentage_baseline_3 = 0
+    project.update_baseline_tiered_percentage
+    assert_equal 140, project.baseline_tiered_percentage
+  end
+
+  test 'entry_locale defaults to en' do
+    project = @user.projects.build(
+      homepage_url: 'https://www.example.org',
+      repo_url: 'https://www.example.org/code'
+    )
+    assert_equal 'en', project.entry_locale
+  end
+
+  test 'entry_locale accepts valid locales' do
+    @project_built.entry_locale = 'fr'
+    assert @project_built.valid?, 'French locale should be valid'
+    @project_built.entry_locale = 'zh-CN'
+    assert @project_built.valid?, 'Chinese locale should be valid'
+    @project_built.entry_locale = 'ja'
+    assert @project_built.valid?, 'Japanese locale should be valid'
+  end
+
+  test 'entry_locale rejects invalid locales' do
+    @project_built.entry_locale = 'xx'
+    assert_not @project_built.valid?, 'Invalid locale should be rejected'
+    @project_built.entry_locale = ''
+    assert @project_built.valid?, 'Empty locale should be accepted (defaults to en)'
+    # After validation, blank is normalized to 'en'
+    assert_equal 'en', @project_built.entry_locale, 'Empty locale normalized to en'
+    @project_built.entry_locale = 'english'
+    assert_not @project_built.valid?, 'Full language name should be rejected'
   end
 end
 # rubocop:enable Metrics/ClassLength

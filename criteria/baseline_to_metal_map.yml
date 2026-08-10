@@ -1,0 +1,1817 @@
+# criteria/baseline_to_metal_map.yml
+#
+# Mapping from OSPS Baseline criteria answers to implied metal
+# (passing/silver/gold) criteria answers, to enable automation.
+#
+# To update requirements text run script/update_mapping_comments.rb
+#
+# Each entry maps one source (baseline) criterion to one target (metal)
+# criterion. A single source may appear in multiple entries (one per target);
+# a single target may appear in multiple entries (one per source). The
+# detective takes the highest-confidence proposal for each target.
+#
+# source_level: 1 = baseline-1 (foundational), 2 = baseline-2 (intermediate),
+#               3 = baseline-3 (advanced)
+# These are provided to help locate the criterion in the source specification;
+# they have no effect on detective logic.
+#
+# target_level: 0 = passing, 1 = silver, 2 = gold
+# These are provided to help locate the criterion and give a notion of
+# difficulty; they have no effect on detective logic.
+#
+# Confidence values (0-3; always < Chief::CONFIDENCE_OVERRIDE of 4):
+#   0 = no inference; skip this entry
+#   1 = weak signal; worth surfacing but treat with caution
+#   2 = moderate confidence; partial or related requirement
+#   3 = strong confidence; essentially the same requirement
+#
+# Three confidence fields per entry, one per possible source status:
+#   confidence_met:   inference when source criterion status is "Met"
+#   confidence_unmet: inference when source criterion status is "Unmet"
+#   confidence_na:    inference when source criterion status is "N/A"
+#
+# Each field is either:
+#   - An integer (0-3): shorthand for a same-status inference.
+#       confidence_met: 3    means Met   → Met,   confidence 3
+#       confidence_unmet: 2  means Unmet → Unmet, confidence 2
+#       confidence_na: 1     means N/A   → N/A,   confidence 1
+#   - A [confidence, "TargetStatus"] array: a cross-status inference, where
+#     the source status implies a *different* target status.
+#
+# Notable asymmetries
+# -------------------
+# The three per-status confidence values for a given entry are often NOT
+# symmetric, and intentionally so. Three recurring patterns:
+#
+# 1. "More demanding source, less demanding target" (high Met → Met):
+#    When the baseline criterion is MORE demanding than the metal criterion,
+#    satisfying baseline Met strongly implies metal Met — the harder requirement
+#    being met guarantees the easier one.  Similarly, baseline Unmet means the
+#    easier metal requirement is also likely unmet.
+#    Examples:
+#      osps_qa_07_01 -> two_person_review (Met:3, Unmet:3)
+#        (baseline: 100% of commits require non-author approval ≥ metal: 40%)
+#      osps_le_03_01 -> license_location  (Met:3, Unmet:3)
+#
+# 2. "Necessary but not sufficient" (moderate Met, low-or-moderate Unmet):
+#    When the baseline criterion partially overlaps with the metal criterion
+#    but doesn't fully satisfy it, Met in baseline is useful evidence but
+#    does not guarantee Met in metal.  Unmet in baseline sometimes implies
+#    Unmet in metal (the baseline is a prerequisite), and sometimes doesn't
+#    (the metal requires something entirely different).
+#    Examples:
+#      osps_br_06_01 -> signed_releases  (Met:2, Unmet:2)
+#      osps_sa_03_01 -> assurance_case   (Met:2, Unmet:2)
+#
+# 3. "Broader scope in baseline" (moderate Met, high Unmet):
+#    When the baseline criterion covers a broader scope than the metal
+#    criterion.  Unmet in baseline means even the broader requirement failed,
+#    making the narrower metal requirement likely unmet too.
+#    Examples:
+#      osps_gv_02_01 -> discussion       (Met:2, Unmet:3)
+#      osps_vm_01_01 -> vulnerability_report_process (Met:2, Unmet:3)
+#
+# Key N/A guidance:
+#   - When both criteria share the same applicability clause (e.g. "when an
+#     official release is created"), N/A transfers at full mapping strength
+#     using the plain integer form.
+#   - When the applicability clauses differ, N/A confidence is usually 0-1.
+#   - When baseline N/A implies metal *Unmet* (not metal N/A), use the
+#     array form: confidence_na: [n, "Unmet"].
+#
+# HTML is stripped from criterion descriptions in comments below.
+# Source descriptions are from OSPS Baseline specification (extracted to
+# ,baseline.yml).
+# Target descriptions are from config/locales/en.yml (extracted to
+# ,metal.yml).
+#
+# Entries are grouped by source criterion section for ease of review.
+
+mappings:
+
+  # ---------------------------------------------------------------------------
+  # Access Control (osps_ac_*)
+  # ---------------------------------------------------------------------------
+
+  - source_criterion: osps_ac_01_01
+    # source_level: 1
+    # Source:
+    #   description: "When a user attempts to read or modify a sensitive
+    #     resource in the project's authoritative repository, the system MUST
+    #     require the user to complete a multi-factor authentication process."
+    #   details: "Enforce multi-factor authentication for the project's version
+    #     control system, requiring collaborators to provide a second form of
+    #     authentication when accessing sensitive data or modifying repository
+    #     settings. Passkeys are acceptable for this control."
+    target_criterion: require_2FA
+    # target_level: 2
+    # Target:
+    #   description: "The project MUST require two-factor authentication (2FA)
+    #     for developers for changing a central repository or accessing
+    #     sensitive data (such as private vulnerability reports). This 2FA
+    #     mechanism MAY use mechanisms without cryptographic mechanisms such as
+    #     SMS, though that is not recommended."
+    confidence_met: 3     # MFA on sensitive repo access directly satisfies 2FA requirement
+    confidence_unmet: 3   # No MFA means the 2FA requirement is clearly unmet
+    confidence_na: 1      # Applicability conditions differ; N/A is unusual in metal for 2FA
+
+  - source_criterion: osps_ac_03_01
+    # source_level: 1
+    # Source:
+    #   description: "When a direct commit is attempted on the project's
+    #     primary branch, an enforcement mechanism MUST prevent the change from
+    #     being applied."
+    #   details: "If the VCS is centralized, set branch protection on the
+    #     primary branch in the project's VCS. Alternatively, use a
+    #     decentralized approach, like the Linux kernel's, where changes are
+    #     first proposed in another repository, and merging changes into the
+    #     primary repository requires a specific separate act."
+    target_criterion: two_person_review
+    # target_level: 2
+    # Target:
+    #   description: "The project MUST have at least 50% of all proposed
+    #     modifications reviewed before release by a person other than the
+    #     author, to determine if it is a worthwhile modification and free of
+    #     known issues which would argue against its inclusion"
+    confidence_met: 1     # Blocking direct commits forces PR workflow — a prerequisite for
+                          # enforced review, but doesn't itself require a non-author review
+    confidence_unmet: 2   # If direct commits are allowed, enforced 50% review is very unlikely
+    confidence_na: 0      # Applicability clauses differ too much for N/A to transfer
+
+  # ---------------------------------------------------------------------------
+  # Build & Release (osps_br_*)
+  # ---------------------------------------------------------------------------
+
+  - source_criterion: osps_br_02_01
+    # source_level: 2
+    # Source:
+    #   description: "When an official release is created, that release MUST be
+    #     assigned a unique version identifier."
+    #   details: "Assign a unique version identifier to each release produced
+    #     by the project, following a consistent naming convention or numbering
+    #     scheme. Examples include SemVer, CalVer, or git commit id."
+    target_criterion: version_unique
+    # target_level: 0
+    # Target:
+    #   description: "The project results MUST have a unique version identifier
+    #     for each release intended to be used by users."
+    #   details: "This MAY be met in a variety of ways including a commit IDs
+    #     (such as git commit id or mercurial changeset id) or a version number
+    #     (including version numbers that use semantic versioning or date-based
+    #     schemes like YYYYMMDD)."
+    confidence_met: 3     # Unique version identifier per release directly satisfies this requirement
+    confidence_unmet: 3   # No unique version identifier means this metal requirement is unmet
+    confidence_na: 3      # Both criteria apply only when a release is created; N/A transfers strongly
+
+  - source_criterion: osps_br_02_02
+    # source_level: 3
+    # Source:
+    #   description: "When an official release is created, all assets within
+    #     that release MUST be clearly associated with the release identifier
+    #     or another unique identifier for the asset."
+    #   details: "Assign a unique version identifier to each software asset
+    #     produced by the project, following a consistent naming convention or
+    #     numbering scheme. Examples include SemVer, CalVer, or git commit id."
+    target_criterion: version_unique
+    # target_level: 0
+    # Target:
+    #   description: "The project results MUST have a unique version identifier
+    #     for each release intended to be used by users."
+    #   details: "This MAY be met in a variety of ways including a commit IDs
+    #     (such as git commit id or mercurial changeset id) or a version number
+    #     (including version numbers that use semantic versioning or date-based
+    #     schemes like YYYYMMDD)."
+    confidence_met: 2     # Associating assets with a release ID implies a unique release ID exists,
+                          # but the baseline asset-labeling requirement is more granular
+    confidence_unmet: 2   # No asset association implies unique release IDs may also be absent
+    confidence_na: 3      # Both apply only when a release is created; N/A transfers strongly
+
+  - source_criterion: osps_br_03_01
+    # source_level: 1
+    # Source:
+    #   description: "When the project lists a URI as an official project
+    #     channel, that URI MUST be exclusively delivered using encrypted
+    #     channels."
+    #   details: "Configure the project's websites and version control systems
+    #     to use encrypted channels such as SSH or HTTPS for data transmission.
+    #     Ensure all tools and domains referenced in project documentation can
+    #     only be accessed via encrypted channels."
+    target_criterion: sites_https
+    # target_level: 0
+    # Target:
+    #   description: "The project sites (website, repository, and download
+    #     URLs) MUST support HTTPS using TLS."
+    #   details: "This requires that the project home page URL and the version
+    #     control repository URL begin with "https:", not "http:". You can get
+    #     free certificates from Let's Encrypt. Projects MAY implement this
+    #     criterion using (for example) GitHub pages, GitLab pages, or
+    #     SourceForge project pages. If you support HTTP, we urge you to
+    #     redirect the HTTP traffic to HTTPS."
+    confidence_met: 3     # Encrypted-channel URIs directly satisfies the HTTPS/TLS requirement
+    confidence_unmet: 3   # No encrypted channels means the HTTPS requirement is unmet
+    confidence_na: 2      # Baseline N/A (no official URIs) roughly aligns with metal N/A
+                          # (no project sites), though exact conditions differ slightly
+
+  - source_criterion: osps_br_03_02
+    # source_level: 1
+    # Source:
+    #   description: "When the project lists a URI as an official distribution
+    #     channel, that channel MUST be protected from adversary-in-the-middle
+    #     attacks using cryptographically authenticated channels."
+    #   details: "Artifacts distributed by the project should be distributed
+    #     through channels which ensure integrity and authenticity. Use of
+    #     HTTPS for downloads, signed releases, or distribution through trusted
+    #     package managers are all acceptable methods to protect against
+    #     adversary-in-the-middle attacks."
+    target_criterion: delivery_mitm
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST use a delivery mechanism that counters
+    #     MITM attacks. Using https or ssh+scp is acceptable."
+    #   details: "An even stronger mechanism is releasing the software with
+    #     digitally signed packages, since that mitigates attacks on the
+    #     distribution system, but this only works if the users can be
+    #     confident that the public keys for signatures are correct and if the
+    #     users will actually check the signature."
+    confidence_met: 3     # Authenticated distribution channels directly satisfies MITM protection
+    confidence_unmet: 3   # No MITM protection on distribution channel means metal is also unmet
+    confidence_na: 2      # Baseline N/A (no distribution URI) aligns well with no deliveries
+                          # requiring MITM protection, though exact applicability differs
+
+  - source_criterion: osps_br_04_01
+    # source_level: 2
+    # Source:
+    #   description: "When an official release is created, that release MUST
+    #     contain a descriptive log of functional and security modifications."
+    #   details: "Ensure that all releases include a descriptive change log. It
+    #     is recommended to ensure that the change log is human-readable and
+    #     includes details beyond commit messages, such as descriptions of the
+    #     security impact or relevance to different use cases. To ensure
+    #     machine readability, place the content under a markdown header such
+    #     as "## Changelog"."
+    target_criterion: release_notes
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST provide, in each release, release notes
+    #     that are a human-readable summary of major changes in that release to
+    #     help users determine if they should upgrade and what the upgrade
+    #     impact will be. The release notes MUST NOT be the raw output of a
+    #     version control log (e.g., the "git log" command results are not
+    #     release notes). Projects whose results are not intended for reuse in
+    #     multiple locations (such as the software for a single website or
+    #     service) AND employ continuous delivery MAY select "N/A"."
+    #   details: "The release notes MAY be implemented in a variety of ways.
+    #     Many projects provide them in a file named "NEWS", "CHANGELOG", or
+    #     "ChangeLog", optionally with extensions such as ".txt", ".md", or
+    #     ".html". Historically the term "change log" meant a log of every
+    #     change, but to meet these criteria what is needed is a human-readable
+    #     summary. The release notes MAY instead be provided by version control
+    #     system mechanisms such as the GitHub Releases workflow."
+    confidence_met: 3     # A descriptive modification log satisfies the release notes requirement
+    confidence_unmet: 3   # No modification log means the release notes requirement is also unmet
+    confidence_na: 2      # Both apply when a release is created; applicability is very similar
+                          # though metal also allows N/A for continuous-delivery services
+
+  - source_criterion: osps_br_05_01
+    # source_level: 2
+    # Source:
+    #   description: "When a build and release pipeline ingests dependencies,
+    #     it MUST use standardized tooling where available."
+    #   details: "Use a common tooling for your ecosystem, such as package
+    #     managers or dependency management tools to ingest dependencies at
+    #     build time. This may include using a dependency file, lock file, or
+    #     manifest to specify the required dependencies, which are then pulled
+    #     in by the build system."
+    target_criterion: external_dependencies
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST list external dependencies in a
+    #     computer-processable way."
+    #   details: "Typically this is done using the conventions of package
+    #     manager and/or build system. Note that this helps implement
+    #     installation_development_quick."
+    confidence_met: 3     # Using standardized dependency tooling typically produces a
+                          # computer-processable dependency list
+    confidence_unmet: 1   # Not using standardized tooling is weak evidence against a
+                          # machine-readable list (manual lists are still possible)
+    confidence_na: 3      # Both apply only when a build pipeline ingests dependencies;
+                          # N/A transfers strongly when no dependencies exist
+
+  - source_criterion: osps_br_06_01
+    # source_level: 2
+    # Source:
+    #   description: "When an official release is created, that release MUST be
+    #     signed or accounted for in a signed manifest including each asset's
+    #     cryptographic hashes."
+    #   details: "Sign all released software assets at build time with a
+    #     cryptographic signature or attestations, such as GPG or PGP
+    #     signature, Sigstore signatures, SLSA provenance, or SLSA VSAs.
+    #     Include the cryptographic hashes of each asset in a signed manifest
+    #     or metadata file."
+    target_criterion: signed_releases
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST cryptographically sign releases of the
+    #     project results intended for widespread use, and there MUST be a
+    #     documented process explaining to users how they can obtain the public
+    #     signing keys and verify the signature(s). The private key for these
+    #     signature(s) MUST NOT be on site(s) used to directly distribute the
+    #     software to the public. If releases are not intended for widespread
+    #     use, select "not applicable" (N/A)."
+    #   details: "The project results include both source code and any
+    #     generated deliverables where applicable (e.g., executables, packages,
+    #     and containers). Generated deliverables MAY be signed separately from
+    #     source code. These MAY be implemented as signed git tags (using
+    #     cryptographic digital signatures). Projects MAY provide generated
+    #     results separately from tools like git, but in those cases, the
+    #     separate results MUST be separately signed."
+    confidence_met: 2     # Baseline requires a signature OR signed manifest; metal requires a
+                          # signature with documented key/verification process — partial overlap
+    confidence_unmet: 2   # No signature or signed manifest makes metal's signed_releases unmet
+    confidence_na: 1      # Baseline N/A (no official releases) partially aligns with metal N/A,
+                          # but metal N/A is less common for established projects
+
+  - source_criterion: osps_br_06_01
+    # source_level: 2
+    # Source:
+    #   description: "When an official release is created, that release MUST be
+    #     signed or accounted for in a signed manifest including each asset's
+    #     cryptographic hashes."
+    #   details: "Sign all released software assets at build time with a
+    #     cryptographic signature or attestations, such as GPG or PGP
+    #     signature, Sigstore signatures, SLSA provenance, or SLSA VSAs.
+    #     Include the cryptographic hashes of each asset in a signed manifest
+    #     or metadata file."
+    target_criterion: delivery_mitm
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST use a delivery mechanism that counters
+    #     MITM attacks. Using https or ssh+scp is acceptable."
+    #   details: "An even stronger mechanism is releasing the software with
+    #     digitally signed packages, since that mitigates attacks on the
+    #     distribution system, but this only works if the users can be
+    #     confident that the public keys for signatures are correct and if the
+    #     users will actually check the signature."
+    confidence_met: 2     # Cryptographic signatures on releases provide MITM protection for
+                          # release artifacts, though this differs from authenticated transport
+    confidence_unmet: 1   # No signature or signed manifest is weak evidence of MITM risk
+    confidence_na: 0      # Applicability conditions differ too much for N/A to transfer
+
+  - source_criterion: osps_br_07_01
+    # source_level: 1
+    # Source:
+    #   description: "The project MUST prevent the unintentional storage of
+    #     unencrypted sensitive data, such as secrets and credentials, in the
+    #     version control system."
+    #   details: "Configure .gitignore or equivalent to exclude files that may
+    #     contain sensitive information. Use pre-commit hooks and automated
+    #     scanning tools to detect and prevent the inclusion of sensitive data
+    #     in commits."
+    target_criterion: no_leaked_credentials
+    # target_level: 0
+    # Target:
+    #   description: "The public repositories MUST NOT leak a valid private
+    #     credential (e.g., a working password or private key) that is intended
+    #     to limit public access."
+    #   details: "A project MAY leak "sample" credentials for testing and
+    #     unimportant databases, as long as they are not intended to limit
+    #     public access."
+    confidence_met: 3     # Preventing credential storage in VCS directly satisfies the
+                          # no-leaked-credentials requirement
+    confidence_unmet: 3   # Allowing credential storage in VCS means leakage is very likely
+    confidence_na: 0      # N/A applicability is too different to transfer
+
+  - source_criterion: osps_br_07_02
+    # source_level: 3
+    # Source:
+    #   description: "The project MUST define a policy for managing secrets and
+    #     credentials used by the project. The policy should include guidelines
+    #     for storing, accessing, and rotating secrets and credentials."
+    #   details: "Document how secrets and credentials are managed and used
+    #     within the project. This should include details on how secrets are
+    #     stored (e.g., using a secrets management tool), how access is
+    #     controlled, and how secrets are rotated or updated. Ensure that
+    #     sensitive information is not hard-coded in the source code or stored
+    #     in version control systems."
+    target_criterion: no_leaked_credentials
+    # target_level: 0
+    # Target:
+    #   description: "The public repositories MUST NOT leak a valid private
+    #     credential (e.g., a working password or private key) that is intended
+    #     to limit public access."
+    #   details: "A project MAY leak "sample" credentials for testing and
+    #     unimportant databases, as long as they are not intended to limit
+    #     public access."
+    confidence_met: 2     # A credential management policy reduces leakage risk, but a policy
+                          # alone does not guarantee credentials are never exposed
+    confidence_unmet: 1   # No credential management policy doesn't mean credentials are leaked;
+                          # informal good practices may still prevent leakage
+    confidence_na: 0      # N/A applicability is too different to transfer
+
+  # ---------------------------------------------------------------------------
+  # Documentation (osps_do_*)
+  # ---------------------------------------------------------------------------
+
+  - source_criterion: osps_do_01_01
+    # source_level: 1
+    # Source:
+    #   description: "When the project has made a release, the project
+    #     documentation MUST include user guides for all basic functionality."
+    #   details: "Create user guides or documentation for all basic
+    #     functionality of the project, explaining how to install, configure,
+    #     and use the project's features. If there are any known dangerous or
+    #     destructive actions available, include highly-visible warnings."
+    target_criterion: documentation_basics
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST provide basic documentation for the
+    #     software produced by the project."
+    #   details: "This documentation must be in some media (such as text or
+    #     video) that includes: how to install it, how to start it, how to use
+    #     it (possibly with a tutorial using examples), and how to use it
+    #     securely (e.g., what to do and what not to do) if that is an
+    #     appropriate topic for the software. The security documentation need
+    #     not be long. The project MAY use hypertext links to non-project
+    #     material as documentation. If the project does not produce software,
+    #     choose "not applicable" (N/A)."
+    confidence_met: 3     # User guides for all basic functionality directly satisfies the
+                          # basic documentation requirement
+    confidence_unmet: 3   # No basic functionality guides means basic documentation is absent
+    confidence_na: 2      # Both apply when a release is made; N/A transfers at partial strength
+
+  - source_criterion: osps_do_02_01
+    # source_level: 1
+    # Source:
+    #   description: "When the project has made a release, the project
+    #     documentation MUST include a guide for reporting defects."
+    #   details: "It is recommended that projects use their VCS default issue
+    #     tracker. If an external source is used, ensure that the project
+    #     documentation and contributing guide clearly and visibly explain how
+    #     to use the reporting system. It is recommended that project
+    #     documentation also sets expectations for how defects will be triaged
+    #     and resolved."
+    target_criterion: report_process
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST provide a process for users to submit
+    #     bug reports (e.g., using an issue tracker or a mailing list)."
+    confidence_met: 3     # A guide for reporting defects directly satisfies the bug-reporting
+                          # process requirement
+    confidence_unmet: 3   # No defect-reporting guide means the bug-report process is absent
+    confidence_na: 2      # Both apply when a release is made; N/A transfers at partial strength
+
+  - source_criterion: osps_do_03_01
+    # source_level: 3
+    # Source:
+    #   description: "When the project has made a release, the project
+    #     documentation MUST contain instructions to verify the integrity and
+    #     authenticity of the release assets."
+    #   details: "Instructions in the project should contain information about
+    #     the technology used, the commands to run, and the expected output.
+    #     When possible, avoid storing this documentation in the same location
+    #     as the build and release pipeline to avoid a single breach
+    #     compromising both the software and the documentation for verifying
+    #     the integrity of the software."
+    target_criterion: signed_releases
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST cryptographically sign releases of the
+    #     project results intended for widespread use, and there MUST be a
+    #     documented process explaining to users how they can obtain the public
+    #     signing keys and verify the signature(s). The private key for these
+    #     signature(s) MUST NOT be on site(s) used to directly distribute the
+    #     software to the public. If releases are not intended for widespread
+    #     use, select "not applicable" (N/A)."
+    #   details: "The project results include both source code and any
+    #     generated deliverables where applicable (e.g., executables, packages,
+    #     and containers). Generated deliverables MAY be signed separately from
+    #     source code. These MAY be implemented as signed git tags (using
+    #     cryptographic digital signatures). Projects MAY provide generated
+    #     results separately from tools like git, but in those cases, the
+    #     separate results MUST be separately signed."
+    confidence_met: 2     # Instructions to verify integrity and authenticity imply signatures
+                          # exist, but don't directly confirm a signing+verification process
+    confidence_unmet: 2   # No verification instructions makes the documented process
+                          # sub-requirement of signed_releases unmet
+    confidence_na: 2      # Both apply when a release is made for widespread use
+
+  - source_criterion: osps_do_03_02
+    # source_level: 3
+    # Source:
+    #   description: "When the project has made a release, the project
+    #     documentation MUST contain instructions to verify the expected
+    #     identity of the person or process authoring the software release."
+    #   details: "The expected identity may be in the form of key IDs used to
+    #     sign, issuer and identity from a sigstore certificate, or other
+    #     similar forms. When possible, avoid storing this documentation in the
+    #     same location as the build and release pipeline to avoid a single
+    #     breach compromising both the software and the documentation for
+    #     verifying the integrity of the software."
+    target_criterion: signed_releases
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST cryptographically sign releases of the
+    #     project results intended for widespread use, and there MUST be a
+    #     documented process explaining to users how they can obtain the public
+    #     signing keys and verify the signature(s). The private key for these
+    #     signature(s) MUST NOT be on site(s) used to directly distribute the
+    #     software to the public. If releases are not intended for widespread
+    #     use, select "not applicable" (N/A)."
+    #   details: "The project results include both source code and any
+    #     generated deliverables where applicable (e.g., executables, packages,
+    #     and containers). Generated deliverables MAY be signed separately from
+    #     source code. These MAY be implemented as signed git tags (using
+    #     cryptographic digital signatures). Projects MAY provide generated
+    #     results separately from tools like git, but in those cases, the
+    #     separate results MUST be separately signed."
+    confidence_met: 3     # Instructions to verify the release author's identity directly
+                          # satisfies the "documented process for verifying signatures" requirement
+    confidence_unmet: 2   # No identity-verification instructions makes the documented-process
+                          # sub-requirement unmet; signing itself may still exist
+    confidence_na: 2      # Both apply when a release is made for widespread use
+
+  - source_criterion: osps_do_06_01
+    # source_level: 2
+    # Source:
+    #   description: "When the project has made a release, the project
+    #     documentation MUST include a description of how the project selects,
+    #     obtains, and tracks its dependencies."
+    #   details: "It is recommended to publish this information alongside the
+    #     project's technical & design documentation on a publicly viewable
+    #     resource such as the source code repository, project website, or
+    #     other channel."
+    target_criterion: external_dependencies
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST list external dependencies in a
+    #     computer-processable way."
+    #   details: "Typically this is done using the conventions of package
+    #     manager and/or build system. Note that this helps implement
+    #     installation_development_quick."
+    confidence_met: 2     # Documenting how dependencies are selected and tracked implies they
+                          # are listed, but docs may not themselves be computer-processable
+    confidence_unmet: 1   # No dependency tracking description doesn't mean a machine-readable
+                          # list is absent (it may exist separately from docs)
+    confidence_na: 2      # Both may be N/A when a project has no external dependencies
+
+  - source_criterion: osps_do_07_01
+    # source_level: 2
+    # Source:
+    #   description: "The project documentation MUST include instructions on
+    #     how to build the software, including required libraries, frameworks,
+    #     SDKs, and dependencies."
+    #   details: "It is recommended to publish this information alongside the
+    #     project's contributor documentation, such as in CONTRIBUTING.md or
+    #     other developer task documentation. This may also be documented using
+    #     Makefile targets or other automation scripts."
+    target_criterion: installation_development_quick
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST provide a way for potential developers
+    #     to quickly install all the project results and support environment
+    #     necessary to make changes, including the tests and test environment.
+    #     This MUST be performed with a commonly-used convention."
+    #   details: "This MAY be implemented using a generated container and/or
+    #     installation script(s). External dependencies would typically be
+    #     installed by invoking system and/or language package manager(s), per
+    #     external_dependencies."
+    confidence_met: 2     # Build instructions with library/SDK dependencies directly overlap
+                          # with the developer-setup requirement; both are developer-facing
+                          # documentation for getting the project running locally
+    confidence_unmet: 1   # Absence of build instructions weakly suggests absence of a
+                          # quick developer-setup mechanism too; some overlap in purpose
+    confidence_na: 0      # Applicability conditions differ; N/A doesn't transfer reliably
+
+  # ---------------------------------------------------------------------------
+  # Governance (osps_gv_*)
+  # ---------------------------------------------------------------------------
+
+  - source_criterion: osps_gv_01_01
+    # source_level: 2
+    # Source:
+    #   description: "While active, the project documentation MUST include a
+    #     list of project members with access to sensitive resources."
+    #   details: "Document project participants and their roles through such
+    #     artifacts as members.md, governance.md, maintainers.md, or similar
+    #     file within the source code repository of the project. This may be as
+    #     simple as including names or account handles in a list of
+    #     maintainers, or more complex depending on the project's governance."
+    target_criterion: roles_responsibilities
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST clearly define and publicly document the
+    #     key roles in the project and their responsibilities, including any
+    #     tasks those roles must perform. It MUST be clear who has which
+    #     role(s), though this might not be documented in the same way."
+    #   details: "The documentation for governance and roles and
+    #     responsibilities may be in one place."
+    confidence_met: 1     # Listing members with sensitive access is a minimal form of role
+                          # documentation, but doesn't cover responsibilities or task definitions
+    confidence_unmet: 2   # No documentation of sensitive-access members suggests no broader
+                          # roles/responsibilities documentation exists
+    confidence_na: 1      # Applicability is similar but not identical; partial N/A transfer
+
+  - source_criterion: osps_gv_01_02
+    # source_level: 2
+    # Source:
+    #   description: "While active, the project documentation MUST include
+    #     descriptions of the roles and responsibilities for members of the
+    #     project."
+    #   details: "Document project participants and their roles through such
+    #     artifacts as members.md, governance.md, maintainers.md, or similar
+    #     file within the source code repository of the project."
+    target_criterion: roles_responsibilities
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST clearly define and publicly document the
+    #     key roles in the project and their responsibilities, including any
+    #     tasks those roles must perform. It MUST be clear who has which
+    #     role(s), though this might not be documented in the same way."
+    #   details: "The documentation for governance and roles and
+    #     responsibilities may be in one place."
+    confidence_met: 3     # Documented roles and responsibilities for members directly satisfies
+                          # the metal requirement to define and document key roles
+    confidence_unmet: 3   # No roles/responsibilities documentation means the metal requirement
+                          # is also unmet
+    confidence_na: 2      # Both may be N/A for single-person projects with no formal roles
+
+  - source_criterion: osps_gv_02_01
+    # source_level: 1
+    # Source:
+    #   description: "While active, the project MUST have one or more
+    #     mechanisms for public discussions about proposed changes and usage
+    #     obstacles."
+    #   details: "Establish one or more mechanisms for public discussions
+    #     within the project, such as mailing lists, instant messaging, or
+    #     issue trackers, to facilitate open communication and feedback."
+    target_criterion: discussion
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST have one or more mechanisms for
+    #     discussion (including proposed changes and issues) that are
+    #     searchable, allow messages and topics to be addressed by URL, enable
+    #     new people to participate in some of the discussions, and do not
+    #     require client-side installation of proprietary software."
+    #   details: "Examples of acceptable mechanisms include archived mailing
+    #     list(s), GitHub issue and pull request discussions, Bugzilla, Mantis,
+    #     and Trac. Asynchronous discussion mechanisms (like IRC) are
+    #     acceptable if they meet these criteria; make sure there is a
+    #     URL-addressable archiving mechanism. Proprietary JavaScript, while
+    #     discouraged, is permitted."
+    confidence_met: 2     # Baseline requires public discussions; metal adds searchability,
+                          # URL-addressability, and no-proprietary-software requirements
+    confidence_unmet: 3   # No public discussions directly means the metal requirement is unmet
+    confidence_na: 2      # Both may be N/A when the project has no external users/contributors
+
+  - source_criterion: osps_gv_03_01
+    # source_level: 1
+    # Source:
+    #   description: "While active, the project documentation MUST include an
+    #     explanation of the contribution process."
+    #   details: "Create a CONTRIBUTING.md or CONTRIBUTING/ directory to
+    #     outline the contribution process including the steps for submitting
+    #     changes, and engaging with the project maintainers."
+    target_criterion: contribution
+    # target_level: 0
+    # Target:
+    #   description: "The information on how to contribute MUST explain the
+    #     contribution process (e.g., are pull requests used?)"
+    #   details: "We presume that projects on GitHub use issues and pull
+    #     requests unless otherwise noted. This information can be short, e.g.,
+    #     stating that the project uses pull requests, an issue tracker, or
+    #     posts to a mailing list (which one?)"
+    confidence_met: 3     # An explanation of the contribution process directly satisfies the
+                          # metal requirement to explain how to contribute
+    confidence_unmet: 3   # No contribution process explanation means the metal requirement
+                          # is also unmet
+    confidence_na: 0      # Neither criterion commonly allows N/A for established projects
+
+  - source_criterion: osps_gv_03_02
+    # source_level: 2
+    # Source:
+    #   description: "While active, the project documentation MUST include a
+    #     guide for code contributors that includes requirements for acceptable
+    #     contributions."
+    #   details: "Extend the CONTRIBUTING.md or CONTRIBUTING/ contents in the
+    #     project documentation to outline the requirements for acceptable
+    #     contributions, including coding standards, testing requirements, and
+    #     submission guidelines for code contributors. It is recommended that
+    #     this guide is the source of truth for both contributors and
+    #     approvers."
+    target_criterion: contribution_requirements
+    # target_level: 1
+    # Target:
+    #   description: "The information on how to contribute MUST include the
+    #     requirements for acceptable contributions (e.g., a reference to any
+    #     required coding standard)."
+    confidence_met: 3     # A contributor guide with acceptance requirements directly satisfies
+                          # the metal requirement to document contribution requirements
+    confidence_unmet: 3   # No acceptance requirements guide means the metal requirement is unmet
+    confidence_na: 2      # Both may be N/A for projects that accept all contributions without
+                          # formal requirements
+
+  # ---------------------------------------------------------------------------
+  # Legal (osps_le_*)
+  # ---------------------------------------------------------------------------
+
+  - source_criterion: osps_le_01_01
+    # source_level: 2
+    # Source:
+    #   description: "While active, the version control system MUST require all
+    #     code contributors to assert that they are legally authorized to make
+    #     the associated contributions on every commit."
+    #   details: "Include a DCO in the project's repository, requiring code
+    #     contributors to assert that they are legally authorized to commit the
+    #     associated contributions on every commit. Use a status check to
+    #     ensure the assertion is made. A CLA also satisfies this requirement.
+    #     Some version control systems, such as GitHub, may include this in the
+    #     platform terms of service."
+    target_criterion: dco
+    # target_level: 1
+    # Target:
+    #   description: "The project SHOULD have a legal mechanism where all
+    #     developers of non-trivial amounts of project software assert that
+    #     they are legally authorized to make these contributions. The most
+    #     common and easily-implemented approach for doing this is by using a
+    #     Developer Certificate of Origin (DCO), where users add
+    #     "signed-off-by" in their commits and the project links to the DCO
+    #     website. However, this MAY be implemented as a Contributor License
+    #     Agreement (CLA), or other legal mechanism."
+    #   details: "The DCO is the recommended mechanism because it's easy to
+    #     implement, tracked in the source code, and git directly supports a
+    #     "signed-off" feature using "commit -s". To be most effective it is
+    #     best if the project documentation explains what "signed-off" means
+    #     for that project. A CLA is a legal agreement that defines the terms
+    #     under which intellectual works have been licensed to an organization
+    #     or project. A contributor assignment agreement (CAA) is a legal
+    #     agreement that transfers rights in an intellectual work to another
+    #     party; projects are not required to have CAAs, since having CAA
+    #     increases the risk that potential contributors will not contribute,
+    #     especially if the receiver is a for-profit organization. The Apache
+    #     Software Foundation CLAs (the individual contributor license and the
+    #     corporate CLA) are examples of CLAs, for projects which determine
+    #     that the risks of these kinds of CLAs to the project are less than
+    #     their benefits."
+    confidence_met: 3     # VCS-enforced contributor authorization assertions IS the DCO
+                          # mechanism; the baseline requires exactly what the metal SHOULD requires
+    confidence_unmet: 2   # No contributor authorization requirement makes a DCO unlikely,
+                          # but the metal criterion is SHOULD (not MUST)
+    confidence_na: 0      # Applicability conditions are too different for N/A to transfer
+
+  - source_criterion: osps_le_02_01
+    # source_level: 1
+    # Source:
+    #   description: "While active, the license for the source code MUST meet
+    #     the OSI Open Source Definition or the FSF Free Software Definition."
+    #   details: "Add a LICENSE file to the project's repo with a license that
+    #     is an approved license by the Open Source Initiative (OSI), or a free
+    #     license as approved by the Free Software Foundation (FSF). Examples
+    #     of such licenses include the MIT, BSD 2-clause, BSD 3-clause revised,
+    #     Apache 2.0, Lesser GNU General Public License (LGPL), and the GNU
+    #     General Public License (GPL). Releasing to the public domain meets
+    #     this control if there are no other encumbrances such as patents."
+    target_criterion: floss_license
+    # target_level: 0
+    # Target:
+    #   description: "The software produced by the project MUST be released as
+    #     FLOSS."
+    #   details: "FLOSS is software released in a way that meets the Open
+    #     Source Definition or Free Software Definition. Examples of such
+    #     licenses include the CC0, MIT, BSD 2-clause, BSD 3-clause revised,
+    #     Apache 2.0, Lesser GNU General Public License (LGPL), and the GNU
+    #     General Public License (GPL). For our purposes, this means that the
+    #     license MUST be: an approved license by the Open Source Initiative
+    #     (OSI), or a free license as approved by the Free Software Foundation
+    #     (FSF), or a free license acceptable to Debian main, or a "good"
+    #     license according to Fedora. The software MAY also be licensed other
+    #     ways (e.g., "GPLv2 or proprietary" is acceptable)."
+    confidence_met: 3     # OSI- or FSF-approved source license directly satisfies the metal
+                          # FLOSS license requirement
+    confidence_unmet: 3   # Not using an OSI/FSF-approved license means the metal requirement
+                          # is unmet
+    confidence_na: 0      # Both criteria require a license; N/A is not applicable here
+
+  - source_criterion: osps_le_02_01
+    # source_level: 1
+    # Source:
+    #   description: "While active, the license for the source code MUST meet
+    #     the OSI Open Source Definition or the FSF Free Software Definition."
+    #   details: "Add a LICENSE file to the project's repo with a license that
+    #     is an approved license by the Open Source Initiative (OSI), or a free
+    #     license as approved by the Free Software Foundation (FSF). Examples
+    #     of such licenses include the MIT, BSD 2-clause, BSD 3-clause revised,
+    #     Apache 2.0, Lesser GNU General Public License (LGPL), and the GNU
+    #     General Public License (GPL). Releasing to the public domain meets
+    #     this control if there are no other encumbrances such as patents."
+    target_criterion: floss_license_osi
+    # target_level: 0
+    # Target:
+    #   description: "It is SUGGESTED that any required license(s) for the
+    #     software produced by the project be approved by the Open Source
+    #     Initiative (OSI)."
+    #   details: "The OSI uses a rigorous approval process to determine which
+    #     licenses are OSS."
+    confidence_met: 2     # An OSI-approved source license satisfies this SUGGESTED metal
+                          # criterion; FSF-only licenses satisfy baseline but not this suggestion
+    confidence_unmet: 2   # Not OSI/FSF-approved means the suggested OSI-only criterion is unmet
+    confidence_na: 0      # N/A is not applicable; projects must have a license
+
+  - source_criterion: osps_le_02_02
+    # source_level: 1
+    # Source:
+    #   description: "While active, the license for the released software
+    #     assets MUST meet the OSI Open Source Definition or the FSF Free
+    #     Software Definition."
+    #   details: "If a different license is included with released software
+    #     assets, ensure it is an approved license by the Open Source
+    #     Initiative (OSI), or a free license as approved by the Free Software
+    #     Foundation (FSF). Examples of such licenses include the MIT, BSD
+    #     2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public
+    #     License (LGPL), and the GNU General Public License (GPL). Note that
+    #     the license for the released software assets may be different than
+    #     the source code."
+    target_criterion: floss_license
+    # target_level: 0
+    # Target:
+    #   description: "The software produced by the project MUST be released as
+    #     FLOSS."
+    #   details: "FLOSS is software released in a way that meets the Open
+    #     Source Definition or Free Software Definition. Examples of such
+    #     licenses include the CC0, MIT, BSD 2-clause, BSD 3-clause revised,
+    #     Apache 2.0, Lesser GNU General Public License (LGPL), and the GNU
+    #     General Public License (GPL). For our purposes, this means that the
+    #     license MUST be: an approved license by the Open Source Initiative
+    #     (OSI), or a free license as approved by the Free Software Foundation
+    #     (FSF), or a free license acceptable to Debian main, or a "good"
+    #     license according to Fedora. The software MAY also be licensed other
+    #     ways (e.g., "GPLv2 or proprietary" is acceptable)."
+    confidence_met: 3     # OSI- or FSF-approved release license directly satisfies the metal
+                          # FLOSS license requirement
+    confidence_unmet: 3   # Not using an OSI/FSF-approved license means the metal requirement
+                          # is unmet
+    confidence_na: 0      # N/A is not applicable; projects must have a license
+
+  - source_criterion: osps_le_03_01
+    # source_level: 1
+    # Source:
+    #   description: "While active, the license for the source code MUST be
+    #     maintained in the corresponding repository's LICENSE file, COPYING
+    #     file, or LICENSE/ directory."
+    #   details: "Include the project's source code license in the project's
+    #     LICENSE file, COPYING file, or LICENSE/ directory to provide
+    #     visibility and clarity on the licensing terms. The filename MAY have
+    #     an extension. If the project has multiple repositories, ensure that
+    #     each repository includes the license file."
+    target_criterion: license_location
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST post the license(s) of its results in a
+    #     standard location in their source repository."
+    #   details: "One convention is posting the license as a top-level file
+    #     named LICENSE or COPYING, which MAY be followed by an extension such
+    #     as ".txt" or ".md". An alternative convention is to have a directory
+    #     named LICENSES containing license file(s); these files are typically
+    #     named as their SPDX license identifier followed by an appropriate
+    #     file extension, as described in the REUSE Specification. Note that
+    #     this criterion is only a requirement on the source repository. You do
+    #     NOT need to include the license file when generating something from
+    #     the source code (such as an executable, package, or container). For
+    #     example, when generating an R package for the Comprehensive R Archive
+    #     Network (CRAN), follow standard CRAN practice: if the license is a
+    #     standard license, use the standard short license specification (to
+    #     avoid installing yet another copy of the text) and list the LICENSE
+    #     file in an exclusion file such as .Rbuildignore. Similarly, when
+    #     creating a Debian package, you may put a link in the copyright file
+    #     to the license text in /usr/share/common-licenses, and exclude the
+    #     license file from the created package (e.g., by deleting the file
+    #     after calling dh_auto_install). We encourage including
+    #     machine-readable license information in generated formats where
+    #     practical."
+    confidence_met: 3     # License in LICENSE/COPYING file or LICENSE/ directory directly
+                          # satisfies the metal standard-location requirement
+    confidence_unmet: 3   # No license in standard location means the metal requirement is unmet
+    confidence_na: 0      # N/A is not applicable; projects must post their license
+
+  - source_criterion: osps_le_03_02
+    # source_level: 1
+    # Source:
+    #   description: "While active, the license for the released software
+    #     assets MUST be included in the released source code, or in a LICENSE
+    #     file, COPYING file, or LICENSE/ directory alongside the corresponding
+    #     release assets."
+    #   details: "Include the project's released software assets license in the
+    #     released source code, or in a LICENSE file, COPYING file, or LICENSE/
+    #     directory alongside the corresponding release assets to provide
+    #     visibility and clarity on the licensing terms. The filename MAY have
+    #     an extension. If the project has multiple repositories, ensure that
+    #     each repository includes the license file."
+    target_criterion: license_location
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST post the license(s) of its results in a
+    #     standard location in their source repository."
+    #   details: "One convention is posting the license as a top-level file
+    #     named LICENSE or COPYING, which MAY be followed by an extension such
+    #     as ".txt" or ".md". An alternative convention is to have a directory
+    #     named LICENSES containing license file(s); these files are typically
+    #     named as their SPDX license identifier followed by an appropriate
+    #     file extension, as described in the REUSE Specification. Note that
+    #     this criterion is only a requirement on the source repository. You do
+    #     NOT need to include the license file when generating something from
+    #     the source code (such as an executable, package, or container). For
+    #     example, when generating an R package for the Comprehensive R Archive
+    #     Network (CRAN), follow standard CRAN practice: if the license is a
+    #     standard license, use the standard short license specification (to
+    #     avoid installing yet another copy of the text) and list the LICENSE
+    #     file in an exclusion file such as .Rbuildignore. Similarly, when
+    #     creating a Debian package, you may put a link in the copyright file
+    #     to the license text in /usr/share/common-licenses, and exclude the
+    #     license file from the created package (e.g., by deleting the file
+    #     after calling dh_auto_install). We encourage including
+    #     machine-readable license information in generated formats where
+    #     practical."
+    confidence_met: 2     # Including the release-asset license in standard locations is related
+                          # to but distinct from the source-repo license location requirement
+    confidence_unmet: 3   # No license alongside release assets strongly suggests the standard-
+                          # location source requirement is also not met
+    confidence_na: 0      # N/A is not applicable; projects must post their license
+
+  # ---------------------------------------------------------------------------
+  # Quality Assurance (osps_qa_*)
+  # ---------------------------------------------------------------------------
+
+  - source_criterion: osps_qa_01_01
+    # source_level: 1
+    # Source:
+    #   description: "While active, the project's source code repository MUST
+    #     be publicly readable at a static URL."
+    #   details: "Use a common VCS such as GitHub, GitLab, or Bitbucket. Ensure
+    #     the repository is publicly readable. Avoid duplication or mirroring
+    #     of repositories unless highly visible documentation clarifies the
+    #     primary source. Avoid frequent changes to the repository that would
+    #     impact the repository URL. Ensure the repository is public."
+    target_criterion: repo_public
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST have a version-controlled source
+    #     repository that is publicly readable and has a URL."
+    #   details: "The URL MAY be the same as the project URL. The project MAY
+    #     use private (non-public) branches in specific cases while the change
+    #     is not publicly released (e.g., for fixing a vulnerability before it
+    #     is revealed to the public)."
+    confidence_met: 3     # Publicly readable source at a static URL directly satisfies the
+                          # metal public repository requirement
+    confidence_unmet: 3   # Non-public source code means the metal requirement is also unmet
+    confidence_na: 0      # Both criteria require public access; N/A is not applicable here
+
+  - source_criterion: osps_qa_01_02
+    # source_level: 1
+    # Source:
+    #   description: "The version control system MUST contain a publicly
+    #     readable record of all changes made, who made the changes, and when
+    #     the changes were made."
+    #   details: "Use a common VCS such as GitHub, GitLab, or Bitbucket to
+    #     maintain a publicly readable commit history. Avoid squashing or
+    #     rewriting commits in a way that would obscure the author of any
+    #     commits."
+    target_criterion: repo_track
+    # target_level: 0
+    # Target:
+    #   description: "The project's source repository MUST track what changes
+    #     were made, who made the changes, and when the changes were made."
+    confidence_met: 3     # A public record of all changes, authors, and dates IS a
+                          # change-tracking repository
+    confidence_unmet: 3   # No change-tracking record means the metal requirement is also unmet
+    confidence_na: 0      # N/A is not applicable; software projects must track changes
+
+  - source_criterion: osps_qa_02_01
+    # source_level: 1
+    # Source:
+    #   description: "When the package management system supports it, the
+    #     source code repository MUST contain a dependency list that accounts
+    #     for the direct language dependencies."
+    #   details: "This may take the form of a package manager or language
+    #     dependency file that enumerates all direct dependencies such as
+    #     package.json, Gemfile, or go.mod."
+    target_criterion: external_dependencies
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST list external dependencies in a
+    #     computer-processable way."
+    #   details: "Typically this is done using the conventions of package
+    #     manager and/or build system. Note that this helps implement
+    #     installation_development_quick."
+    confidence_met: 3     # A dependency list in the source repository IS a computer-processable
+                          # dependency listing
+    confidence_unmet: 3   # No dependency list in the repository means the metal requirement
+                          # is unmet
+    confidence_na: 3      # Both apply only when a package management system supports it /
+                          # external dependencies exist; N/A transfers strongly
+
+  - source_criterion: osps_qa_02_01
+    # source_level: 1
+    # Source:
+    #   description: "When the package management system supports it, the
+    #     source code repository MUST contain a dependency list that accounts
+    #     for the direct language dependencies."
+    #   details: "This may take the form of a package manager or language
+    #     dependency file that enumerates all direct dependencies such as
+    #     package.json, Gemfile, or go.mod."
+    target_criterion: updateable_reused_components
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST either: make it easy to identify and
+    #     update reused externally-maintained components; or use the standard
+    #     components provided by the system or programming language. Then, if a
+    #     vulnerability is found in a reused component, it will be easy to
+    #     update that component."
+    #   details: "A typical way to meet this criterion is to use system and
+    #     programming language package management systems. Many FLOSS programs
+    #     are distributed with "convenience libraries" that are local copies of
+    #     standard libraries (possibly forked). By itself, that's fine.
+    #     However, if the program *must* use these local (forked) copies, then
+    #     updating the "standard" libraries as a security update will leave
+    #     these additional copies still vulnerable. This is especially an issue
+    #     for cloud-based systems; if the cloud provider updates their
+    #     "standard" libraries but the program won't use them, then the updates
+    #     don't actually help. See, e.g., "Chromium: Why it isn't in Fedora yet
+    #     as a proper package" by Tom Callaway."
+    confidence_met: 2     # A repo dependency list is consistent with the metal SHOULD for
+                          # third-party-visible component identification with versions
+    confidence_unmet: 2   # No dependency list makes metal component identification unlikely
+    confidence_na: 2      # Both apply only when external dependencies exist; N/A similar
+
+  - source_criterion: osps_qa_03_01
+    # source_level: 2
+    # Source:
+    #   description: "When a commit is made to the primary branch, any
+    #     automated status checks for commits MUST pass or be manually
+    #     bypassed."
+    #   details: "Configure the project's version control system to require
+    #     that all automated status checks pass or require manual
+    #     acknowledgement before a commit can be merged into the primary
+    #     branch. It is recommended that any optional status checks are NOT
+    #     configured as a pass or fail requirement that approvers may be
+    #     tempted to bypass."
+    target_criterion: automated_integration_testing
+    # target_level: 1
+    # Target:
+    #   description: "An automated test suite MUST be applied on each check-in
+    #     to a shared repository for at least one branch. This test suite MUST
+    #     produce a report on test success or failure."
+    #   details: "This requirement can be viewed as a subset of
+    #     test_continuous_integration, but focused on just testing, without
+    #     requiring continuous integration."
+    confidence_met: 2     # Requiring status checks to pass implies CI checks are configured,
+                          # likely including automated tests; "manually bypassed" weakens this
+    confidence_unmet: 2   # Not requiring status checks to pass suggests CI tests are not enforced
+    confidence_na: 2      # Both may be N/A for very simple projects with no CI environment
+
+  - source_criterion: osps_qa_03_01
+    # source_level: 2
+    # Source:
+    #   description: "When a commit is made to the primary branch, any
+    #     automated status checks for commits MUST pass or be manually
+    #     bypassed."
+    #   details: "Configure the project's version control system to require
+    #     that all automated status checks pass or require manual
+    #     acknowledgement before a commit can be merged into the primary
+    #     branch. It is recommended that any optional status checks are NOT
+    #     configured as a pass or fail requirement that approvers may be
+    #     tempted to bypass."
+    target_criterion: test_continuous_integration
+    # target_level: 2
+    # Target:
+    #   description: "The project MUST implement continuous integration, where
+    #     new or changed code is frequently integrated into a central code
+    #     repository and automated tests are run on the result."
+    #   details: "In most cases this means that each developer who works
+    #     full-time on the project integrates at least daily."
+    confidence_met: 2     # Status checks passing before merge is consistent with gold CI
+                          # testing requirements, though "manually bypassed" weakens this
+    confidence_unmet: 2   # Not requiring passing status checks suggests CI tests are not
+                          # enforced even at this higher level
+    confidence_na: 2      # Both may be N/A for very simple projects
+
+  - source_criterion: osps_qa_06_01
+    # source_level: 2
+    # Source:
+    #   description: "Prior to a commit being accepted, the project's CI/CD
+    #     pipelines MUST run at least one automated test suite to ensure the
+    #     changes meet expectations."
+    #   details: "Automated tests should be run prior to every merge into the
+    #     primary branch. The test suite should be run in a CI/CD pipeline and
+    #     the results should be visible to all contributors. The test suite
+    #     should be run in a consistent environment and should be run in a way
+    #     that allows contributors to run the tests locally. Examples of test
+    #     suites include unit tests, integration tests, and end-to-end tests."
+    target_criterion: test
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST use at least one automated test suite
+    #     that is publicly released as FLOSS (this test suite may be maintained
+    #     as a separate FLOSS project). The project MUST clearly show or
+    #     document how to run the test suite(s) (e.g., via a continuous
+    #     integration (CI) script or via documentation in files such as
+    #     BUILD.md, README.md, or CONTRIBUTING.md)."
+    #   details: "The project MAY use multiple automated test suites (e.g., one
+    #     that runs quickly, vs. another that is more thorough but requires
+    #     special equipment). There are many test frameworks and test support
+    #     systems available, including Selenium (web browser automation), Junit
+    #     (JVM, Java), RUnit (R), testthat (R)."
+    confidence_met: 3     # CI/CD pipelines running an automated test suite before merge
+                          # directly implies an automated test suite exists
+    confidence_unmet: 3   # No automated test suite in CI means the basic test requirement
+                          # is also unmet
+    confidence_na: 0      # Applicability conditions differ; N/A doesn't transfer
+
+  - source_criterion: osps_qa_06_01
+    # source_level: 2
+    # Source:
+    #   description: "Prior to a commit being accepted, the project's CI/CD
+    #     pipelines MUST run at least one automated test suite to ensure the
+    #     changes meet expectations."
+    #   details: "Automated tests should be run prior to every merge into the
+    #     primary branch. The test suite should be run in a CI/CD pipeline and
+    #     the results should be visible to all contributors. The test suite
+    #     should be run in a consistent environment and should be run in a way
+    #     that allows contributors to run the tests locally. Examples of test
+    #     suites include unit tests, integration tests, and end-to-end tests."
+    target_criterion: automated_integration_testing
+    # target_level: 1
+    # Target:
+    #   description: "An automated test suite MUST be applied on each check-in
+    #     to a shared repository for at least one branch. This test suite MUST
+    #     produce a report on test success or failure."
+    #   details: "This requirement can be viewed as a subset of
+    #     test_continuous_integration, but focused on just testing, without
+    #     requiring continuous integration."
+    confidence_met: 3     # Running a test suite in CI/CD before every commit directly satisfies
+                          # the automated integration testing requirement
+    confidence_unmet: 3   # No automated tests in CI/CD means the CI testing requirement is unmet
+    confidence_na: 0      # Applicability conditions differ; N/A doesn't transfer
+
+  - source_criterion: osps_qa_06_01
+    # source_level: 2
+    # Source:
+    #   description: "Prior to a commit being accepted, the project's CI/CD
+    #     pipelines MUST run at least one automated test suite to ensure the
+    #     changes meet expectations."
+    #   details: "Automated tests should be run prior to every merge into the
+    #     primary branch. The test suite should be run in a CI/CD pipeline and
+    #     the results should be visible to all contributors. The test suite
+    #     should be run in a consistent environment and should be run in a way
+    #     that allows contributors to run the tests locally. Examples of test
+    #     suites include unit tests, integration tests, and end-to-end tests."
+    target_criterion: test_continuous_integration
+    # target_level: 2
+    # Target:
+    #   description: "The project MUST implement continuous integration, where
+    #     new or changed code is frequently integrated into a central code
+    #     repository and automated tests are run on the result."
+    #   details: "In most cases this means that each developer who works
+    #     full-time on the project integrates at least daily."
+    confidence_met: 3     # Running a test suite before every commit directly satisfies this
+                          # gold CI testing requirement as well
+    confidence_unmet: 3   # No automated tests in CI/CD means the gold CI testing requirement
+                          # is also unmet
+    confidence_na: 0      # Applicability conditions differ; N/A doesn't transfer
+
+  - source_criterion: osps_qa_06_02
+    # source_level: 3
+    # Source:
+    #   description: "While active, project's documentation MUST clearly
+    #     document when and how tests are run."
+    #   details: "Add a section to the contributing documentation that explains
+    #     how to run the tests locally and how to run the tests in the CI/CD
+    #     pipeline. The documentation should explain what the tests are testing
+    #     and how to interpret the results."
+    target_criterion: test
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST use at least one automated test suite
+    #     that is publicly released as FLOSS (this test suite may be maintained
+    #     as a separate FLOSS project). The project MUST clearly show or
+    #     document how to run the test suite(s) (e.g., via a continuous
+    #     integration (CI) script or via documentation in files such as
+    #     BUILD.md, README.md, or CONTRIBUTING.md)."
+    #   details: "The project MAY use multiple automated test suites (e.g., one
+    #     that runs quickly, vs. another that is more thorough but requires
+    #     special equipment). There are many test frameworks and test support
+    #     systems available, including Selenium (web browser automation), Junit
+    #     (JVM, Java), RUnit (R), testthat (R)."
+    confidence_met: 2     # Documentation of when and how tests run implies tests exist
+    confidence_unmet: 1   # No test documentation is weak evidence; tests may exist but
+                          # be undocumented
+    confidence_na: 0      # Applicability conditions differ; N/A doesn't transfer
+
+  - source_criterion: osps_qa_06_03
+    # source_level: 3
+    # Source:
+    #   description: "While active, the project's documentation MUST include a
+    #     policy that all major changes to the software produced by the project
+    #     should add or update tests of the functionality in an automated test
+    #     suite."
+    #   details: "Add a section to the contributing documentation that explains
+    #     the policy for adding or updating tests. The policy should explain
+    #     what constitutes a major change and what tests should be added or
+    #     updated."
+    target_criterion: test_policy_mandated
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST have a formal written policy that as
+    #     major new functionality is added, tests for the new functionality
+    #     MUST be added to an automated test suite."
+    confidence_met: 3     # A documented policy for adding tests to major changes directly
+                          # satisfies the metal formal test policy requirement
+    confidence_unmet: 3   # No such policy means the metal test policy requirement is also unmet
+    confidence_na: 0      # Neither criterion commonly allows N/A
+
+  - source_criterion: osps_qa_06_03
+    # source_level: 3
+    # Source:
+    #   description: "While active, the project's documentation MUST include a
+    #     policy that all major changes to the software produced by the project
+    #     should add or update tests of the functionality in an automated test
+    #     suite."
+    #   details: "Add a section to the contributing documentation that explains
+    #     the policy for adding or updating tests. The policy should explain
+    #     what constitutes a major change and what tests should be added or
+    #     updated."
+    target_criterion: tests_documented_added
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST include, in its documented instructions
+    #     for change proposals, the policy that tests are to be added for major
+    #     new functionality."
+    confidence_met: 3     # The baseline policy in documentation directly satisfies the metal
+                          # requirement to document the test-addition policy in change instructions
+    confidence_unmet: 2   # No documented test policy makes the metal documentation sub-
+                          # requirement very likely unmet
+    confidence_na: 0      # Neither criterion commonly allows N/A
+
+  - source_criterion: osps_qa_07_01
+    # source_level: 3
+    # Source:
+    #   description: "When a commit is made to the primary branch, the
+    #     project's version control system MUST require at least one non-author
+    #     human approval of the changes before merging."
+    #   details: "Configure the project's version control system to require at
+    #     least one non-author human approval of changes before merging into
+    #     the release or primary branch. This can be achieved by requiring a
+    #     pull request to be reviewed and approved by at least one other
+    #     collaborator before it can be merged."
+    target_criterion: two_person_review
+    # target_level: 2
+    # Target:
+    #   description: "The project MUST have at least 50% of all proposed
+    #     modifications reviewed before release by a person other than the
+    #     author, to determine if it is a worthwhile modification and free of
+    #     known issues which would argue against its inclusion"
+    confidence_met: 3     # Baseline requires 100% of primary-branch commits to have non-author
+                          # approval; since 100% ≥ 50%, Met baseline directly implies Met metal
+    confidence_unmet: 3   # No required non-author approval makes the 50% review threshold
+                          # impossible to enforce
+    confidence_na: 0      # Applicability conditions differ; N/A doesn't transfer
+
+  # ---------------------------------------------------------------------------
+  # Security Analysis (osps_sa_*)
+  # ---------------------------------------------------------------------------
+
+  - source_criterion: osps_sa_01_01
+    # source_level: 2
+    # Source:
+    #   description: "When the project has made a release, the project
+    #     documentation MUST include design documentation demonstrating all
+    #     actions and actors within the system."
+    #   details: "Include designs in the project documentation that explains
+    #     the actions and actors. Actors include any subsystem or entity that
+    #     can influence another segment in the system. Ensure this is updated
+    #     for new features or breaking changes."
+    target_criterion: documentation_architecture
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST include documentation of the
+    #     architecture (aka high-level design) of the software produced by the
+    #     project. If the project does not produce software, select "not
+    #     applicable" (N/A)."
+    #   details: "A software architecture explains a program's fundamental
+    #     structures, i.e., the program's major components, the relationships
+    #     among them, and the key properties of these components and
+    #     relationships."
+    confidence_met: 3     # Design documentation showing all actions and actors IS architectural
+                          # documentation; these requirements are essentially the same
+    confidence_unmet: 3   # No design documentation means the architecture docs requirement
+                          # is also unmet
+    confidence_na: 3      # Both apply when a release is made; N/A transfers strongly
+
+  - source_criterion: osps_sa_02_01
+    # source_level: 2
+    # Source:
+    #   description: "When the project has made a release, the project
+    #     documentation MUST include descriptions of all external software
+    #     interfaces of the released software assets."
+    #   details: "Document all software interfaces (APIs) of the released
+    #     software assets, explaining how users can interact with the software
+    #     and what data is expected or produced. Ensure this is updated for new
+    #     features or breaking changes."
+    target_criterion: documentation_interface
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST provide reference documentation that
+    #     describes the external interface (both input and output) of the
+    #     software produced by the project."
+    #   details: "The documentation of an external interface explains to an
+    #     end-user or developer how to use it. This would include its
+    #     application program interface (API) if the software has one. If it is
+    #     a library, document the major classes/types and methods/functions
+    #     that can be called. If it is a web application, define its URL
+    #     interface (often its REST interface). If it is a command-line
+    #     interface, document the parameters and options it supports. In many
+    #     cases it's best if most of this documentation is automatically
+    #     generated, so that this documentation stays synchronized with the
+    #     software as it changes, but this isn't required. The project MAY use
+    #     hypertext links to non-project material as documentation.
+    #     Documentation MAY be automatically generated (where practical this is
+    #     often the best way to do so). Documentation of a REST interface may
+    #     be generated using Swagger/OpenAPI. Code interface documentation MAY
+    #     be generated using tools such as JSDoc (JavaScript), ESDoc
+    #     (JavaScript), pydoc (Python), devtools (R), pkgdown (R), and Doxygen
+    #     (many). Merely having comments in implementation code is not
+    #     sufficient to satisfy this criterion; there needs to be an easy way
+    #     to see the information without reading through all the source code.
+    #     If the project does not produce software, choose "not applicable"
+    #     (N/A)."
+    confidence_met: 3     # Descriptions of all external software interfaces directly satisfies
+                          # the metal external interface documentation requirement
+    confidence_unmet: 3   # No interface documentation means the metal requirement is also unmet
+    confidence_na: 2      # Both apply when a release is made / when external interfaces exist
+
+  - source_criterion: osps_sa_03_01
+    # source_level: 2
+    # Source:
+    #   description: "When the project has made a release, the project MUST
+    #     perform a security assessment to understand the most likely and
+    #     impactful potential security problems that could occur within the
+    #     software."
+    #   details: "Performing a security assessment informs both project members
+    #     as well as downstream consumers that the project understands what
+    #     problems could arise within the software. Understanding what threats
+    #     could be realized helps the project manage and address risk. This
+    #     information is useful to downstream consumers to demonstrate the
+    #     security acumen and practices of the project. Ensure this is updated
+    #     for new features or breaking changes."
+    target_criterion: assurance_case
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST provide an assurance case that justifies
+    #     why its security requirements are met. The assurance case MUST
+    #     include: a description of the threat model, clear identification of
+    #     trust boundaries, an argument that secure design principles have been
+    #     applied, and an argument that common implementation security
+    #     weaknesses have been countered."
+    #   details: "An assurance case is "a documented body of evidence that
+    #     provides a convincing and valid argument that a specified set of
+    #     critical claims regarding a system’s properties are adequately
+    #     justified for a given application in a given environment" ("Software
+    #     Assurance Using Structured Assurance Case Models", Thomas Rhodes et
+    #     al, NIST Interagency Report 7608). Trust boundaries are boundaries
+    #     where data or execution changes its level of trust, e.g., a server's
+    #     boundaries in a typical web application. It's common to list secure
+    #     design principles (such as Saltzer and Schroeer) and common
+    #     implementation security weaknesses (such as the OWASP top 10 or
+    #     CWE/SANS top 25), and show how each are countered. The BadgeApp
+    #     assurance case may be a useful example. This is related to
+    #     documentation_security, documentation_architecture, and
+    #     implement_secure_design."
+    confidence_met: 2     # A security assessment covers the threat model component of an
+                          # assurance case, but doesn't fully address trust boundaries, secure
+                          # design principles, or common weakness mitigations required by metal
+    confidence_unmet: 2   # No security assessment makes the comprehensive assurance case
+                          # very unlikely
+    confidence_na: 2      # Both apply when a release is made for the project
+
+  - source_criterion: osps_sa_03_01
+    # source_level: 2
+    # Source:
+    #   description: "When the project has made a release, the project MUST
+    #     perform a security assessment to understand the most likely and
+    #     impactful potential security problems that could occur within the
+    #     software."
+    #   details: "Performing a security assessment informs both project members
+    #     as well as downstream consumers that the project understands what
+    #     problems could arise within the software. Understanding what threats
+    #     could be realized helps the project manage and address risk. This
+    #     information is useful to downstream consumers to demonstrate the
+    #     security acumen and practices of the project. Ensure this is updated
+    #     for new features or breaking changes."
+    target_criterion: security_review
+    # target_level: 2
+    # Target:
+    #   description: "The project MUST have performed a security review within
+    #     the last 5 years. This review MUST consider the security requirements
+    #     and security boundary."
+    #   details: "This MAY be done by the project members and/or an independent
+    #     evaluation. This evaluation MAY be supported by static and dynamic
+    #     analysis tools, but there also must be human review to identify
+    #     problems (particularly in design) that tools cannot detect."
+    confidence_met: 3     # A security assessment to understand security problems IS a security
+                          # review considering requirements and boundaries; metal allows project
+                          # members (not only independent reviewers) to conduct the review
+    confidence_unmet: 2   # No security assessment makes a security review very unlikely
+    confidence_na: 1      # N/A applicability conditions differ between the two criteria
+
+  - source_criterion: osps_sa_03_02
+    # source_level: 3
+    # Source:
+    #   description: "When the project has made a release, the project MUST
+    #     perform a threat modeling and attack surface analysis to understand
+    #     and protect against attacks on critical code paths, functions, and
+    #     interactions within the system."
+    #   details: "Threat modeling is an activity where the project looks at the
+    #     codebase, associated processes and infrastructure, interfaces, key
+    #     components and "thinks like a hacker" and brainstorms how the system
+    #     be be broken or compromised. Each identified threat is listed out so
+    #     the project can then think about how to proactively avoid or close
+    #     off any gaps/vulnerabilities that could arise. Ensure this is updated
+    #     for new features or breaking changes."
+    target_criterion: assurance_case
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST provide an assurance case that justifies
+    #     why its security requirements are met. The assurance case MUST
+    #     include: a description of the threat model, clear identification of
+    #     trust boundaries, an argument that secure design principles have been
+    #     applied, and an argument that common implementation security
+    #     weaknesses have been countered."
+    #   details: "An assurance case is "a documented body of evidence that
+    #     provides a convincing and valid argument that a specified set of
+    #     critical claims regarding a system’s properties are adequately
+    #     justified for a given application in a given environment" ("Software
+    #     Assurance Using Structured Assurance Case Models", Thomas Rhodes et
+    #     al, NIST Interagency Report 7608). Trust boundaries are boundaries
+    #     where data or execution changes its level of trust, e.g., a server's
+    #     boundaries in a typical web application. It's common to list secure
+    #     design principles (such as Saltzer and Schroeer) and common
+    #     implementation security weaknesses (such as the OWASP top 10 or
+    #     CWE/SANS top 25), and show how each are countered. The BadgeApp
+    #     assurance case may be a useful example. This is related to
+    #     documentation_security, documentation_architecture, and
+    #     implement_secure_design."
+    confidence_met: 2     # Threat modeling and attack surface analysis covers the threat-model
+                          # and trust-boundaries components, but the metal assurance case also
+                          # requires secure design principles and common weakness arguments
+    confidence_unmet: 2   # No threat modeling makes the comprehensive assurance case very unlikely
+    confidence_na: 1      # N/A applicability conditions differ; threat modeling is broadly expected
+
+  - source_criterion: osps_sa_03_02
+    # source_level: 3
+    # Source:
+    #   description: "When the project has made a release, the project MUST
+    #     perform a threat modeling and attack surface analysis to understand
+    #     and protect against attacks on critical code paths, functions, and
+    #     interactions within the system."
+    #   details: "Threat modeling is an activity where the project looks at the
+    #     codebase, associated processes and infrastructure, interfaces, key
+    #     components and "thinks like a hacker" and brainstorms how the system
+    #     be be broken or compromised. Each identified threat is listed out so
+    #     the project can then think about how to proactively avoid or close
+    #     off any gaps/vulnerabilities that could arise. Ensure this is updated
+    #     for new features or breaking changes."
+    target_criterion: security_review
+    # target_level: 2
+    # Target:
+    #   description: "The project MUST have performed a security review within
+    #     the last 5 years. This review MUST consider the security requirements
+    #     and security boundary."
+    #   details: "This MAY be done by the project members and/or an independent
+    #     evaluation. This evaluation MAY be supported by static and dynamic
+    #     analysis tools, but there also must be human review to identify
+    #     problems (particularly in design) that tools cannot detect."
+    confidence_met: 2     # Threat modeling and attack surface analysis constitutes a form of
+                          # security review; the metal criterion allows project members to conduct
+                          # the review, and threat modeling considers the security boundary
+    confidence_unmet: 2   # No threat modeling makes a security review very unlikely
+    confidence_na: 1      # N/A applicability conditions differ; threat modeling is broadly expected
+
+  # ---------------------------------------------------------------------------
+  # Vulnerability Management (osps_vm_*)
+  # ---------------------------------------------------------------------------
+
+  - source_criterion: osps_vm_01_01
+    # source_level: 2
+    # Source:
+    #   description: "While active, the project documentation MUST include a
+    #     policy for coordinated vulnerability disclosure (CVD), with a clear
+    #     timeframe for response."
+    #   details: "Create a SECURITY.md file at the root of the directory,
+    #     outlining the project's policy for coordinated vulnerability
+    #     disclosure. Include a method for reporting vulnerabilities. Set
+    #     expectations for how the project will respond and address reported
+    #     issues."
+    target_criterion: vulnerability_report_process
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST publish the process for reporting
+    #     vulnerabilities on the project site."
+    #   details: "Projects hosted on GitHub SHOULD consider enabling privately
+    #     reporting a security vulnerability. Projects on GitLab SHOULD
+    #     consider using its ability for privately reporting a vulnerability.
+    #     Projects MAY identify a mailing address on
+    #     https://PROJECTSITE/security, often in the form security@example.org.
+    #     This vulnerability reporting process MAY be the same as its bug
+    #     reporting process. Vulnerability reports MAY always be public, but
+    #     many projects have a private vulnerability reporting mechanism."
+    confidence_met: 2     # A CVD policy is published on the project site and covers the
+                          # reporting process, but CVD is broader than just the reporting step
+    confidence_unmet: 3   # No CVD policy means no published vulnerability reporting process
+    confidence_na: 0      # N/A is not applicable for established software projects
+
+  - source_criterion: osps_vm_01_01
+    # source_level: 2
+    # Source:
+    #   description: "While active, the project documentation MUST include a
+    #     policy for coordinated vulnerability disclosure (CVD), with a clear
+    #     timeframe for response."
+    #   details: "Create a SECURITY.md file at the root of the directory,
+    #     outlining the project's policy for coordinated vulnerability
+    #     disclosure. Include a method for reporting vulnerabilities. Set
+    #     expectations for how the project will respond and address reported
+    #     issues."
+    target_criterion: vulnerability_response_process
+    # target_level: 1
+    # Target:
+    #   description: "The project MUST have a documented process for responding
+    #     to vulnerability reports."
+    #   details: "This is strongly related to vulnerability_report_process,
+    #     which requires that there be a documented way to report
+    #     vulnerabilities. It also related to vulnerability_report_response,
+    #     which requires response to vulnerability reports within a certain
+    #     time frame."
+    confidence_met: 3     # A CVD policy with a clear response timeframe directly satisfies
+                          # the metal requirement for a documented vulnerability response process
+    confidence_unmet: 3   # No CVD policy means no documented response process
+    confidence_na: 0      # N/A is not applicable for established software projects
+
+  - source_criterion: osps_vm_02_01
+    # source_level: 1
+    # Source:
+    #   description: "While active, the project documentation MUST contain
+    #     security contacts."
+    #   details: "Create a security.md (or similarly-named) file that contains
+    #     security contacts for the project."
+    target_criterion: vulnerability_report_process
+    # target_level: 0
+    # Target:
+    #   description: "The project MUST publish the process for reporting
+    #     vulnerabilities on the project site."
+    #   details: "Projects hosted on GitHub SHOULD consider enabling privately
+    #     reporting a security vulnerability. Projects on GitLab SHOULD
+    #     consider using its ability for privately reporting a vulnerability.
+    #     Projects MAY identify a mailing address on
+    #     https://PROJECTSITE/security, often in the form security@example.org.
+    #     This vulnerability reporting process MAY be the same as its bug
+    #     reporting process. Vulnerability reports MAY always be public, but
+    #     many projects have a private vulnerability reporting mechanism."
+    confidence_met: 1     # Security contacts published on the project site provide a reporting
+                          # mechanism, but a contact alone is weaker than a full published process
+    confidence_unmet: 1   # No security contacts is weak evidence; a process may exist but
+                          # not list specific contacts
+    confidence_na: 0      # N/A is not applicable for established software projects
+
+  - source_criterion: osps_vm_03_01
+    # source_level: 2
+    # Source:
+    #   description: "While active, the project documentation MUST provide a
+    #     means for private vulnerability reporting directly to the security
+    #     contacts within the project."
+    #   details: "Provide a means for security researchers to report
+    #     vulnerabilities privately to the project. This may be a dedicated
+    #     email address, a web form, VCS specialized tools, email addresses for
+    #     security contacts, or other methods."
+    target_criterion: vulnerability_report_private
+    # target_level: 0
+    # Target:
+    #   description: "If private vulnerability reports are supported, the
+    #     project MUST include how to send the information in a way that is
+    #     kept private."
+    #   details: "Examples include a private defect report submitted on the web
+    #     using HTTPS (TLS) or an email encrypted using OpenPGP. If
+    #     vulnerability reports are always public (so there are never private
+    #     vulnerability reports), choose "not applicable" (N/A)."
+    confidence_met: 3     # Providing a means for private vulnerability reporting directly
+                          # satisfies the metal requirement to document how to send private reports
+    confidence_unmet: 1   # No means for private reporting may mean the metal criterion is
+                          # N/A (if project only accepts public reports), not Unmet
+    confidence_na: 0      # Baseline N/A is inapplicable; private reporting is broadly expected
+
+  - source_criterion: osps_vm_05_01
+    # source_level: 3
+    # Source:
+    #   description: "While active, the project documentation MUST include a
+    #     policy that defines a threshold for remediation of SCA findings
+    #     related to vulnerabilities and licenses."
+    #   details: "Document a policy in the project that defines a threshold for
+    #     remediation of SCA findings related to vulnerabilities and licenses.
+    #     Include the process for identifying, prioritizing, and remediating
+    #     these findings."
+    target_criterion: dependency_monitoring
+    # target_level: 1
+    # Target:
+    #   description: "Projects MUST monitor or periodically check their
+    #     external dependencies (including convenience copies) to detect known
+    #     vulnerabilities, and fix exploitable vulnerabilities or verify them
+    #     as unexploitable."
+    #   details: "This can be done using an origin analyzer / dependency
+    #     checking tool / software composition analysis tool such as OWASP's
+    #     Dependency-Check, Sonatype's Nexus Auditor, Synopsys' Black Duck
+    #     Software Composition Analysis, and Bundler-audit (for Ruby). Some
+    #     package managers include mechanisms to do this. It is acceptable if
+    #     the components' vulnerability cannot be exploited, but this analysis
+    #     is difficult and it is sometimes easier to simply update or fix the
+    #     part."
+    confidence_met: 2     # A policy with remediation thresholds implies SCA scanning is in use,
+                          # which in turn implies active dependency vulnerability monitoring
+    confidence_unmet: 1   # No remediation threshold policy is weak evidence; monitoring may
+                          # exist without a formal documented policy
+    confidence_na: 0      # N/A is not applicable; dependency monitoring is broadly expected
+
+  - source_criterion: osps_vm_05_02
+    # source_level: 3
+    # Source:
+    #   description: "While active, the project documentation MUST include a
+    #     policy to address SCA violations prior to any release."
+    #   details: "Document a policy in the project to address applicable
+    #     Software Composition Analysis results before any release, and add
+    #     status checks that verify compliance with that policy prior to
+    #     release."
+    target_criterion: dependency_monitoring
+    # target_level: 1
+    # Target:
+    #   description: "Projects MUST monitor or periodically check their
+    #     external dependencies (including convenience copies) to detect known
+    #     vulnerabilities, and fix exploitable vulnerabilities or verify them
+    #     as unexploitable."
+    #   details: "This can be done using an origin analyzer / dependency
+    #     checking tool / software composition analysis tool such as OWASP's
+    #     Dependency-Check, Sonatype's Nexus Auditor, Synopsys' Black Duck
+    #     Software Composition Analysis, and Bundler-audit (for Ruby). Some
+    #     package managers include mechanisms to do this. It is acceptable if
+    #     the components' vulnerability cannot be exploited, but this analysis
+    #     is difficult and it is sometimes easier to simply update or fix the
+    #     part."
+    confidence_met: 2     # A pre-release SCA violation policy implies active scanning and
+                          # remediation — consistent with the dependency monitoring requirement
+    confidence_unmet: 1   # No pre-release SCA policy is weak evidence; monitoring may exist
+                          # without a formal documented policy
+    confidence_na: 0      # N/A is not applicable; dependency monitoring is broadly expected
+
+  - source_criterion: osps_vm_05_03
+    # source_level: 3
+    # Source:
+    #   description: "While active, all changes to the project's codebase MUST
+    #     be automatically evaluated against a documented policy for malicious
+    #     dependencies and known vulnerabilities in dependencies, then blocked
+    #     in the event of violations, except when declared and suppressed as
+    #     non-exploitable."
+    #   details: "Create a status check in the project's version control system
+    #     that runs a Software Composition Analysis tool on all changes to the
+    #     codebase. Require that the status check passes before changes can be
+    #     merged."
+    target_criterion: dependency_monitoring
+    # target_level: 1
+    # Target:
+    #   description: "Projects MUST monitor or periodically check their
+    #     external dependencies (including convenience copies) to detect known
+    #     vulnerabilities, and fix exploitable vulnerabilities or verify them
+    #     as unexploitable."
+    #   details: "This can be done using an origin analyzer / dependency
+    #     checking tool / software composition analysis tool such as OWASP's
+    #     Dependency-Check, Sonatype's Nexus Auditor, Synopsys' Black Duck
+    #     Software Composition Analysis, and Bundler-audit (for Ruby). Some
+    #     package managers include mechanisms to do this. It is acceptable if
+    #     the components' vulnerability cannot be exploited, but this analysis
+    #     is difficult and it is sometimes easier to simply update or fix the
+    #     part."
+    confidence_met: 3     # Automatically blocking known-vulnerable dependencies on every change
+                          # directly satisfies "MUST NOT use dependencies with known vulnerabilities"
+    confidence_unmet: 2   # No automated blocking doesn't mean no monitoring, but makes the
+                          # "must not use" guarantee very difficult to uphold
+    confidence_na: 0      # N/A is not applicable; dependency monitoring is broadly expected
+
+  - source_criterion: osps_vm_06_01
+    # source_level: 3
+    # Source:
+    #   description: "While active, the project documentation MUST include a
+    #     policy that defines a threshold for remediation of SAST findings."
+    #   details: "Document a policy in the project that defines a threshold for
+    #     remediation of Static Application Security Testing (SAST) findings.
+    #     Include the process for identifying, prioritizing, and remediating
+    #     these findings."
+    target_criterion: static_analysis
+    # target_level: 0
+    # Target:
+    #   description: "At least one static code analysis tool (beyond compiler
+    #     warnings and "safe" language modes) MUST be applied to any proposed
+    #     major production release of the software before its release, if there
+    #     is at least one FLOSS tool that implements this criterion in the
+    #     selected language."
+    #   details: "A static code analysis tool examines the software code (as
+    #     source code, intermediate code, or executable) without executing it
+    #     with specific inputs. For purposes of this criterion, compiler
+    #     warnings and "safe" language modes do not count as static code
+    #     analysis tools (these typically avoid deep analysis because speed is
+    #     vital). Some static analysis tools focus on detecting generic
+    #     defects, others focus on finding specific kinds of defects (such as
+    #     vulnerabilities), and some do a combination. Examples of such static
+    #     code analysis tools include cppcheck (C, C++), clang static analyzer
+    #     (C, C++), SpotBugs (Java), FindBugs (Java) (including
+    #     FindSecurityBugs), PMD (Java), Brakeman (Ruby on Rails), lintr (R),
+    #     goodpractice (R), Coverity Quality Analyzer, SonarQube, Codacy, and
+    #     HP Enterprise Fortify Static Code Analyzer. Larger lists of tools can
+    #     be found in places such as the Wikipedia list of tools for static
+    #     code analysis, OWASP information on static code analysis, NIST list
+    #     of source code security analyzers, and Wheeler's list of static
+    #     analysis tools. If there are no FLOSS static analysis tools available
+    #     for the implementation language(s) used, you may select 'N/A'."
+    confidence_met: 2     # A SAST remediation threshold policy implies SAST tools are in use,
+                          # which directly implies static analysis tools are applied to releases
+    confidence_unmet: 1   # No SAST policy is weak evidence; tools may be used informally
+                          # without a documented policy
+    confidence_na: 1      # Both may be N/A if no suitable FLOSS tools exist for the language
+
+  - source_criterion: osps_vm_06_01
+    # source_level: 3
+    # Source:
+    #   description: "While active, the project documentation MUST include a
+    #     policy that defines a threshold for remediation of SAST findings."
+    #   details: "Document a policy in the project that defines a threshold for
+    #     remediation of Static Application Security Testing (SAST) findings.
+    #     Include the process for identifying, prioritizing, and remediating
+    #     these findings."
+    target_criterion: static_analysis_fixed
+    # target_level: 0
+    # Target:
+    #   description: "All medium and higher severity exploitable
+    #     vulnerabilities discovered with static code analysis MUST be fixed in
+    #     a timely way after they are confirmed."
+    #   details: "A vulnerability is considered medium or higher severity if
+    #     its Common Vulnerability Scoring System (CVSS) base qualitative score
+    #     is medium or higher. In CVSS versions 2.0 through 3.1, this is
+    #     equivalent to a CVSS score of 4.0 or higher. Projects may use the
+    #     CVSS score as published in a widely-used vulnerability database (such
+    #     as the National Vulnerability Database) using the most-recent version
+    #     of CVSS reported in that database. Projects may instead calculate the
+    #     severity themselves using the latest version of CVSS at the time of
+    #     the vulnerability disclosure, if the calculation inputs are publicly
+    #     revealed once the vulnerability is publicly known. Note that
+    #     criterion vulnerabilities_fixed_60_days requires that all such
+    #     vulnerabilities be fixed within 60 days of being made public."
+    confidence_met: 2     # A remediation threshold policy implies findings are being addressed;
+                          # consistent with the metal requirement to fix discovered vulnerabilities
+    confidence_unmet: 1   # No remediation policy doesn't mean findings aren't fixed; informal
+                          # practices may still address vulnerabilities
+    confidence_na: 0      # N/A applicability conditions differ significantly
+
+  - source_criterion: osps_vm_06_02
+    # source_level: 3
+    # Source:
+    #   description: "While active, all changes to the project's codebase MUST
+    #     be automatically evaluated against a documented policy for security
+    #     weaknesses and blocked in the event of violations except when
+    #     declared and suppressed as non-exploitable."
+    #   details: "Create a status check in the project's version control system
+    #     that runs a Static Application Security Testing (SAST) tool on all
+    #     changes to the codebase. Require that the status check passes before
+    #     changes can be merged."
+    target_criterion: static_analysis
+    # target_level: 0
+    # Target:
+    #   description: "At least one static code analysis tool (beyond compiler
+    #     warnings and "safe" language modes) MUST be applied to any proposed
+    #     major production release of the software before its release, if there
+    #     is at least one FLOSS tool that implements this criterion in the
+    #     selected language."
+    #   details: "A static code analysis tool examines the software code (as
+    #     source code, intermediate code, or executable) without executing it
+    #     with specific inputs. For purposes of this criterion, compiler
+    #     warnings and "safe" language modes do not count as static code
+    #     analysis tools (these typically avoid deep analysis because speed is
+    #     vital). Some static analysis tools focus on detecting generic
+    #     defects, others focus on finding specific kinds of defects (such as
+    #     vulnerabilities), and some do a combination. Examples of such static
+    #     code analysis tools include cppcheck (C, C++), clang static analyzer
+    #     (C, C++), SpotBugs (Java), FindBugs (Java) (including
+    #     FindSecurityBugs), PMD (Java), Brakeman (Ruby on Rails), lintr (R),
+    #     goodpractice (R), Coverity Quality Analyzer, SonarQube, Codacy, and
+    #     HP Enterprise Fortify Static Code Analyzer. Larger lists of tools can
+    #     be found in places such as the Wikipedia list of tools for static
+    #     code analysis, OWASP information on static code analysis, NIST list
+    #     of source code security analyzers, and Wheeler's list of static
+    #     analysis tools. If there are no FLOSS static analysis tools available
+    #     for the implementation language(s) used, you may select 'N/A'."
+    confidence_met: 3     # Automatically evaluating all changes against a security-weakness
+                          # policy directly implies static analysis tools are applied to releases
+    confidence_unmet: 2   # No automated SAST blocking doesn't mean no static analysis tools,
+                          # but makes their consistent use very unlikely
+    confidence_na: 1      # Both may be N/A if no suitable FLOSS tools exist for the language

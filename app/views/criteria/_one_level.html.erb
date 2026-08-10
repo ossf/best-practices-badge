@@ -38,6 +38,8 @@
 <%=
   if criterion_data.key?('future')
     t('criteria_overall.future')
+  elsif criterion_data.key?('obsolete')
+    t('criteria_overall.obsolete')
   end
 %>
 <sup>[<a href="#<%=

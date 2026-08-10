@@ -10,7 +10,7 @@ Rails.application.configure do
   # config/application.rb.
 
   # Code is not reloaded between requests.
-  config.cache_classes = true
+  config.enable_reloading = false
 
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
@@ -21,9 +21,34 @@ Rails.application.configure do
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local       = false
   config.action_controller.perform_caching = true
+  # Cache store config (identical in development.rb and test.rb).
+  # Ideally this would live in config/application.rb to avoid
+  # repetition, but that file loads during `rails test` CLI boot
+  # *before* SimpleCov starts, making no_dup_coder.rb invisible to
+  # coverage tracking and breaking the 100% coverage requirement.
+  # Keeping it in the environment files ensures the require happens
+  # after SimpleCov starts (during Rails.application.initialize!).
+  #
+  # Moving to an initializer doesn't help either: initializers run
+  # too late -- the cache store is already built from config set
+  # during environment file loading, so an initializer's assignment
+  # to config.cache_store is silently ignored (tests pass but the
+  # cache doesn't actually use NoDupCoder).
+  #
+  # Using `load` instead of `require` in the test file to force
+  # re-evaluation triggers "already initialized constant" warnings
+  # and still leaves structural lines (module/def) uncovered.
+  #
+  # SimpleCov's track_files directive also doesn't help: it controls
+  # which files appear in reports but can't retroactively record
+  # coverage for lines executed before SimpleCov started.
+  require_relative '../../lib/no_dup_coder'
   config.cache_store =
     :memory_store,
-    { size: (ENV['RAILS_CACHE_SIZE'] || '128').to_i.megabytes }
+    {
+      size: (ENV['RAILS_CACHE_SIZE'] || '128').to_i.megabytes,
+      coder: NoDupCoder
+    }
 
   # Enable Rack::Cache to put a simple HTTP cache in front of your application
   # Add `rack-cache` to your Gemfile before enabling this.
@@ -31,13 +56,11 @@ Rails.application.configure do
   # NGINX, varnish or squid.
   # config.action_dispatch.rack_cache = true
 
-  # Disable serving static files from the `/public` folder by default since
-  # Apache or NGINX already handles this.
-  # config.serve_static_files = ENV['RAILS_SERVE_STATIC_FILES'].present?
-  config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
-
-  # We want to serve compressed values
-  config.assets.compress = true
+  # Serve static files from the `/public` folder.
+  # The rails_serve_static_assets gem previously forced this to true;
+  # we now set it directly. Our deployment requires Rails to serve
+  # static files (no separate Apache/NGINX for static assets).
+  config.public_file_server.enabled = true
 
   # Compress JavaScripts and CSS.
   config.assets.js_compressor = :terser
@@ -83,8 +106,15 @@ Rails.application.configure do
   # Prepend all log lines with the following tags.
   # config.log_tags = [ :subdomain, :uuid ]
 
-  # Use a different logger for distributed setups.
-  # config.logger = ActiveSupport::TaggedLogging.new(SyslogLogger.new)
+  # Log to stdout (12-factor app style). The rails_stdout_logging gem
+  # previously did this; we now configure it directly.
+  # NOTE: Rails 5.0+ defaults enable stdout logging when the RAILS_LOG_TO_STDOUT
+  # env var is set. This explicit setup ensures stdout logging regardless of that
+  # variable and adds TaggedLogging, so we keep it rather than relying on defaults.
+  $stdout.sync = true
+  config.logger = ActiveSupport::TaggedLogging.new(
+    ActiveSupport::Logger.new($stdout)
+  )
 
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
@@ -169,7 +199,6 @@ Rails.application.configure do
   # Use Fastly as a CDN. See: https://devcenter.heroku.com/articles/fastly
   # config.action_controller.asset_host = ENV['FASTLY_CDN_URL']
   # Use CDN directly for static assets
-  # TODO: Do we need to set this to true?
   # The documentation for Fastly suggests setting
   # "config.serve_static_assets = true".  However, this has since been
   # renamed to "config.serve_static_files", which we already conditionally set.
@@ -227,7 +256,7 @@ Rails.application.configure do
   # recovery mechanism if things get stuck.  We don't do this in test or
   # development, because it interferes with their purposes.
   # This call will fail in fake_production, so we ignore the exception.
-  # rubocop:disable Lint/HandleExceptions
+  # rubocop:disable Lint/SuppressedException
   begin
     # Unfortunately Rack::Timeout doesn't provide a lot of control over logging.
     # What it provides (now) is described here:
@@ -238,7 +267,7 @@ Rails.application.configure do
   rescue NameError
     # Do nothing if it's unavailable (this happens if we didn't load the gem)
   end
-  # rubocop:enable Lint/HandleExceptions
+  # rubocop:enable Lint/SuppressedException
 
   # Configure active_job to use solid_queue as its back end when in production.
   config.active_job.queue_adapter = :solid_queue

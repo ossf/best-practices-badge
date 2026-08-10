@@ -1,6 +1,7 @@
          <% raise unless criterion
-            details_toggler_id = criterion.to_s + "_details_toggler"
-            details_text_id = criterion.to_s + "_details_text" %>
+            criterion_str = criterion.to_s
+            details_toggler_id = "#{criterion_str}_details_toggler"
+            details_text_id = "#{criterion_str}_details_text" %>
          <button class="btn btn-simple details-toggler hidden-print" title="<%= t('projects.misc.toggle_details_title') %>" type="button" id='<%= details_toggler_id %>'><%= t('projects.misc.details') %></button>
          <div class="details-text" id="<%= details_text_id %>">
          <%= details %><%# The "details" text is from a trusted source. %>

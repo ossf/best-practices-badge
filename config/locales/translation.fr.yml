@@ -28,7 +28,7 @@ fr:
     login_html: S'identifier
     footer_text_html: >-
       <small> <strong>Vous avez besoin d'aide ? Vous avez une
-      question ? Vous voyez un problème ? Merci de <em><a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+      question ? Vous voyez un problème ? Merci de <em><a href="https://github.com/ossf/best-practices-badge/issues"
       target="_blank" rel="noopener">reporter un problème</a></em>.</strong>
       Copyright © <a href="https://www.bestpractices.dev" target="_blank"
       rel="noopener">OpenSSF Best Practices Badge a Series of
@@ -45,6 +45,7 @@ fr:
     account: Compte
     choose_locale: Choisir la langue
     toggle_navigation: Choisir ou non la navigation repliable
+    translation_disclaimer_html:
   sessions:
     login_header: S'identifier
     login_with_github_html: Connectez-vous avec GitHub
@@ -156,6 +157,8 @@ fr:
         à faire cela.
       notification_emails:
       notification_emails_help:
+      important_notifications:
+      important_notifications_help:
   project_stats:
     index:
       project_stats_header: Statistiques du projet
@@ -290,7 +293,6 @@ fr:
         un rappel par email (vous pouvez désactiver les rappels
         à tout moment si vous le souhaitez).
       select_one_github: Sélectionnez l'un de vos dépôts GitHub
-      submit_github: Soumettre le dépôt GitHub
       url_of_homepage: >-
         Quelle est l'URL de la page d'accueil du projet (l'URL
         pour le projet dans son ensemble) ? Commencez par http(s)://
@@ -307,7 +309,6 @@ fr:
       placeholder_of_repo: >-
         http(s)://... pour l'URL du dépôt du projet, utilisez
         https:// si vous le pouvez
-      submit_urls: Envoyer l'URL
       sign_in_first: Connectez-vous pour ajouter un projet !
       thanks_adding: >-
         Merci d'avoir ajouté le projet ! Remplissez le reste des
@@ -317,7 +318,6 @@ fr:
         Remarque : si votre URL de dépôt est sur GitHub, toute
         personne qui a les droits de commit dans le dépôt pourra
         éditer les informations du badge.
-      new_badge_or: OU
       original_repos: "=> Dépôts GitHub Originaux"
       fork_repos: "=> Dépôts GitHub Dupliqués"
       tell_us: >-
@@ -329,6 +329,15 @@ fr:
         spam est interdit car il nuit aux utilisateurs et n'aidera
         en rien le référencement (tous les hyperliens sont marqués
         avec <tt>ugc</tt> et <tt>nofollow</tt>).
+      reminder_email_html:
+      github_repo_label:
+      github_reconnect_html:
+      github_reconnect_link:
+      submit:
+      badge_series:
+      badge_series_description:
+      badge_series_metal:
+      badge_series_baseline:
     show:
       edit: Modifier
       delete: Supprimer
@@ -362,6 +371,7 @@ fr:
       last_lost_html: Le dernier badge perdu l'a été le %{when}.
       last_achieved_html: Le dernier badge obtenu l'a été le %{when}.
       cdla_permissive_20_html:
+      section_selector:
     edit:
       submit_cc_by_3plus_html: >-
         En soumettant ces données sur le projet, vous acceptez
@@ -401,6 +411,29 @@ fr:
       submit_cdla_permissive_20_html:
       new_owner:
       new_owner_repeat:
+      current_owner:
+      ownership_edit_hint:
+      not_authorized:
+      save_and_continue_tooltip:
+      automation:
+        aria_automated:
+        aria_overridden:
+        automated_tooltip:
+        overridden_tooltip:
+        aria_divergent:
+        overridden_detail:
+        overridden_old_justification_part:
+        overridden_explanation_part:
+        divergent_detail:
+        divergent_justification_part:
+        divergent_proposed_value:
+        chief_overrode:
+          one:
+          other:
+        override_detail:
+        analysis_failed:
+          one:
+          other:
     form_basics:
       project_name:
         description: Quel est le nom intelligible du projet ?
@@ -505,6 +538,9 @@ fr:
         placeholder: >-
           Changer avec + ou - suivi d'une liste d'identifiants
           utilisateur séparés par des virgules
+      entry_locale:
+        description:
+        details:
     form_early:
       badge_intro:
         description: >-
@@ -535,7 +571,7 @@ fr:
           un commentaire générique, au lieu d'une raison justifiant
           que la situation est acceptable, commencez le bloc de
           texte avec '//' suivi d'un espace. Les commentaires
-          sont les bienvenus via le <a href="https://github.com/coreinfrastructure/best-practices-badge">site
+          sont les bienvenus via le <a href="https://github.com/ossf/best-practices-badge">site
           GitHub en tant que problèmes ou pull requests</a>. Il
           existe également une <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges">liste
           de diffusion pour discussion générale</a>. <br /> <br
@@ -559,7 +595,7 @@ fr:
           enregistrer votre travail (vous pouvez toujours revenir
           en arrière et éditer plus tard). <br><br> Si vous avez
           besoin d'aide, voulez poser une question ou voyez un
-          problème, veuillez <em> <a href="https://github.com/coreinfrastructure/best-practices-badge/issues"
+          problème, veuillez <em> <a href="https://github.com/ossf/best-practices-badge/issues"
           target="_blank" rel="noopener">signaler un problème</a></em>.
         badge_alt: Le niveau de badge pour le projet %{id} est
           %{level}
@@ -579,6 +615,17 @@ fr:
         '0': Basique
         '1': Argent
         '2': Or
+        baseline-1:
+        baseline-1_html:
+        baseline-2:
+        baseline-2_html:
+        baseline-3:
+        baseline-3_html:
+      got_baseline_badge:
+        description_1:
+        badge_alt:
+        description_2:
+        details_html:
     misc:
       disabled_reminders: >-
         (Avancé) Désactiver le rappel d'inactivité (nous vous
@@ -667,6 +714,8 @@ fr:
       reminder_notification_note:
         title:
         description_html:
+      obsolete_header_html:
+      obsolete_criterion:
     delete:
       done: Le projet a été supprimé avec succès.
     delete_form:
@@ -702,6 +751,16 @@ fr:
       too_short: Doit avoir au moins 20 caractères.
       more_non_whitespace: Doit avoir au moins 15 caractères non
         blancs.
+    choose_edit:
+      title:
+      instructions:
+      proposals_note:
+    choose_show:
+      title:
+      instructions:
+    baseline_version_notice:
+      current:
+      transition:
   user_mailer:
     account_activation:
       before_html: |-
@@ -783,6 +842,9 @@ fr:
       other: >-
         À titre de mesure anti-spam, vous devez attendre %{count}
         heures après l'activation avant de pouvoir vous connecter.
+      many: >-
+        À titre de mesure anti-spam, vous devez attendre %{count}
+        heures après l'activation avant de pouvoir vous connecter.
   password_resets:
     forgot_password: Mot de passe oublié
     reset_password: Réinitialiser le mot de passe
@@ -815,7 +877,7 @@ fr:
       Si vous avez des questions ou avez besoin d'aide, contactez-nous à
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45.own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       ou reportez un problème sur
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (cliquez sur « nouveau problème »).
       </p>
       <p>
@@ -829,7 +891,7 @@ fr:
       Si vous voulez voir seulement ce qui vous manque, visitez votre soumission puis cliquez sur le bouton près du haut étiqueté « Masquer atteints & N/A ».
       Si vous avez des questions ou avez besoin d'aide, contactez-nous à
       cii-badges-questions@lists.coreinfrastructure.org ou reportez un problème sur
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (cliquez sur « nouveau problème »).
       Nous ne vous enverrons jamais de publicité, et nous ne vous enverrons que rarement des emails. Nous vous enverrons un email pour les évènements importants de la soumission d'un projet de badge, comme quand vous créez une nouvelle soumission de projet de badge, quand votre projet gagne ou perd un badge, ou quand quelqu'un demande la réinitialisation du mot de passe pour votre compte utilisateur. Si votre projet n'a pas de badge, et que vous n'avez pas mis à jour l'entrée du projet pendant au moins 30 jours, nous vous enverrons normalement un rappel d'inactivité environ tous les 30-60 jours. Vous pouvez désactiver ces rappels d'inactivité à tout moment ; il vous suffit d'éditer votre entrée de badge à %{project_info_url}#project_disabled_reminders pour activer la « désactivation du rappel d'inactivité ». Souvenez-vous d'éditer le projet pour lequel vous souhaitez changer cette valeur. Si votre projet a gagné un badge, ou que son entrée de badge a été éditée dans les 30 derniers jours, aucun rappel d'inactivité ne vous sera envoyé.
       Merci pour vos efforts.
@@ -864,12 +926,12 @@ fr:
       l'ajout d'URL qui redirigent vers plus d'informations. Si
       vous avez des suggestions sur la façon d'améliorer les critères
       ou l'application Web du badge, veuillez soumettre un problème
-      sur : https://github.com/coreinfrastructure/best-practices-badge/issues\nL'un
+      sur : https://github.com/ossf/best-practices-badge/issues\nL'un
       de nos objectifs est d'encourager les projets à apporter
       des améliorations. Nous mettons certains de ces rapports
       sur le wiki public ; veuillez nous en informer si vous ne
       souhaitez PAS que les changements soient publiés publiquement
-      à\nhttps://github.com/coreinfrastructure/best-practices-badge/wiki/Impacts
+      à\nhttps://github.com/ossf/best-practices-badge/wiki/Impacts
       \nMerci et félicitations.\n"
     lost_level_message: |-
       Nous sommes désolés, mais votre projet n'a plus le badge « %{old_level} »
@@ -902,7 +964,7 @@ fr:
       Si vous avez des questions ou si vous avez besoin d'aide, veuillez contacter
       <a href="mailto:&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;">&#99;ii&#45;badges&#45;questions&#45;own&#101;r&#64;lists&#46;coreinfrastructure&#46;or&#103;</a>
       ou reporter un problème à
-      <a href="https://github.com/coreinfrastructure/best-practices-badge/issues">https://github.com/coreinfrastructure/best-practices-badge/issues</a>
+      <a href="https://github.com/ossf/best-practices-badge/issues">https://github.com/ossf/best-practices-badge/issues</a>
       (cliquez sur « nouveau problème »).
       </p>
       <p>
@@ -931,7 +993,7 @@ fr:
       puis sélectionnez le bouton près du sommet étiqueté « Masquer atteints & N/A ».
       Si vous avez des questions ou si vous avez besoin d'aide, veuillez contacter
       cii-badges-questions@lists.coreinfrastructure.org ou reporter un problème à
-      https://github.com/coreinfrastructure/best-practices-badge/issues
+      https://github.com/ossf/best-practices-badge/issues
       (cliquez sur « nouveau problème »).
       Nous n'envoyons pas de rappels si vous continuez à mettre à jour votre entrée de badge, et nous envoyons seulement des rappels environ tous les 30-60 jours. Cependant, si vous souhaitez désactiver ces messages de rappel, modifiez votre entrée de badge à %{project_info_url}#project_disabled_reminder
       pour activer la « désactivation du rappel d'inactivité ». Vérifiez que vous éditez le projet de badge, au lieu de seulement le consulter, pour pouvoir changer si vous voulez ou non recevoir le rappel d'inactivité.
@@ -939,6 +1001,8 @@ fr:
       Merci pour votre attention.
     unsubscribe_notice_html:
     unsubscribe_notice_text:
+    subject_warned_level:
+    warned_level_message:
   project_name_unknown: "(Nom inconnu)"
   locale_name:
     en: Anglais
@@ -2846,7 +2910,7 @@ fr:
           de conception sécurisés (tels que Saltzer et Schroeer)
           et des faiblesses de sécurité courantes de l'implémentation
           (comme le OWASP top 10 ou le CWE/SANS top 25) et de
-          montrer comment chacun est contré. L'<a href="https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/assurance-case.md">analyse
+          montrer comment chacun est contré. L'<a href="https://github.com/ossf/best-practices-badge/blob/main/docs/assurance-case.md">analyse
           de fiabilité de BadgeApp</a> peut être un exemple utile.
           Ceci est lié à documentation_security, documentation_architecture
           et implement_secure_design.
@@ -3089,6 +3153,203 @@ fr:
       achieve_silver:
         description: Le projet DOIT atteindre un badge de niveau
           argent.
+    baseline-1:
+      osps_ac_01_01:
+        description:
+        details:
+      osps_ac_02_01:
+        description:
+        details:
+      osps_ac_03_01:
+        description:
+        details:
+      osps_ac_03_02:
+        description:
+        details:
+      osps_br_01_01:
+        description:
+        details:
+      osps_br_01_02:
+        description:
+      osps_br_03_01:
+        description:
+        details:
+      osps_br_03_02:
+        description:
+        details:
+      osps_br_07_01:
+        description:
+        details:
+      osps_do_01_01:
+        description:
+        details:
+      osps_do_02_01:
+        description:
+        details:
+      osps_gv_02_01:
+        description:
+        details:
+      osps_gv_03_01:
+        description:
+        details:
+      osps_le_02_01:
+        description:
+        details:
+      osps_le_02_02:
+        description:
+        details:
+      osps_le_03_01:
+        description:
+        details:
+      osps_le_03_02:
+        description:
+        details:
+      osps_qa_01_01:
+        description:
+        details:
+      osps_qa_01_02:
+        description:
+        details:
+      osps_qa_02_01:
+        description:
+        details:
+      osps_qa_04_01:
+        description:
+        details:
+      osps_qa_05_01:
+        description:
+        details:
+      osps_qa_05_02:
+        description:
+        details:
+      osps_vm_02_01:
+        description:
+        details:
+      osps_br_01_03:
+        description:
+        details:
+    baseline-2:
+      osps_ac_04_01:
+        description:
+        details:
+      osps_br_02_01:
+        description:
+        details:
+      osps_br_04_01:
+        description:
+        details:
+      osps_br_05_01:
+        description:
+        details:
+      osps_br_06_01:
+        description:
+        details:
+      osps_do_06_01:
+        description:
+        details:
+      osps_gv_01_01:
+        description:
+        details:
+      osps_gv_01_02:
+        description:
+        details:
+      osps_gv_03_02:
+        description:
+        details:
+      osps_le_01_01:
+        description:
+        details:
+      osps_qa_03_01:
+        description:
+        details:
+      osps_qa_06_01:
+        description:
+        details:
+      osps_sa_01_01:
+        description:
+        details:
+      osps_sa_02_01:
+        description:
+        details:
+      osps_sa_03_01:
+        description:
+        details:
+      osps_vm_01_01:
+        description:
+        details:
+      osps_vm_03_01:
+        description:
+        details:
+      osps_vm_04_01:
+        description:
+        details:
+      osps_do_07_01:
+        description:
+        details:
+    baseline-3:
+      osps_ac_04_02:
+        description:
+        details:
+      osps_br_02_02:
+        description:
+        details:
+      osps_br_07_02:
+        description:
+        details:
+      osps_do_03_01:
+        description:
+        details:
+      osps_do_03_02:
+        description:
+        details:
+      osps_do_04_01:
+        description:
+        details:
+      osps_do_05_01:
+        description:
+        details:
+      osps_gv_04_01:
+        description:
+        details:
+      osps_qa_02_02:
+        description:
+        details:
+      osps_qa_04_02:
+        description:
+        details:
+      osps_qa_06_02:
+        description:
+        details:
+      osps_qa_06_03:
+        description:
+        details:
+      osps_qa_07_01:
+        description:
+        details:
+      osps_sa_03_02:
+        description:
+        details:
+      osps_vm_04_02:
+        description:
+        details:
+      osps_vm_05_01:
+        description:
+        details:
+      osps_vm_05_02:
+        description:
+        details:
+      osps_vm_05_03:
+        description:
+        details:
+      osps_vm_06_01:
+        description:
+        details:
+      osps_vm_06_02:
+        description:
+        details:
+      osps_br_01_04:
+        description:
+        details:
   static_pages:
     home:
       badge_program: Programme de badge des meilleures pratiques
@@ -3100,7 +3361,7 @@ fr:
       p2_html: |-
         Vous pouvez facilement voir les <a href="/fr/criteria/0">critères pour le badge basique</a>. Plus d'informations sur le programme de badge
         des meilleures pratiques de la OpenSSF sont
-        <a href='https://github.com/coreinfrastructure/best-practices-badge'>disponibles sur GitHub</a>.
+        <a href='https://github.com/ossf/best-practices-badge'>disponibles sur GitHub</a>.
         <a href="/fr/project_stats">Les statistiques des projets</a> et
         <a href="/fr/criteria_stats">les statistiques sur les critères</a> sont
         disponibles.  La <a href="/fr/projects">page des projets</a> liste les
@@ -3212,6 +3473,7 @@ fr:
         requise
       see_actual_criteria: Vous pouvez également voir les critères
         réels.
+      obsolete:
     error_409:
       heading: 'Erreur 409 : conflit'
       conflict: >-
@@ -3263,6 +3525,9 @@ fr:
     Identification: Identification
     Prerequisites: Conditions préalables
     FLOSS license: Licence FLOSS
+    Controls:
+    General:
+    General_project_info:
   last_entry: Dernière entrée de traduction
   admin_only: Admin seulement.
   criterion_status:
@@ -3344,6 +3609,7 @@ fr:
     na_justification_required: "{N/A justification}"
     met_justification_required: "{Atteint justification}"
     met_url_required: "{Atteint URL}"
+    obsolete:
   criteria_discussion:
     intro_p01_html: >-
       <h1 id='criteria_discussion'>Discussion sur les critères</h1>
@@ -3382,7 +3648,7 @@ fr:
       Ces critères sont ce que nous pensons être largement « préféré ou considéré comme standard » dans la communauté FLOSS au sens large. </p>
     intro_p08_html: >-
       <p> Pour plus d'informations sur la manière dont ces critères
-      ont été développés, consultez le <a href="https://github.com/coreinfrastructure/best-practices-badge">site
+      ont été développés, consultez le <a href="https://github.com/ossf/best-practices-badge">site
       GitHub du badge des meilleures pratiques OpenSSF</a>. </p>
       <p> Vous pouvez également <a href="/fr/criteria"> voir les
       critères complets</a>. </p>
@@ -3448,7 +3714,7 @@ fr:
       ajouter ces informations et conserver leur badge. </p>
     changes_p03_html: >-
       <p> Les commentaires sont <em>très</em> bienvenus via le
-      <a href="https://github.com/coreinfrastructure/best-practices-badge">site
+      <a href="https://github.com/ossf/best-practices-badge">site
       GitHub en tant que problèmes ou pull request</a>. Il existe
       également une <a href="https://lists.coreinfrastructure.org/mailman/listinfo/cii-badges"
       rel="nofollow">liste de diffusion pour une discussion générale</a>.
@@ -3698,3 +3964,57 @@ fr:
     missing_parameters:
     invalid_parameters:
     error:
+  do_not_translate_this:
+  test_pluralization_only_one:
+    one:
+  detectives:
+    github:
+      repo_public:
+      repo_track:
+      repo_distributed:
+      contribution:
+      discussion:
+      osps_gv_02_01:
+      osps_do_02_01:
+      osps_ac_01_01:
+      osps_qa_01_01:
+      osps_qa_01_02:
+      name:
+      description:
+      license:
+      implementation_languages:
+    floss_license:
+      osi_approved:
+      osi_approved_repository:
+      not_in_osi_list:
+    hardened_sites:
+      all_headers_found:
+      headers_missing:
+    name_from_url:
+      domain_suggests:
+      tail_suggests:
+      repo_tail_suggests:
+    project_sites_https:
+      given_http:
+      official_http:
+      url_uses_http:
+      given_https:
+    repo_files:
+      no_file_found:
+      file_found:
+      contribution_documented:
+      license_found:
+      license_not_found:
+      license_not_in_releases:
+    subdir_files:
+      no_files_found:
+      no_folder_found:
+      some_contents_found:
+    test_forced:
+      test_automation:
+    repo_json:
+      field_from_file:
+    security_insights:
+      field_value:
+      array_match:
+      comment_suffix:

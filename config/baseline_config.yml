@@ -1,0 +1,21 @@
+# frozen_string_literal: true
+
+# Copyright the Linux Foundation and the
+# OpenSSF Best Practices badge contributors
+# SPDX-License-Identifier: MIT
+
+# Configuration for baseline criteria synchronization
+
+baseline:
+  # Official source URL (can be overridden with environment variable)
+  source_url: <%= ENV['BASELINE_CRITERIA_URL'] || 'https://baseline.openssf.org/versions/2025-10-10' %>
+
+  # Local cache of downloaded criteria (for comparison/rollback)
+  cache_dir: 'tmp/baseline_cache'
+
+  # Output locations
+  criteria_file: 'criteria/baseline_criteria.yml'
+  mapping_file: 'config/baseline_field_mapping.json'
+
+  # Metadata
+  sync_metadata_file: '.baseline_sync_metadata.json'

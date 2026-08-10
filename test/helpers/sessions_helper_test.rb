@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop: disable Metrics/BlockLength
+# rubocop: disable Metrics/BlockLength, Metrics/ClassLength
 class SessionsHelperTest < ActionView::TestCase
   setup do
     @user = users(:test_user)
@@ -14,6 +14,10 @@ class SessionsHelperTest < ActionView::TestCase
   end
 
   test 'current_user returns right user when session is nil' do
+    # Simulate what setup_authentication_state does with remember cookies
+    @session_user_id = @user.id
+    session[:user_id] = @user.id
+    session[:time_last_used] = Time.now.utc
     assert_equal @user, current_user
     assert_not session[:time_last_used].nil?
     assert user_logged_in?
@@ -39,38 +43,39 @@ class SessionsHelperTest < ActionView::TestCase
   # end
 
   # Unit test.  There are tricky cases, so try various forms
-  test 'check force_locale_url' do
-    assert_equal 'https://a.b.c/', force_locale_url('https://a.b.c/', nil)
-    assert_equal 'https://a.b.c/', force_locale_url('https://a.b.c', nil)
-    assert_equal 'https://a.b.c/fr', force_locale_url('https://a.b.c/', :fr)
-    assert_equal 'https://a.b.c/fr', force_locale_url('https://a.b.c', :fr)
+  test 'check safe_localized_internal_url' do
+    assert_equal 'https://a.b.c/', safe_localized_internal_url('https://a.b.c/', nil)
+    assert_equal 'https://a.b.c/', safe_localized_internal_url('https://a.b.c', nil)
+    assert_equal 'https://a.b.c/fr', safe_localized_internal_url('https://a.b.c/', :fr)
+    assert_equal 'https://a.b.c/fr', safe_localized_internal_url('https://a.b.c', :fr)
     assert_equal 'https://a.b.c/en',
-                 force_locale_url('https://a.b.c?locale=fr', :en)
+                 safe_localized_internal_url('https://a.b.c?locale=fr', :en)
     assert_equal 'https://a.b.c/en',
-                 force_locale_url('https://a.b.c?locale=en', :en)
-    assert_equal 'https://a.b/en', force_locale_url('https://a.b', :en)
+                 safe_localized_internal_url('https://a.b.c?locale=en', :en)
+    assert_equal 'https://a.b/en', safe_localized_internal_url('https://a.b', :en)
     assert_equal 'https://a.b/fr/projects',
-                 force_locale_url('https://a.b/zh-CN/projects', :fr)
+                 safe_localized_internal_url('https://a.b/zh-CN/projects', :fr)
     assert_equal 'https://a.b/zh-CN/projects',
-                 force_locale_url('https://a.b/fr/projects', :'zh-CN')
+                 safe_localized_internal_url('https://a.b/fr/projects', :'zh-CN')
     assert_equal 'https://a.b/zh-CN/projects',
-                 force_locale_url('https://a.b/projects', :'zh-CN')
+                 safe_localized_internal_url('https://a.b/projects', :'zh-CN')
     assert_equal 'https://a.b/en/projects',
-                 force_locale_url('https://a.b/zh-CN/projects', :en)
+                 safe_localized_internal_url('https://a.b/zh-CN/projects', :en)
     assert_equal 'https://a.b/fr/projects/1?criteria_level=2',
-                 force_locale_url(
+                 safe_localized_internal_url(
                    'https://a.b/projects/1?locale=ja&criteria_level=2', :fr
                  )
     assert_equal 'https://a.b/fr/projects/1?criteria_level=2',
-                 force_locale_url(
+                 safe_localized_internal_url(
                    'https://a.b/projects/1?criteria_level=2&locale=ja', :fr
                  )
   end
   class StubOctokitResult
-    attr_accessor :permissions
+    attr_accessor :permissions, :html_url
 
-    def initialize(admin, push, pull)
+    def initialize(admin, push, pull, url = 'https://github.com/test/repo')
       self.permissions = { admin: admin, push: push, pull: pull }
+      self.html_url = url
     end
   end
 
@@ -88,6 +93,25 @@ class SessionsHelperTest < ActionView::TestCase
         raise Octokit::NotFound
       end
     end
+
+    def repos(**_opts)
+      [
+        StubOctokitResult.new(true, true, true)
+      ]
+    end
+  end
+
+  class StubOctokitErrorClient
+    def initialize(**_params); end
+
+    def repos(**_opts)
+      raise Octokit::Unauthorized.new(
+        method: :get,
+        url: 'https://api.github.com/user/repos',
+        status: 401,
+        body: 'Bad credentials'
+      )
+    end
   end
 
   # Unit test 'github_user_projects_include?'.
@@ -96,6 +120,7 @@ class SessionsHelperTest < ActionView::TestCase
   # doesn't have that many, and we don't want to use real users for testing.
   # So we'll stub things out just enough to do a unit test.
   test 'unit test of github_user_projects_include?' do
+    @session_user_token = 'fake_token'
     assert github_user_can_push?(
       'https://github.com/ciitest/asdf', StubOctokitClient
     )
@@ -130,6 +155,34 @@ class SessionsHelperTest < ActionView::TestCase
     assert_nil get_github_path('http://githubs.com/asdf/1234')
   end
 
+  test 'valid_return_path? rejects invalid inputs' do
+    assert_not valid_return_path?(nil)
+    assert_not valid_return_path?('')
+    assert_not valid_return_path?({})              # non-string: would crash without is_a? check
+    assert_not valid_return_path?(['/good'])       # non-string array
+    assert_not valid_return_path?('http://evil.com/steal')   # absolute URL
+    assert_not valid_return_path?('javascript:alert(1)')     # JS scheme
+    assert_not valid_return_path?('//evil.com/steal')        # protocol-relative
+    assert_not valid_return_path?('/login')                  # bare login
+    assert_not valid_return_path?('/signup')                 # bare signup
+    assert_not valid_return_path?('/signout')                # bare signout (GET destroys session)
+    assert_not valid_return_path?('/en/login')               # locale + login
+    assert_not valid_return_path?('/fr/login')
+    assert_not valid_return_path?('/zh-CN/login')            # BCP 47 region variant
+    assert_not valid_return_path?('/en/signup')
+    assert_not valid_return_path?('/en/signout')
+    assert_not valid_return_path?('/en/login/')              # trailing slash
+    assert_not valid_return_path?('/en/login?x=1')           # with query string
+  end
+
+  test 'valid_return_path? accepts valid paths' do
+    assert valid_return_path?('/')
+    assert valid_return_path?('/en/projects/1/passing/edit')
+    assert valid_return_path?('/en/projects/1/passing/edit?description=foo')
+    assert valid_return_path?('/loginpage')    # login not at path boundary
+    assert valid_return_path?('/en/loginpage') # same with locale
+  end
+
   test 'unit test of valid_github_url' do
     assert valid_github_url? 'https://github.com/asdf/1234/'
     assert valid_github_url? 'https://github.com/asdf-123_/1234as-/'
@@ -144,5 +197,18 @@ class SessionsHelperTest < ActionView::TestCase
     assert_not valid_github_url? 'https://github.com/asdf/1234/?'
     assert_not valid_github_url? 'https://githubs.com/asdf/1234/'
   end
+
+  test 'github_user_projects returns list' do
+    @session_user_token = 'fake_token'
+    result = github_user_projects(StubOctokitClient)
+    assert_equal 1, result.length
+    assert_equal 'https://github.com/test/repo', result.first
+  end
+
+  test 'github_user_projects handles errors' do
+    @session_user_token = 'fake_token'
+    result = github_user_projects(StubOctokitErrorClient)
+    assert_equal [], result
+  end
 end
-# rubocop: enable Metrics/BlockLength
+# rubocop: enable Metrics/BlockLength, Metrics/ClassLength

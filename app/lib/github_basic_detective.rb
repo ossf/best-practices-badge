@@ -20,42 +20,20 @@ class GithubBasicDetective < Detective
   OUTPUTS = %i[
     name license discussion_status repo_public_status repo_track_status
     repo_distributed_status contribution_status implementation_languages
+    osps_do_02_01_status osps_gv_02_01_status
+    osps_ac_01_01_status
+    osps_qa_01_01_status osps_qa_01_02_status
   ].freeze
 
-  # These are the 'correct' display case for SPDX for OSI-approved licenses.
-  LICENSE_CORRECT_CASE = {
-    'APACHE-2.0' => 'Apache-2.0',
-    'ARTISTIC-2.0' => 'Artistic-2.0',
-    'BSD-3-CLAUSE' => 'BSD-3-Clause',
-    'BSD-2-CLAUSE' => 'BSD-2-Clause',
-    'EUDATAGRID' => 'EUDatagrid',
-    'ENTESSA' => 'Entessa',
-    'FAIR' => 'Fair',
-    'FRAMEWORX-1.0' => 'Frameworx-1.0',
-    'MIROS' => 'MirOS',
-    'MOTOSOTO' => 'Motosoto',
-    'MULTICS' => 'Multics',
-    'NAUMEN' => 'Naumen',
-    'NOKIA' => 'Nokia',
-    'POSTGRESQL' => 'PostgreSQL',
-    'PYTHON-2.0' => 'Python-2.0',
-    'CNRI-PYTHON' => 'CNRI-Python',
-    'SIMPL-2.0' => 'SimPL-2.0',
-    'SLEEPYCAT' => 'Sleepycat',
-    'WATCOM-1.0' => 'Watcom-1.0',
-    'WXWINDOWS' => 'WXwindows',
-    'XNET' => 'Xnet',
-    'ZLIB' => 'Zlib'
-  }.freeze
+  # This detective can override with high confidence for repo-based criteria
+  # name and implementation_languages are lower confidence (suggestions)
+  OVERRIDABLE_OUTPUTS = %i[
+    repo_track_status repo_distributed_status
+  ].freeze
 
   EXCLUDE_IMPLEMENTATION_LANGUAGES = [
     :HTML, :CSS, :Roff, :'DIGITAL Command Language'
   ].freeze
-
-  # Clean up name of license to be like the SPDX display.
-  def cleanup_license(license)
-    LICENSE_CORRECT_CASE[license.upcase] || license.upcase
-  end
 
   # Take JSON data of form {:language => lines_of_code, ...}
   # and return a cleaned-up string representing it.  We forcibly sort
@@ -82,7 +60,7 @@ class GithubBasicDetective < Detective
 
     results = {}
     # Has form https://github.com/:user/:name?
-    # e.g.: https://github.com/coreinfrastructure/best-practices-badge
+    # e.g.: https://github.com/ossf/best-practices-badge
     # Note: this limits what's accepted, otherwise we'd have to worry
     # about URL escaping.
     # rubocop:disable Metrics/BlockLength
@@ -91,31 +69,51 @@ class GithubBasicDetective < Detective
     ) do |m|
       # We have a github repo.
       results[:repo_public_status] = {
-        value: 'Met', confidence: 3,
-        explanation: 'Repository on GitHub, which provides ' \
-                     'public git repositories with URLs.'
+        value: CriterionStatus::MET, confidence: 3,
+        explanation: I18n.t('detectives.github.repo_public')
       }
       results[:repo_track_status] = {
-        value: 'Met', confidence: 4,
-        explanation: 'Repository on GitHub, which uses git. ' \
-                     'git can track the changes, ' \
-                     'who made them, and when they were made.'
+        value: CriterionStatus::MET, confidence: 4,
+        explanation: I18n.t('detectives.github.repo_track')
       }
       results[:repo_distributed_status] = {
-        value: 'Met', confidence: 4,
-        explanation: 'Repository on GitHub, which uses git. ' \
-                     'git is distributed.'
+        value: CriterionStatus::MET, confidence: 4,
+        explanation: I18n.t('detectives.github.repo_distributed')
       }
       results[:contribution_status] = {
-        value: 'Met', confidence: 2,
-        explanation: 'Projects on GitHub by default use issues and ' \
-                     'pull requests, as encouraged by documentation such as ' \
-                     '<https://guides.github.com/activities/' \
-                     'contributing-to-open-source/>.'
+        value: CriterionStatus::MET, confidence: 2,
+        explanation: I18n.t('detectives.github.contribution')
       }
       results[:discussion_status] = {
-        value: 'Met', confidence: 3,
-        explanation: 'GitHub supports discussions on issues and pull requests.'
+        value: CriterionStatus::MET, confidence: 3,
+        explanation: I18n.t('detectives.github.discussion')
+      }
+      # Baseline: public discussion mechanisms (same evidence as discussion_status)
+      results[:osps_gv_02_01_status] = {
+        value: CriterionStatus::MET, confidence: 3,
+        explanation: I18n.t('detectives.github.osps_gv_02_01')
+      }
+      # Baseline criteria - defect reporting instructions (low confidence)
+      results[:osps_do_02_01_status] = {
+        value: CriterionStatus::MET, confidence: 2,
+        explanation: I18n.t('detectives.github.osps_do_02_01')
+      }
+      # 2FA required by GitHub. An organization *might* use multiple repo
+      # hosts, but given our information, 2FA seems highly likely.
+      results[:osps_ac_01_01_status] = {
+        value: CriterionStatus::MET, confidence: 3,
+        explanation: I18n.t('detectives.github.osps_ac_01_01')
+      }
+      # Publicly readable, if we can read it. It's possible it's not current,
+      # but if this really is the "main" repo (as claimed) then this is met.
+      results[:osps_qa_01_01_status] = {
+        value: CriterionStatus::MET, confidence: 3,
+        explanation: I18n.t('detectives.github.osps_qa_01_01')
+      }
+      # If the main repo is on GitHub, then git will store this
+      results[:osps_qa_01_02_status] = {
+        value: CriterionStatus::MET, confidence: 3,
+        explanation: I18n.t('detectives.github.osps_qa_01_02')
       }
 
       # Get basic evidence
@@ -123,17 +121,14 @@ class GithubBasicDetective < Detective
       client = Octokit::Client.new
       return results unless client
 
-      # The special 'accept' value is required to get the GitHub-provided
-      # license analysis
-      accept_beta = 'application/vnd.github.drax-preview+json'
-      basic_repo_data = client.repository fullname, accept: accept_beta
+      basic_repo_data = client.repository fullname
 
       return results unless basic_repo_data
 
       if basic_repo_data[:name]
         results[:name] = {
           value: basic_repo_data[:name],
-          confidence: 3, explanation: 'GitHub name'
+          confidence: 3, explanation: I18n.t('detectives.github.name')
         }
       end
       if basic_repo_data[:description]
@@ -141,24 +136,19 @@ class GithubBasicDetective < Detective
           value: basic_repo_data[:description].gsub(
             /(\A|\s)\:[a-zA-Z]+\:(\s|\Z)/, ' '
           ).strip,
-          confidence: 3, explanation: 'GitHub description'
+          confidence: 3, explanation: I18n.t('detectives.github.description')
         }
       end
       # rubocop:enable Metrics/BlockLength
 
-      # We'll ask GitHub what the license is.  This is a "preview"
-      # API subject to change without notice, and doesn't do much analysis,
-      # but it's a quick win to figure it out.
-      license_data_raw = basic_repo_data[:license]
-      if license_data_raw && license_data_raw[:key].present?
-        # TODO: GitHub doesn't reply with the expected upper/lower case
-        # for SPDX; see:
-        # https://github.com/benbalter/licensee/issues/72
-        # For now, we'll upcase and then fix common cases.
-        license = cleanup_license(license_data_raw[:key])
+      # Ask GitHub what the license is. GitHub uses the licensee gem and
+      # returns the SPDX identifier in spdx_id with correct case.
+      # NOASSERTION means GitHub could not identify the license; skip it.
+      license_spdx_id = basic_repo_data[:license]&.dig(:spdx_id)
+      if license_spdx_id.present? && license_spdx_id != 'NOASSERTION'
         results[:license] = {
-          value: license,
-          confidence: 3, explanation: 'GitHub API license analysis'
+          value: license_spdx_id,
+          confidence: 3, explanation: I18n.t('detectives.github.license')
         }
       end
 
@@ -168,7 +158,7 @@ class GithubBasicDetective < Detective
       results[:implementation_languages] = {
         value: implementation_languages,
         confidence: 3,
-        explanation: 'GitHub API implementation language analysis'
+        explanation: I18n.t('detectives.github.implementation_languages')
       }
     end
 

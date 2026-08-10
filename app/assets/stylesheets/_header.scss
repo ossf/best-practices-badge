@@ -1,0 +1,324 @@
+// Header styles
+
+@import "variables";
+
+// LAYOUT STRATEGY - IMPORTANT FOR MAINTAINERS:
+// This navbar uses TWO DIFFERENT layout systems at different breakpoints:
+//
+// 1. NARROW WIDTHS (≤1200px): .navbar-header uses FLEXBOX
+//    - Purpose: Vertically center logo, progress bar, and hamburger button
+//    - Scope: ONLY .navbar-header element, rest uses Bootstrap 3 defaults
+//
+// 2. WIDE WIDTHS (>1200px): Uses FLOAT-BASED layout (Bootstrap 3's approach)
+//    - Purpose: Work WITH Bootstrap 3's float system, not against it
+//    - Scope: All navbar elements use floats
+//
+// These systems are NOT mixed - they switch cleanly at the 1200px breakpoint.
+// Do NOT add flexbox rules at wide widths or float rules inside .navbar-header
+// at narrow widths, as this will create layout conflicts.
+
+.nav-color {
+  background-color: #000;
+  padding-top: 10px;
+}
+
+// Navbar width adjustments
+.navbar.navbar-fixed-top {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.navbar .container-fluid {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.navbar nav {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  display: block;
+}
+
+// Override Bootstrap's navbar-brand negative margin,
+// #logo sets actual value
+.navbar-brand {
+  margin-left: 0;
+}
+
+// Ensure hamburger button has space from right edge
+.navbar-toggle {
+  margin-right: 10px;
+}
+
+// Progress bar in navbar (consolidated from projects.scss)
+.progress-mobile {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  width: 100px;
+  font-size: 0.9em;
+  margin-left: 10px;
+  margin-right: 20px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  margin-bottom: 0;
+}
+
+@media only screen and (min-width: $screen-sm-min) {
+  .progress-mobile {
+    width: 110px;
+  }
+}
+
+.nav.navbar-nav.navbar-right > li > a {
+  color: white;
+  font-size: 1.2em;
+  margin-right: 10px;
+  font-weight: bold;
+  &:hover {
+  color: #4791FF;
+  }
+}
+
+.dropdown-menu.reverse-dropdown {
+  background-color: #222;
+  &>li>a{
+    color: #fff;
+    // All items have checkmark content for alignment, but transparent by default
+    &::before {
+      content: "\2713\00a0";  // Checkmark + non-breaking space
+      color: transparent;  // Invisible but reserves space
+      font-weight: bold;
+    }
+    &:hover{
+    color: #4791FF;;
+    background-color: #000;
+    }
+  }
+  // Style active/current menu item (Bootstrap 3 standard approach)
+  &>li.active>a {
+    background-color: #000;
+    color: #4791FF;
+    font-weight: bold;
+    &:hover {
+      background-color: #000;
+      color: #4791FF;
+    }
+    // Make checkmark visible for active item
+    &::before {
+      color: #4791FF;  // Show the checkmark
+    }
+  }
+  &>.divider {
+    background-color: #000;
+  }
+}
+
+// Navbar header base styles (all widths)
+.navbar-header {
+  min-height: 50px;
+}
+
+// Progress bar positioning - two instances for different layouts
+// Collapsed version: shown when hamburger is displayed,
+// centered between logo and hamburger
+.navbar-progress-collapsed {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+
+  .progress-mobile {
+    margin: 0;
+  }
+}
+
+// Expanded version: shown at wide widths, in navbar-right list
+.navbar-progress-expanded {
+  display: none;  // Hidden by default (when hamburger shown)
+}
+
+#logo {
+  background: image-url('openssf_bestpracticesbadge.svg') no-repeat left center;
+  background-size: 30px 30px;
+  padding-left: 35px;  // Icon width (30px) + 5px spacing
+  margin-left: 10px;  // Small left margin for spacing
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #fff;
+}
+
+// Collapse navbar at widths below breakpoint to avoid wrapping
+// This overrides Bootstrap's default breakpoint
+@media (max-width: $navbar-collapse-breakpoint) {
+  .navbar-toggle {
+    display: block !important;
+  }
+  .navbar-collapse.collapse {
+    display: none !important;
+  }
+  .navbar-collapse.collapse.in {
+    display: block !important;
+  }
+
+  // FLEXBOX LAYOUT: Use flexbox to vertically center logo and hamburger
+  // At narrow widths, we need vertical centering
+  // which float-based layouts can't provide
+  .navbar-header {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+    float: none;
+
+    // Remove Bootstrap's clearfix pseudo-elements (they break flexbox)
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+
+  // When hamburger is displayed, always hide the expanded progress bar
+  .navbar-progress-expanded {
+    display: none !important;
+  }
+}
+
+// Medium screens: Keep items horizontal when hamburger menu is expanded
+@media (min-width: $screen-sm-min) and (max-width: $navbar-collapse-breakpoint) {
+  .navbar-collapse.collapse.in {
+    .navbar-nav {
+      float: right;
+    }
+    .navbar-nav > li {
+      float: left;
+    }
+    // Dropdowns in horizontal collapsed navbar should appear as overlays
+    .navbar-nav .dropdown-menu {
+      position: absolute;
+    }
+  }
+  // Reduce spacing and font size to fit all items including locale
+  .nav.navbar-nav.navbar-right > li > a {
+    font-size: 1em;
+    margin-right: 5px;
+  }
+  // Reduce horizontal padding to maximize space
+  .container.container_padding {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
+
+// Small screens: Items vertical when hamburger menu is expanded
+@media (max-width: $screen-xs-max) {
+  .navbar-nav {
+    float: none;
+  }
+  .navbar-nav > li {
+    float: none;
+  }
+  // Dropdowns in vertical navbar should flow inline, not overlay
+  .navbar-nav .dropdown-menu {
+    position: static;
+    float: none;
+    width: auto;
+    margin-top: 0;
+    background-color: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  // Indent dropdown items to show hierarchy
+  .navbar-nav .dropdown-menu > li > a {
+    padding-left: 30px;
+  }
+}
+
+// Reduce spacing on wider screens to maximize horizontal space
+@media (min-width: $navbar-collapse-breakpoint + 1px) {
+  // FLOAT-BASED LAYOUT: Switch from flexbox to Bootstrap 3's float system
+  // At wide widths, we work WITH Bootstrap's approach, not against it
+  // WARNING: Do NOT use flexbox here - it will conflict with Bootstrap's navbar
+  .navbar-header {
+    display: block;
+    float: left;
+    width: auto;
+
+    // Restore Bootstrap's clearfix for float-based layout
+    &::before,
+    &::after {
+      display: table;
+      content: " ";
+    }
+  }
+
+  .navbar-collapse {
+    display: block !important;
+  }
+
+  .navbar-collapse.collapse {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .nav.navbar-nav.navbar-right {
+    padding-right: 10px;
+  }
+
+  .nav.navbar-nav.navbar-right > li > a {
+    margin-right: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  // At wide widths, hide collapsed progress bar and show expanded one
+  .navbar-progress-collapsed {
+    display: none !important;
+  }
+
+  .navbar-progress-expanded {
+    display: list-item !important;  // Show as normal list item
+    margin-right: 15px;  // Space between progress bar and next item
+  }
+}
+
+// Small screen adjustments
+@media (max-width: $screen-sm-min) {
+  .nav-color {
+    padding-top: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  .nav.navbar-nav.navbar-right > li > a {
+    float: left;
+    display: inline-block;
+    font-size: 0.9em;
+    margin-right: 0;
+  }
+  .container.container_padding {
+    padding-top: 5px;
+    padding-bottom: 0;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  #logo {
+    font-size: 1.2em;
+  }
+}
+
+#logo:hover {
+  text-decoration: none;
+}

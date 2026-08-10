@@ -4,7 +4,6 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# rubocop: disable Metrics/ClassLength
 class PasswordResetsController < ApplicationController
   before_action :obtain_user, only: %i[edit update]
   before_action :require_valid_user, only: %i[edit update]
@@ -31,7 +30,7 @@ class PasswordResetsController < ApplicationController
   # going to go beyond what some might see as the minimum, and instead
   # do what we can to maximize our users' privacy.
   def create
-    @user = User.find_by(email: nested_params(:password_reset, :email),
+    @user = User.find_by(email: hash_param(:password_reset)[:email],
                          provider: 'local')
     if @user
       # NOTE: We send the password reset to the email address originally
@@ -49,7 +48,7 @@ class PasswordResetsController < ApplicationController
   # Updates an existing resource.
   # @return [void]
   def update
-    new_password = nested_params(:user, :password)
+    new_password = hash_param(:user)[:password]
     if new_password.nil? || new_password == ''
       @user.errors.add(:password, t('password_resets.password_empty'))
       render 'edit'
@@ -85,6 +84,11 @@ class PasswordResetsController < ApplicationController
     # Local password resets only make sense for local users
     return unless user.provider == 'local'
 
+    # Don't send resets to unactivated accounts. If they were
+    # created by a bot using someone else's email address, sending a
+    # reset would generate a second unsolicited email to that address.
+    return unless user.activated?
+
     # Once a password reset has been sent, wait at least
     # DELAY_BETWEEN_RESET_PASSWORDS before sending another so attackers
     # can't badger our users with password reset requests.
@@ -119,16 +123,4 @@ class PasswordResetsController < ApplicationController
     flash[:danger] = t('password_resets.reset_expired')
     redirect_to new_password_reset_url
   end
-
-  # Return params[outer][inner] but handle nil gracefully by returning nil.
-  # This makes it easier to avoid nil dereferences.
-  # @param outer [Object] The outer parameter key
-  # @param inner [Object] The inner parameter key within outer
-  def nested_params(outer, inner)
-    return if params.nil? || !params.key?(outer)
-    return unless params[outer].key?(inner)
-
-    params[outer][inner]
-  end
 end
-# rubocop: enable Metrics/ClassLength
