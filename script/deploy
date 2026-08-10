@@ -60,11 +60,41 @@ fi
 # The tip is what a deploy is about to copy, so this is a question about
 # the thing being deployed rather than about the branch in general.
 #
+# THE TIP IS RESOLVED WITH git ls-remote rather than by naming the branch
+# in the URL. The workflow-run query below can only be asked about a
+# commit, and resolving it here makes it the same commit the fetch at the
+# end of this script will copy.
+#
 # BOTH ENDPOINTS ARE ASKED, and neither is redundant. CircleCI's
-# "ci/circleci: static" is reported as a commit STATUS and never appears
-# among the check runs, while CodeQL, brakeman and codespell are check
-# RUNS and never appear among the statuses. Asking only for statuses once
-# called a commit green whose three CodeQL analyses had failed.
+# "ci/circleci: static" and Codecov's reports are commit STATUSES and
+# never appear among workflow runs, while CodeQL, brakeman, codespell,
+# the CI workflow, the SBOM and Scorecard are WORKFLOW RUNS and never
+# appear among the statuses. Asking only for statuses once called a
+# commit green whose three CodeQL analyses had failed.
+#
+# ONLY PUSH-TRIGGERED RUNS COUNT, which is why this asks for workflow
+# runs rather than for the commit's check runs. A check run is attached
+# to a commit by whoever creates it, and a SCHEDULED workflow attaches
+# its result to the default branch's tip, which is usually the very
+# commit being deployed. Our scheduled workflows, Renovate,
+# dependabot_review and heroku_ruby_versions, say nothing about whether
+# that commit is any good: on 2026-08-10 a failed weekly Renovate run,
+# whose whole job is to propose CircleCI image updates, refused a
+# production deploy of a staging commit that had passed everything.
+# "event=push" asks what ran BECAUSE of this commit. codeql.yml and
+# scorecard.yml are also scheduled, and their push run for this commit,
+# the one that answers the question, is the one this keeps.
+#
+# WHAT THAT GIVES UP: a check run from something other than GitHub
+# Actions would not be seen. Nothing else posts check runs here today,
+# and the outside services we do use, CircleCI and Codecov, report as
+# statuses, which the first URL covers.
+# THAT SAID, THE DEPLOY ITSELF IS GATED AGAIN. CircleCI runs "deploy"
+# only after "build" succeeds, so a miss here costs a stopped deploy
+# rather than a bad one: the branch moves, the suite runs on it, and
+# nothing reaches Heroku if it fails. What that does not cover is a
+# finding our own suite does not make, which is what such an app would
+# be added for.
 #
 # The grep pair is inverted on purpose: it reports anything that is not
 # "success" or "completed" rather than looking for known bad words, so a
@@ -81,8 +111,13 @@ fi
 # nothing, which here is the good case.
 checks_not_green() {
   branch="$1"
-  api="https://api.github.com/repos/ossf/best-practices-badge/commits/$branch"
-  checks=$(curl -sSf "$api/status" "$api/check-runs?per_page=100") || return 2
+  api='https://api.github.com/repos/ossf/best-practices-badge'
+  # An unreachable origin leaves this empty, since the exit status of a
+  # pipeline is the last command's, so the emptiness test is the check.
+  sha=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+  [ -n "$sha" ] || return 2
+  checks=$(curl -sSf "$api/commits/$sha/status" \
+    "$api/actions/runs?head_sha=$sha&event=push&per_page=100") || return 2
   printf '%s\n' "$checks" |
     grep -E '"(state|status|conclusion)":' |
     grep -vE '"(success|completed)"' || true

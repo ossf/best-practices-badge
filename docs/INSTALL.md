@@ -392,8 +392,10 @@ First ask GitHub whether `staging` passed. This needs no account, no
 token and no `jq`:
 
 ~~~~sh
-api=https://api.github.com/repos/ossf/best-practices-badge/commits/staging
-curl -sSf "$api/status" "$api/check-runs?per_page=100" |
+api=https://api.github.com/repos/ossf/best-practices-badge
+sha=$(git ls-remote origin refs/heads/staging | cut -f1)
+curl -sSf "$api/commits/$sha/status" \
+  "$api/actions/runs?head_sha=$sha&event=push&per_page=100" |
   grep -E '"(state|status|conclusion)":' | grep -vE '"(success|completed)"'
 ~~~~
 
@@ -402,6 +404,14 @@ green, so open the `staging` commit on GitHub and look before going
 further. Both URLs are needed: they report different things, and asking
 only the first would once have called a commit green whose CodeQL
 analyses had failed.
+
+The second URL asks for **push-triggered workflow runs**, not for the
+commit's check runs, and that distinction is the whole of it. A scheduled
+workflow hangs its result on the default branch's tip, which is normally
+the commit you are about to deploy, so the commit's check runs include
+our weekly Renovate and monthly Dependabot review jobs. Those report on
+proposed updates rather than on this commit, and a red one of them has no
+bearing on whether `staging` is fit for production.
 
 Then copy `staging` into `production`:
 
