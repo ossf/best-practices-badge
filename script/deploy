@@ -56,10 +56,9 @@ if [ "$#" -gt 1 ]; then
   exit 1
 fi
 
-# PRODUCTION WAITS FOR EVIDENCE. A staging deploy may legitimately start
-# before main's checks finish, because CircleCI tests the tree again on
-# the staging branch and the two suites then run in parallel. Production
-# has no such excuse, so refuse unless everything on staging passed.
+# ASK GITHUB WHETHER A BRANCH'S TIP PASSED, and print whatever did not.
+# The tip is what a deploy is about to copy, so this is a question about
+# the thing being deployed rather than about the branch in general.
 #
 # BOTH ENDPOINTS ARE ASKED, and neither is redundant. CircleCI's
 # "ci/circleci: static" is reported as a commit STATUS and never appears
@@ -69,25 +68,69 @@ fi
 #
 # The grep pair is inverted on purpose: it reports anything that is not
 # "success" or "completed" rather than looking for known bad words, so a
-# conclusion GitHub invents later stops the deploy instead of slipping
-# past. A null conclusion, meaning still running, stops it too.
+# conclusion GitHub invents later is caught instead of slipping past. A
+# null conclusion, meaning still running, is caught too.
 #
-# "|| exit 1" after the curl is not decoration. curl exits 22 when -f
-# meets an error, and without that the empty reply would look like an
-# empty list of problems, which is to say like success.
-require_staging_green() {
-  api=https://api.github.com/repos/ossf/best-practices-badge/commits/staging
-  checks=$(curl -sSf "$api/status" "$api/check-runs?per_page=100") || exit 1
-  not_green=$(printf '%s\n' "$checks" |
+# EXIT STATUS SAYS WHETHER THE QUESTION WAS ANSWERED, not whether the
+# answer was good: 0 means GitHub replied and any problems are on stdout,
+# 2 means the query itself failed. Callers must tell those apart. curl
+# exits 22 when -f meets an error, and treating that as an empty problem
+# list would read as success, which is the failure this shape prevents.
+#
+# The trailing "|| true" is needed because grep exits 1 when it matches
+# nothing, which here is the good case.
+checks_not_green() {
+  branch="$1"
+  api="https://api.github.com/repos/ossf/best-practices-badge/commits/$branch"
+  checks=$(curl -sSf "$api/status" "$api/check-runs?per_page=100") || return 2
+  printf '%s\n' "$checks" |
     grep -E '"(state|status|conclusion)":' |
-    grep -vE '"(success|completed)"')
-  if [ -z "$not_green" ]; then
-    echo 'Staging has passed everything.'
-  else
-    echo 'Refusing to deploy: staging has not passed everything.' >&2
-    printf '%s\n' "$not_green" >&2
-    echo 'Open the staging commit on GitHub to see what.' >&2
+    grep -vE '"(success|completed)"' || true
+  return 0
+}
+
+# PRODUCTION WAITS FOR EVIDENCE, so this refuses. A failed query refuses
+# too: not knowing is not the same as knowing it is fine, and production
+# is where that distinction is worth a stopped deploy.
+require_green() {
+  branch="$1"
+  if ! not_green=$(checks_not_green "$branch"); then
+    echo "Refusing to deploy: could not ask GitHub about $branch." >&2
     exit 1
+  fi
+  if [ -z "$not_green" ]; then
+    echo "$branch has passed everything."
+  else
+    echo "Refusing to deploy: $branch has not passed everything." >&2
+    printf '%s\n' "$not_green" >&2
+    echo "Open the $branch commit on GitHub to see what." >&2
+    exit 1
+  fi
+}
+
+# STAGING REPORTS RATHER THAN REFUSES. Staging is a test tier and
+# CircleCI runs the whole suite again there, so a deploy that starts
+# before main's checks finish simply runs two suites at once, which is
+# allowed on purpose. What is NOT wanted is deploying something red
+# without noticing, so say so and continue.
+#
+# A red main is not always a reason to stop: the point of staging is to
+# try things. Saying which checks are unhappy, and leaving the decision
+# where it already was, is the whole of this function's job.
+report_green() {
+  branch="$1"
+  if ! not_green=$(checks_not_green "$branch"); then
+    echo "Note: could not ask GitHub about $branch; deploying anyway."
+    return 0
+  fi
+  if [ -z "$not_green" ]; then
+    echo "$branch has passed everything."
+  else
+    echo "WARNING: $branch has not passed everything:"
+    printf '%s\n' "$not_green"
+    echo 'Some of those may still be running rather than failed.'
+    echo 'Deploying to staging anyway; CircleCI runs the suite again'
+    echo 'there. Check before promoting any of this to production.'
   fi
 }
 
@@ -181,11 +224,12 @@ report_on_local_main() {
 
 case "$target" in
   staging)
+    report_green "$source_branch"
     advance "$source_branch" "$target"
     report_on_local_main
     ;;
   production)
-    require_staging_green
+    require_green "$source_branch"
     advance "$source_branch" "$target"
     ;;
 esac

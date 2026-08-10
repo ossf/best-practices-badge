@@ -288,6 +288,13 @@ tier, and CircleCI runs the suite again on the staging branch, so
 starting a staging deploy while main is still being checked simply runs
 two suites at once.
 
+**It does tell you where `main` stands first.** Before copying anything
+it asks GitHub whether `main`'s tip passed, and says so either way. A
+check that is red, or still running, produces a warning and the deploy
+continues: staging is where you try things, so this reports rather than
+refuses. Only production refuses, and it refuses on a failed query too,
+because not knowing is not the same as knowing it is fine.
+
 **After it deploys, it tells you about your own `main`, if there is anything to
 say.** Behind GitHub, the usual case, it gives you the one command to
 catch up. Ahead of GitHub, which is what happens when you start work
