@@ -67,13 +67,28 @@
   // install rewrites it. Nothing reads the patchlevel to choose an
   // interpreter, and inventing a number we cannot know without running
   // the new Ruby would be worse than an obviously stale one.
+  // THE LOCK'S PATTERN ANCHORS ON "RUBY VERSION", NOT ON "^".
+  // Renovate compiles every matchString with the "g" flag and nothing
+  // else, in lib/modules/manager/custom/regex/strategies.ts, so "^" is
+  // the start of the FILE and not of a line. The .ruby-version pattern
+  // below survives that only because that file begins with the version.
+  // An "^\s+ruby" pattern can never match Gemfile.lock, which begins
+  // with "GEM", and a matchString that matches nothing says nothing:
+  // pull request 2941 duly changed .ruby-version alone, and it was rake
+  // ruby_version_matches_lock that caught it, not anything here.
+  //
+  // Anchoring on the literal stanza header needs no anchor at all, and
+  // cannot wander onto some other indented "ruby" line. "(?m)" would
+  // also work, but only while Renovate runs with RE2 loaded: native
+  // JavaScript rejects an inline flag group outright, so that fix would
+  // depend on which regex engine happened to be present.
   customManagers: [
     {
       customType: 'regex',
       managerFilePatterns: ['/^\\.ruby-version$/', '/^Gemfile\\.lock$/'],
       matchStrings: [
         '^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s*$',
-        '^\\s+ruby (?<currentValue>\\d+\\.\\d+\\.\\d+)',
+        'RUBY VERSION\\s+ruby (?<currentValue>\\d+\\.\\d+\\.\\d+)',
       ],
       depNameTemplate: 'ruby',
       datasourceTemplate: 'custom.heroku-ruby',

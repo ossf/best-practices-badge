@@ -96,6 +96,7 @@ STATIC_CHECKS = %w[
   dependabot_gems_check
   dependabot_ignore_review_check
   ruby_version_matches_lock
+  renovate_patterns_match
   html_from_markdown
   eslint
   report_code_statistics
@@ -757,6 +758,124 @@ task ruby_version_matches_lock: :no_rails do
     puts 'the wrong Ruby, or fails when Bundler finds the Gemfile asking'
     puts "for #{wanted}. Run \"bundle install\" and commit Gemfile.lock"
     puts 'alongside the .ruby-version change.'
+    exit 1
+  end
+end
+
+# A Renovate matchString that matches NOTHING is silent. The proposal
+# still arrives, carrying whatever the other patterns found, and the
+# file the dead pattern was meant to move is simply left behind.
+#
+# That is not hypothetical. Pull request 2941 changed .ruby-version
+# alone, because the lock's pattern began with "^", and Renovate
+# compiles matchStrings with the "g" flag and no "m" (see
+# lib/modules/manager/custom/regex/strategies.ts), so "^" there is the
+# start of the FILE and not of a line. Gemfile.lock begins with "GEM",
+# so the pattern could never match anything, ever, and nothing said so.
+# ruby_version_matches_lock above caught the consequence one pull
+# request later. This catches the cause before one is opened.
+#
+# THE ANCHORS ARE TRANSLATED RATHER THAN TRUSTED. Ruby's "^" and "$"
+# match at every line, so testing these patterns as Ruby reads them
+# would pass precisely the config Renovate ignores, which is the bug
+# itself. "\A" and "\z" are Ruby's beginning and end of data, which is
+# what "^" and "$" mean to Renovate.
+#
+# STATIC: the config and the files it names are both in the tree.
+RENOVATE_CONFIG = '.github/renovate.json5'
+
+# The string a JSON5 single-quoted literal denotes. A "\\d" in the file
+# is a backslash and a "d", which is what a regex engine must receive.
+def json5_strings(list)
+  list.scan(/'((?:[^'\\]|\\.)*)'/).flatten.map do |literal|
+    literal.gsub(/\\(.)/) { Regexp.last_match(1) }
+  end
+end
+
+# What "^" and "$" mean to Renovate, said the Ruby way.
+JS_ANCHORS = { '^' => '\A', '$' => '\z' }.freeze
+
+# A JavaScript regex source with its anchors translated. The ORDER of
+# the alternatives is the whole trick: an escape pair and a character
+# class are each consumed whole, before an "^" or "$" inside one can be
+# seen, so "\^" stays escaped and the "^" of "[^abc]" keeps negating.
+# Everything the pattern matches that is not an anchor maps to itself.
+def js_anchors_to_ruby(pattern)
+  pattern.gsub(/\\.|\[(?:\\.|[^\]])*\]|[\^$]/) do |token|
+    JS_ANCHORS.fetch(token, token)
+  end
+end
+
+# The tracked files a Renovate file pattern names. Slash delimiters
+# mark it as a regex, which is the only form this config uses.
+def renovate_matched_files(pattern, tracked)
+  inner = pattern[%r{\A/(.*)/\z}m, 1]
+  raise StandardError, "Not a regex file pattern: #{pattern}" if inner.nil?
+
+  tracked.grep(Regexp.new(js_anchors_to_ruby(inner)))
+end
+
+# File patterns that name no tracked file at all.
+def renovate_file_pattern_errors(file_patterns, tracked)
+  file_patterns
+    .reject { |pattern| renovate_matched_files(pattern, tracked).any? }
+    .map { |pattern| "file pattern #{pattern} names no tracked file" }
+end
+
+# matchStrings that match none of the files their manager was given.
+def renovate_match_string_errors(match_strings, files)
+  contents = files.map { |path| File.read(path) }
+  dead =
+    match_strings.reject do |pattern|
+      regexp = Regexp.new(js_anchors_to_ruby(pattern))
+      contents.any? { |text| regexp.match?(text) }
+    end
+  dead.map do |pattern|
+    "matchString #{pattern} matches nothing in #{files.join(', ')}"
+  end
+end
+
+# Every way one custom manager can be quietly doing less than it says:
+# a file pattern naming nothing, or a matchString matching none of the
+# files that manager was given.
+def renovate_manager_errors(file_patterns, match_strings, tracked)
+  files = file_patterns
+          .flat_map { |pattern| renovate_matched_files(pattern, tracked) }
+          .uniq
+  renovate_file_pattern_errors(file_patterns, tracked) +
+    renovate_match_string_errors(match_strings, files)
+end
+
+desc 'Check every Renovate matchString still matches something'
+task renovate_patterns_match: :no_rails do
+  puts "Checking #{RENOVATE_CONFIG} patterns match real files..."
+  raise StandardError, "Missing #{RENOVATE_CONFIG}" unless
+    File.exist?(RENOVATE_CONFIG)
+
+  config = File.read(RENOVATE_CONFIG)
+  tracked = `git ls-files`.split("\n")
+  # Paired by position, so a manager that lists its keys in the other
+  # order finds no pair and the raise below stops the build. Failing
+  # to read the config must not read as a config with nothing wrong.
+  managers = config.scan(
+    /managerFilePatterns:\s*\[(.*?)\].*?matchStrings:\s*\[(.*?)\]/m
+  )
+  raise StandardError, "No custom manager found in #{RENOVATE_CONFIG}" if
+    managers.empty?
+
+  errors =
+    managers.flat_map do |file_list, match_list|
+      renovate_manager_errors(
+        json5_strings(file_list), json5_strings(match_list), tracked
+      )
+    end
+
+  if errors.empty?
+    puts "All #{managers.length} custom manager(s) match real content."
+  else
+    errors.each { |error| puts "ERROR: #{error}" }
+    puts 'A pattern that matches nothing proposes nothing, silently.'
+    puts 'Remember Renovate anchors "^" and "$" to the whole FILE.'
     exit 1
   end
 end
