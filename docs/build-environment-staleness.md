@@ -2758,10 +2758,17 @@ does watch those branches, for the SBOM, so it did matter.
 
 What replaced the button is two `git` commands anyone with push rights
 can run, documented in
-[INSTALL.md](./INSTALL.md#deployment-instructions), with `rake
-deploy_staging` and `rake deploy_production` as thin wrappers around the
-same pair. One implementation, no new credential, and every
-push-triggered workflow still fires.
+[INSTALL.md](./INSTALL.md#deployment-instructions), with `script/deploy`
+as the thin wrapper around the same pair and `rake deploy_staging` and
+`rake deploy_production` as wrappers around that. One implementation, no
+new credential, and every push-triggered workflow still fires.
+
+The script sits between the commands and the rake tasks because rake
+cannot start without a complete bundle: `config/boot.rb` requires
+`bundler/setup` before a task is chosen, so a dependency update landing
+between `bundle install` runs stops every rake task, deploying included.
+That was tolerable when dependency updates were occasional and is not
+now that they arrive weekly.
 
 The analysis that follows is kept because it remains correct about what
 a button *would* need, should the trade ever look different.

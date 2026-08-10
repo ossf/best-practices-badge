@@ -826,170 +826,29 @@ task bundle_viz: :no_rails do
   sh 'bundle viz --version --requirements --format svg'
 end
 
-# Deploying is now purely a matter of advancing a branch.  The database
-# refresh used to happen here, which is why this task needed the Heroku
-# CLI and an interactive login on the developer's machine; it now runs
-# in the CircleCI deploy job on HEROKU_API_KEY, which never needs a
-# browser, and under maintenance mode rather than against a live site.
-# See .circleci/config.yml and docs/build-environment-staleness.md.
-# FETCHES ORIGIN'S main INTO LOCAL staging, THEN PUSHES THAT.
+# Deploying is advancing a branch, and the two git commands that do it
+# live in script/deploy rather than here.
 #
-# The fetch source is origin's main, never your local main, so an
-# unpushed commit of yours cannot reach staging.
+# WHY NOT HERE. Rake cannot start without a COMPLETE bundle: the Rakefile
+# requires config/boot.rb, which does "require 'bundler/setup'", and that
+# happens before any task is chosen, so it gates :no_rails tasks too.
+# Dependency updates now arrive weekly and every merged one leaves a local
+# bundle incomplete until "bundle install" runs, so a deploy that lived
+# here would fail exactly when somebody wanted to deploy in a hurry. The
+# script is plain sh and runs in a fresh clone with no gems.
 #
-# WHAT IT UPDATES LOCALLY, deliberately: your local "staging" branch is
-# created if absent and fast-forwarded if present, so "git log staging"
-# and "git diff staging" tell the truth after a deploy instead of
-# describing wherever staging sat when you last looked. In a full clone
-# the push updates "origin/staging" too; in a --single-branch or --depth
-# clone it does not, because that clone's refspec never mapped it.
-# Nothing else is touched: no other branch moves, the working tree is
-# left alone, and a dirty tree is fine.
-#
-# WHAT YOU CANNOT BE ON: "staging" itself. Git refuses to fetch into a
-# checked-out branch and stops with "refusing to fetch into branch". That
-# is a fair limitation, since staging is a branch to read rather than
-# work on, and the refusal is a useful signal that something odd is
-# going on.
-#
-# THE SECOND REFSPEC KEEPS "git status" HONEST. "+main:refs/..." updates
-# origin/main, which the first refspec does not, because an explicit
-# src:dst overrides the clone's configured refspec and so no
-# remote-tracking ref would be touched otherwise. Without it origin/main
-# goes stale as deploys succeed and "git status" on main stops reporting
-# how far behind you are. It writes to a remote-tracking ref rather than
-# to refs/heads/main, so it works even while you are standing on main.
-# The leading "+" is deliberate and the asymmetry is the point: a
-# tracking ref is a mirror of the remote, where a forced update is
-# normal, while "main:staging" stays unforced so a divergence stops the
-# deploy.
-#
-# THE "&&" IS THE SAFETY, more than it looks. If your local staging has
-# diverged, the fetch is REJECTED as a non-fast-forward and exits 1,
-# leaving the divergent commit in place; an unguarded push would then
-# send that commit to the deploy branch. Not passing --force is the other
-# half: the push refuses a non-fast-forward on the far end too.
-#
-# The same two commands are documented for people without a development
-# environment in docs/INSTALL.md.
-#
-# AFTER THE DEPLOY, IT REPORTS ON YOUR LOCAL main, and only when there is
-# something to say. The deploy has already happened by then, so nothing
-# here can delay or fail it. origin/main was just refreshed above, so
-# both comparisons are free and need no network, so it makes sense to
-# add the checks specifically *here* since within this command we *can*
-# know for certain what difference there is (if any) between the
-# remote origin's main and our local main.
-#
-# Behind is the ordinary case and only needs the cure. AHEAD IS NOT: it
-# means commits exist here and nowhere else, which is what happens when
-# you forget to branch before starting work, so it names them and offers
-# the way out. "git reset --keep" rather than "--hard" because it refuses
-# rather than discarding uncommitted changes.
-#
-# "--ff-only" ON THE SUGGESTED PULL LOOKS REDUNDANT AND IS NOT. This
-# message appears only when main is behind and not ahead, where a plain
-# "git pull" fast-forwards anyway. The flag is there for the reader's
-# configuration rather than for the ordinary case: with pull.rebase=true,
-# a common setting, a plain pull silently rewrites their commits if main
-# has diverged since this ran, and with pull.rebase=false it puts a merge
-# commit on main. Git's own default refuses either way, so this guards
-# against configuration, not against git.
-#
-# The heredoc below is unquoted, so keep Ruby out of it: no "#{...}", and
-# no backslash escapes, which Ruby would consume before the shell saw
-# them. deploy_production quotes its delimiter for exactly that reason.
+# These wrappers stay so "rake -T" still lists deploying and so the
+# command people already type keeps working. The reasoning about
+# fast-forwards, the unforced refspec, and why production waits for
+# evidence moved with the code; read script/deploy.
 desc 'Deploy current origin/main to staging'
 task deploy_staging: :no_rails do
-  # Shown as it runs, because these two commands ARE the deploy and are
-  # what someone without a development environment types instead.
-  sh 'git fetch origin main:staging +main:refs/remotes/origin/main && ' \
-     'git push origin staging'
-
-  # Reported quietly. "verbose(false)" keeps Rake from echoing this
-  # script, which is bookkeeping rather than anything anyone would run by
-  # hand, so the only thing that reaches the screen is a finding. It is a
-  # separate sh so a failed deploy above raises and this never runs,
-  # which is why nothing here needs "|| exit 1".
-  verbose(false) do
-    sh <<~SHELL
-      ahead=$(git rev-list --count origin/main..main 2>/dev/null || echo 0)
-      behind=$(git rev-list --count main..origin/main 2>/dev/null || echo 0)
-      if [ "$ahead" -gt 0 ]; then
-        echo
-        echo "WARNING: your local main has commits that are not on GitHub,"
-        echo 'so they are not reviewed, not tested and not deployed:'
-        git log --oneline origin/main..main
-        echo 'If you meant to work on a branch, move them onto one and put'
-        echo 'main back where GitHub has it:'
-        echo '  git branch SAVED-WORK main'
-        echo '  git switch main && git reset --keep origin/main'
-      elif [ "$behind" -gt 0 ]; then
-        echo
-        echo 'Your local main is out of date. To catch up:'
-        echo '  git switch main && git pull --ff-only'
-      fi
-    SHELL
-  end
+  sh 'script/deploy staging'
 end
 
-# Same shape as deploy_staging, one branch further along, so the same
-# notes apply: it reads origin's staging rather than your local one,
-# updates your local "production" branch so it tells the truth
-# afterwards, refuses if you are standing on "production", and relies on
-# the "&&" and on not passing --force to keep every step a
-# fast-forward.
-#
-# The one difference that matters: PRODUCTION WAITS FOR EVIDENCE. A staging
-# deploy may legitimately start before main's checks finish, because
-# CircleCI tests the tree again on the staging branch and the two suites
-# then run in parallel. Production has no such excuse, so this refuses
-# unless everything on staging passed.
-#
-# BOTH ENDPOINTS ARE ASKED, and neither is redundant. CircleCI's
-# "ci/circleci: static" is reported as a commit STATUS and never appears
-# among the check runs, while CodeQL, brakeman and codespell are check
-# RUNS and never appear among the statuses. Asking only for statuses
-# once called a commit green whose three CodeQL analyses had failed.
-#
-# The grep pair is inverted on purpose: it reports anything that is not
-# "success" or "completed" rather than looking for known bad words, so a
-# conclusion GitHub invents later stops the deploy instead of slipping
-# past. A null conclusion, meaning still running, stops it too.
-#
-# "|| exit 1" after the curl is not decoration. curl exits 22 when -f
-# meets an error, and without that the empty reply would look like an
-# empty list of problems, which is to say like success.
 desc 'Deploy current origin/staging to production'
 task deploy_production: :no_rails do
-  # The check is quiet, because how we ask is bookkeeping; what it found
-  # is not. Both arms say something: one line when staging is clean, and
-  # the refusal with the offending lines when it is not. Its own sh, so a
-  # refusal raises here and the deploy below is never reached, which is
-  # why the "if" no longer has to fall through to it.
-  verbose(false) do
-    sh <<~'SHELL'
-      api=https://api.github.com/repos/ossf/best-practices-badge/commits/staging
-      checks=$(curl -sSf "$api/status" \
-        "$api/check-runs?per_page=100") || exit 1
-      not_green=$(printf '%s\n' "$checks" |
-        grep -E '"(state|status|conclusion)":' |
-        grep -vE '"(success|completed)"')
-      if [ -z "$not_green" ]; then
-        echo 'Staging has passed everything.'
-      else
-        echo 'Refusing to deploy: staging has not passed everything.'
-        printf '%s\n' "$not_green"
-        echo 'Open the staging commit on GitHub to see what.'
-        exit 1
-      fi
-    SHELL
-  end
-
-  # Shown as it runs, like the staging deploy: these are the commands.
-  sh 'git fetch origin staging:production ' \
-     '+staging:refs/remotes/origin/staging && ' \
-     'git push origin production'
+  sh 'script/deploy production'
 end
 
 rule '.html' => '.md' do |t|

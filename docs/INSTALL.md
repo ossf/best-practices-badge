@@ -257,11 +257,19 @@ Deploying copies one branch into the next: `main` into `staging`, and
 later `staging` into `production`. CircleCI notices the push, runs the
 suite again, and deploys that branch to its tier.
 
-With a development environment, deploying to staging is the whole of it:
+Deploying to staging is one command:
 
 ~~~~sh
-rake deploy_staging
+script/deploy staging
 ~~~~
+
+`rake deploy_staging` does the same thing and still works. Prefer the
+script when you have the choice: rake cannot start without a **complete**
+bundle, because the Rakefile loads `config/boot.rb`, which requires
+`bundler/setup` before any task is chosen. Dependency updates arrive
+weekly, so any one of them that landed since your last `bundle install`
+stops `rake` entirely, and stops it exactly when you wanted to deploy.
+`script/deploy` is plain shell and needs no gems at all.
 
 That copies `main` **as it exists on GitHub** into `staging`, so an
 unpushed commit of your own cannot reach staging.
@@ -295,7 +303,7 @@ deploy.
 ### Deploying to staging without a development environment
 
 These two commands deploy to staging, and are exactly what
-`rake deploy_staging` runs to deploy to staging:
+`script/deploy staging` runs:
 
 ~~~~sh
 git fetch origin main:staging +main:refs/remotes/origin/main &&
@@ -357,14 +365,17 @@ A staging deploy may start before main's checks finish, because CircleCI
 tests the tree again on the staging branch. Production has no such excuse,
 so check that `staging` passed everything first.
 
-With a development environment:
+The command is:
 
 ~~~~sh
-rake deploy_production
+script/deploy production
 ~~~~
 
+`rake deploy_production` does the same and still works, with the same
+caveat about needing a complete bundle.
+
 That runs the check below, refuses to deploy if anything on `staging` is
-not green, and otherwise behaves like `rake deploy_staging` one branch
+not green, and otherwise behaves like `script/deploy staging` one branch
 along: it brings your local `production` up to date and cannot be run
 while `production` is checked out.
 
