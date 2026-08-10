@@ -67,6 +67,26 @@
   // install rewrites it. Nothing reads the patchlevel to choose an
   // interpreter, and inventing a number we cannot know without running
   // the new Ruby would be worse than an obviously stale one.
+  //
+  // THE VERSION IS "[\d.]+", the shape rake ruby_version_matches_lock
+  // already reads out of the lock, rather than a spelled out
+  // "\d+\.\d+\.\d+". Ruby has shipped no X.Y.Z.W yet, but the shape
+  // exists for a sub-patch release and would arrive unannounced, and
+  // one forgiving character class is cheaper than a component count
+  // kept in step in three files. It still stops before "p0", "p"
+  // being neither a digit nor a dot.
+  //
+  // PRERELEASES STAY OUT, and stay out SAFELY, which is the argument
+  // for this shape over the spelled out one. A .ruby-version of
+  // "3.4.0-preview1" matches nothing, the "-" falling outside the
+  // class, and rake renovate_patterns_match reports that dead pattern
+  // instead of leaving it to be noticed later. In the lock, "ruby
+  // 3.4.0.preview1" yields "3.4.0." WITH the trailing dot, which
+  // Gem::Version rejects outright, so Renovate has no version to
+  // compare and proposes nothing. "\d+\.\d+\.\d+" would instead
+  // capture a clean "3.4.0" there and rewrite just that, leaving
+  // "ruby 3.4.10.preview1" behind. Unparseable is the better failure.
+  //
   // THE LOCK'S PATTERN ANCHORS ON "RUBY VERSION", NOT ON "^".
   // Renovate compiles every matchString with the "g" flag and nothing
   // else, in lib/modules/manager/custom/regex/strategies.ts, so "^" is
@@ -87,8 +107,8 @@
       customType: 'regex',
       managerFilePatterns: ['/^\\.ruby-version$/', '/^Gemfile\\.lock$/'],
       matchStrings: [
-        '^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s*$',
-        'RUBY VERSION\\s+ruby (?<currentValue>\\d+\\.\\d+\\.\\d+)',
+        '^(?<currentValue>[\\d.]+)\\s*$',
+        'RUBY VERSION\\s+ruby (?<currentValue>[\\d.]+)',
       ],
       depNameTemplate: 'ruby',
       datasourceTemplate: 'custom.heroku-ruby',

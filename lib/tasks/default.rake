@@ -20,6 +20,7 @@
 require 'English'
 require 'json'
 require 'open3'
+require 'strscan'
 require 'yaml'
 require 'bundler'
 
@@ -784,12 +785,47 @@ end
 # STATIC: the config and the files it names are both in the tree.
 RENOVATE_CONFIG = '.github/renovate.json5'
 
-# The string a JSON5 single-quoted literal denotes. A "\\d" in the file
-# is a backslash and a "d", which is what a regex engine must receive.
-def json5_strings(list)
-  list.scan(/'((?:[^'\\]|\\.)*)'/).flatten.map do |literal|
-    literal.gsub(/\\(.)/) { Regexp.last_match(1) }
-  end
+# The string a JSON5 single-quoted literal denotes, quotes removed. A
+# "\\d" in the file is a backslash and a "d", which is what a regex
+# engine must receive.
+def json5_unquote(literal)
+  literal[1..-2].gsub(/\\(.)/) { Regexp.last_match(1) }
+end
+
+# The string literals of the array introduced by "<key>: [", read
+# QUOTE AWARE and stopping at the "]" that closes that array.
+#
+# A cheaper "\[(.*?)\]" was wrong, and wrong in the way this whole task
+# exists to catch: the Ruby patterns contain "[\d.]", so the lazy match
+# stopped at a "]" that closes nothing, the truncated text held no
+# complete literal, and the task then checked an empty list of patterns
+# and reported success. A reader that cannot read the config raises
+# instead, because silence is the failure being guarded against.
+# True once the separators and the closing "]" have been consumed.
+def json5_array_done?(scanner)
+  scanner.skip(/[\s,]+/)
+  !scanner.skip(/\]/).nil?
+end
+
+# The next literal of the array, or a raise. Anything that is not a
+# string literal here is config this task cannot read, and reading
+# nothing must not pass for finding nothing wrong.
+def json5_next_literal(scanner, key)
+  literal = scanner.scan(/'(?:[^'\\]|\\.)*'/)
+  raise StandardError, "Cannot read #{key} in #{RENOVATE_CONFIG}" if
+    literal.nil?
+
+  json5_unquote(literal)
+end
+
+def json5_string_array(text, key)
+  scanner = StringScanner.new(text)
+  raise StandardError, "No #{key} in #{RENOVATE_CONFIG}" unless
+    scanner.skip_until(/#{key}:\s*\[/)
+
+  strings = []
+  strings << json5_next_literal(scanner, key) until json5_array_done?(scanner)
+  strings
 end
 
 # What "^" and "$" mean to Renovate, said the Ruby way.
@@ -854,24 +890,26 @@ task renovate_patterns_match: :no_rails do
 
   config = File.read(RENOVATE_CONFIG)
   tracked = `git ls-files`.split("\n")
-  # Paired by position, so a manager that lists its keys in the other
-  # order finds no pair and the raise below stops the build. Failing
-  # to read the config must not read as a config with nothing wrong.
-  managers = config.scan(
-    /managerFilePatterns:\s*\[(.*?)\].*?matchStrings:\s*\[(.*?)\]/m
-  )
-  raise StandardError, "No custom manager found in #{RENOVATE_CONFIG}" if
-    managers.empty?
+  # One custom manager today, and this reads exactly one. A second
+  # would have to be read too rather than silently skipped, so say so
+  # here instead of quietly checking the first and passing.
+  found = config.scan(/matchStrings:\s*\[/).length
+  raise StandardError, "Expected 1 matchStrings block, found #{found}" unless
+    found == 1
 
-  errors =
-    managers.flat_map do |file_list, match_list|
-      renovate_manager_errors(
-        json5_strings(file_list), json5_strings(match_list), tracked
-      )
-    end
+  file_patterns = json5_string_array(config, 'managerFilePatterns')
+  match_strings = json5_string_array(config, 'matchStrings')
+  # An empty list passes every check below without checking anything.
+  raise StandardError, "Read no patterns from #{RENOVATE_CONFIG}" if
+    file_patterns.empty? || match_strings.empty?
+
+  errors = renovate_manager_errors(file_patterns, match_strings, tracked)
 
   if errors.empty?
-    puts "All #{managers.length} custom manager(s) match real content."
+    # The counts are here so that a run which read nothing cannot look
+    # like a run which found nothing wrong.
+    puts "All #{file_patterns.length} file pattern(s) and " \
+         "#{match_strings.length} matchString(s) match real content."
   else
     errors.each { |error| puts "ERROR: #{error}" }
     puts 'A pattern that matches nothing proposes nothing, silently.'
