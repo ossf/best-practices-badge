@@ -85,12 +85,23 @@ runs:
       # Verify: curl -s https://api.github.com/repos/actions/create-github-app-token/git/ref/tags/v3.2.0
       uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
       with:
-        # EXPECT A DEPRECATION WARNING HERE, and ignore it: the action
-        # annotates "app-id" with "Use 'client-id' instead.", which
-        # reads like a breakage and is not one. An App's id and client
-        # id are different strings, so switching means an ossf owner
-        # generating and storing a third secret. Revisit if it errors.
-        app-id: ${{ inputs.app-id }}
+        # AN APP ID, PASSED TO AN INPUT NAMED "client-id", on purpose.
+        # "app-id" still works, but it is deprecated, and the
+        # deprecation annotates every run twice, here and again in the
+        # post step, which is noise on top of any real finding.
+        #
+        # Switching LOOKS like it needs a third secret, the App's
+        # Client ID, which only an ossf owner could read. It does not.
+        # The action resolves
+        #   getInput("client-id") || getInput("app-id")
+        # and hands whichever it got to the JWT as "iss" without ever
+        # inspecting it, and GitHub accepts an App ID or a Client ID
+        # there. So the same numeric secret under the newer name is
+        # the whole change.
+        #
+        # Confirm that still holds when the pinned SHA below moves: it
+        # is how this version behaves, not something promised.
+        client-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.private-key }}
         # Omitting "owner" and "repositories" scopes the token to the
         # calling workflow's repository: one less name to keep current.
@@ -106,10 +117,31 @@ runs:
       if: failure() && steps.mint.outcome == 'failure'
       shell: bash
       run: |
-        echo 'The App could not issue a token with the permissions this'
-        echo 'workflow asked for. Usually that means'
-        echo 'openssf-badge-renovate is missing one of them, which only'
-        echo 'an ossf organization owner can add, in two steps: edit the'
-        echo 'App permissions, THEN approve the change on the'
-        echo 'installation, which does not happen automatically. See'
-        echo 'docs/build-environment-staleness.md.'
+        # ONE text, TWO destinations, which reach different readers.
+        # The step summary renders on the run page. The "::error::"
+        # annotation ALSO reaches the check-run annotations API, which
+        # is public, unlike the log this used to print to: fetching
+        # that needs repository admin. The first time this fired, the
+        # explanation was therefore unreadable by everyone except the
+        # few who could already have prevented it, while GitHub's
+        # unhelpful one-line refusal was visible to all.
+        #
+        # printf rather than echo, because echo takes a leading "-" as
+        # an option, and this text is punctuation-heavy.
+        message="$(
+          printf '%s\n' \
+            'The App could not issue a token with the permissions' \
+            'this workflow asked for. Usually that means' \
+            'openssf-badge-renovate is missing one of them, which' \
+            'only an ossf organization owner can add, in two steps:' \
+            'edit the App permissions, THEN approve the change on' \
+            'the installation, which does not happen automatically.' \
+            'See docs/build-environment-staleness.md.'
+        )"
+        printf '%s\n' "$message" >>"$GITHUB_STEP_SUMMARY"
+
+        # An annotation is a single line, so a newline has to travel
+        # as "%0A". Escape "%" FIRST, or it would escape the escapes.
+        annotation="${message//%/%25}"
+        printf '::error title=%s::%s\n' 'App token refused' \
+          "${annotation//$'\n'/%0A}"
