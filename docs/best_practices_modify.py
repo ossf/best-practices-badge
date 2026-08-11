@@ -30,7 +30,7 @@ In Firefox, go to Web Developer => Storage Inspector => Cookies.
 No matter what, select JUST the value of cookie `_BadgeApp_session`
 and copy it.
 
-One you have the cookie value copied into your clipboard, 
+One you have the cookie value copied into your clipboard,
 the recommended approach is to set the environment variable _BadgeApp_session
 to it. E.g., in sh:
 export _BadgeApp_session='VALUE_FROM_CLIPBOARD'
@@ -53,7 +53,7 @@ best_practices_modify.LOCAL_BASE_URL.
 # Python2 is "officially" unsupported but actually in wide use,
 # so we'll try to make it not hard to use Python2.
 # We'll import print_function, and use "+" to concatenate strings.
-# We haven't tested with Python2, so more changes are likely necessary. 
+# We haven't tested with Python2, so more changes are likely necessary.
 from __future__ import print_function
 
 import os, sys, re, json, urllib

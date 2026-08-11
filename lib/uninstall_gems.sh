@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
- 
+
 uninstall() {
   list=`gem list --no-versions`
   for gem in $list; do
@@ -8,7 +8,7 @@ uninstall() {
   gem list
   gem install bundler
 }
- 
+
 #rbenv versions --bare
 RBENVPATH=`rbenv root`
 echo $RBENVPATH
