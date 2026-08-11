@@ -129,7 +129,7 @@ executors:
       #
       # To watch a test in a browser instead, run your own container
       # without these two variables; see docs/testing.md.
-      - image: selenium/standalone-chrome:150.0.7871.124@sha256:9569014786466376d3e5cf8a7758562368cd9637f783dcd3abdb2eaf3a0d5cd7
+      - image: selenium/standalone-chrome:151.0.7922.108@sha256:cd778b6f38d99d1e14a05a767f576aff2face98d5202a2192d857614c265ec4d
         environment:
           SE_START_XVFB: "false"
           SE_START_VNC: "false"
