@@ -174,7 +174,7 @@ executors:
       #
       # Node 24 is the current LTS. The Heroku CLI we install below
       # requires node >=20.
-      - image: cimg/node:24.19.0@sha256:8966565f07189a67d64d6808a2b127f31dafae566508e3547f55640e1070bfad
+      - image: cimg/node:25.9.0@sha256:0168c52afe48f0f6040c81a77b37a7833ccdbcd2a30b887a0dd51301ee5bff47
 
 commands:
   prepare_ruby:
