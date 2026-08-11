@@ -172,16 +172,17 @@ executors:
       # can push to production, so carrying less here is worth a second
       # image.
       #
-      # The Heroku CLI we install below requires node, so install one
-      # for use when we use the Heroku CLI to deploy.
+      # Node 24 is the current LTS. The Heroku CLI we install below
+      # requires node >=20.
       #
-      # THIS IS NOT THE APPLICATION'S NODE as defined in package.json.
-      # The two are independent. This image only has to run the Heroku CLI.
-      # What the application runs is decided by
+      # THIS IS NOT THE APPLICATION'S NODE, however exactly the version
+      # below matches the one in package.json. The two are independent
+      # and the identical strings are a coincidence of both following
+      # the current LTS. What the application runs is decided by
       # package.json "engines", which the heroku/nodejs buildpack reads
-      # when it builds the slug on the dyno.
-      # So changing this version changes nothing that reaches
-      # production, while changing package.json would.
+      # when it builds the slug on the dyno; this image only has to run
+      # the Heroku CLI. So raising this changes nothing that reaches
+      # production, and raising package.json to match it would.
       #
       # Renovate proposes even numbered majors here and is configured
       # to skip odd ones, which Node never promotes to LTS. See the
