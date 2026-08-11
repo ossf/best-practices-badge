@@ -98,7 +98,7 @@ executors:
           # requires exactly "1".
           RAILS_SYSTEM_TESTING_SCREENSHOT_HTML: '1'
       # Secondary image - PostgreSQL for database
-      - image: cimg/postgres:16.4@sha256:2e4f1a965bdd9ba77aa6a0a7b93968c07576ba2a8a7cf86d5eb7b31483db1378
+      - image: cimg/postgres:16.14@sha256:df4498b72c473daf9777386a6f2caf8650081e260a0d9f7440eee53195ccafd4
         environment:
           POSTGRES_USER: ubuntu
           POSTGRES_DB: circle_ruby_test
