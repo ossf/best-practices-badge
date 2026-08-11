@@ -258,7 +258,7 @@ group :test do
   # to fail silently (tests don't run). Remove this constraint when
   # minitest-reporters releases a version compatible with minitest >= 6.0.
   # See: https://github.com/minitest-reporters/minitest-reporters/issues/336
-  gem 'minitest', '< 6.0'
+  gem 'minitest', '< 7.0'
   gem 'minitest-reporters', '< 1.9.0', require: false # Improve minitest output format
   gem 'minitest-retry', require: false # Retry- avoid Capybara false failures
   gem 'ostruct' # OpenStruct; future-proof for Ruby 3.5+
