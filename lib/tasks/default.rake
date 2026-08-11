@@ -421,6 +421,22 @@ end
 # Don't do whitespace checks on these YAML files:
 YAML_WS_EXCEPTIONS ||= ':!test/vcr_cassettes/*.yml'
 
+# SVG IS EXCLUDED BY NAME, rather than left for file(1) to judge.
+#
+# What this check is for is characters nobody can see in files people
+# edit. Our .svg files are exported artwork: nobody hand edits them, so
+# trailing whitespace in one is the exporter's business and not a bug
+# anyone could act on. Rewriting generated artwork to satisfy a linter
+# would be the wrong way round.
+#
+# Naming them also makes this check STACK INDEPENDENT for them, which
+# is what brought it up. The pipeline below keeps whatever file(1)
+# calls text, so the SCOPE moved with the operating system underneath:
+# file on heroku-24 says "SVG Scalable Vector Graphics image", which
+# does not match, and file on heroku-26 calls the same bytes text. So
+# the stack upgrade in pull request 2948 failed on trailing whitespace
+# that had been sitting in Thumbs_up.svg since 2016. A check listed
+# under STATIC_CHECKS should be settled by the commit.
 desc 'Check for trailing whitespace in all text files.'
 task whitespace_check: :no_rails do
   puts 'Checking for trailing whitespace...'
@@ -429,7 +445,7 @@ task whitespace_check: :no_rails do
   # files, use file to identify text files, then check for trailing whitespace
   # This won't handle filenames with \n but those shouldn't be in our repo!
   cmd = <<~SHELL
-    find . -type f ! -name ',*' \
+    find . -type f ! -name ',*' ! -name '*.svg' \
       ! -path './vendor/*' ! -path './node_modules/*' \
       ! -path './railroader/*' ! -path './tmp/*' ! -path './temp/*' \
       ! -path './.git/*' \
