@@ -275,10 +275,10 @@ GEM
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
     minitest (5.27.0)
-    minitest-reporters (1.7.1)
+    minitest-reporters (1.8.0)
       ansi
       builder
-      minitest (>= 5.0)
+      minitest (>= 5.0, < 7)
       ruby-progressbar
     minitest-retry (0.3.1)
       minitest (>= 5.0)
@@ -652,7 +652,7 @@ DEPENDENCIES
   mdl (= 0.13.0)
   memory_profiler (~> 1.1.0)
   minitest (< 6.0)
-  minitest-reporters (< 1.8.0)
+  minitest-reporters (< 1.9.0)
   minitest-retry
   multi_json (< 1.21.0)
   octokit (~> 7)
@@ -813,7 +813,7 @@ CHECKSUMS
   mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef
   mini_portile2 (2.8.9) sha256=0cd7c7f824e010c072e33f68bc02d85a00aeb6fce05bb4819c03dfd3c140c289
   minitest (5.27.0) sha256=2d3b17f8a36fe7801c1adcffdbc38233b938eb0b4966e97a6739055a45fa77d5
-  minitest-reporters (1.7.1) sha256=5060413a0c95b8c32fe73e0606f3631c173a884d7900e50013e15094eb50562c
+  minitest-reporters (1.8.0) sha256=8ce5280fb73ad3178ae525454df169b6f28c1b38b1d088ea91815d3a370ba384
   minitest-retry (0.3.1) sha256=9b8282c5c1684a04b330526b90f39e42b7cec1b91abf70af6526e64131df186f
   mixlib-cli (2.1.8) sha256=e6f27be34d580f6ed71731ca46b967e57793a627131c1f6e1ed2dad39ea3bdf9
   mixlib-config (3.0.27) sha256=d7748b1898e4f16502afec1de00b5ad65c6de405114b1b0c65ec61b1a9100148

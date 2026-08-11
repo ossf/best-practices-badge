@@ -259,7 +259,7 @@ group :test do
   # minitest-reporters releases a version compatible with minitest >= 6.0.
   # See: https://github.com/minitest-reporters/minitest-reporters/issues/336
   gem 'minitest', '< 6.0'
-  gem 'minitest-reporters', '< 1.8.0', require: false # Improve minitest output format
+  gem 'minitest-reporters', '< 1.9.0', require: false # Improve minitest output format
   gem 'minitest-retry', require: false # Retry- avoid Capybara false failures
   gem 'ostruct' # OpenStruct; future-proof for Ruby 3.5+
   # Note: Updating 'rails-controller-testing' to '1.0.5' causes failures
