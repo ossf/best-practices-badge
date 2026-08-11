@@ -418,50 +418,61 @@ task notice: :no_rails do
   puts
 end
 
-# Don't do whitespace checks on these YAML files:
-YAML_WS_EXCEPTIONS ||= ':!test/vcr_cassettes/*.yml'
+# WHAT COUNTS AS A TEXT FILE, DECIDED BY GIT.
+#
+# This used to walk the working tree, ask file(1) what each path was,
+# keep whatever it called text and drop whatever it called executable.
+# Three things were wrong with that.
+#
+# The SCOPE FOLLOWED THE OPERATING SYSTEM, because file(1) answers out
+# of a magic database that differs between releases. file on heroku-24
+# calls our artwork "SVG Scalable Vector Graphics image" and skipped
+# it; file on heroku-26 calls the same bytes text; so the stack upgrade
+# in pull request 2948 failed on whitespace committed in 2016. A check
+# listed under STATIC_CHECKS has to be settled by the commit.
+#
+# The EXECUTABLE EXEMPTION was meant for compiled files and never met
+# one. file says "ELF 64-bit LSB pie executable" for those, with no
+# "text" in it, so the first clause had already excluded them. What the
+# exemption actually removed was every editable script carrying the
+# execute bit: 43 tracked files, 20 of script/ among them.
+#
+# And the closing "xargs grep" had no "-0", so a path containing a
+# space was split into pieces, grep failed on them, and the error went
+# to /dev/null. Files with spaces in their names were never checked.
+#
+# "git grep -I" answers all three. The binary test is git's own, the
+# same on every machine and overridable per path; it knows nothing of
+# the execute bit; and no filename crosses a shell word boundary.
+#
+# TRACKED FILES ONLY, which is the point rather than a side effect: a
+# scratch file nobody has added is not ours to fix.
+#
+# NO LIST OF BINARY FORMATS IS NEEDED. 91 tracked PNGs hold byte
+# sequences that match this pattern, and "-I" drops every one, along
+# with the gif, jpg, ico and pdf. Only formats that really are text
+# need naming, which here means SVG.
+WHITESPACE_EXCLUDES = [
+  ':(exclude),*',                 # temporary files, by convention
+  ':(exclude)test/vcr_cassettes', # recorded fixtures, kept verbatim
+  # Exported artwork. Nobody hand edits it, so whitespace in one is the
+  # exporter's business, not a bug anyone could act on; rewriting
+  # generated files to satisfy a linter is the wrong way round.
+  #
+  # ".gitattributes" saying "*.svg binary" would also work, and is a
+  # bigger hammer than it looks: it turns every SVG change into
+  # "Bin 39200 -> 39201 bytes" in git diff and on GitHub. This
+  # exclusion belongs to this check, not to the whole repository.
+  ':(exclude)*.svg'
+].freeze
 
-# SVG IS EXCLUDED BY NAME, rather than left for file(1) to judge.
-#
-# What this check is for is characters nobody can see in files people
-# edit. Our .svg files are exported artwork: nobody hand edits them, so
-# trailing whitespace in one is the exporter's business and not a bug
-# anyone could act on. Rewriting generated artwork to satisfy a linter
-# would be the wrong way round.
-#
-# Naming them also makes this check STACK INDEPENDENT for them, which
-# is what brought it up. The pipeline below keeps whatever file(1)
-# calls text, so the SCOPE moved with the operating system underneath:
-# file on heroku-24 says "SVG Scalable Vector Graphics image", which
-# does not match, and file on heroku-26 calls the same bytes text. So
-# the stack upgrade in pull request 2948 failed on trailing whitespace
-# that had been sitting in Thumbs_up.svg since 2016. A check listed
-# under STATIC_CHECKS should be settled by the commit.
 desc 'Check for trailing whitespace in all text files.'
 task whitespace_check: :no_rails do
   puts 'Checking for trailing whitespace...'
-
-  # Find all files, exclude directories we don't want, exclude comma-prefixed
-  # files, use file to identify text files, then check for trailing whitespace
-  # This won't handle filenames with \n but those shouldn't be in our repo!
-  cmd = <<~SHELL
-    find . -type f ! -name ',*' ! -name '*.svg' \
-      ! -path './vendor/*' ! -path './node_modules/*' \
-      ! -path './railroader/*' ! -path './tmp/*' ! -path './temp/*' \
-      ! -path './.git/*' \
-      ! -path './log/*' ! -path './test/vcr_cassettes/*' \
-      ! -path './license_finder_report.html' \
-      ! -path './coverage/index.html' \
-      ! -path './test/html_reports/*' \
-      ! -path './public/assets/*' \
-      -print0 | \
-    xargs -0 file | \
-    awk -F': ' '$2 ~ /(text|script)/ && $2 !~ /(executable|binary)/ \
-      {print $1}' | \
-    xargs grep -l '[[:space:]]$' 2>/dev/null || true
-  SHELL
-
-  output = `#{cmd}`
+  # git grep exits 1 when it matches nothing, which is the good case
+  # here, so the output is what is judged rather than the status.
+  excludes = WHITESPACE_EXCLUDES.map { |path| "'#{path}'" }.join(' ')
+  output = `git grep -I -l -e '[[:space:]]$' -- #{excludes}`
 
   if output.empty?
     puts 'No trailing whitespace found.'
