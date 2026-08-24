@@ -69,7 +69,7 @@ executors:
       #
       # It runs as uid 1000 "heroku" with no sudo, so every step below
       # must work unelevated. That is why Ruby goes in $HOME.
-      - image: heroku/heroku:24-build@sha256:a6e743f508a2f37f90ddd551587c3a0776529219ae427296db8836fa9a680275
+      - image: heroku/heroku:24-build@sha256:b44b4780bc32416884ad3d908078e081a3ab45baf5dbf76fdfa6e857828b346b
         environment:
           PG_HOST: localhost
           PG_USER: ubuntu
@@ -150,7 +150,7 @@ executors:
   # sharing the prepare_ruby command.
   ruby-only:
     docker:
-      - image: heroku/heroku:24-build@sha256:a6e743f508a2f37f90ddd551587c3a0776529219ae427296db8836fa9a680275
+      - image: heroku/heroku:24-build@sha256:b44b4780bc32416884ad3d908078e081a3ab45baf5dbf76fdfa6e857828b346b
         environment:
           RAILS_ENV: test
           RACK_ENV: test
