@@ -439,6 +439,50 @@ if ! git config user.name > /dev/null ; then
 fi
 
 echo
+echo 'STAGE 8: Check for a browser to run headless system tests with'
+
+# This only applies to arm64 Linux. On x86_64 Linux (and on macOS,
+# arm64 included: Selenium Manager ships as a universal binary there),
+# Google Chrome plus Selenium Manager just works, so don't suggest
+# Chromium there - it would be a pointless extra install, and the
+# snap's own confinement quirks (see docs/INSTALL.md) aren't worth
+# taking on where they're not needed.
+arch="$(uname -m)"
+if [ -f /etc/os-release ] && grep -q '^NAME="Ubuntu"' /etc/os-release &&
+   { [ "$arch" = 'aarch64' ] || [ "$arch" = 'arm64' ]; } &&
+   ! is_command chromium && ! is_command chromium-browser &&
+   ! [ -e /snap/bin/chromium ] ; then
+  echo 'Ubuntu on arm64 detected, and no Chromium found.'
+  echo 'System tests need a browser, and on arm64 Linux, Google Chrome'
+  echo 'itself runs fine but Selenium can'"'"'t drive it: Selenium Manager'
+  echo 'is x86_64-only and never runs at all here, and Google only'
+  echo 'publishes arm64 chromedriver builds sporadically outside Stable.'
+  echo 'Suggest installing Canonical'"'"'s Chromium snap instead, which ships'
+  echo 'a matched browser + chromedriver pair for arm64:'
+  echo '  sudo snap install chromium'
+  echo 'test/application_system_test_case.rb auto-detects it there, so'
+  echo 'nothing else to configure (and do NOT set CHROME_BINARY to'
+  echo '/snap/bin/chromium; see docs/INSTALL.md for why). Only if you'
+  echo 'installed the snap somewhere nonstandard do you need to set'
+  echo '  export SE_CHROMEDRIVER=/path/to/chromedriver'
+  # Prefer ~/.bash_aliases when it's actually sourced (Ubuntu's default
+  # .bashrc does this) - it's the tidier place for one-off exports like
+  # this, kept separate from shell_init's own PATH/rbenv setup above.
+  # Falling back to shell_init avoids suggesting a file nothing reads.
+  init_target="$shell_init"
+  if [ -f "$HOME/.bash_aliases" ] && [ -n "$shell_init" ] &&
+     grep -q 'bash_aliases' "$shell_init" 2>/dev/null ; then
+    init_target="$HOME/.bash_aliases"
+  fi
+  if [ -n "$init_target" ] ; then
+    echo "yourself, added to $init_target so it persists across sessions."
+  else
+    echo 'yourself, added to your shell init file so it persists across'
+    echo 'sessions.'
+  fi
+fi
+
+echo
 echo 'FINAL STAGE: Test to see if it is working'
 
 # On initial setup the test in feed_test.rb will fail with an
