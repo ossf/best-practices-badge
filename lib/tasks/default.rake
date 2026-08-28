@@ -1123,7 +1123,7 @@ task drop_database: :no_rails do
 end
 
 desc 'Copy database from production into development (requires access privs)'
-task pull_production: :no_rails do
+task pull_production: :environment do
   puts 'Getting production database'
   Rake::Task['drop_database'].reenable
   Rake::Task['drop_database'].invoke
