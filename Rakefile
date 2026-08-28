@@ -131,6 +131,24 @@ def rake_rails_regexp
                /\bI18n\b/, *models.map { |m| /\b#{m}\b/ })
 end
 
+# Task names a body invokes by string, e.g. "Rake::Task['db:migrate']".
+# These bypass rake_needs_rails?'s walk of *declared* prerequisites: a
+# task can claim ':no_rails' and still reach into Rails at runtime this
+# way, and nothing catches it until the body actually runs and the name
+# does not exist yet, "don't know how to build task 'db:migrate'".
+def rake_body_task_refs(body)
+  body.scan(/Rake::Task\[\s*(['"])(.*?)\1\s*\]/).map(&:last)
+end
+
+# Does this task's body evidently need Rails: a direct reference (Rails,
+# ActiveRecord, a model, ...) or an invocation of a task that does, such
+# as "Rake::Task['db:migrate']" reaching past the declared prerequisites
+# that rake_needs_rails? would otherwise walk.
+def rake_body_needs_rails?(task, rails_re)
+  body = rake_task_body(task)
+  body.match?(rails_re) || rake_body_task_refs(body).any? { |r| rake_needs_rails?(r) }
+end
+
 # [tasks that answered nothing, tasks whose answer contradicts the body]
 def rake_marker_problems(names)
   rails_re = rake_rails_regexp
@@ -141,10 +159,13 @@ def rake_marker_problems(names)
     prereqs = task.prerequisites.map(&:to_s)
     next if prereqs.include?('environment')
 
-    if !prereqs.include?('no_rails')
+    if prereqs.include?('no_rails')
+      # A sibling prerequisite (like "test:ensure_assets") can already
+      # pull Rails in even though this task's OWN body does not need
+      # it; rake_needs_rails? walks that whole tree, so defer to it.
+      wrong << name if rake_body_needs_rails?(task, rails_re) && !rake_needs_rails?(name)
+    else
       unanswered << name
-    elsif rake_task_body(task).match?(rails_re)
-      wrong << name
     end
   end
 end
@@ -154,13 +175,13 @@ def audit_rake_markers!(names)
   return if unanswered.empty? && wrong.empty?
 
   message = ['Every task with a body must say whether it needs Rails.']
-  unless unanswered.empty?
+  if unanswered.any?
     message << "Says neither, add ': :environment' or ': :no_rails' to: " \
                "#{unanswered.sort.join(', ')}"
   end
-  unless wrong.empty?
-    message << "Claims ':no_rails' but the body uses Rails: " \
-               "#{wrong.sort.join(', ')}"
+  if wrong.any?
+    message << "Claims ':no_rails' but the body needs Rails, directly or " \
+               "by invoking a task that does: #{wrong.sort.join(', ')}"
   end
   raise message.join("\n  ")
 end
