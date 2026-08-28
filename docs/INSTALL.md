@@ -79,12 +79,58 @@ tools, e.g., at the command line:
 * <kbd>emerge install git</kbd> (Gentoo)
 * <kbd>brew install git</kbd> (MacOS)
 
-Also, install Chrome.
+Also, install Chrome (or Chromium; see below).
 It's not needed to *run* the software, but it's used for various headless tests
 so you need it to run some automated tests.
-The easy way to do this is to download it from
-<https://www.google.com/chrome>.
-Chromedriver is now managed by selenium.
+
+On x86_64 Linux, and on MacOS on either Intel or Apple Silicon (Selenium's
+own downloader ships as a universal binary there), the easy way is to
+download Chrome from <https://www.google.com/chrome>. Chromedriver is
+managed by Selenium, which downloads a matching driver automatically.
+On x86_64 Ubuntu this isn't required, but the Chromium snap described
+below (with the same `SE_CHROMEDRIVER` setup) works there too, if you'd
+rather use Chromium than Chrome.
+
+**On arm64 Linux, don't use Google's Chrome build.** Selenium's own
+downloader (Selenium Manager) ships as an x86_64-only binary on Linux and
+can't run at all on arm64, and Google doesn't reliably publish arm64
+Linux chromedriver builds outside its Dev/Canary channels.
+If you're using Ubuntu, install Canonical's Chromium snap instead, which
+ships a matched browser and chromedriver pair for arm64:
+
+~~~~sh
+sudo snap install chromium
+~~~~
+
+`test/application_system_test_case.rb` auto-detects this: on arm64 Linux,
+if `SE_CHROMEDRIVER` isn't already set, it points Selenium at
+`/snap/bin/chromium.chromedriver` itself, so it never tries (and fails)
+to resolve one another way. There's nothing to configure once the snap
+above is installed, and system tests fail immediately with a clear
+message if it isn't. Set `SE_CHROMEDRIVER` yourself only if you installed
+the snap somewhere nonstandard, or want a different chromedriver; add it
+to your shell init file so it persists: `~/.bash_aliases` if your
+`~/.bashrc` sources it (Ubuntu's default one does), otherwise `~/.bashrc`
+itself:
+
+~~~~sh
+export SE_CHROMEDRIVER=/snap/bin/chromium.chromedriver
+~~~~
+
+`SE_CHROMEDRIVER` is read directly by the `selenium-webdriver` gem, and
+takes precedence over the auto-detection above.
+
+**Don't also set a `CHROME_BINARY` pointing at `/snap/bin/chromium`.** That
+path is a symlink to `/usr/bin/snap`, which re-enters snap's privileged
+launch machinery; a strictly-confined process (chromedriver, in this case)
+isn't allowed to invoke that, and AppArmor denies it, so the browser fails
+to launch. Leave the browser binary unset and chromedriver finds its own
+bundled Chromium directly (e.g.
+`/snap/chromium/3506/usr/lib/chromium-browser/chrome`), inside its own
+confinement, without going through the wrapper.
+`test/application_system_test_case.rb` does support a `CHROME_BINARY`
+override for other cases (e.g. a non-snap Chrome install in a nonstandard
+location); just don't point it at a confined snap's wrapper.
 
 ## Forking the repo
 

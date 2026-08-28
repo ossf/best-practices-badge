@@ -115,13 +115,14 @@ class HerokuRubyAvailabilityTest < ActiveSupport::TestCase
         [%w[3.5.3], '3.5', -1, '3.5.3']
     }.each do |intent, (published, searched, after, expected)|
       publish(*published)
-      assert_equal(
-        expected,
-        HerokuRubyAvailability.highest_patch(
-          line: searched, after: after, stack: STACK
-        ),
-        "should find #{intent}"
+      actual = HerokuRubyAvailability.highest_patch(
+        line: searched, after: after, stack: STACK
       )
+      if expected.nil?
+        assert_nil actual, "should find #{intent}"
+      else
+        assert_equal expected, actual, "should find #{intent}"
+      end
     end
 
     # A bucket answering 200 to everything must not become a crawl.

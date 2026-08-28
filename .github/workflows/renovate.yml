@@ -39,7 +39,7 @@ jobs:
     steps:
       # Use harden-runner https://github.com/step-security/harden-runner
       # presented at OpenSSF Best Practices WG 2022-03-15
-      - uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: audit
 
@@ -80,7 +80,7 @@ jobs:
       - name: Renovate
         # Pin to commit SHA to prevent supply chain attacks via tag mutation.
         # Verify: curl -s https://api.github.com/repos/renovatebot/github-action/git/ref/tags/v46.2.1
-        uses: renovatebot/github-action@e09d604f8f803bb527bd8321ed5be06c460b8682 # v46.2.2
+        uses: renovatebot/github-action@5402b206248e5a8c8427a15102702eb9c1793efc # v46.2.4
         with:
           # Deliberately no "configurationFile". That input sets
           # Renovate's GLOBAL config, which is a different layer: it
