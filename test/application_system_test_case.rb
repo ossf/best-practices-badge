@@ -88,6 +88,35 @@ SELENIUM_OPTIONS =
     {}
   end
 
+# Selenium Manager (selenium-webdriver's own chromedriver resolver) ships
+# as an x86_64-only binary and cannot run at all on arm64 Linux. Left
+# alone it fails deep inside Selenium with "Syntax error: '(' unexpected"
+# instead of an explanation, ten seconds into the first test, which reads
+# as an unrelated failure. Rather than rely on a developer having set
+# SE_CHROMEDRIVER themselves (easy to forget, and it fails exactly this
+# way if forgotten), auto-detect the one setup docs/INSTALL.md
+# recommends - the Chromium snap - and fail fast with a clear message if
+# that is not present either. Skipped for SELENIUM_REMOTE_URL, which
+# never invokes Selenium Manager locally in the first place (see above).
+if SELENIUM_REMOTE_URL.nil? && ENV['SE_CHROMEDRIVER'].nil? &&
+   RUBY_PLATFORM == 'aarch64-linux'
+  snap_chromedriver = '/snap/bin/chromium.chromedriver'
+  unless File.executable?(snap_chromedriver)
+    raise StandardError, <<~MESSAGE
+      arm64 Linux detected, but no chromedriver is configured, and the
+      Chromium snap (the setup docs/INSTALL.md recommends) isn't
+      installed either.
+
+      Selenium Manager cannot resolve one itself here - it is x86_64-only
+      - so system tests cannot run without one. See docs/INSTALL.md for
+      how to install the Chromium snap, or set SE_CHROMEDRIVER yourself
+      if you already have a chromedriver elsewhere.
+    MESSAGE
+  end
+
+  ENV['SE_CHROMEDRIVER'] = snap_chromedriver
+end
+
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # DRIVER and SELENIUM_REMOTE_URL are independent, and all four
   # combinations work. DRIVER picks the browser: unset means
@@ -104,5 +133,12 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     # renderer process crashes, killing the browser session and cascading into
     # spurious errors in later tests. This flag is the standard fix.
     option.add_argument('disable-dev-shm-usage')
+    # On arm64 Linux, Selenium Manager's bundled resolver binary is
+    # x86_64-only and cannot run at all, and Google publishes no reliable
+    # arm64 chromedriver on the Stable channel. CHROME_BINARY lets a
+    # matched browser (e.g. the Chromium snap) be pointed at directly,
+    # skipping that resolution. See docs/INSTALL.md.
+    chrome_binary = ENV.fetch('CHROME_BINARY', nil)
+    option.binary = chrome_binary if chrome_binary
   end
 end

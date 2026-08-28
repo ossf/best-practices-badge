@@ -4,7 +4,7 @@ This file provides guidance to an AI assistant when working with the code in thi
 
 ## Project Overview
 
-This is the **OpenSSF Best Practices Badge** project (formerly CII Best Practices Badge) - a Rails web application that helps FLOSS projects self-certify that they meet security and quality best practices. The application provides a badging system with three "metal" levels (passing, silver, and gold) and three "baseline" levels (1, 2, and 3).
+This is the **OpenSSF Best Practices Badge** project (formerly CII Best Practices Badge), a Rails web application that helps FLOSS projects self-certify that they meet security and quality best practices. The application provides a badging system with "metal" levels (passing, silver, and gold) and "baseline" levels (1, 2, and 3).
 
 This software is open source software. The production site running this code is extremely busy and always under attack. High performance and strong security are required. Minimize creating new objects after initialization, as unchecked memory growth leads to crashes.
 
@@ -182,7 +182,7 @@ The file `docs/assurance-case.md` explains why we *believe* this is secure.
 
 - **CDN Integration**: Fastly CDN for badge images and static assets
 - **Database Optimization**: Careful indexing, connection pooling
-- **Pagination**: Uses `pagy` gem (currently v9.4.0)
+- **Pagination**: Uses `pagy` gem
 - **Asset Pipeline**: Rails asset pipeline with Sass compilation
 
 ### Background Jobs

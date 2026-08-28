@@ -145,7 +145,7 @@ gem 'paper_trail', '~> 17.0' # Record previous versions of project data
 gem 'pg', '~> 1.4' # PostgreSQL database, used for data storage
 gem 'pg_search', '~> 2.3' # PostgreSQL full-text search
 gem 'puma', '~> 8.0' # Faster webserver; recommended by Heroku
-gem 'rack', '~> 3.2.3' # interface between web server + web framework (Rails)
+gem 'rack', '~> 3.2.7' # interface between web server + web framework (Rails)
 gem 'rack-attack', '~> 6.8' # Implement rate limiting
 gem 'rack-cors', '~> 3.0' # Enable CORS so JavaScript clients can get JSON
 gem 'rack-headers_filter', '~> 0.0.1' # Filter out "dangerous" headers
@@ -188,7 +188,7 @@ group :development, :test do
   # Removed pronto gems - comprehensive linting now handled by rake default
   gem 'rails_best_practices', '~> 1.23', require: false # Code quality
   # gem 'railroader', '4.3.8' # Security static analyzer. OSS fork of Brakeman
-  gem 'rubocop', '1.88.2', require: false # Style checker
+  gem 'rubocop', '1.89.0', require: false # Style checker
   gem 'rubocop-performance', '~> 1.20', require: false # Performance cops
   gem 'rubocop-rails', '2.33.4', require: false # Rails-specific cops
   gem 'ruby-graphviz', '1.2.5' # This is used for bundle viz

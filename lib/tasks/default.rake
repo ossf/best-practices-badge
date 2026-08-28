@@ -127,9 +127,22 @@ DYNAMIC_CHECKS = %w[
 # Everything, which is what a developer wants from one word, and what
 # runs on a machine with no CI to split the work across. Defined from
 # the two halves so it cannot drift from what CI actually runs.
-task(:default).clear.enhance(
-  %w[notice whitespace_check] + %w[static_checks dynamic_checks]
-)
+DEFAULT_TASKS = %w[notice whitespace_check static_checks dynamic_checks].freeze
+task(:default).clear.enhance(DEFAULT_TASKS)
+
+# Rails' own railties/lib/rails/test_unit/testing.rake, loaded by the
+# Rakefile's later "Rails.application.load_tasks", does "task default:
+# :test". That "task" call does not know :default is already ours: Rake
+# merges prerequisites for a task defined twice rather than replacing
+# them, so it silently appends :test after DEFAULT_TASKS instead of
+# overriding it. The symptom was "rake" quietly running the regular test
+# suite a second time (via Rails' in-process runner, so with none of
+# test:optimized's output) after everything else had already passed.
+# Reasserting our own list here, once Rails has had its say, is what
+# undoes that append. See the Rakefile for after_rails_tasks.
+after_rails_tasks do
+  task(:default).clear.enhance(DEFAULT_TASKS)
+end
 
 desc 'Checks settled by the commit; CI runs these in a parallel job'
 task(:static_checks).clear.enhance(PREFLIGHT + STATIC_CHECKS)
@@ -1110,7 +1123,7 @@ task drop_database: :no_rails do
 end
 
 desc 'Copy database from production into development (requires access privs)'
-task pull_production: :no_rails do
+task pull_production: :environment do
   puts 'Getting production database'
   Rake::Task['drop_database'].reenable
   Rake::Task['drop_database'].invoke

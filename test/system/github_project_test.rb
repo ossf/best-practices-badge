@@ -25,6 +25,17 @@ class GithubProjectTest < ApplicationSystemTestCase
       num = ActionMailer::Base.deliveries.size
       click_link 'Log in with GitHub'
 
+      # The mocked OmniAuth flow redirects through /auth/github and its
+      # callback with no real network latency between hops, so without
+      # this Capybara can poll mid-redirect and hand Selenium a node
+      # reference from a document that's already been replaced -
+      # ChromeDriver then raises "unknown error: unhandled inspector
+      # error: Node with given id does not belong to the document"
+      # instead of the missing-content error Capybara would normally
+      # retry on. Settling on document.readyState first (which reflects
+      # whatever page is current rather than caching a node) avoids that.
+      wait_for_page_load
+
       # When re-recording cassetes you must use DRIVER=chrome
       # Github has an anti bot mechanism that requires real mouse movement
       # to authorize an application.

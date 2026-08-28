@@ -159,6 +159,13 @@ updates:
       gems-patch:
         patterns:
           - "*"
+        exclude-patterns:
+          # Same reasoning as gems-minor below: we're sensitive to any
+          # rubocop-family change, patch included, so these always arrive
+          # on their own.
+          - "rubocop"
+          - "rubocop-rails"
+          - "rubocop-performance"
         update-types:
           - "patch"
       # MINOR BUMPS ARE BATCHED ONLY WHERE SEMVER IS TRUSTWORTHY. The
@@ -186,8 +193,11 @@ updates:
         exclude-patterns:
           # Exact-pinned in the Gemfile
           - "mdl"
+          # Any update to rubocop tends to break builds since we require
+          # its rules to pass, so even a minor update isn't minor for us
           - "rubocop"
           - "rubocop-rails"
+          - "rubocop-performance"
           - "ruby-graphviz"
           - "sprockets-rails"
           - "translation"
