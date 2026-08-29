@@ -1,0 +1,70 @@
+#!/bin/sh
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
+# Gathers a large amount of read-only Heroku/Postgres diagnostic
+# information about staging-bestpractices and production-bestpractices,
+# and prints it to stdout. Every command here is a "get"/"info"/"list"
+# style command; none of them change anything on Heroku (no
+# maintenance:on/off, no scale, no config:set, no pg:upgrade:run or
+# pg:upgrade:prepare, no data:maintenances:run). Safe to run as many
+# times as you like, at any time, including while an upgrade is
+# actually in progress.
+#
+# A command failing, or not applying to a given app (e.g. a
+# Standard-tier-only maintenance command run against staging's
+# Essential-tier database), is itself useful information, so this keeps
+# going rather than stopping at the first one: every command's exit
+# status is printed alongside its output.
+#
+# Usage:
+#   script/gather_postgres_state > ,postgres-state
+# (or any other comma-prefixed filename of your choosing)
+
+set -u
+
+if ! heroku whoami >/dev/null 2>&1; then
+  echo "Not logged into Heroku ('heroku whoami' failed). Run" >&2
+  echo "'heroku login' first." >&2
+  exit 1
+fi
+
+echo "Gathered: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+echo "heroku CLI: $(heroku --version)"
+
+# Runs CMD, labeled, tolerating failure: a command that fails or does
+# not apply to this app/tier is informative on its own, not a reason to
+# stop gathering everything else.
+run() {
+  echo
+  echo "=== $* ==="
+  "$@" 2>&1
+  echo "(exit: $?)"
+}
+
+for app in staging-bestpractices production-bestpractices; do
+  echo
+  echo "########################################"
+  echo "# ${app}"
+  echo "########################################"
+
+  run heroku apps:info --app "$app"
+  run heroku pg:info --app "$app"
+  run heroku addons --app "$app"
+  run heroku ps --app "$app"
+  run heroku config:get SYSTEM_ANNOUNCEMENT --app "$app"
+  run heroku data:maintenances --app "$app" --json
+  run heroku data:maintenances:info DATABASE --app "$app"
+  run heroku data:maintenances:history DATABASE --app "$app" --num 20 --json
+  run heroku data:maintenances:window DATABASE --app "$app"
+  # Timed out, not left to run unbounded: this is meant to be a quick
+  # snapshot, and "blocks until the operation is complete" could mean a
+  # long wait if something unexpected actually is in progress right now.
+  run timeout 30 heroku pg:upgrade:wait DATABASE_URL --app "$app" --no-notify
+  run heroku pg:backups --app "$app"
+  run heroku releases --app "$app" -n 15
+done
+
+echo
+echo "Done gathering. Nothing above changed any Heroku setting."
