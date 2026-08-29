@@ -1,0 +1,476 @@
+#!/bin/sh
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+
+# Moves both staging-bestpractices and production-bestpractices up by
+# one Postgres major version: prove the new version in CI and on
+# staging's deployed code first, then move staging's real database,
+# then repeat the same proof-then-move order for production.
+#
+# Meant to be run by a human directly, already logged into Heroku, with
+# git already able to reach GitHub (this VM's own credential helper
+# handles that; see git config --get credential.helper): every command
+# here just runs, the same as typing it yourself, with ordinary
+# authorization happening the ordinary way (Heroku's --confirm). A
+# failing command stops the script rather than being silently skipped
+# past. Nothing here uses gh: it would need its own separate
+# authentication, and git alone can already answer the one question
+# that matters, whether main's CI pin is at the target version yet.
+#
+# One question, not a menu of steps: "skip straight to the production
+# update?" Answer yes if you already got production through
+# pg:upgrade:prepare in an earlier run (or that run died partway) and
+# just need the actual cutover. Otherwise it runs straight through:
+# wait for the CI pin PR to be merged (checked directly via git, so you
+# do the merging on GitHub yourself), deploy staging, upgrade staging's
+# database, deploy production, prepare production's upgrade, and block
+# on Heroku's own pg:upgrade:wait until that is ready, before reaching
+# the same cutover. Every command up to that point is safe to re-run
+# from scratch (a deploy with nothing new to push, or an upgrade
+# against an already-upgraded database, both fail or no-op cleanly
+# rather than doing anything) so there is no per-step bookkeeping to
+# get wrong.
+#
+# The one thing that is NOT free to repeat once done is the actual
+# cutover below: maintenance:on and ps:scale web=0 really do take the
+# site down again if run a second time, even though the pg:upgrade:run
+# at the end of it would then just fail harmlessly ("already at that
+# version"). That is also why this pauses right before it, rather than
+# running it the instant pg:upgrade:wait returns: you choose the moment
+# production actually goes down, not a background wait on some
+# unattended schedule.
+#
+# A heads-up banner (SYSTEM_ANNOUNCEMENT) goes up on production before
+# any of that, as the very first thing this script does, and comes down
+# only at the very last line, once everything has actually succeeded.
+# It deliberately does not track "is production done" on its own: any
+# early exit anywhere above, on any failure or unmet check, leaves it
+# set, because the work genuinely is not finished yet.
+#
+# Usage:
+#   script/upgrade_postgres_version VERSION
+#
+# Set RUN=echo to dry-run: every command that changes something
+# (deploying, upgrading a database, toggling maintenance) gets printed
+# instead of executed, while read-only checks (pg:info, curl, the git
+# checks below) still run for real, since they are harmless and showing
+# you real state is the point of a dry run. Leave RUN unset for the
+# real thing.
+
+set -eu
+
+RUN=${RUN:-}
+
+version=${1:-}
+case "$version" in
+  ''|*[!0-9]*)
+    echo "usage: script/upgrade_postgres_version VERSION" >&2
+    echo "VERSION must be a number, e.g. 17, got '${version}'." >&2
+    exit 1
+    ;;
+esac
+
+# Fails fast, before touching anything, rather than discovering it
+# eleven commands in: RUN is the intended way to preview without real
+# credentials, so if it is unset, this had better actually be able to
+# reach Heroku for real. heroku whoami, not a check for HEROKU_API_KEY,
+# because most logins here go through "heroku login" (stored in
+# ~/.netrc), not that env var, and this needs to accept either.
+if [ -z "$RUN" ] && ! heroku whoami >/dev/null 2>&1; then
+  echo "Not logged into Heroku ('heroku whoami' failed), and RUN is" >&2
+  echo "not set for a dry run. Run 'heroku login', or set RUN=echo to" >&2
+  echo "preview without touching anything." >&2
+  exit 1
+fi
+
+# A plain "keep going?" checkpoint for the handful of things nothing
+# here can verify from a command line: a human reading a CircleCI log
+# for a specific string (no CircleCI API token is configured here), or
+# judging a web page with their own eyes.
+pause() {
+  printf '\n%s\nPress Enter to continue, or Ctrl-C to stop here.\n' "$1"
+  IFS= read -r _ || exit 1
+}
+
+# script/deploy always fetches origin's CURRENT source branch at push
+# time (see its own comments), so a stale local branch cannot make it
+# deploy the wrong commit; this is about keeping the local checkout
+# honest, not about deploy correctness. Fast-forward only, exactly like
+# script/deploy's own advance(): a divergence (local commits that
+# never got pushed) stops here rather than being silently discarded.
+sync_local_branch() {
+  branch=$1
+  if [ "$(git branch --show-current)" = "$branch" ]; then
+    git fetch origin "$branch"
+    sync_cmd="git merge --ff-only origin/${branch}"
+  else
+    sync_cmd="git fetch origin ${branch}:${branch}"
+  fi
+  if ! sh -c "$sync_cmd"; then
+    echo "Local ${branch} has diverged from origin/${branch} and" >&2
+    echo "can't fast-forward (probably unpushed local commits on" >&2
+    echo "${branch}). Resolve that by hand, then re-run." >&2
+    exit 1
+  fi
+}
+
+smoke_test() {
+  host=$1
+  curl -sS -o /dev/null -w 'HTTP %{http_code}\n' \
+    "https://${host}/projects/1.json?upgrade_check=$(date +%s)-$$" \
+    || echo "(that check did not run; verify by hand.)"
+}
+
+# APP's current Postgres version (e.g. "17.9"), or empty if it could
+# not be read. Checked before every pg:upgrade:run/prepare below:
+# Heroku refuses outright ("database upgrade is not possible because
+# the database is already on Postgres X") if it is already at the
+# target version, and that refusal is exactly the kind of thing this
+# script should notice and skip past on its own rather than crash on,
+# the same reasoning as the CI-pin check above.
+pg_version_of() {
+  heroku pg:info --app "$1" 2>/dev/null | grep -i '^PG Version:' \
+    | sed -E 's/^PG Version:[[:space:]]*//'
+}
+
+# Confirms APP eventually reports EXPECTED via pg:info, retrying first
+# rather than checking once. Learned the hard way, from a real
+# production upgrade: pg:info's reported PG Version can lag behind the
+# database's true state for well over ten minutes after Heroku's own
+# maintenance record already shows the upgrade "completed" (undocumented
+# anywhere; this script wrongly declared that real upgrade failed, took
+# production down further to "investigate", and it turned out to have
+# actually succeeded the whole time). Sets pg_actual to whatever was
+# last seen (or a placeholder if pg:info itself could not be reached),
+# so the caller can report it either way. Returns 0 once EXPECTED shows
+# up, 1 if it never does within the budget (20 tries, 60s apart: about
+# twenty minutes, comfortably past the lag actually observed).
+wait_for_pg_version() {
+  app=$1
+  expected=$2
+  attempt=0
+  max_attempts=20
+  while :; do
+    if info=$(heroku pg:info --app "$app" 2>&1); then
+      pg_actual=$(printf '%s\n' "$info" | grep -i '^PG Version:' \
+        | sed -E 's/^PG Version:[[:space:]]*//')
+      case "$pg_actual" in
+        "${expected}".*)
+          printf '%s\n' "$info"
+          return 0
+          ;;
+      esac
+    else
+      pg_actual="(could not reach Heroku)"
+    fi
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge "$max_attempts" ]; then
+      printf '%s\n' "$info"
+      return 1
+    fi
+    echo "pg:info reports \"${pg_actual}\", not ${expected} yet (check" \
+      "${attempt}/${max_attempts}). The reported version can lag" \
+      "behind the database's real state for ten-plus minutes; trying" \
+      "again in 60s:"
+    sleep 60
+  done
+}
+
+# Clears any unfinished Heroku-scheduled maintenance on APP before a
+# database upgrade starts, EXCEPT a pending "inplace_upgrade": that
+# method is how pg:upgrade:prepare represents the version upgrade
+# itself (Heroku: "Your database is scheduled for upgrade during your
+# next available maintenance window"), so it is the upgrade we are
+# trying to do, not an obstacle in its way. Running it here, generically,
+# bypasses our own cutover's backup and dyno-scaling entirely; it is
+# pg:upgrade:run's job to consume that entry properly, once approved at
+# the pause below. Anything else pending (like a routine hardware
+# changeover) genuinely does block pg:upgrade:prepare/run outright
+# ("database is scheduled for maintenance and can't be upgraded"), so
+# that gets cleared, with the same maintenance-mode-and-restart care as
+# our own upgrade, since a changeover also interrupts live connections,
+# the same failure that crashed staging's dyno earlier. completed_at is
+# the field checked, not just "the list is non-empty", in case a
+# finished maintenance stays listed.
+#
+# Learned the hard way: this function once cleared a pending
+# inplace_upgrade itself, which actually triggered a real production
+# upgrade through this generic path, skipping every safety check below.
+# The database came through fine, but only because nothing else went
+# wrong at the same time; it should never have been this function's
+# job to run it.
+#
+# Capped at 2 attempts: a maintenance that will not clear after being
+# told to run is something to investigate by hand, not retry forever.
+wait_for_no_pending_maintenance() {
+  app=$1
+  attempts=0
+  while :; do
+    maintenance_json=$(heroku data:maintenances --app "$app" --json \
+      2>/dev/null) || maintenance_json='[]'
+    pending=$(printf '%s' "$maintenance_json" \
+      | jq -c '[.[] | select(.completed_at == null and .method != "inplace_upgrade")]' 2>/dev/null)
+    pending_count=$(printf '%s' "$pending" | jq 'length' 2>/dev/null)
+    case "$pending_count" in
+      ''|*[!0-9]*) pending_count=0 ;;
+    esac
+    [ "$pending_count" -eq 0 ] && return
+
+    attempts=$((attempts + 1))
+    if [ "$attempts" -gt 2 ]; then
+      echo "${app} still shows a pending maintenance after ${attempts}" >&2
+      echo "attempts to clear it. Investigate by hand:" >&2
+      printf '%s\n' "$pending" | jq -r \
+        '.[] | "  \(.addon.name): \(.reason), \(.method), status=\(.status)"' >&2
+      exit 1
+    fi
+
+    addon_name=$(printf '%s' "$pending" | jq -r '.[0].addon.name')
+    echo "${app} has a pending Heroku-scheduled maintenance on" \
+      "${addon_name}, which blocks the database version upgrade:"
+    printf '%s\n' "$pending" | jq -r '.[] |
+      "  \(.addon.name): \(.reason), \(.method), status=\(.status), scheduled_for=\(.scheduled_for), required_by=\(.required_by)"'
+    echo "Clearing it now:"
+    clear_cmd="${RUN} heroku maintenance:on --app ${app} && ${RUN} heroku data:maintenances:run ${addon_name} --app ${app} --confirm ${app} --wait && ${RUN} heroku restart --app ${app} && ${RUN} heroku maintenance:off --app ${app}"
+    if ! sh -c "$clear_cmd"; then
+      echo "Clearing the pending maintenance failed. Investigate by" >&2
+      echo "hand, then re-run." >&2
+      exit 1
+    fi
+  done
+}
+
+# Set as the very first action, before anything else, deliberately:
+# users deserve the longest possible notice, covering the entire
+# process from here through the last line of this script, not just
+# production's own cutover window. Only ever unset at the true end
+# below, once everything (not just the database version) is confirmed
+# done: any early exit, on any failure or unmet check anywhere above
+# that point, leaves this set on purpose, since the work is not
+# actually finished.
+echo "Posting a heads-up banner on production for the whole process,"
+echo "not just its cutover window:"
+sh -c "${RUN} heroku config:set SYSTEM_ANNOUNCEMENT='Note: The site will later be briefly unavailable due to database maintenance.' --app production-bestpractices"
+
+printf 'Skip straight to the production database update? [y/N] '
+IFS= read -r answer
+case "$answer" in
+  [Yy]*) skip_to_production=1 ;;
+  *) skip_to_production=0 ;;
+esac
+
+if [ "$skip_to_production" -ne 1 ]; then
+  # ---- Staging, then get production's upgrade prepared ----
+
+  # No gh dependency here at all, on purpose: gh brings its own
+  # authentication (separate from git's), its own search-tokenization
+  # uncertainty (does GitHub's search API match "17" inside a title
+  # like "...to v17"?), and its own merge-method assumptions. git alone
+  # can already answer the one question that matters, "is main's pin
+  # already at this version", using the same credential path git
+  # already has (see git config --get credential.helper). If it isn't,
+  # ask a human to merge it on GitHub and check again, rather than
+  # trying to drive GitHub's API ourselves.
+  while :; do
+    git fetch origin main >/dev/null 2>&1 || true
+    current_pin=$(git show origin/main:.circleci/config.yml 2>/dev/null \
+      | grep -oE '^\s*- image: cimg/postgres:[0-9]+' | grep -oE '[0-9]+$')
+    [ "$current_pin" = "$version" ] && break
+    pause "main on GitHub is pinned to cimg/postgres ${current_pin:-an unreadable version}.x, not ${version}.x yet.
+Merge the pull request that bumps .circleci/config.yml's cimg/postgres
+pin to ${version}.x (Renovate should already have one open), then
+continue; this checks again rather than assuming it worked."
+  done
+  echo "main is pinned to cimg/postgres ${version}.x on GitHub."
+
+  echo "Making sure local main matches origin's before deploying:"
+  sync_local_branch main
+  echo "Deploying the merged change to staging:"
+  sh -c "${RUN} rake deploy_staging"
+
+  pause "Confirm the staging build actually tested against PostgreSQL
+${version}: check the CircleCI build log for the deploy that just ran."
+
+  current=$(pg_version_of staging-bestpractices)
+  case "$current" in
+    "${version}".*)
+      echo "staging-bestpractices is already on PostgreSQL ${current};"
+      echo "nothing to upgrade."
+      ;;
+    *)
+      wait_for_no_pending_maintenance staging-bestpractices
+
+      # heroku restart after the upgrade is not documented by Heroku as
+      # required for the Direct Upgrade method, but empirically the
+      # running dyno's existing connections do not survive the version
+      # cutover cleanly: it crash-looped staging's dyno once already
+      # (H10, "App crashed") until Heroku's own auto-restart happened
+      # to recover it a minute or two later. Restarting deliberately,
+      # immediately, turns that into a controlled few seconds instead
+      # of an unplanned outage of unknown length.
+      echo "Upgrading staging's real database (Essential tier: one"
+      echo "direct, immediate command):"
+      sh -c "${RUN} heroku pg:upgrade:run DATABASE_URL --version ${version} --app staging-bestpractices --confirm staging-bestpractices"
+
+      # Whether pg:upgrade:run itself blocks until the database side is
+      # truly finished, not just kicked off, is not something this has
+      # verified either way, so this is asked explicitly rather than
+      # assumed: a non-zero exit here just means there was nothing left
+      # to wait for, not a failure, so it is informational, not fatal.
+      heroku pg:upgrade:wait DATABASE_URL --app staging-bestpractices --no-notify \
+        || echo "(nothing to wait for; checking the version directly.)"
+
+      echo "Restarting so the dyno reconnects cleanly:"
+      sh -c "${RUN} heroku restart --app staging-bestpractices"
+
+      echo "Confirming the version, retrying for a while first:"
+      wait_for_pg_version staging-bestpractices "${version}" \
+        || echo "(still not confirmed after retrying; check by hand:" \
+             "heroku pg:info --app staging-bestpractices)"
+      ;;
+  esac
+  echo
+  echo "Automated check: fetching a live page through the CDN, the"
+  echo "same way this project's own deploy pipeline smoke-tests a"
+  echo "release:"
+  smoke_test staging.bestpractices.dev
+  pause "Now smoke-test staging-bestpractices by hand too."
+
+  echo "Making sure local staging matches origin's before deploying:"
+  sync_local_branch staging
+  echo "Deploying to production:"
+  sh -c "${RUN} rake deploy_production"
+
+  current=$(pg_version_of production-bestpractices)
+  case "$current" in
+    "${version}".*)
+      echo "production-bestpractices is already on PostgreSQL ${current};"
+      echo "nothing to prepare."
+      ;;
+    *)
+      wait_for_no_pending_maintenance production-bestpractices
+
+      echo "Preparing production's database upgrade (Standard tier and"
+      echo "up need this before 'run'; Heroku says it can take from"
+      echo "under an hour to most of a day):"
+      sh -c "${RUN} heroku pg:upgrade:prepare DATABASE_URL --version ${version} --app production-bestpractices --confirm production-bestpractices"
+
+      echo "Waiting for that to finish: this blocks and polls on its"
+      echo "own (Heroku's own wait command), no need to check back on it:"
+      heroku pg:upgrade:wait DATABASE_URL --app production-bestpractices --no-notify
+      ;;
+  esac
+fi
+
+# ---- The actual production cutover ----
+#
+# This is the one part of the whole sequence that is not free to
+# repeat: maintenance:on and ps:scale web=0 really do take the site
+# down again if this runs a second time. Pausing here, rather than
+# running it the moment the wait above returns, is deliberate: you
+# choose the moment, not an unattended background timer.
+
+# Checked again here, not just before "prepare": the wait above can
+# span up to a day, long enough for Heroku to schedule something new
+# in the meantime. And checked whether production is already at the
+# target version too: if an earlier run got all the way through the
+# cutover and only failed on something after, re-running should not
+# blindly repeat maintenance:on/ps:scale/pg:upgrade:run, which Heroku
+# would refuse anyway ("database upgrade is not possible because the
+# database is already on Postgres X") after already taking the site
+# down for nothing.
+current=$(pg_version_of production-bestpractices)
+case "$current" in
+  "${version}".*)
+    echo "production-bestpractices is already on PostgreSQL ${current};"
+    echo "nothing to cut over."
+    ;;
+  *)
+    wait_for_no_pending_maintenance production-bestpractices
+
+    pause "About to take production down and run the upgrade."
+
+    # Solid Queue runs inside the web dyno (SOLID_QUEUE_IN_PUMA=true;
+    # see Procfile), so "maintenance:on" alone stops incoming requests
+    # but not background job processing. Scaling web to 0 too is cheap
+    # insurance against a job writing mid-upgrade, since the site is
+    # already down from users' perspective either way. Read the
+    # current count first so it can be restored exactly, not assumed
+    # to be 1.
+    web_count=$(heroku ps web --app production-bestpractices --json \
+      2>/dev/null | jq 'length' 2>/dev/null || true)
+    case "$web_count" in
+      ''|*[!0-9]*)
+        echo "Could not read production's current web dyno count" >&2
+        echo "from 'heroku ps'; refusing to guess. Investigate, then" >&2
+        echo "re-run." >&2
+        exit 1
+        ;;
+    esac
+    echo "Current web dyno count: ${web_count}. Will restore this after."
+
+    # The backup runs only after the app is fully quiesced (maintenance
+    # on, dynos at 0), so it is a true point-in-time snapshot of
+    # exactly what the upgrade is about to operate on, not one that a
+    # concurrent write could land after. Heroku's own docs say upgrades
+    # are backed up automatically too; this is a second, explicit,
+    # known-named one, cheap insurance for something this consequential
+    # rather than trusting unverified automatic behavior alone.
+    upgrade_cmd="${RUN} heroku maintenance:on --app production-bestpractices && ${RUN} heroku ps:scale web=0 --app production-bestpractices && ${RUN} heroku pg:backups:capture --app production-bestpractices && ${RUN} heroku pg:upgrade:run DATABASE_URL --version ${version} --app production-bestpractices --confirm production-bestpractices"
+    echo "Taking the app down, dynos included so nothing keeps writing"
+    echo "in the background, capturing a fresh backup, and running the"
+    echo "upgrade:"
+    if ! sh -c "$upgrade_cmd"; then
+      echo "That failed. The app may still be scaled to 0 and/or" >&2
+      echo "maintenance may still be on; check and restore by hand" >&2
+      echo "once you have investigated. 'heroku pg:backups --app" >&2
+      echo "production-bestpractices' shows whether the fresh backup" >&2
+      echo "above was captured before the failure:" >&2
+      echo "  heroku pg:info --app production-bestpractices" >&2
+      echo "  heroku ps:scale web=${web_count} --app production-bestpractices" >&2
+      echo "  heroku maintenance:off --app production-bestpractices" >&2
+      exit 1
+    fi
+
+    # The one real run of this so far took 804 seconds start to finish
+    # as its own tracked operation; whether pg:upgrade:run above blocks
+    # until that is truly done, not just started, has never actually
+    # been exercised through this code path, so this is asked
+    # explicitly rather than assumed. A non-zero exit here just means
+    # there was nothing left to wait for, not a failure, so it is
+    # informational, not fatal: the pg:info check right after is the
+    # real source of truth either way.
+    heroku pg:upgrade:wait DATABASE_URL --app production-bestpractices --no-notify \
+      || echo "(nothing to wait for; checking the version directly.)"
+
+    if wait_for_pg_version production-bestpractices "${version}"; then
+      echo "Confirmed PostgreSQL ${pg_actual}. Restoring service now:"
+      sh -c "${RUN} heroku ps:scale web=${web_count} --app production-bestpractices && ${RUN} heroku maintenance:off --app production-bestpractices"
+    else
+      echo "WARNING: expected PostgreSQL ${version} but pg:info still" >&2
+      echo "reports \"${pg_actual}\" after retrying for a while. The" >&2
+      echo "app is deliberately left scaled to 0 with maintenance ON." >&2
+      echo "Investigate, then restore by hand:" >&2
+      echo "  heroku pg:info --app production-bestpractices" >&2
+      echo "  heroku ps:scale web=${web_count} --app production-bestpractices" >&2
+      echo "  heroku maintenance:off --app production-bestpractices" >&2
+      exit 1
+    fi
+    ;;
+esac
+
+echo
+echo "Automated check: fetching a live page through the CDN, the"
+echo "same way this project's own deploy pipeline smoke-tests a"
+echo "release:"
+smoke_test www.bestpractices.dev
+echo
+echo "Now smoke-test production-bestpractices by hand too."
+
+# The one place this comes down: everything above has to have
+# succeeded or already been true to reach this line at all.
+echo "Taking down the heads-up banner, since the whole process is" \
+  "now actually done:"
+sh -c "${RUN} heroku config:unset SYSTEM_ANNOUNCEMENT --app production-bestpractices"
+echo "Done."
