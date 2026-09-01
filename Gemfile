@@ -190,7 +190,7 @@ group :development, :test do
   # gem 'railroader', '4.3.8' # Security static analyzer. OSS fork of Brakeman
   gem 'rubocop', '1.89.0', require: false # Style checker
   gem 'rubocop-performance', '~> 1.20', require: false # Performance cops
-  gem 'rubocop-rails', '2.33.4', require: false # Rails-specific cops
+  gem 'rubocop-rails', '2.37.0', require: false # Rails-specific cops
   gem 'ruby-graphviz', '1.2.5' # This is used for bundle viz
   # Spring, a preloader that keeps the application resident so repeated
   # commands start instantly. Commented out 2026-08-05 rather than
