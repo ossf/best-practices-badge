@@ -85,7 +85,7 @@ gem 'bootstrap_form', '~> 2.7' # DO NOT update unless updating bootstrap
 gem 'bundler' # Ensure it's available
 # Note: if webpacker is used, see chartkick website for added instructions
 gem 'chartkick', '~> 5.2' # Chart project_stats
-gem 'commonmarker', '~> 2.9.0' # Process markdown in textareas
+gem 'commonmarker', '~> 2.10.0' # Process markdown in textareas
 gem 'faraday-retry', '~> 2.1' # Force retry of faraday requests for reliability
 # We no longer use "fastly-rails"; it doesn't support Rails 6+.
 # They recommend switching to the "fastly" gem (aka "fastly-ruby"),
@@ -164,7 +164,7 @@ gem 'redcarpet', git: 'https://github.com/david-a-wheeler/redcarpet', branch: 'l
 gem 'sassc-rails' # compiles .scss (css replacement), replaces sass-rails
 gem 'scout_apm' # Monitor for memory leaks
 gem 'secure_headers', '~> 7' # Add hardening measures to HTTP headers
-gem 'solid_queue', '~> 1.1' # ActiveJob database backend
+gem 'solid_queue', '~> 1.7' # ActiveJob database backend
 # WARNING!!!!
 # CHECK DEPLOYMENT FIRST IF YOU UPDATE sprockets-rails.
 # The gem sprockets-rails version 3.4.1 (from 3.2.2) caused a regression
