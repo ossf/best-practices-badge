@@ -8,7 +8,7 @@
 
 baseline:
   # Official source URL (can be overridden with environment variable)
-  source_url: <%= ENV['BASELINE_CRITERIA_URL'] || 'https://baseline.openssf.org/versions/2025-10-10' %>
+  source_url: <%= ENV['BASELINE_CRITERIA_URL'] || 'https://baseline.openssf.org/versions/2026-08-28' %>
 
   # Local cache of downloaded criteria (for comparison/rollback)
   cache_dir: 'tmp/baseline_cache'

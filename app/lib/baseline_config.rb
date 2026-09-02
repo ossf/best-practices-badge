@@ -14,7 +14,7 @@ module BaselineConfig
   # CURRENT_VERSION:  The version whose criteria are currently shown.
   # Also appears in badge text: "openssf baseline CURRENT_VERSION".
   # Note that it begins with 'v' and uses '.' not '-'
-  CURRENT_VERSION = 'v2026.02.19'
+  CURRENT_VERSION = 'v2026.08.28'
 
   # IN_TRANSITION:    Set to true during a version transition period.
   IN_TRANSITION = false
