@@ -116,6 +116,15 @@ module MachineTranslationHelpers
       !human_translations[key].to_s.strip.empty?
     end
 
+    # Whether the existing machine translation for `key` is outdated: one
+    # exists, but English changed since it was generated (tracked via
+    # src_en_LOCALE.yml). Human translations are never checked for
+    # staleness here by design (see human_translation_present?) - only
+    # machine translations get this source-tracking file at all.
+    def machine_translation_outdated?(source_tracking, key, english_value)
+      source_tracking.key?(key) && source_tracking[key] != english_value
+    end
+
     def find_untranslated_keys(locale)
       english = load_flat_translations('en')
       translated = load_flat_translations(locale)
@@ -138,8 +147,7 @@ module MachineTranslationHelpers
         next true if value.nil? || value.to_s.strip.empty?
         next false if human_translation_present?(human_translated, key) # ignore source changes
 
-        # Check if English source has changed since machine translation
-        source_tracking.key?(key) && source_tracking[key] != english_value
+        machine_translation_outdated?(source_tracking, key, english_value)
       end
     end
 
@@ -370,7 +378,7 @@ module MachineTranslationHelpers
       # Collect per-locale stats first, then display in two passes
       locale_stats =
         TRANSLATION_PRIORITY.map do |locale|
-          compute_locale_status(locale, translatable_keys)
+          compute_locale_status(locale, translatable_keys, english)
         end
 
       # Pass 1: summary table
@@ -378,9 +386,11 @@ module MachineTranslationHelpers
       puts '-' * 60
       locale_stats.each do |stats|
         puts format(
-          '%-8<loc>s Human: %4<human>d  Machine: %4<machine>d  Missing: %4<miss>d',
+          '%-5<loc>s  Human: %4<human>d  AI-Current: %4<mc>d  ' \
+          'AI-Outdated: %4<mo>d  Missing: %4<miss>d',
           loc: stats[:locale], human: stats[:human_count],
-          machine: stats[:machine_only_count], miss: stats[:missing_keys].length
+          mc: stats[:machine_current_count], mo: stats[:machine_outdated_count],
+          miss: stats[:missing_keys].length
         )
       end
 
@@ -781,21 +791,29 @@ module MachineTranslationHelpers
 
     private
 
-    # Partition translatable keys into human, machine-only, and missing.
-    # Returns a hash with counts and the list of missing keys.
-    def compute_locale_status(locale, translatable_keys)
+    # Partition translatable keys into human, machine-current,
+    # machine-outdated, and missing - four mutually-exclusive, exhaustive
+    # buckets that sum to translatable_keys.length. Returns a hash with
+    # counts and the list of missing keys.
+    def compute_locale_status(locale, translatable_keys, english)
       human = load_flat_translations(locale, human_only: true)
       machine = load_flat_translations(locale, machine_only: true)
+      source_tracking = load_source_tracking(locale)
 
       human_count = 0
-      machine_only_count = 0
+      machine_current_count = 0
+      machine_outdated_count = 0
       missing_keys = []
 
       translatable_keys.each do |key|
         if non_empty_value?(human[key])
           human_count += 1
         elsif non_empty_value?(machine[key])
-          machine_only_count += 1
+          if machine_translation_outdated?(source_tracking, key, english[key])
+            machine_outdated_count += 1
+          else
+            machine_current_count += 1
+          end
         else
           missing_keys << key
         end
@@ -803,7 +821,8 @@ module MachineTranslationHelpers
 
       {
         locale: locale, human_count: human_count,
-        machine_only_count: machine_only_count, missing_keys: missing_keys
+        machine_current_count: machine_current_count,
+        machine_outdated_count: machine_outdated_count, missing_keys: missing_keys
       }
     end
 
