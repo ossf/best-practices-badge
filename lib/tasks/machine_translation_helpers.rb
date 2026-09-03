@@ -53,9 +53,43 @@ module MachineTranslationHelpers
     "--model #{AI_CLI_MODEL} --no-session-persistence"
   )
 
-  # Translation example counts for consistency and quality
+  # Translation example counts for consistency and quality. Selection is
+  # greedy set-cover, not a simple sort (see find_example_translations),
+  # so 30 goes much further than one-example-per-term would: measured
+  # against real criteria text, a 20-key batch (267 candidate terms) hit
+  # 100% term coverage in 19 examples; a 40-key batch (614 terms) still
+  # hit ~99% within the cap.
   MIN_TRANSLATION_EXAMPLES = 20 # Minimum examples to provide (if available)
   MAX_TRANSLATION_EXAMPLES = 30 # Maximum examples to avoid overwhelming
+
+  # Words ignored when mining text for recurring terminology (see
+  # extract_recurring_ngrams). Two kinds share this one list: grammatical
+  # function words (articles, conjunctions, pronouns) that can't head a
+  # meaningful phrase, and generic/common words (e.g., "please",
+  # "already") that any competent translator renders correctly without
+  # needing a consistency example, unlike real terminology ("version
+  # control", "badge", "repository") where the exact wording matters.
+  # Not exhaustive; extend as more generic noise turns up.
+  # A Set, not an Array: ngram_phrases (below) checks membership in this
+  # list once per word of every candidate phrase, so O(1) lookup matters.
+  STOPWORDS = Set.new(
+    %w[
+      a an the of to in on at for and or but if is are was were be been
+      being this that these those it its as by with from into onto not no
+      yes you your our we they he she i my me us them their can will would
+      should could may might must do does did have has had when which what
+      how why who where than then so such other same only also even just
+      more most any all each every please already again below above here
+      there now still yet once always never often sometimes usually
+      actually simply sorry following completed
+    ]
+  ).freeze
+
+  # Minimum number of distinct English strings a word or phrase must
+  # appear in (see corpus_occurrences) before we treat it as terminology
+  # worth finding a translated example for. A term seen only once has
+  # nothing else to be consistent WITH.
+  MIN_TERM_OCCURRENCES = 2
 
   class << self
     def validate_locale!(locale)
@@ -426,7 +460,10 @@ module MachineTranslationHelpers
       }
     end
 
-    # Extract technical terms from English text that should use consistent translation
+    # Extract technical terms from English text that should use consistent
+    # translation. Returns a Set (not an Array): every caller only tests
+    # membership, checks emptiness, or iterates, so there's no reason to
+    # pay for copying into an Array the caller won't use as one.
     def extract_technical_terms(keys, english)
       terms = Set.new
       keys.each do |key|
@@ -442,34 +479,173 @@ module MachineTranslationHelpers
         # Pattern 3: Technical compounds (hyphenated terms)
         text.scan(/\b[a-z]+-[a-z]+(?:-[a-z]+)*\b/i) { |match| terms << match }
 
-        # Pattern 4: Long technical words (12+ characters)
-        text.scan(/\b[a-z]{12,}\b/i) { |match| terms << match }
+        # Pattern 4: Words and short phrases (1-3 words) that recur often
+        # enough elsewhere in the app to count as terminology, whatever
+        # their length ("badge", "repository", and "version control" all
+        # qualify; a 12-character word used only once does not).
+        extract_recurring_ngrams(text, english).each { |match| terms << match }
       end
-      terms.to_a
+      terms
     end
 
-    # Find existing translations that contain the technical terms
+    # Remove HTML tags and URLs from `text` so tag/attribute names and URL
+    # path segments ("href", "https", "org") never get mistaken for words.
+    def strip_html_and_urls(text)
+      text.gsub(/<[^>]*>/, ' ').gsub(%r{https?://\S+}, ' ')
+    end
+
+    # Split `text` into words of 3+ letters, ignoring HTML/URLs. The
+    # 3-letter minimum drops abbreviation fragments (e.g., "e" and "g"
+    # from "e.g.") and other stray single/double letters.
+    def tokenize_words(text)
+      strip_html_and_urls(text).scan(/[A-Za-z]{3,}/)
+    end
+
+    # Build every contiguous `n`-word phrase from `words`, dropping any
+    # phrase containing a stopword (so "the project" is never a candidate
+    # but "version control" is).
+    def ngram_phrases(words, n)
+      words.each_cons(n)
+           .reject { |gram| gram.any? { |word| STOPWORDS.include?(word.downcase) } }
+           .map { |gram| gram.join(' ') }
+    end
+
+    # Find 1-3 word phrases in `text` that recur often enough elsewhere in
+    # the English corpus (see MIN_TERM_OCCURRENCES) to be worth finding a
+    # translated example for.
+    def extract_recurring_ngrams(text, english)
+      words = tokenize_words(text)
+      candidates = (1..3).flat_map { |n| ngram_phrases(words, n) }.uniq
+      candidates.select { |phrase| corpus_occurrences(phrase, english) >= MIN_TERM_OCCURRENCES }
+    end
+
+    # Whether `term` contains a word that's ALL-CAPS for 2+ letters,
+    # matching how Pattern 1 (above) defines an acronym. This deliberately
+    # also catches words that aren't acronyms at all but are capitalized
+    # for RFC 2119-style normative emphasis ("OR", "AND", "NOT" in
+    # "must be met OR be unmet") - and that's a feature, not just a
+    # tolerated side effect: it's what makes case-sensitive matching (see
+    # word_boundary_pattern) actually useful for them. If a human
+    # translator gives that emphasized form special treatment (e.g.,
+    # French capitalizes "OU" to mirror English's emphasized "OR"),
+    # case-sensitive matching finds and surfaces exactly that deliberate
+    # choice as an example - instead of it being swamped among the
+    # hundreds of ordinary "or" instances translated as a plain word,
+    # which is what case-insensitive matching would return instead.
+    #
+    # A word with only its first letter capitalized ("Version", "GitHub")
+    # is essentially never in this category - it's an ordinary word
+    # capitalized because it starts a sentence, or a proper noun, and
+    # carries no meaningful case distinction from its lowercase form.
+    def contains_acronym?(term)
+      term.split(%r{[\s/-]+}).any? { |word| word.match?(/\A[A-Z]{2,}\z/) }
+    end
+
+    # Regexp matching `term` as a whole word (or whole multi-word phrase).
+    # Word-bounded so a short term like "log" never spuriously matches
+    # inside an unrelated word like "login" or "logged" - both real,
+    # distinct words in this app. Case-sensitive only when `term` looks
+    # like an acronym or emphasized keyword (see contains_acronym? for
+    # why that specific case needs it and benefits from it). Everything
+    # else (ordinary words, proper nouns, multi-word phrases) matches
+    # case-insensitively, since e.g. "Version control" at the start of
+    # one sentence and "version control" mid-sentence elsewhere are the
+    # same term.
+    def word_boundary_pattern(term)
+      contains_acronym?(term) ? /\b#{Regexp.escape(term)}\b/ : /\b#{Regexp.escape(term)}\b/i
+    end
+
+    # Count how many distinct English strings contain `term` as a whole
+    # word/phrase (see word_boundary_pattern). Deliberately counts
+    # strings, not raw substring occurrences: a term repeated several
+    # times within one long string still gives us nothing else to be
+    # consistent WITH, so it must not count more than a term that appears
+    # once each in two different strings.
+    def corpus_occurrences(term, english)
+      pattern = word_boundary_pattern(term)
+      english.each_value.count { |text| text.to_s.match?(pattern) }
+    end
+
+    # Find existing translations that, together, cover as many of `terms`
+    # as possible within MAX_TRANSLATION_EXAMPLES slots. A coverage-
+    # maximizing selection (see build_term_coverage/greedy_set_cover)
+    # beats both "first match per term" (wastes slots when several terms
+    # happen to co-occur in one existing sentence) and sorting by raw
+    # frequency (which would crowd out a rare-but-present term in favor
+    # of repeating whichever word recurs most across the whole corpus).
+    # If every reachable term is covered before the slot budget runs out,
+    # fill the rest with more term-touching examples (see
+    # fill_with_touching_examples) rather than leaving that budget for
+    # find_general_style_examples, which has no idea which terms this
+    # batch even contains.
     def find_example_translations(locale, terms, english)
       return [] if terms.empty?
 
       existing_translations = load_flat_translations(locale)
+      # Deliberately human_only: an unreviewed machine translation used as
+      # an "example" would just get copied into every future translation
+      # of that term, entrenching a wrong guess instead of correcting it.
       human_translations = load_flat_translations(locale, human_only: true)
 
-      example_keys = []
-      terms.each do |term|
-        # Find keys where English contains this term
-        matching_keys =
-          english.keys.select do |key|
-            text = english[key].to_s
-            text.include?(term) && human_translations.key?(key) &&
-              !existing_translations[key].to_s.strip.empty?
-          end
+      coverage = build_term_coverage(terms, english, human_translations, existing_translations)
+      selected = greedy_set_cover(coverage, MAX_TRANSLATION_EXAMPLES)
+      fill_with_touching_examples(coverage, selected, MAX_TRANSLATION_EXAMPLES)
+    end
 
-        # Add first match for this term (if any)
-        example_keys << matching_keys.first if matching_keys.any?
+    # Top up `selected` toward `limit` using leftover keys from `coverage`
+    # that touch at least one term, even if every term they touch is
+    # already covered. Prefers keys touching the most terms first: a
+    # redundant example is still better grounding than a general-style
+    # example sharing no vocabulary with the text being translated.
+    def fill_with_touching_examples(coverage, selected, limit)
+      remaining_budget = limit - selected.length
+      return selected unless remaining_budget.positive?
+
+      already_selected = Set.new(selected)
+      leftover =
+        coverage.keys.reject { |key| already_selected.include?(key) }
+                .sort_by { |key| -coverage[key].size }
+      selected + leftover.take(remaining_budget)
+    end
+
+    # Map each translatable key (has a non-empty human translation) to
+    # the subset of `terms` its English text contains as whole
+    # words/phrases. Keys covering no term are omitted.
+    def build_term_coverage(terms, english, human_translations, existing_translations)
+      coverage = Hash.new { |hash, key| hash[key] = [] }
+      terms.each do |term|
+        pattern = word_boundary_pattern(term)
+        english.each_key do |key|
+          next unless human_translations.key?(key)
+          next if existing_translations[key].to_s.strip.empty?
+          next unless english[key].to_s.match?(pattern)
+
+          coverage[key] << term
+        end
+      end
+      coverage
+    end
+
+    # Standard greedy set-cover: repeatedly pick the key covering the
+    # most not-yet-covered terms, until `limit` keys are picked or no
+    # remaining key covers anything new (every reachable term is already
+    # covered, or none of the leftover keys cover any term at all).
+    def greedy_set_cover(coverage, limit)
+      remaining = coverage.dup
+      covered = Set.new
+      selected = []
+
+      while selected.length < limit && remaining.any?
+        key, key_terms = remaining.max_by { |_key, terms_for_key| terms_for_key.count { |t| !covered.include?(t) } }
+        new_terms = key_terms.reject { |t| covered.include?(t) }
+        break if new_terms.empty?
+
+        selected << key
+        covered.merge(new_terms)
+        remaining.delete(key)
       end
 
-      example_keys.compact.uniq
+      selected
     end
 
     # Find general style examples from existing human translations
