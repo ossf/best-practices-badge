@@ -208,6 +208,10 @@ module MachineTranslationHelpers
       # Limit to maximum to avoid overwhelming
       example_keys = example_keys.take(MAX_TRANSLATION_EXAMPLES)
 
+      # Guarantee an example for each distinct %{name} placeholder the
+      # batch needs, even if that means going over the usual limit.
+      example_keys = ensure_placeholder_examples(locale, keys_to_translate, english, example_keys)
+
       tmp_dir = Rails.root.join('tmp')
 
       # Create example source file (English)
@@ -667,34 +671,75 @@ module MachineTranslationHelpers
       selected
     end
 
-    # Find general style examples from existing human translations
-    # Prefers shorter, clearer examples that demonstrate style
-    # Excludes keys already in the exclude list
-    def find_general_style_examples(locale, english, exclude: [])
+    # Keys with a real (non-blank) human translation, a non-blank English
+    # source, and not already in `exclude`. The shared candidate pool for
+    # find_general_style_examples and ensure_placeholder_examples.
+    # Excluding blank English matters: without it, Rails' own built-in
+    # locale keys (e.g. number.currency.format.*) that this app never
+    # gave English text to can slip in as "examples" that translate
+    # nothing at all.
+    def available_human_example_keys(locale, english, exclude)
       human_translations = load_flat_translations(locale, human_only: true)
       existing_translations = load_flat_translations(locale)
 
-      # Get all available human translation keys
-      available_keys =
-        human_translations.keys.reject do |key|
-          exclude.include?(key) || !human_translation_present?(human_translations, key) ||
-            existing_translations[key].to_s.strip.empty?
-        end
-
-      # Sort by text length (prefer shorter, clearer examples)
-      # but prioritize those with common patterns (buttons, labels, messages)
-      available_keys.sort_by do |key|
-        text = english[key].to_s
-        length = text.length
-
-        # Boost priority for common UI patterns (lower score = higher priority)
-        priority_boost = 0
-        priority_boost -= 500 if key.match?(/\.(name|title|label|button|link|submit|header)$/)
-        priority_boost -= 300 if key.match?(/\.(description|help|message|notice)$/)
-        priority_boost -= 200 if text.include?('%{') # Has placeholders - good for learning
-
-        length + priority_boost
+      human_translations.keys.reject do |key|
+        exclude.include?(key) || !human_translation_present?(human_translations, key) ||
+          existing_translations[key].to_s.strip.empty? || english[key].to_s.strip.empty?
       end
+    end
+
+    # Find human-translated examples to fill any slots
+    # find_example_translations left empty after covering every
+    # reachable term. Prefers the LONGEST available English text: a
+    # fixed number of example slots teaches the AI more style and
+    # terminology per slot when each one carries as much translated text
+    # as possible, rather than a few words from a short button label.
+    # Excludes keys already in the exclude list.
+    def find_general_style_examples(locale, english, exclude: [])
+      available_keys = available_human_example_keys(locale, english, exclude)
+
+      # Longest English text first, so scarce example slots carry the
+      # most text for the AI to learn from.
+      available_keys.sort_by { |key| -english[key].to_s.length }
+    end
+
+    # For each DISTINCT %{name} token used anywhere in `keys_to_translate`,
+    # guarantee at least one example demonstrates that exact token - not
+    # just "some placeholder." Different names often carry different
+    # grammatical roles (%{count} needs number agreement; %{project_name}
+    # is a plain substitution), so an example preserving %{project_name}
+    # doesn't teach anything about correctly handling %{count}. For each
+    # name not already covered by `example_keys`, adds the longest
+    # available example containing it. Deliberately additive rather than
+    # competing for a slot within MIN/MAX_TRANSLATION_EXAMPLES: one extra
+    # example per uncovered name is worth it, and a single batch rarely
+    # has more than a handful of distinct names.
+    def ensure_placeholder_examples(locale, keys_to_translate, english, example_keys)
+      needed = keys_to_translate.flat_map { |key| extract_placeholders(english[key].to_s) }.uniq
+      return example_keys if needed.empty?
+
+      covered = Set.new(example_keys.flat_map { |key| extract_placeholders(english[key].to_s) })
+      # Also exclude keys_to_translate itself: a key genuinely awaiting
+      # translation never has a real human translation, so this should
+      # never matter in practice, but it's cheap to make that invariant
+      # explicit rather than lean on it implicitly.
+      pool = available_human_example_keys(locale, english, example_keys + keys_to_translate)
+      added = []
+
+      needed.each do |token|
+        next if covered.include?(token)
+
+        best =
+          pool.select { |key| extract_placeholders(english[key].to_s).include?(token) }
+              .max_by { |key| english[key].to_s.length }
+        next unless best
+
+        added << best
+        pool -= [best]
+        covered.merge(extract_placeholders(english[best].to_s))
+      end
+
+      example_keys + added
     end
 
     # AI-specific: Build prompt that references the instructions file
