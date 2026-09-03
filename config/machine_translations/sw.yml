@@ -116,7 +116,7 @@ sw:
       tell_us: 'Tafadhali tuambie kuhusu mradi wako wa programu huria/wazi (FLOSS). Hii <b>LAZIMA</b> iwe mradi wa FLOSS; hakuna kingine kinachoruhusiwa. <b>USISAHAU</b> kuongeza tovuti isiyohusiana ili kujaribu kuboresha utafutaji wa injini ya tovuti (SEO). Taka hii imepigwa marufuku kwa sababu inadhuru watumiaji, na haitasaidia SEO hata hivyo (viungo vyote vya hyperlink vimewekwa alama na <tt>ugc</tt> na <tt>nofollow</tt>).
 
         '
-      may_select_html: Unaweza kuchagua kutoka kwa moja ya hifadhi yako ya GitHub <em>AU</em> kutoa taarifa kuhusu mradi mwingine. Ikiwa mradi wako haujapata nishani ya kupita na hujafanya marekebisho yoyote kwa angalau siku 30, tutakutumia barua pepe ya kukumbushia (unaweza kuzima ukumbusho wakati wowote ukitaka).
+      may_select_html: Unaweza kuchagua kwa hiari mojawapo ya hazina zako za GitHub hapa chini ili kujaza mapema URL ya hazina.
       new_badge_or: AU
       select_one_github: Chagua moja ya hifadhi yako ya GitHub
       submit_github: Wasilisha Hifadhi ya GitHub
@@ -504,6 +504,10 @@ sw:
       Hii ni taarifa ya mapema kwamba nishani ya "%{old_level}" ya mradi wako inaweza
       kupotea tarehe %{effective_date} wakati vigezo vilivyosasishwa vitakapoanza kutumika.
       Tafadhali kagua ingizo lako la nishani kwenye URL ifuatayo kabla ya tarehe hiyo:
+    warned_level_message_no_date: |-
+      Hii ni taarifa ya awali kuwa nishani ya "%{old_level}" ya mradi wako inaweza
+      kupotea wakati vigezo vilivyosasishwa vitakapoanza kutumika.
+      Tafadhali kagua ingizo la nishani yako kwenye URL ifuatayo:
   criteria:
     '0':
       description_good:
@@ -905,7 +909,7 @@ sw:
         description: Wakati jaribio linafanywa kufuta tawi kuu la mradi, mfumo wa udhibiti wa toleo LAZIMA uichukulie hii kama shughuli nyeti na kuhitaji uthibitishaji wa wazi wa nia.
         details: Weka ulinzi wa tawi kwenye tawi kuu katika mfumo wa udhibiti wa toleo wa mradi ili kuzuia ufutaji.
       osps_br_01_01:
-        description: Wakati bomba la CI/CD linakubali kigezo cha ingizo, kigezo hicho LAZIMA kisafishwe na kuthibitishwa kabla ya kutumika katika bomba.
+        description: Wakati bomba la CI/CD linapofanya kazi kwenye metadata isiyoaminika, vigezo hivyo LAZIMA visafishwe na kuthibitishwa kabla ya kutumika kwenye bomba hilo.
         details: Mifuko ya CI/CD inapaswa kusafisha (kunukuu, kutoroka au kutoka kwa maadili yanayotarajiwa) pembejeo zote za metadata zinazohusiana na vyanzo visivyoaminika. Hii inajumuisha data kama vile majina ya matawi, ujumbe wa kujitolea, lebo, majina ya maombi ya kuvuta, na taarifa za mwandishi.
       osps_br_01_02:
         description: Wakati bomba la CI/CD linatumia jina la tawi katika utendaji wake, thamani ya jina hiyo LAZIMA isafishwe na kuthibitishwa kabla ya kutumika katika bomba.
@@ -913,8 +917,8 @@ sw:
         description: Wakati mradi unaorodhesha URI kama njia rasmi ya mradi, URI hiyo LAZIMA itolewa pekee kwa kutumia njia zilizosimbwa.
         details: Sanidi tovuti za mradi na mifumo ya udhibiti wa toleo ili kutumia njia zilizosimbwa kama SSH au HTTPS kwa maambukizi ya data. Hakikisha zana zote na vikoa vilivyorejelewa katika nyaraka za mradi vinaweza kufikika tu kupitia njia zilizosimbwa.
       osps_br_03_02:
-        description: Wakati mradi unaorodhesha URI kama njia rasmi ya usambazaji, URI hiyo LAZIMA itolwe pekee kwa kutumia njia zilizosimbwa.
-        details: Sanidi mfumo wa kutolewa kwa mradi ili kuchukua data tu kutoka kwenye tovuti, majibu ya API, na huduma nyingine ambazo zinatumia njia zilizosimbwa kama SSH au HTTPS kwa maambukizi ya data.
+        description: Wakati mradi unaorodhesha URI kama kituo rasmi cha usambazaji, kituo hicho LAZIMA kilindwe dhidi ya mashambulizi ya adui-katikati-ya-mawasiliano kwa kutumia njia zilizothibitishwa kikriptografia.
+        details: Vipengele vinavyosambazwa na mradi vinapaswa kusambazwa kupitia njia zinazohakikisha uadilifu na uhalisi. Utumiaji wa HTTPS kwa upakuaji, matoleo yaliyotiwa saini, au usambazaji kupitia visimamizi vya vifurushi vinavyoaminika ni njia zote zinazokubalika za kulinda dhidi ya mashambulizi ya adui-katikati-ya-mawasiliano.
       osps_br_07_01:
         description: Mradi LAZIMA uzuie uhifadhi wa bila makusudi wa data nyeti isiyo-imeimbwa, kama siri na vyeti, katika mfumo wa udhibiti wa toleo.
         details: Sanidi .gitignore au sawa ili kutofautisha faili ambazo zinaweza kuwa na maelezo nyeti. Tumia vizuizi vya kabla ya kujitolea na zana za uchunguzi zilizosaidiwa na kompyuta ili kugundua na kuzuia ujumuishaji wa data nyeti katika michango.
@@ -925,25 +929,25 @@ sw:
         description: Wakati mradi umefanya utoaji, nyaraka za mradi LAZIMA zijumuishe mwongozo wa kuripoti hitilafu.
         details: Inashauriwa kwamba miradi itumie kifuatiliaji cha masuala cha chaguo-msingi cha VCS yao. Ikiwa chanzo cha nje kinatumiwa, hakikisha kwamba nyaraka za mradi na mwongozo wa kuchangia zinaeleza wazi na kwa uonekano jinsi ya kutumia mfumo wa kuripoti. Inashauriwa kwamba nyaraka za mradi pia ziweke matarajio ya jinsi hitilafu zitatolewa kipaumbele na kutatuliwa.
       osps_gv_02_01:
-        description: Wakati ukiwa hai, mradi LAZIMA uwe na taratibu moja au zaidi za mijadala ya umma kuhusu mabadiliko yaliyopendekezwa na vizuizi vya matumizi.
+        description: Mradi LAZIMA uwe na utaratibu mmoja au zaidi wa mijadala ya hadharani kuhusu mabadiliko yanayopendekezwa na vikwazo vya matumizi.
         details: Unda taratibu moja au zaidi za mijadala ya umma ndani ya mradi, kama orodha za barua, ujumbe wa papo hapo, au vifuatiliaji vya masuala, ili kuwezesha mawasiliano ya wazi na maoni.
       osps_gv_03_01:
-        description: Wakati ukiwa hai, nyaraka za mradi LAZIMA zijumuishe maelezo ya mchakato wa kuchangia.
+        description: Hati za mradi LAZIMA zijumuishe maelezo ya mchakato wa uchangiaji, au zieleze kwa uwazi kuwa michango ya hadharani haikubaliwi
         details: Unda CONTRIBUTING.md au saraka ya CONTRIBUTING/ ili kuainisha mchakato wa kuchangia ukijumuisha hatua za kuwasilisha mabadiliko, na kushirikiana na watunzaji wa mradi.
       osps_le_02_01:
-        description: Wakati ukiwa hai, leseni kwa msimbo wa chanzo LAZIMA ikidhi Ufafanuzi wa Chanzo Wazi wa OSI au Ufafanuzi wa Programu Huria wa FSF.
+        description: Leseni ya chanzo-msimbo LAZIMA ikidhi Ufafanuzi wa Open Source wa OSI au Ufafanuzi wa Programu Huru wa FSF.
         details: Ongeza faili ya LICENSE kwenye hazina ya mradi na leseni ambayo ni leseni iliyoidhinishwa na Open Source Initiative (OSI), au leseni huria kama ilivyoidhinishwa na Free Software Foundation (FSF). Mifano ya leseni kama hizo ni pamoja na MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), na GNU General Public License (GPL). Kutolewa kwa umma kukidhi udhibiti huu ikiwa hakuna vizuizi vingine kama vile vimiliki.
       osps_le_02_02:
-        description: Wakati ukiwa hai, leseni kwa mali za programu iliyotolewa LAZIMA ikidhi Ufafanuzi wa Chanzo Wazi wa OSI au Ufafanuzi wa Programu Huria wa FSF.
+        description: Leseni ya vipengele vya programu vilivyotolewa LAZIMA ikidhi Ufafanuzi wa Open Source wa OSI au Ufafanuzi wa Programu Huru wa FSF.
         details: Ikiwa leseni tofauti imejumuishwa na mali za programu zilizotolewa, hakikisha ni leseni iliyoidhinishwa na Open Source Initiative (OSI), au leseni huria kama ilivyoidhinishwa na Free Software Foundation (FSF). Mifano ya leseni kama hizo ni pamoja na MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), na GNU General Public License (GPL). Kumbuka kwamba leseni kwa mali za programu zilizotolewa inaweza kuwa tofauti na msimbo wa chanzo.
       osps_le_03_01:
-        description: Wakati ukiwa hai, leseni kwa msimbo wa chanzo LAZIMA itunzwe katika faili ya LICENSE ya hazina inayohusiana, faili ya COPYING, au saraka ya LICENSE/.
-        details: Jumuisha leseni ya msimbo wa chanzo wa mradi katika faili ya LICENSE ya mradi, faili ya COPYING, au saraka ya LICENSE/ ili kutoa uonekano na uwazi juu ya masharti ya leseni. Jina la faili LINAWEZA kuwa na kiendelezi. Ikiwa mradi una hazina nyingi, hakikisha kwamba kila hazina inajumuisha faili ya leseni.
+        description: Leseni ya chanzo-msimbo LAZIMA ihifadhiwe ndani ya faili la LICENSE, faili la COPYING, saraka ya LICENSES/, au saraka ya LICENSE/ ya hazina husika.
+        details: Jumuisha leseni ya chanzo-msimbo cha mradi ndani ya faili la LICENSE la mradi, faili la COPYING, saraka ya LICENSES/, au saraka ya LICENSE/ ili kutoa uwazi na ufafanuzi kuhusu masharti ya leseni. Jina la faili LINAWEZA kuwa na kiambatisho. Ikiwa mradi una hazina nyingi, hakikisha kila hazina inajumuisha faili la leseni.
       osps_le_03_02:
-        description: Wakati mradi ukiwa hai, leseni kwa rasilimali za programu iliyotolewa LAZIMA ijumuishwe ndani ya msimbo wa chanzo uliotolewa, au katika faili ya LICENSE, faili ya COPYING, au saraka ya LICENSE/ pembeni na rasilimali za toleo linalohusiana.
+        description: Leseni ya vipengele vya programu vilivyotolewa LAZIMA ijumuishwe ndani ya chanzo-msimbo kilichotolewa, au ndani ya faili la LICENSE, faili la COPYING, au saraka ya LICENSE/ karibu na vipengele husika vya toleo.
         details: Jumuisha leseni ya rasilimali za programu zilizotolewa za mradi katika msimbo wa chanzo uliotolewa, au katika faili ya LICENSE, faili ya COPYING, au saraka ya LICENSE/ pembeni na rasilimali za toleo linalohusiana ili kutoa mwonekano na uwazi wa masharti ya leseni. Jina la faili YAWEZA kuwa na kiendelezi. Ikiwa mradi una hazina nyingi, hakikisha kwamba kila hazina inajumuisha faili ya leseni.
       osps_qa_01_01:
-        description: Wakati mradi ukiwa hai, hazina ya msimbo wa chanzo wa mradi LAZIMA iweze kusomwa hadharani kwenye URL isiyobadilika.
+        description: Hazina ya chanzo-msimbo ya mradi LAZIMA isomeke hadharani kwenye URL tuli.
         details: Tumia VCS ya kawaida kama GitHub, GitLab, au Bitbucket. Hakikisha hazina inaweza kusomwa hadharani. Epuka kunakili au kuakisi hazina isipokuwa nyaraka zinazoonekana sana zinatoa wazi chanzo kikuu. Epuka mabadiliko ya mara kwa mara kwenye hazina ambayo ingeathiri URL ya hazina. Hakikisha hazina ni ya umma.
       osps_qa_01_02:
         description: Mfumo wa udhibiti wa toleo LAZIMA uwe na kumbukumbu inayoweza kusomwa hadharani ya mabadiliko yote yaliyofanywa, nani alifanya mabadiliko, na mabadiliko yalifanywa lini.
@@ -952,16 +956,16 @@ sw:
         description: Wakati mfumo wa usimamizi wa kifurushi unaposaidia, hazina ya msimbo wa chanzo LAZIMA iwe na orodha ya utegemezi inayohesabu utegemezi wa moja kwa moja wa lugha.
         details: Hii inaweza kuwa kwa namna ya faili ya usimamizi wa kifurushi au faili ya utegemezi wa lugha inayoorodhesha utegemezi wote wa moja kwa moja kama package.json, Gemfile, au go.mod.
       osps_qa_04_01:
-        description: Wakati mradi ukiwa hai, nyaraka za mradi LAZIMA ziwe na orodha ya hazina zozote za msimbo zinazozingatiwa kama miradi midogo.
+        description: Miradi yenye hazina nyingi LAZIMA iandike orodha ya misingi ya msimbo (codebases) inayohusika na mradi.
         details: Weka kwenye nyaraka hazina zozote za ziada za msimbo wa miradi midogo zinazozalishwa na mradi na kukusanywa katika toleo. Nyaraka hii inapaswa kujumuisha hali na nia ya hazina ya msimbo husika.
       osps_qa_05_01:
-        description: Wakati mradi ukiwa hai, mfumo wa udhibiti wa toleo LAZIMA USIWE na vitu vilivyozalishwa vinavyoweza kutekelezwa.
+        description: Mfumo wa kudhibiti matoleo LAZIMA usiwe na mabaki yanayoweza kutekelezwa yaliyotengenezwa.
         details: Ondoa vitu vilivyozalishwa vinavyoweza kutekelezwa katika mfumo wa udhibiti wa toleo wa mradi. Inashauriwa kwamba hali yoyote ambapo kifaa kilichozalishwa kinachoweza kutekelezwa kinaonekana muhimu kwa mchakato kama vile majaribio, badala yake kinapaswa kuzalishwa wakati wa ujenzi au kuhifadhiwa kando na kuchukuliwa wakati wa hatua maalum ya mfumo wa kuendeshea iliyoandikwa vizuri.
       osps_qa_05_02:
-        description: Wakati mradi ukiwa hai, mfumo wa udhibiti wa toleo LAZIMA USIWE na vitu vya binary visivyoweza kukaguliwa.
+        description: Mfumo wa kudhibiti matoleo LAZIMA usiwe na mabaki ya jozi yasiyoweza kukaguliwa.
         details: Usiongeze vitu vyovyote vya binary visivyoweza kukaguliwa katika mfumo wa udhibiti wa toleo wa mradi. Hii inajumuisha programu za binary za maombi, faili za maktaba, na vitu sawa. Haijumuishi mali kama picha za kigraphiki, faili za sauti au muziki, na maudhui sawa ambayo kwa kawaida huhifadhiwa katika muundo wa binary.
       osps_vm_02_01:
-        description: Wakati mradi ukiwa hai, nyaraka za mradi LAZIMA ziwe na anwani za kuwasiliana za usalama.
+        description: Nyaraka za mradi LAZIMA ziwe na anwani za mawasiliano za usalama.
         details: Unda faili ya security.md (au inayoitwa sawa) inayohifadhi anwani za kuwasiliana za usalama kwa mradi.
       osps_br_01_03:
         description: Wakati mfuko wa CI/CD unafanya kazi kwenye picha za nambari za kanuni ambazo haziaminiki, LAZIMA uzuie upatikanaji wa vitambulisho vya CI/CD vilivyopendelewa na mali.
@@ -986,16 +990,16 @@ sw:
         description: Wakati mradi umefanya toleo, nyaraka za mradi LAZIMA zijumuishe maelezo ya jinsi mradi unavyochagua, kupata, na kufuatilia utegemezi wake.
         details: Inashauriwa kuchapisha habari hii pamoja na nyaraka za kiufundi na muundo wa mradi kwenye rasilimali inayoweza kuonwa hadharani kama vile hifadhi ya msimbo wa chanzo, tovuti ya mradi, au kituo kingine.
       osps_gv_01_01:
-        description: Wakati ikiwa hai, nyaraka za mradi LAZIMA zijumuishe orodha ya wanachama wa mradi walio na ufikiaji wa rasilimali nyeti.
+        description: Nyaraka za mradi LAZIMA zijumuishe orodha ya wanachama wa mradi wenye ufikiaji wa rasilimali nyeti.
         details: Andika washiriki wa mradi na majukumu yao kupitia vitu kama members.md, governance.md, maintainers.md, au faili sawa ndani ya hifadhi ya msimbo wa chanzo wa mradi. Hii inaweza kuwa rahisi kama kujumuisha majina au alama za akaunti katika orodha ya watunzaji, au changamano zaidi kulingana na utawala wa mradi.
       osps_gv_01_02:
-        description: Wakati ikiwa hai, nyaraka za mradi LAZIMA zijumuishe maelezo ya majukumu na wajibu wa wanachama wa mradi.
+        description: Nyaraka za mradi LAZIMA zijumuishe maelezo ya majukumu na wajibu wa wanachama wa mradi
         details: Andika washiriki wa mradi na majukumu yao kupitia vitu kama members.md, governance.md, maintainers.md, au faili sawa ndani ya hifadhi ya msimbo wa chanzo wa mradi.
       osps_gv_03_02:
-        description: Wakati ikiwa hai, nyaraka za mradi LAZIMA zijumuishe mwongozo kwa wachangiaji wa msimbo ambao unajumuisha mahitaji ya michango inayokubalika.
+        description: Nyaraka za mradi LAZIMA zijumuishe mwongozo kwa wachangiaji wa msimbo unaojumuisha mahitaji ya michango inayokubalika.
         details: Panua yaliyomo ya CONTRIBUTING.md au CONTRIBUTING/ katika nyaraka za mradi ili kuorodhesha mahitaji ya michango inayokubalika, ikiwa ni pamoja na viwango vya kuandika msimbo, mahitaji ya majaribio, na miongozo ya kuwasilisha kwa wachangiaji wa msimbo. Inashauriwa kuwa mwongozo huu ni chanzo cha ukweli kwa wachangiaji na waidhinishaji.
       osps_le_01_01:
-        description: Wakati ikiwa hai, mfumo wa kudhibiti toleo LAZIMA uhitaji wachangiaji wote wa msimbo kudai kuwa wanaruhusiwa kisheria kufanya michango husika kwenye ahadi kila moja.
+        description: Mfumo wa kudhibiti matoleo LAZIMA uwahitaji wachangiaji wote wa msimbo kuthibitisha kwamba wana ruhusa kisheria ya kufanya michango husika kwenye kila commit.
         details: Jumuisha DCO katika hifadhi ya mradi, kuhitaji wachangiaji wa msimbo kudai kuwa wanaruhusiwa kisheria kuwasilisha michango husika kwenye ahadi kila moja. Tumia ukaguzi wa hali kuhakikisha dai linafanywa. CLA pia inakidhi mahitaji haya. Mifumo fulani ya kudhibiti toleo, kama vile GitHub, inaweza kujumuisha hii katika masharti ya huduma ya jukwaa.
       osps_qa_03_01:
         description: Wakati ahadi inafanywa kwenye tawi kuu, ukaguzi wowote wa kiotomatiki wa hali za ahadi LAZIMA upite au upuuzwe kwa mikono.
@@ -1013,13 +1017,13 @@ sw:
         description: Mradi ulipotoa toleo, mradi LAZIMA ufanye tathmini ya usalama ili kuelewa matatizo ya uwezekano wa usalama ambayo ni ya uwezekano zaidi na yenye athari kubwa ambayo yangeweza kutokea ndani ya programu.
         details: Kufanya tathmini ya usalama huwaelimisha wajumbe wa mradi na pia watumiaji wa chini kwamba mradi unaelewa matatizo ambayo yangeweza kutokea ndani ya programu. Kuelewa vitisho ambavyo vingeweza kutambuliwa husaidia mradi kudhibiti na kushughulikia hatari. Habari hii ni muhimu kwa watumiaji wa chini ili kuonyesha ujuzi wa usalama na mazoea ya mradi. Hakikisha hii inasasishwa kwa vipengele vipya au mabadiliko ya kuvunja.
       osps_vm_01_01:
-        description: Ikiwa iko hai, nyaraka za mradi LAZIMA zijumuishe sera ya ufichuaji wa udhaifu wa pamoja (CVD), yenye muda maalum wa kujibu.
+        description: Nyaraka za mradi LAZIMA zijumuishe sera ya ufichuzi ulioratibiwa wa udhaifu (coordinated vulnerability disclosure, CVD), yenye muda maalum wa kujibu.
         details: Unda faili ya SECURITY.md mzizini mwa saraka, ikielezea sera ya mradi ya ufichuaji wa udhaifu wa pamoja. Jumuisha njia ya kuripoti udhaifu. Weka matarajio ya jinsi mradi utajibu na kushughulikia masuala yaliyoripotiwa.
       osps_vm_03_01:
-        description: Ikiwa iko hai, nyaraka za mradi LAZIMA zitoe njia ya kuripoti udhaifu wa faragha moja kwa moja kwa mawasiliano ya usalama ndani ya mradi.
+        description: Nyaraka za mradi LAZIMA zitoe njia ya kuripoti udhaifu kwa faragha moja kwa moja kwa anwani za mawasiliano za usalama ndani ya mradi.
         details: Toa njia kwa watafiti wa usalama kuripoti udhaifu kwa faragha kwa mradi. Hii inaweza kuwa anwani ya barua pepe mahususi, fomu ya wavuti, zana maalum za VCS, anwani za barua pepe kwa mawasiliano ya usalama, au mbinu nyingine.
       osps_vm_04_01:
-        description: Ikiwa iko hai, nyaraka za mradi LAZIMA zichapisha hadharani data kuhusu udhaifu uliogundulika.
+        description: Nyaraka za mradi LAZIMA zichapishe hadharani takwimu kuhusu udhaifu uliogunduliwa.
         details: Toa habari kuhusu udhaifu unaojulikana katika kituo cha hadharani kinachoweza kutabirika, kama vile ingizo la CVE, chapisho la blogi, au njia nyingine. Kwa kiwango kinachowezekana, habari hii inapaswa kujumuisha toleo(matoleo) lililoathirika, jinsi mtumiaji anavyoweza kubaini kama wanaathirika, na maelekezo ya kuzuia au kurekebisha.
       osps_do_07_01:
         description: Nyaraka za mradi LAZIMA zijumuishe maelekezo ya jinsi ya kujenga programu, ikiwa ni pamoja na maktaba zinazohitajika, mifumo, SDK, na utegemezi.
@@ -1047,7 +1051,7 @@ sw:
         description: Mradi unapotoa toleo, nyaraka za mradi LAZIMA zitoe kauli ya maelezo ya wakati matoleo au matoleo hayatapokea tena sasisho za usalama.
         details: Ili kuwasilisha wigo na muda wa msaada kwa marekebisho ya usalama, mradi unapaswa kuwa na SUPPORT.md au nyaraka nyingine zinazoweka wazi sera ya mradi ya sasisho za usalama.
       osps_gv_04_01:
-        description: Inapokuwa hai, nyaraka za mradi LAZIMA ziwe na sera kwamba washirikiano wa msimbo wanapimwa kabla ya kupewa ruhusa zilizopandishwa kwa rasilimali nyeti.
+        description: Nyaraka za mradi LAZIMA ziwe na sera kwamba washirikiano wa msimbo wanakaguliwa kabla ya kupewa ruhusa za juu zaidi za rasilimali nyeti.
         details: Chapisha sera inayoweza kutekelezwa katika nyaraka za mradi inayohitaji washirikiano wa msimbo kupimwa na kuidhinishwa kabla ya kupewa ruhusa zilizopandishwa kwa rasilimali nyeti, kama vile idhini ya kuunganisha au ufikiaji kwa siri. Inashauriwa kwamba upimaji ujumuishe kuanzisha mfululizo wa utambulisho unaoweza kuhalalishwa kama vile kuthibitisha ushirikiano wa mchangiaji na shirika linalojulikana na kuaminika.
       osps_qa_02_02:
         description: Mradi unapotoa toleo, rasilimali zote za programu zilizotolewa na zilizokusanywa LAZIMA zikabidhi pamoja na orodha ya bili ya programu.
@@ -1056,10 +1060,10 @@ sw:
         description: Mradi unapotoa toleo linalojumuisha hifadhi nyingi za chanzo cha msimbo, miradi yote midogo LAZIMA ilazimishe mahitaji ya usalama ambayo ni kali au kali zaidi kuliko msimbo wa msingi.
         details: Hifadhi yoyote ya ziada ya msimbo wa miradi midogo iliyozalishwa na mradi na kukusanywa katika toleo lazima ilazimishe mahitaji ya usalama kama inavyolingana na hali na nia ya msimbo husika. Kwa kuongeza kufuata mahitaji ya msingi wa OSPS yanayolingana, hii inaweza kujumuisha kuhitaji ukaguzi wa usalama, kuhakikisha kuwa haina udhaifu, na kuhakikisha kuwa haina masuala ya usalama yanayojulikana.
       osps_qa_06_02:
-        description: Inapokuwa hai, nyaraka za mradi LAZIMA ziweke wazi lini na jinsi majaribio yanavyotekelezwa.
+        description: Nyaraka za mradi LAZIMA zieleze kwa uwazi ni lini na jinsi gani majaribio yanaendeshwa.
         details: Ongeza sehemu kwenye nyaraka za kuchangia inayoweka wazi jinsi ya kutekeleza majaribio kienyeji na jinsi ya kutekeleza majaribio katika mirija ya CI/CD. Nyaraka zinapaswa kuweka wazi majaribio yanajaribu nini na jinsi ya kutafsiri matokeo.
       osps_qa_06_03:
-        description: Inapokuwa hai, nyaraka za mradi LAZIMA zijumuishe sera kwamba mabadiliko yote makubwa kwa programu inayozalishwa na mradi yanapaswa kuongeza au kusasisha majaribio ya utendaji katika seti ya majaribio ya kiatomati.
+        description: Nyaraka za mradi LAZIMA zijumuishe sera kwamba mabadiliko yote makubwa kwenye programu inayotengenezwa na mradi yanapaswa kuongeza au kusasisha majaribio ya utendaji katika seti ya majaribio otomatiki.
         details: Ongeza sehemu kwenye nyaraka za kuchangia inayoweka wazi sera ya kuongeza au kusasisha majaribio. Sera inapaswa kuweka wazi ni nini kinachojumuisha mabadiliko makubwa na majaribio yapi yanapaswa kuongezwa au kusasishwa.
       osps_qa_07_01:
         description: Wakati kuruhusu kumefanywa kwa tawi kuu, mfumo wa udhibiti wa toleo la mradi LAZIMA uhitaji angalau idhini moja ya binadamu asiye mwandishi ya mabadiliko kabla ya kuunganisha.
@@ -1068,22 +1072,22 @@ sw:
         description: Mradi unapotoa toleo, mradi LAZIMA ufanye ufuatiliaji wa tisho na uchambuzi wa uso wa shambulio ili kuelewa na kulinda dhidi ya mashambulizi kwenye njia za msimbo muhimu, majukumu, na mwingiliano ndani ya mfumo.
         details: Ufuatiliaji wa tisho ni shughuli ambapo mradi unaangalia msimbo, michakato na miundombinu inayohusiana, viunganishi, vipengele muhimu na "kufikiria kama kibogoyo" na kufanya mapendekezo ya jinsi mfumo unaweza kuvunjwa au kuhatarisha. Kila tisho iliyotambuliwa imeorodheshwa ili mradi uweze kufikiria jinsi ya kuepuka au kufunga pengo/udhaifu wowote unaoweza kutokea kwa kujihadhari. Hakikisha hii imesasishwa kwa vipengele vipya au mabadiliko ya kuvunja.
       osps_vm_04_02:
-        description: Wakati uko hai, udhaifu wowote katika vipengele vya programu visivyoathiri mradi LAZIMA viwe vimeainishwa katika hati ya VEX, ikiendeleza ripoti ya udhaifu na maelezo ya kutokutumiwa vibaya.
+        description: Udhaifu wowote katika vipengele vya programu usioathiri mradi LAZIMA uzingatiwe katika hati ya VEX, ikiongeza kwenye ripoti ya udhaifu maelezo ya kutoweza kutumika vibaya (non-exploitability).
         details: Weka mfumo wa mlisho wa VEX unaowasiliana hali ya utumiaji vibaya wa udhaifu unaojulikana, ikiwa ni pamoja na maelezo ya tathmini au marekebisho yoyote yaliyowekwa kusimamisha msimbo ulio na udhaifu usiotekelezwa.
       osps_vm_05_01:
-        description: Wakati uko hai, nyaraka za mradi LAZIMA zijumuishe sera inayofafanua kiwango cha marekebisho ya matokeo ya SCA yanayohusiana na udhaifu na leseni.
+        description: Nyaraka za mradi LAZIMA zijumuishe sera inayofafanua kiwango cha chini cha kurekebisha matokeo ya SCA yanayohusiana na udhaifu na leseni.
         details: Andika sera katika mradi inayofafanua kiwango cha marekebisho ya matokeo ya SCA yanayohusiana na udhaifu na leseni. Jumuisha mchakato wa kutambua, kutanguliza, na kurekebisha matokeo haya.
       osps_vm_05_02:
-        description: Wakati uko hai, nyaraka za mradi LAZIMA zijumuishe sera ya kushughulikia ukiukaji wa SCA kabla ya toleo lolote.
+        description: Nyaraka za mradi LAZIMA zijumuishe sera ya kushughulikia ukiukaji wa SCA kabla ya toleo lolote.
         details: Andika sera katika mradi wa kushughulikia matokeo ya Uchambuzi wa Muundo wa Programu yanayotumika kabla ya toleo lolote, na ongeza ukaguzi wa hali unaothibitisha kufuata sera hiyo kabla ya toleo.
       osps_vm_05_03:
-        description: Wakati uko hai, mabadiliko yote kwenye msingi wa msimbo wa mradi LAZIMA yaangaliwe kiatomati dhidi ya sera iliyoandikwa ya utegemezi mbaya na udhaifu unaojulikana katika utegemezi, kisha yazuiliwe katika hali ya ukiukaji, isipokuwa inapotangazwa na kuzuiliwa kama isiyotumiwa vibaya.
+        description: Mabadiliko yote kwenye msingi wa msimbo wa mradi LAZIMA yatathminiwe kiotomatiki dhidi ya sera iliyoandikwa kuhusu utegemezi hasidi na udhaifu unaojulikana katika utegemezi, kisha kuzuiliwa endapo kuna ukiukaji, isipokuwa pale ilipotangazwa na kufichwa kama isiyoweza kutumika vibaya.
         details: Unda ukaguzi wa hali katika mfumo wa kudhibiti toleo la mradi unaoendesha zana ya Uchambuzi wa Muundo wa Programu kwenye mabadiliko yote ya msingi wa msimbo. Hitaji kwamba ukaguzi wa hali upite kabla mabadiliko kusanywa.
       osps_vm_06_01:
-        description: Wakati uko hai, nyaraka za mradi LAZIMA zijumuishe sera inayofafanua kiwango cha marekebisho ya matokeo ya SAST.
+        description: Nyaraka za mradi LAZIMA zijumuishe sera inayofafanua kiwango cha chini cha kurekebisha matokeo ya SAST.
         details: Andika sera katika mradi inayofafanua kiwango cha marekebisho ya matokeo ya Upimaji wa Usalama wa Programu Tuli (SAST). Jumuisha mchakato wa kutambua, kutanguliza, na kurekebisha matokeo haya.
       osps_vm_06_02:
-        description: Wakati uko hai, mabadiliko yote kwenye msingi wa msimbo wa mradi LAZIMA yaangaliwe kiatomati dhidi ya sera iliyoandikwa ya udhaifu wa usalama na kuzuiliwa katika hali ya ukiukaji isipokuwa inapotangazwa na kuzuiliwa kama isiyotumiwa vibaya.
+        description: Mabadiliko yote kwenye msingi wa msimbo wa mradi LAZIMA yatathminiwe kiotomatiki dhidi ya sera iliyoandikwa kuhusu udhaifu wa usalama na kuzuiliwa endapo kuna ukiukaji isipokuwa pale ilipotangazwa na kufichwa kama isiyoweza kutumika vibaya.
         details: Unda ukaguzi wa hali katika mfumo wa kudhibiti toleo la mradi unaoendesha zana ya Upimaji wa Usalama wa Programu Tuli (SAST) kwenye mabadiliko yote ya msingi wa msimbo. Hitaji kwamba ukaguzi wa hali upite kabla mabadiliko kusanywa.
       osps_br_01_04:
         description: Mifuko ya CI/CD inayokubali pembejeo za mshirika anayeaminika LAZIMA isafishe na kuthibitisha pembejeo hiyo kabla ya kutumia katika mfuko.
@@ -1233,6 +1237,14 @@ sw:
   account_activations:
     delay:
       many: Kama hatua ya kupambana na taka, lazima usubiri masaa %{count} baada ya uanzishaji kabla hujaingia.
+    link_invalid_or_used: 'Uamilishaji umeshindikana. Ikiwa akaunti yako tayari imeamilishwa, tafadhali ingia.
+
+      '
+    confirm_heading: Amilisha Akaunti Yako
+    confirm_prompt: 'Bonyeza kitufe hapo chini kuthibitisha na kuamilisha akaunti yako.
+
+      '
+    confirm_button: Amilisha akaunti yangu
   detectives:
     github:
       repo_public: Hifadhi kwenye GitHub, ambayo inatoa hifadhi za git za umma zenye URL.
@@ -1285,3 +1297,8 @@ sw:
       field_value: 'Kulingana na %{location}: %{field}=%{value}'
       array_match: 'Kulingana na %{location}: %{field} %{match}'
       comment_suffix: 'Maoni yanasema: "%{comment}".'
+  pagination:
+    first: Kwanza
+    last: Mwisho
+  sessions:
+    login_failed: Samahani, jaribio hilo la kuingia halikuweza kukamilika. Tafadhali jaribu tena.

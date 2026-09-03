@@ -30,6 +30,14 @@ es:
 
         '
       many: Como medida anti-spam, debe esperar %{count} horas después de la activación antes de poder iniciar sesión.
+    link_invalid_or_used: 'La activación falló. Si su cuenta ya está activada, por favor inicie sesión.
+
+      '
+    confirm_heading: Active su cuenta
+    confirm_prompt: 'Haga clic en el botón de abajo para confirmar y activar su cuenta.
+
+      '
+    confirm_button: Activar mi cuenta
   password_resets:
     forgot_password: Olvidé mi contraseña
     reset_password: Restablecer contraseña
@@ -63,6 +71,7 @@ es:
     signed_out: "¡Sesión cerrada!"
     no_login_time: "(No hay registro de hora anterior.)"
     cannot_login_yet: "Lo sentimos, aún no puede iniciar sesión. Como medida contra el spam, hay una demora después de activar una cuenta local antes de que pueda iniciar sesión.\n\n"
+    login_failed: Lo sentimos, no se pudo completar ese intento de inicio de sesión. Por favor, inténtelo de nuevo.
   unsubscribe:
     header: Darse de baja
     description: Lamentamos que ya no desee recibir notificaciones. Si está seguro, por favor confirme su solicitud de cancelación de suscripción a las notificaciones.
@@ -231,7 +240,7 @@ es:
       tell_us: 'Por favor cuéntenos sobre su proyecto de software libre/libre/de código abierto (FLOSS). Este <b>DEBE</b> ser un proyecto FLOSS; no se permite nada más. <b>NO</b> agregue un sitio no relacionado para intentar mejorar la optimización de motores de búsqueda (SEO) de un sitio. Este spam está prohibido porque perjudica a los usuarios, y de todos modos no ayudará al SEO (todos los hipervínculos están marcados con <tt>ugc</tt> y <tt>nofollow</tt>).
 
         '
-      may_select_html: Puede seleccionar uno de sus repositorios de GitHub <em>O</em> proporcionar información sobre algún otro proyecto. Si su proyecto no ha obtenido una insignia de aprobación y no ha realizado ninguna edición durante al menos 30 días, le enviaremos un correo electrónico de recordatorio (puede desactivar los recordatorios en cualquier momento si lo desea).
+      may_select_html: Opcionalmente, puede seleccionar uno de sus repositorios de GitHub a continuación para rellenar previamente la URL del repositorio.
       new_badge_or: O
       select_one_github: Seleccione uno de sus repositorios de GitHub
       submit_github: Enviar Repositorio de GitHub
@@ -623,6 +632,10 @@ es:
       Este es un aviso previo de que la insignia \"%{old_level}\" de su proyecto puede
       perderse el %{effective_date} cuando entren en vigor los criterios actualizados.
       Por favor, revise su entrada de insignia en la siguiente URL antes de esa fecha:
+    warned_level_message_no_date: |-
+      Este es un aviso previo de que la insignia "%{old_level}" de su proyecto
+      podría perderse cuando entren en vigor los criterios actualizados.
+      Por favor, revise la entrada de su insignia en la siguiente URL:
   user_mailer:
     account_activation:
       before_html: |
@@ -1072,7 +1085,7 @@ es:
         description: Cuando se intenta eliminar la rama principal del proyecto, el sistema de control de versiones DEBE tratar esto como una actividad sensible y requerir confirmación explícita de la intención.
         details: Establezca protección de rama en la rama principal en el sistema de control de versiones del proyecto para evitar la eliminación.
       osps_br_01_01:
-        description: Cuando un pipeline de CI/CD acepta un parámetro de entrada, ese parámetro DEBE ser saneado y validado antes de usarse en el pipeline.
+        description: Cuando un pipeline de CI/CD opera con metadatos no confiables, esos parámetros DEBEN sanearse y validarse antes de usarse en el pipeline.
         details: Los flujos de CI/CD deben sanear (entre comillas, escapar o salir en valores esperados) todas las entradas de metadatos que correspondan a fuentes no confiables. Esto incluye datos como nombres de ramas, mensajes de confirmación, etiquetas, títulos de solicitudes de incorporación e información del autor.
       osps_br_01_02:
         description: Cuando un pipeline de CI/CD usa un nombre de rama en su funcionalidad, ese valor de nombre DEBE ser saneado y validado antes de usarse en el pipeline.
@@ -1080,8 +1093,8 @@ es:
         description: Cuando el proyecto lista un URI como un canal oficial del proyecto, ese URI DEBE ser entregado exclusivamente usando canales cifrados.
         details: Configure los sitios web y sistemas de control de versiones del proyecto para usar canales cifrados como SSH o HTTPS para la transmisión de datos. Asegúrese de que todas las herramientas y dominios referenciados en la documentación del proyecto solo puedan accederse a través de canales cifrados.
       osps_br_03_02:
-        description: Cuando el proyecto lista una URI como un canal de distribución oficial, esa URI DEBE ser entregada exclusivamente usando canales cifrados.
-        details: Configure el pipeline de lanzamiento del proyecto para que solo obtenga datos de sitios web, respuestas de API y otros servicios que utilicen canales cifrados como SSH o HTTPS para la transmisión de datos.
+        description: Cuando el proyecto indique una URI como canal de distribución oficial, ese canal DEBE estar protegido contra ataques de adversario en el medio (adversary-in-the-middle) mediante canales criptográficamente autenticados.
+        details: Los artefactos distribuidos por el proyecto deben distribuirse a través de canales que garanticen la integridad y la autenticidad. El uso de HTTPS para las descargas, versiones firmadas o distribución a través de gestores de paquetes confiables son métodos aceptables para proteger contra ataques de adversario en el medio.
       osps_br_07_01:
         description: El proyecto DEBE prevenir el almacenamiento no intencionado de datos sensibles no cifrados, como secretos y credenciales, en el sistema de control de versiones.
         details: Configure .gitignore o equivalente para excluir archivos que puedan contener información sensible. Use hooks de pre-commit y herramientas de escaneo automatizado para detectar y prevenir la inclusión de datos sensibles en los commits.
@@ -1092,25 +1105,25 @@ es:
         description: Cuando el proyecto haya realizado un lanzamiento, la documentación del proyecto DEBE incluir una guía para reportar defectos.
         details: Se recomienda que los proyectos utilicen el gestor de incidencias predeterminado de su VCS. Si se utiliza una fuente externa, asegúrese de que la documentación del proyecto y la guía de contribución expliquen claramente y de manera visible cómo usar el sistema de reporte. Se recomienda que la documentación del proyecto también establezca expectativas sobre cómo se clasificarán y resolverán los defectos.
       osps_gv_02_01:
-        description: Mientras esté activo, el proyecto DEBE tener uno o más mecanismos para discusiones públicas sobre cambios propuestos y obstáculos de uso.
+        description: El proyecto DEBE contar con uno o más mecanismos para realizar discusiones públicas sobre los cambios propuestos y los obstáculos de uso.
         details: Establezca uno o más mecanismos para discusiones públicas dentro del proyecto, como listas de correo, mensajería instantánea o gestores de incidencias, para facilitar la comunicación abierta y la retroalimentación.
       osps_gv_03_01:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir una explicación del proceso de contribución.
+        description: La documentación del proyecto DEBE incluir una explicación del proceso de contribución, o indicar claramente que no se aceptan contribuciones públicas
         details: Cree un archivo CONTRIBUTING.md o un directorio CONTRIBUTING/ para delinear el proceso de contribución, incluyendo los pasos para enviar cambios e interactuar con los mantenedores del proyecto.
       osps_le_02_01:
-        description: Mientras esté activo, la licencia para el código fuente DEBE cumplir con la Definición de Código Abierto de OSI o la Definición de Software Libre de FSF.
+        description: La licencia del código fuente DEBE cumplir con la Definición de Código Abierto de la OSI o la Definición de Software Libre de la FSF.
         details: Agregue un archivo LICENSE al repositorio del proyecto con una licencia que sea una licencia aprobada por la Open Source Initiative (OSI), o una licencia libre aprobada por la Free Software Foundation (FSF). Ejemplos de tales licencias incluyen MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), y la GNU General Public License (GPL). Liberar al dominio público cumple con este control si no hay otros gravámenes como patentes.
       osps_le_02_02:
-        description: Mientras esté activo, la licencia para los activos de software lanzados DEBE cumplir con la Definición de Código Abierto de OSI o la Definición de Software Libre de FSF.
+        description: La licencia de los activos de software publicados DEBE cumplir con la Definición de Código Abierto de la OSI o la Definición de Software Libre de la FSF.
         details: Si se incluye una licencia diferente con los activos de software lanzados, asegúrese de que sea una licencia aprobada por la Open Source Initiative (OSI), o una licencia libre aprobada por la Free Software Foundation (FSF). Ejemplos de tales licencias incluyen MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), y la GNU General Public License (GPL). Tenga en cuenta que la licencia para los activos de software lanzados puede ser diferente a la del código fuente.
       osps_le_03_01:
-        description: Mientras esté activo, la licencia para el código fuente DEBE ser mantenida en el archivo LICENSE, archivo COPYING o directorio LICENSE/ del repositorio correspondiente.
-        details: Incluya la licencia del código fuente del proyecto en el archivo LICENSE, archivo COPYING o directorio LICENSE/ del proyecto para proporcionar visibilidad y claridad sobre los términos de licencia. El nombre de archivo PUEDE tener una extensión. Si el proyecto tiene múltiples repositorios, asegúrese de que cada repositorio incluya el archivo de licencia.
+        description: La licencia del código fuente DEBE mantenerse en el archivo LICENSE, el archivo COPYING, el directorio LICENSES/ o el directorio LICENSE/ del repositorio correspondiente.
+        details: Incluya la licencia del código fuente del proyecto en el archivo LICENSE, el archivo COPYING, el directorio LICENSES/ o el directorio LICENSE/ del proyecto para proporcionar visibilidad y claridad sobre los términos de la licencia. El nombre del archivo PUEDE tener una extensión. Si el proyecto tiene varios repositorios, asegúrese de que cada repositorio incluya el archivo de licencia.
       osps_le_03_02:
-        description: Mientras esté activo, la licencia para los activos de software lanzados DEBE estar incluida en el código fuente lanzado, o en un archivo LICENSE, archivo COPYING o directorio LICENSE/ junto con los activos de lanzamiento correspondientes.
+        description: La licencia de los activos de software publicados DEBE incluirse en el código fuente publicado, o en un archivo LICENSE, un archivo COPYING o un directorio LICENSE/ junto a los activos de la versión correspondiente.
         details: Incluya la licencia de los activos de software lanzados del proyecto en el código fuente lanzado, o en un archivo LICENSE, archivo COPYING o directorio LICENSE/ junto con los activos de lanzamiento correspondientes para proporcionar visibilidad y claridad sobre los términos de licencia. El nombre de archivo PUEDE tener una extensión. Si el proyecto tiene múltiples repositorios, asegúrese de que cada repositorio incluya el archivo de licencia.
       osps_qa_01_01:
-        description: Mientras esté activo, el repositorio de código fuente del proyecto DEBE ser legible públicamente en una URL estática.
+        description: El repositorio de código fuente del proyecto DEBE ser legible públicamente en una URL estática.
         details: Use un VCS común como GitHub, GitLab o Bitbucket. Asegúrese de que el repositorio sea legible públicamente. Evite la duplicación o creación de mirrors de repositorios a menos que la documentación altamente visible aclare la fuente principal. Evite cambios frecuentes en el repositorio que impactarían la URL del repositorio. Asegúrese de que el repositorio sea público.
       osps_qa_01_02:
         description: El sistema de control de versiones DEBE contener un registro legible públicamente de todos los cambios realizados, quién los realizó y cuándo se realizaron los cambios.
@@ -1119,16 +1132,16 @@ es:
         description: Cuando el sistema de gestión de paquetes lo admita, el repositorio de código fuente DEBE contener una lista de dependencias que contabilice las dependencias directas del lenguaje.
         details: Esto puede tomar la forma de un gestor de paquetes o un archivo de dependencias del lenguaje que enumere todas las dependencias directas como package.json, Gemfile o go.mod.
       osps_qa_04_01:
-        description: Mientras esté activa, la documentación del proyecto DEBE contener una lista de cualquier código base que se considere subproyecto.
+        description: Los proyectos con múltiples repositorios DEBEN documentar una lista de bases de código que forman parte del proyecto.
         details: Documente cualquier repositorio de código de subproyecto adicional producido por el proyecto y compilado en un lanzamiento. Esta documentación debe incluir el estado e intención de la respectiva base de código.
       osps_qa_05_01:
-        description: Mientras esté activo, el sistema de control de versiones NO DEBE contener artefactos ejecutables generados.
+        description: El sistema de control de versiones NO DEBE contener artefactos ejecutables generados.
         details: Elimine los artefactos ejecutables generados en el sistema de control de versiones del proyecto. Se recomienda que cualquier escenario donde un artefacto ejecutable generado parezca crítico para un proceso como las pruebas, en su lugar debería generarse en el momento de la compilación o almacenarse por separado y obtenerse durante un paso de pipeline específico y bien documentado.
       osps_qa_05_02:
-        description: Mientras esté activo, el sistema de control de versiones NO DEBE contener artefactos binarios no revisables.
+        description: El sistema de control de versiones NO DEBE contener artefactos binarios que no se puedan revisar.
         details: No agregue ningún artefacto binario no revisable al sistema de control de versiones del proyecto. Esto incluye binarios de aplicaciones ejecutables, archivos de biblioteca y artefactos similares. No incluye activos como imágenes gráficas, archivos de sonido o música y contenido similar que típicamente se almacena en formato binario.
       osps_vm_02_01:
-        description: Mientras esté activa, la documentación del proyecto DEBE contener contactos de seguridad.
+        description: La documentación del proyecto DEBE contener los contactos de seguridad.
         details: Cree un archivo security.md (o con nombre similar) que contenga contactos de seguridad para el proyecto.
       osps_br_01_03:
         description: Cuando un flujo de CI/CD opera sobre instantáneas de código no confiable, DEBE impedir el acceso a credenciales y activos privilegiados de CI/CD.
@@ -1153,16 +1166,16 @@ es:
         description: Cuando el proyecto ha realizado un lanzamiento, la documentación del proyecto DEBE incluir una descripción de cómo el proyecto selecciona, obtiene y rastrea sus dependencias.
         details: Se recomienda publicar esta información junto con la documentación técnica y de diseño del proyecto en un recurso públicamente visible como el repositorio de código fuente, sitio web del proyecto u otro canal.
       osps_gv_01_01:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir una lista de miembros del proyecto con acceso a recursos sensibles.
+        description: La documentación del proyecto DEBE incluir una lista de los miembros del proyecto que tienen acceso a recursos sensibles.
         details: Documente los participantes del proyecto y sus roles a través de artefactos tales como members.md, governance.md, maintainers.md, o archivo similar dentro del repositorio de código fuente del proyecto. Esto puede ser tan simple como incluir nombres o identificadores de cuenta en una lista de mantenedores, o más complejo dependiendo de la gobernanza del proyecto.
       osps_gv_01_02:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir descripciones de los roles y responsabilidades para los miembros del proyecto.
+        description: La documentación del proyecto DEBE incluir descripciones de los roles y responsabilidades de los miembros del proyecto
         details: Documente los participantes del proyecto y sus roles a través de artefactos tales como members.md, governance.md, maintainers.md, o archivo similar dentro del repositorio de código fuente del proyecto.
       osps_gv_03_02:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir una guía para contribuidores de código que incluya requisitos para contribuciones aceptables.
+        description: La documentación del proyecto DEBE incluir una guía para colaboradores de código que incluya los requisitos para que las contribuciones sean aceptables.
         details: Extienda el CONTRIBUTING.md o los contenidos de CONTRIBUTING/ en la documentación del proyecto para delinear los requisitos para contribuciones aceptables, incluyendo estándares de codificación, requisitos de pruebas y pautas de envío para contribuidores de código. Se recomienda que esta guía sea la fuente de verdad tanto para contribuidores como para aprobadores.
       osps_le_01_01:
-        description: Mientras esté activo, el sistema de control de versiones DEBE requerir que todos los contribuidores de código afirmen que están legalmente autorizados para hacer las contribuciones asociadas en cada commit.
+        description: El sistema de control de versiones DEBE requerir que todos los colaboradores de código afirmen que están legalmente autorizados para realizar las contribuciones asociadas en cada confirmación (commit).
         details: Incluya un DCO en el repositorio del proyecto, requiriendo que los contribuidores de código afirmen que están legalmente autorizados para confirmar las contribuciones asociadas en cada commit. Use una verificación de estado para asegurar que se haga la afirmación. Un CLA también satisface este requisito. Algunos sistemas de control de versiones, como GitHub, pueden incluir esto en los términos de servicio de la plataforma.
       osps_qa_03_01:
         description: Cuando se realiza un commit a la rama principal, cualquier verificación de estado automatizada para commits DEBE pasar o ser omitida manualmente.
@@ -1180,13 +1193,13 @@ es:
         description: Cuando el proyecto haya realizado un lanzamiento, el proyecto DEBE realizar una evaluación de seguridad para comprender los problemas de seguridad potenciales más probables e impactantes que podrían ocurrir dentro del software.
         details: Realizar una evaluación de seguridad informa tanto a los miembros del proyecto como a los consumidores posteriores que el proyecto comprende qué problemas podrían surgir dentro del software. Comprender qué amenazas podrían materializarse ayuda al proyecto a gestionar y abordar el riesgo. Esta información es útil para los consumidores posteriores para demostrar la competencia y prácticas de seguridad del proyecto. Asegúrese de que esto se actualice para nuevas funcionalidades o cambios incompatibles.
       osps_vm_01_01:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir una política para la divulgación coordinada de vulnerabilidades (CVD), con un plazo de tiempo claro para la respuesta.
+        description: La documentación del proyecto DEBE incluir una política de divulgación coordinada de vulnerabilidades (CVD), con un plazo claro de respuesta.
         details: Cree un archivo SECURITY.md en la raíz del directorio, describiendo la política del proyecto para la divulgación coordinada de vulnerabilidades. Incluya un método para reportar vulnerabilidades. Establezca expectativas sobre cómo el proyecto responderá y abordará los problemas reportados.
       osps_vm_03_01:
-        description: Mientras esté activo, la documentación del proyecto DEBE proporcionar un medio para el reporte privado de vulnerabilidades directamente a los contactos de seguridad dentro del proyecto.
+        description: La documentación del proyecto DEBE proporcionar un medio para reportar vulnerabilidades de forma privada directamente a los contactos de seguridad del proyecto.
         details: Proporcione un medio para que los investigadores de seguridad reporten vulnerabilidades de forma privada al proyecto. Esto puede ser una dirección de correo electrónico dedicada, un formulario web, herramientas especializadas del VCS, direcciones de correo electrónico para contactos de seguridad, u otros métodos.
       osps_vm_04_01:
-        description: Mientras esté activo, la documentación del proyecto DEBE publicar públicamente datos sobre las vulnerabilidades descubiertas.
+        description: La documentación del proyecto DEBE publicar públicamente los datos sobre las vulnerabilidades descubiertas.
         details: Proporcione información sobre vulnerabilidades conocidas en un canal público predecible, como una entrada CVE, publicación de blog u otro medio. En la medida de lo posible, esta información debe incluir la(s) versión(es) afectada(s), cómo un consumidor puede determinar si es vulnerable, e instrucciones para la mitigación o remediación.
       osps_do_07_01:
         description: La documentación del proyecto DEBE incluir instrucciones sobre cómo compilar el software, incluyendo las bibliotecas, marcos, SDK y dependencias necesarias.
@@ -1214,7 +1227,7 @@ es:
         description: Cuando el proyecto haya realizado un lanzamiento, la documentación del proyecto DEBE proporcionar una declaración descriptiva sobre cuándo los lanzamientos o versiones ya no recibirán actualizaciones de seguridad.
         details: Para comunicar el alcance y la duración del soporte para correcciones de seguridad, el proyecto debe tener un SUPPORT.md u otra documentación que explique la política del proyecto para actualizaciones de seguridad.
       osps_gv_04_01:
-        description: Mientras esté activo, la documentación del proyecto DEBE tener una política que establezca que los colaboradores de código sean revisados antes de otorgarles permisos elevados a recursos sensibles.
+        description: La documentación del proyecto DEBE tener una política que exija que los colaboradores de código sean revisados antes de otorgarles permisos elevados a recursos sensibles.
         details: Publique una política exigible en la documentación del proyecto que requiera que los colaboradores de código sean revisados y aprobados antes de otorgarles permisos elevados a recursos sensibles, como aprobación de fusiones o acceso a secretos. Se recomienda que la verificación incluya establecer un linaje justificable de identidad, como confirmar la asociación del colaborador con una organización confiable conocida.
       osps_qa_02_02:
         description: Cuando el proyecto haya realizado un lanzamiento, todos los activos de software compilados lanzados DEBEN ser entregados con una lista de materiales de software.
@@ -1223,10 +1236,10 @@ es:
         description: Cuando el proyecto haya realizado un lanzamiento que comprenda múltiples repositorios de código fuente, todos los subproyectos DEBEN aplicar requisitos de seguridad que sean tan estrictos o más estrictos que la base de código principal.
         details: Cualquier repositorio de código de subproyecto adicional producido por el proyecto y compilado en un lanzamiento debe aplicar requisitos de seguridad según sea aplicable al estado e intención de la base de código respectiva. Además de seguir los requisitos correspondientes de la Línea Base OSPS, esto puede incluir requerir una revisión de seguridad, asegurar que esté libre de vulnerabilidades y asegurar que esté libre de problemas de seguridad conocidos.
       osps_qa_06_02:
-        description: Mientras esté activo, la documentación del proyecto DEBE documentar claramente cuándo y cómo se ejecutan las pruebas.
+        description: La documentación del proyecto DEBE documentar claramente cuándo y cómo se ejecutan las pruebas.
         details: Agregue una sección a la documentación de contribución que explique cómo ejecutar las pruebas localmente y cómo ejecutar las pruebas en el pipeline de CI/CD. La documentación debe explicar qué están probando las pruebas y cómo interpretar los resultados.
       osps_qa_06_03:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir una política que establezca que todos los cambios importantes al software producido por el proyecto deben agregar o actualizar las pruebas de la funcionalidad en una suite de pruebas automatizada.
+        description: La documentación del proyecto DEBE incluir una política de que todos los cambios importantes al software producido por el proyecto deben agregar o actualizar pruebas de la funcionalidad en un conjunto de pruebas automatizado.
         details: Agregue una sección a la documentación de contribución que explique la política para agregar o actualizar pruebas. La política debe explicar qué constituye un cambio importante y qué pruebas deben agregarse o actualizarse.
       osps_qa_07_01:
         description: Cuando se realiza un commit a la rama principal, el sistema de control de versiones del proyecto DEBE requerir al menos una aprobación humana no autora de los cambios antes de fusionarlos.
@@ -1235,22 +1248,22 @@ es:
         description: Cuando el proyecto haya realizado un lanzamiento, el proyecto DEBE realizar un modelado de amenazas y análisis de superficie de ataque para comprender y protegerse contra ataques en rutas de código críticas, funciones e interacciones dentro del sistema.
         details: El modelado de amenazas es una actividad donde el proyecto examina la base de código, procesos asociados e infraestructura, interfaces, componentes clave y "piensa como un hacker" y hace una lluvia de ideas sobre cómo el sistema puede ser vulnerado o comprometido. Cada amenaza identificada se enumera para que el proyecto pueda pensar en cómo evitar proactivamente o cerrar cualquier brecha/vulnerabilidad que pueda surgir. Asegúrese de que esto se actualice para nuevas características o cambios importantes.
       osps_vm_04_02:
-        description: Mientras esté activo, cualquier vulnerabilidad en los componentes de software que no afecte al proyecto DEBE ser contabilizada en un documento VEX, aumentando el informe de vulnerabilidad con detalles de no explotabilidad.
+        description: Cualquier vulnerabilidad en los componentes de software que no afecte al proyecto DEBE ser contabilizada en un documento VEX, complementando el informe de vulnerabilidad con detalles de no explotabilidad.
         details: Establezca un feed VEX comunicando el estado de explotabilidad de vulnerabilidades conocidas, incluyendo detalles de evaluación o cualquier mitigación implementada que impida que el código vulnerable sea ejecutado.
       osps_vm_05_01:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir una política que defina un umbral para la remediación de hallazgos de SCA relacionados con vulnerabilidades y licencias.
+        description: La documentación del proyecto DEBE incluir una política que defina un umbral para la corrección de los hallazgos de SCA relacionados con vulnerabilidades y licencias.
         details: Documente una política en el proyecto que defina un umbral para la remediación de hallazgos de Análisis de Composición de Software (SCA) relacionados con vulnerabilidades y licencias. Incluya el proceso para identificar, priorizar y remediar estos hallazgos.
       osps_vm_05_02:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir una política para abordar violaciones de SCA antes de cualquier lanzamiento.
+        description: La documentación del proyecto DEBE incluir una política para abordar las infracciones de SCA antes de cualquier lanzamiento.
         details: Documente una política en el proyecto para abordar los resultados aplicables del Análisis de Composición de Software antes de cualquier lanzamiento, y agregue verificaciones de estado que comprueben el cumplimiento de esa política antes del lanzamiento.
       osps_vm_05_03:
-        description: Mientras esté activo, todos los cambios en la base de código del proyecto DEBEN ser automáticamente evaluados contra una política documentada para dependencias maliciosas y vulnerabilidades conocidas en dependencias, y luego bloqueados en caso de violaciones, excepto cuando se declaren y supriman como no explotables.
+        description: Todos los cambios a la base de código del proyecto DEBEN ser evaluados automáticamente contra una política documentada de dependencias maliciosas y vulnerabilidades conocidas en las dependencias, y bloqueados en caso de infracciones, excepto cuando se declaren y se supriman por no ser explotables.
         details: Cree una verificación de estado en el sistema de control de versiones del proyecto que ejecute una herramienta de Análisis de Composición de Software en todos los cambios en la base de código. Requiera que la verificación de estado pase antes de que los cambios puedan fusionarse.
       osps_vm_06_01:
-        description: Mientras esté activo, la documentación del proyecto DEBE incluir una política que defina un umbral para la remediación de hallazgos de SAST.
+        description: La documentación del proyecto DEBE incluir una política que defina un umbral para la corrección de los hallazgos de SAST.
         details: Documente una política en el proyecto que defina un umbral para la remediación de hallazgos de Pruebas de Seguridad de Aplicaciones Estáticas (SAST). Incluya el proceso para identificar, priorizar y remediar estos hallazgos.
       osps_vm_06_02:
-        description: Mientras esté activo, todos los cambios en la base de código del proyecto DEBEN ser automáticamente evaluados contra una política documentada para debilidades de seguridad y bloqueados en caso de violaciones excepto cuando se declaren y supriman como no explotables.
+        description: Todos los cambios a la base de código del proyecto DEBEN ser evaluados automáticamente contra una política documentada de debilidades de seguridad y bloqueados en caso de infracciones, excepto cuando se declaren y se supriman por no ser explotables.
         details: Cree una verificación de estado en el sistema de control de versiones del proyecto que ejecute una herramienta de Pruebas de Seguridad de Aplicaciones Estáticas (SAST) en todos los cambios en la base de código. Requiera que la verificación de estado pase antes de que los cambios puedan fusionarse.
       osps_br_01_04:
         description: Los flujos de CI/CD que aceptan entradas de colaboradores de confianza DEBEN sanear y validar dichas entradas antes de utilizarlas en el flujo.
@@ -1428,3 +1441,6 @@ es:
       field_value: 'Según %{location}: %{field}=%{value}'
       array_match: 'Según %{location}: %{field} %{match}'
       comment_suffix: 'El comentario dice: "%{comment}".'
+  pagination:
+    first: Primera
+    last: Última

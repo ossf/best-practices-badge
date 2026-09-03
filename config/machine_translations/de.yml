@@ -107,6 +107,7 @@ de:
       Dies ist eine Vorankündigung, dass das "%{old_level}"-Abzeichen Ihres Projekts
       am %{effective_date} verloren gehen könnte, wenn aktualisierte Kriterien in Kraft treten.
       Bitte überprüfen Sie Ihren Abzeichen-Eintrag unter der folgenden URL vor diesem Datum:
+    warned_level_message_no_date: 'Dies ist eine Vorabankündigung, dass das "%{old_level}"-Abzeichen Ihres Projekts verloren gehen könnte, wenn aktualisierte Kriterien in Kraft treten. Bitte überprüfen Sie Ihren Badge-Eintrag unter der folgenden URL:'
   criteria:
     '0':
       maintained:
@@ -128,7 +129,7 @@ de:
         description: Wenn versucht wird, den primären Branch des Projekts zu löschen, MUSS das Versionskontrollsystem dies als sensible Aktivität behandeln und eine explizite Bestätigung der Absicht erfordern.
         details: Setzen Sie Branch-Schutz auf den primären Branch im Versionskontrollsystem des Projekts, um das Löschen zu verhindern.
       osps_br_01_01:
-        description: Wenn eine CI/CD-Pipeline einen Eingabeparameter akzeptiert, MUSS dieser Parameter vor der Verwendung in der Pipeline bereinigt und validiert werden.
+        description: Wenn eine CI/CD-Pipeline mit nicht vertrauenswürdigen Metadaten arbeitet, MÜSSEN diese Parameter vor der Verwendung in der Pipeline bereinigt und validiert werden.
         details: CI/CD-Pipelines sollten alle Metadaten-Eingaben, die nicht vertrauenswürdigen Quellen entsprechen, bereinigen (in Anführungszeichen setzen, escapen oder bei erwarteten Werten beenden). Dazu gehören Daten wie Branch-Namen, Commit-Nachrichten, Tags, Titel von Pull Requests und Autoreninformationen.
       osps_br_01_02:
         description: Wenn eine CI/CD-Pipeline einen Branch-Namen in ihrer Funktionalität verwendet, MUSS dieser Namenswert vor der Verwendung in der Pipeline bereinigt und validiert werden.
@@ -136,8 +137,8 @@ de:
         description: Wenn das Projekt eine URI als offiziellen Projektkanal auflistet, MUSS diese URI ausschließlich über verschlüsselte Kanäle bereitgestellt werden.
         details: Konfigurieren Sie die Websites und Versionskontrollsysteme des Projekts so, dass sie verschlüsselte Kanäle wie SSH oder HTTPS für die Datenübertragung verwenden. Stellen Sie sicher, dass alle Tools und Domains, die in der Projektdokumentation referenziert werden, nur über verschlüsselte Kanäle zugänglich sind.
       osps_br_03_02:
-        description: Wenn das Projekt eine URI als offiziellen Vertriebskanal auflistet, MUSS diese URI ausschließlich über verschlüsselte Kanäle bereitgestellt werden.
-        details: Konfigurieren Sie die Release-Pipeline des Projekts so, dass Daten nur von Websites, API-Antworten und anderen Diensten abgerufen werden, die verschlüsselte Kanäle wie SSH oder HTTPS für die Datenübertragung verwenden.
+        description: Wenn das Projekt eine URI als offiziellen Distributionskanal angibt, MUSS dieser Kanal durch kryptografisch authentifizierte Kanäle vor Adversary-in-the-Middle-Angriffen geschützt werden.
+        details: Vom Projekt verteilte Artefakte sollten über Kanäle verteilt werden, die Integrität und Authentizität gewährleisten. Die Verwendung von HTTPS für Downloads, signierten Releases oder die Verteilung über vertrauenswürdige Paketmanager sind allesamt akzeptable Methoden, um sich vor Adversary-in-the-Middle-Angriffen zu schützen.
       osps_br_07_01:
         description: Das Projekt MUSS die unbeabsichtigte Speicherung unverschlüsselter sensibler Daten, wie Geheimnisse und Anmeldeinformationen, im Versionskontrollsystem verhindern.
         details: Konfigurieren Sie .gitignore oder Äquivalent, um Dateien auszuschließen, die sensible Informationen enthalten könnten. Verwenden Sie Pre-Commit-Hooks und automatisierte Scan-Tools, um die Einbeziehung sensibler Daten in Commits zu erkennen und zu verhindern.
@@ -148,25 +149,25 @@ de:
         description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation eine Anleitung zum Melden von Fehlern enthalten.
         details: Es wird empfohlen, dass Projekte ihren Standard-Issue-Tracker des VCS verwenden. Wenn eine externe Quelle verwendet wird, stellen Sie sicher, dass die Projektdokumentation und der Beitragsleitfaden klar und sichtbar erklären, wie das Meldesystem verwendet wird. Es wird empfohlen, dass die Projektdokumentation auch Erwartungen daran setzt, wie Fehler priorisiert und behoben werden.
       osps_gv_02_01:
-        description: Während das Projekt aktiv ist, MUSS das Projekt einen oder mehrere Mechanismen für öffentliche Diskussionen über vorgeschlagene Änderungen und Nutzungshindernisse haben.
+        description: Das Projekt MUSS einen oder mehrere Mechanismen für öffentliche Diskussionen über vorgeschlagene Änderungen und Nutzungshindernisse haben.
         details: Richten Sie einen oder mehrere Mechanismen für öffentliche Diskussionen innerhalb des Projekts ein, wie Mailinglisten, Instant Messaging oder Issue-Tracker, um offene Kommunikation und Feedback zu ermöglichen.
       osps_gv_03_01:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Erklärung des Beitragsprozesses enthalten.
+        description: Die Projektdokumentation MUSS eine Erklärung des Beitragsprozesses enthalten oder deutlich angeben, dass öffentliche Beiträge nicht akzeptiert werden
         details: Erstellen Sie eine CONTRIBUTING.md oder ein CONTRIBUTING/ Verzeichnis, um den Beitragsprozess zu skizzieren, einschließlich der Schritte zum Einreichen von Änderungen und zur Interaktion mit den Projektbetreuern.
       osps_le_02_01:
-        description: Während das Projekt aktiv ist, MUSS die Lizenz für den Quellcode die OSI Open Source Definition oder die FSF Free Software Definition erfüllen.
+        description: Die Lizenz für den Quellcode MUSS der OSI Open Source Definition oder der FSF Free Software Definition entsprechen.
         details: Fügen Sie eine LICENSE-Datei zum Repository des Projekts mit einer Lizenz hinzu, die eine genehmigte Lizenz der Open Source Initiative (OSI) oder eine freie Lizenz ist, wie sie von der Free Software Foundation (FSF) genehmigt wurde. Beispiele für solche Lizenzen sind MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL) und die GNU General Public License (GPL). Eine Veröffentlichung in die Public Domain erfüllt diese Kontrolle, wenn es keine anderen Belastungen wie Patente gibt.
       osps_le_02_02:
-        description: Während das Projekt aktiv ist, MUSS die Lizenz für die veröffentlichten Software-Assets die OSI Open Source Definition oder die FSF Free Software Definition erfüllen.
+        description: Die Lizenz für die veröffentlichten Software-Assets MUSS der OSI Open Source Definition oder der FSF Free Software Definition entsprechen.
         details: Wenn eine andere Lizenz mit veröffentlichten Software-Assets enthalten ist, stellen Sie sicher, dass es eine genehmigte Lizenz der Open Source Initiative (OSI) oder eine freie Lizenz ist, wie sie von der Free Software Foundation (FSF) genehmigt wurde. Beispiele für solche Lizenzen sind MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL) und die GNU General Public License (GPL). Beachten Sie, dass die Lizenz für die veröffentlichten Software-Assets von der des Quellcodes abweichen kann.
       osps_le_03_01:
-        description: Während das Projekt aktiv ist, MUSS die Lizenz für den Quellcode in der LICENSE-Datei, COPYING-Datei oder im LICENSE/ Verzeichnis des entsprechenden Repositorys gepflegt werden.
-        details: Fügen Sie die Quellcode-Lizenz des Projekts in die LICENSE-Datei, COPYING-Datei oder das LICENSE/ Verzeichnis des Projekts ein, um Sichtbarkeit und Klarheit über die Lizenzbedingungen zu schaffen. Der Dateiname KANN eine Erweiterung haben. Wenn das Projekt mehrere Repositorys hat, stellen Sie sicher, dass jedes Repository die Lizenzdatei enthält.
+        description: Die Lizenz für den Quellcode MUSS in der LICENSE-Datei, der COPYING-Datei, dem LICENSES/-Verzeichnis oder dem LICENSE/-Verzeichnis des entsprechenden Repositorys gepflegt werden.
+        details: Fügen Sie die Quellcode-Lizenz des Projekts in der LICENSE-Datei, der COPYING-Datei, dem LICENSES/-Verzeichnis oder dem LICENSE/-Verzeichnis des Projekts ein, um Transparenz und Klarheit über die Lizenzbedingungen zu schaffen. Der Dateiname DARF eine Erweiterung haben. Wenn das Projekt mehrere Repositorys hat, stellen Sie sicher, dass jedes Repository die Lizenzdatei enthält.
       osps_le_03_02:
-        description: Während das Projekt aktiv ist, MUSS die Lizenz für die veröffentlichten Software-Assets im veröffentlichten Quellcode oder in einer LICENSE-Datei, COPYING-Datei oder einem LICENSE/ Verzeichnis neben den entsprechenden Release-Assets enthalten sein.
+        description: Die Lizenz für die veröffentlichten Software-Assets MUSS im veröffentlichten Quellcode oder in einer LICENSE-Datei, COPYING-Datei oder einem LICENSE/-Verzeichnis neben den entsprechenden Release-Assets enthalten sein.
         details: Fügen Sie die Lizenz für die veröffentlichten Software-Assets des Projekts in den veröffentlichten Quellcode oder in eine LICENSE-Datei, COPYING-Datei oder ein LICENSE/ Verzeichnis neben den entsprechenden Release-Assets ein, um Sichtbarkeit und Klarheit über die Lizenzbedingungen zu schaffen. Der Dateiname KANN eine Erweiterung haben. Wenn das Projekt mehrere Repositorys hat, stellen Sie sicher, dass jedes Repository die Lizenzdatei enthält.
       osps_qa_01_01:
-        description: Während das Projekt aktiv ist, MUSS das Quellcode-Repository des Projekts unter einer statischen URL öffentlich lesbar sein.
+        description: Das Quellcode-Repository des Projekts MUSS unter einer statischen URL öffentlich lesbar sein.
         details: Verwenden Sie ein gängiges VCS wie GitHub, GitLab oder Bitbucket. Stellen Sie sicher, dass das Repository öffentlich lesbar ist. Vermeiden Sie Duplizierung oder Spiegelung von Repositorys, es sei denn, eine gut sichtbare Dokumentation verdeutlicht die primäre Quelle. Vermeiden Sie häufige Änderungen am Repository, die sich auf die Repository-URL auswirken würden. Stellen Sie sicher, dass das Repository öffentlich ist.
       osps_qa_01_02:
         description: Das Versionskontrollsystem MUSS eine öffentlich lesbare Aufzeichnung aller vorgenommenen Änderungen, wer die Änderungen vorgenommen hat und wann die Änderungen vorgenommen wurden, enthalten.
@@ -175,16 +176,16 @@ de:
         description: Wenn das Paketverwaltungssystem dies unterstützt, MUSS das Quellcode-Repository eine Abhängigkeitsliste enthalten, die die direkten Sprachabhängigkeiten berücksichtigt.
         details: Dies kann in Form einer Paketverwaltungs- oder Sprachabhängigkeitsdatei erfolgen, die alle direkten Abhängigkeiten auflistet, wie package.json, Gemfile oder go.mod.
       osps_qa_04_01:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Liste aller Codebasen enthalten, die als Unterprojekte betrachtet werden.
+        description: Projekte mit mehreren Repositorys MÜSSEN eine Liste der Codebasen dokumentieren, die Teil des Projekts sind.
         details: Dokumentieren Sie alle zusätzlichen Unterprojekt-Code-Repositorys, die vom Projekt produziert und in ein Release kompiliert werden. Diese Dokumentation sollte den Status und die Absicht der jeweiligen Codebasis enthalten.
       osps_qa_05_01:
-        description: Während das Projekt aktiv ist, DARF das Versionskontrollsystem KEINE generierten ausführbaren Artefakte enthalten.
+        description: Das Versionskontrollsystem DARF KEINE generierten ausführbaren Artefakte enthalten.
         details: Entfernen Sie generierte ausführbare Artefakte aus dem Versionskontrollsystem des Projekts. Es wird empfohlen, dass in jedem Szenario, in dem ein generiertes ausführbares Artefakt für einen Prozess wie Tests kritisch erscheint, es stattdessen zur Build-Zeit generiert oder separat gespeichert und während eines spezifischen gut dokumentierten Pipeline-Schritts abgerufen werden sollte.
       osps_qa_05_02:
-        description: Während aktiv, DARF das Versionskontrollsystem KEINE nicht überprüfbaren Binärartefakte enthalten.
+        description: Das Versionskontrollsystem DARF KEINE nicht überprüfbaren Binärartefakte enthalten.
         details: Fügen Sie keine nicht überprüfbaren Binärartefakte zum Versionskontrollsystem des Projekts hinzu. Dies umfasst ausführbare Anwendungsbinärdateien, Bibliotheksdateien und ähnliche Artefakte. Dies schließt keine Assets wie Grafikbilder, Ton- oder Musikdateien und ähnliche Inhalte ein, die typischerweise in einem Binärformat gespeichert werden.
       osps_vm_02_01:
-        description: Während aktiv, MUSS die Projektdokumentation Sicherheitskontakte enthalten.
+        description: Die Projektdokumentation MUSS Sicherheitskontakte enthalten.
         details: Erstellen Sie eine security.md (oder ähnlich benannte) Datei, die Sicherheitskontakte für das Projekt enthält.
       osps_br_01_03:
         description: Wenn eine CI/CD-Pipeline mit nicht vertrauenswürdigen Code-Snapshots arbeitet, MUSS sie den Zugriff auf privilegierte CI/CD-Anmeldeinformationen und -Ressourcen verhindern.
@@ -209,16 +210,16 @@ de:
         description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation eine Beschreibung enthalten, wie das Projekt seine Abhängigkeiten auswählt, bezieht und verfolgt.
         details: Es wird empfohlen, diese Informationen zusammen mit der technischen und Design-Dokumentation des Projekts auf einer öffentlich zugänglichen Ressource wie dem Quellcode-Repository, der Projektwebsite oder einem anderen Kanal zu veröffentlichen.
       osps_gv_01_01:
-        description: Während aktiv, MUSS die Projektdokumentation eine Liste von Projektmitgliedern mit Zugriff auf sensible Ressourcen enthalten.
+        description: Die Projektdokumentation MUSS eine Liste der Projektmitglieder mit Zugriff auf sensible Ressourcen enthalten.
         details: Dokumentieren Sie Projektteilnehmer und ihre Rollen durch Artefakte wie members.md, governance.md, maintainers.md oder eine ähnliche Datei im Quellcode-Repository des Projekts. Dies kann so einfach sein wie die Aufnahme von Namen oder Account-Handles in einer Liste von Maintainern, oder komplexer sein, abhängig von der Governance des Projekts.
       osps_gv_01_02:
-        description: Während aktiv, MUSS die Projektdokumentation Beschreibungen der Rollen und Verantwortlichkeiten für Mitglieder des Projekts enthalten.
+        description: Die Projektdokumentation MUSS Beschreibungen der Rollen und Verantwortlichkeiten der Projektmitglieder enthalten.
         details: Dokumentieren Sie Projektteilnehmer und ihre Rollen durch Artefakte wie members.md, governance.md, maintainers.md oder ähnliche Dateien im Quellcode-Repository des Projekts.
       osps_gv_03_02:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation einen Leitfaden für Code-Beitragende enthalten, der Anforderungen für akzeptable Beiträge beinhaltet.
+        description: Die Projektdokumentation MUSS einen Leitfaden für Code-Mitwirkende enthalten, der die Anforderungen für akzeptable Beiträge beschreibt.
         details: Erweitern Sie die Inhalte von CONTRIBUTING.md oder CONTRIBUTING/ in der Projektdokumentation, um die Anforderungen für akzeptable Beiträge zu beschreiben, einschließlich Codierungsstandards, Testanforderungen und Einreichungsrichtlinien für Code-Beitragende. Es wird empfohlen, dass dieser Leitfaden die verbindliche Quelle sowohl für Beitragende als auch für Genehmiger ist.
       osps_le_01_01:
-        description: Während das Projekt aktiv ist, MUSS das Versionskontrollsystem von allen Code-Beitragenden verlangen, dass sie bei jedem Commit bestätigen, dass sie rechtlich berechtigt sind, die zugehörigen Beiträge zu leisten.
+        description: Das Versionskontrollsystem MUSS bei jedem Commit von allen Code-Mitwirkenden verlangen zu bestätigen, dass sie rechtlich befugt sind, die zugehörigen Beiträge zu leisten.
         details: Fügen Sie ein DCO in das Repository des Projekts ein, das Code-Beitragende dazu verpflichtet zu bestätigen, dass sie rechtlich berechtigt sind, die zugehörigen Beiträge bei jedem Commit zu leisten. Verwenden Sie eine Statusüberprüfung, um sicherzustellen, dass die Bestätigung erfolgt ist. Ein CLA erfüllt diese Anforderung ebenfalls. Einige Versionskontrollsysteme, wie GitHub, können dies in den Nutzungsbedingungen der Plattform enthalten.
       osps_qa_03_01:
         description: Wenn ein Commit in den primären Branch erfolgt, MÜSSEN alle automatisierten Statusüberprüfungen für Commits bestanden werden oder manuell umgangen werden.
@@ -236,13 +237,13 @@ de:
         description: Wenn das Projekt eine Veröffentlichung vorgenommen hat, MUSS das Projekt eine Sicherheitsbewertung durchführen, um die wahrscheinlichsten und folgenschwersten potenziellen Sicherheitsprobleme zu verstehen, die innerhalb der Software auftreten könnten.
         details: Die Durchführung einer Sicherheitsbewertung informiert sowohl Projektmitglieder als auch nachgelagerte Verbraucher darüber, dass das Projekt versteht, welche Probleme innerhalb der Software auftreten könnten. Das Verständnis darüber, welche Bedrohungen realisiert werden könnten, hilft dem Projekt, Risiken zu verwalten und anzugehen. Diese Informationen sind für nachgelagerte Verbraucher nützlich, um den Sicherheitssachverstand und die Praktiken des Projekts zu demonstrieren. Stellen Sie sicher, dass dies für neue Funktionen oder Breaking Changes aktualisiert wird.
       osps_vm_01_01:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie für koordinierte Offenlegung von Schwachstellen (CVD) mit einem klaren Zeitrahmen für die Reaktion enthalten.
+        description: Die Projektdokumentation MUSS eine Richtlinie für die koordinierte Offenlegung von Schwachstellen (Coordinated Vulnerability Disclosure, CVD) mit einem klaren Zeitrahmen für die Reaktion enthalten.
         details: Erstellen Sie eine SECURITY.md-Datei im Stammverzeichnis, die die Richtlinie des Projekts für koordinierte Offenlegung von Schwachstellen beschreibt. Fügen Sie eine Methode zur Meldung von Schwachstellen hinzu. Setzen Sie Erwartungen dafür, wie das Projekt reagieren und gemeldete Probleme angehen wird.
       osps_vm_03_01:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Möglichkeit zur privaten Meldung von Schwachstellen direkt an die Sicherheitskontakte innerhalb des Projekts bieten.
+        description: Die Projektdokumentation MUSS eine Möglichkeit zur privaten Meldung von Schwachstellen direkt an die Sicherheitskontakte des Projekts bereitstellen.
         details: Bieten Sie Sicherheitsforschern eine Möglichkeit, Schwachstellen privat an das Projekt zu melden. Dies kann eine dedizierte E-Mail-Adresse, ein Webformular, spezialisierte VCS-Tools, E-Mail-Adressen für Sicherheitskontakte oder andere Methoden sein.
       osps_vm_04_01:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation öffentlich Daten über entdeckte Schwachstellen veröffentlichen.
+        description: Die Projektdokumentation MUSS Daten über entdeckte Schwachstellen öffentlich veröffentlichen.
         details: Bereitstellen von Informationen über bekannte Schwachstellen in einem vorhersehbaren öffentlichen Kanal, wie z.B. einem CVE-Eintrag, Blogbeitrag oder einem anderen Medium. Soweit möglich sollten diese Informationen betroffene Version(en) enthalten, wie ein Verbraucher feststellen kann, ob er betroffen ist, und Anweisungen zur Schadensbegrenzung oder Behebung.
       osps_do_07_01:
         description: Die Projektdokumentation MUSS Anweisungen enthalten, wie die Software gebaut wird, einschließlich erforderlicher Bibliotheken, Frameworks, SDKs und Abhängigkeiten.
@@ -270,7 +271,7 @@ de:
         description: Wenn das Projekt ein Release erstellt hat, MUSS die Projektdokumentation eine beschreibende Aussage enthalten, wann Releases oder Versionen keine Sicherheitsaktualisierungen mehr erhalten werden.
         details: Um den Umfang und die Dauer der Unterstützung für Sicherheitskorrekturen zu kommunizieren, sollte das Projekt eine SUPPORT.md oder eine andere Dokumentation haben, die die Richtlinien des Projekts für Sicherheitsaktualisierungen erklärt.
       osps_gv_04_01:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie enthalten, dass Code-Mitwirkende überprüft werden, bevor ihnen erweiterte Berechtigungen für sensible Ressourcen gewährt werden.
+        description: Die Projektdokumentation MUSS eine Richtlinie enthalten, nach der Code-Mitwirkende überprüft werden, bevor ihnen erweiterte Berechtigungen für sensible Ressourcen gewährt werden.
         details: Veröffentlichen Sie eine durchsetzbare Richtlinie in der Projektdokumentation, die erfordert, dass Code-Mitwirkende überprüft und genehmigt werden, bevor ihnen erweiterte Berechtigungen für sensible Ressourcen gewährt werden, wie z.B. Merge-Genehmigung oder Zugriff auf Secrets. Es wird empfohlen, dass die Überprüfung die Feststellung einer begründbaren Identitätslinie beinhaltet, wie z.B. die Bestätigung der Zugehörigkeit des Beitragsleistenden zu einer bekannten vertrauenswürdigen Organisation.
       osps_qa_02_02:
         description: Wenn das Projekt ein Release erstellt hat, MÜSSEN alle kompilierten veröffentlichten Software-Assets mit einer Software-Stückliste (Software Bill of Materials) ausgeliefert werden.
@@ -279,10 +280,10 @@ de:
         description: Wenn das Projekt ein Release erstellt hat, das mehrere Quellcode-Repositorys umfasst, MÜSSEN alle Unterprojekte Sicherheitsanforderungen durchsetzen, die genauso streng oder strenger sind als die primäre Codebasis.
         details: Alle zusätzlichen Unterprojekt-Code-Repositorys, die vom Projekt erstellt und in ein Release kompiliert wurden, müssen Sicherheitsanforderungen durchsetzen, die dem Status und der Absicht der jeweiligen Codebasis entsprechen. Zusätzlich zur Befolgung der entsprechenden OSPS Baseline-Anforderungen kann dies die Anforderung einer Sicherheitsüberprüfung, die Sicherstellung, dass es frei von Schwachstellen ist, und die Sicherstellung, dass es frei von bekannten Sicherheitsproblemen ist, umfassen.
       osps_qa_06_02:
-        description: Während das Projekt aktiv ist, MUSS die Dokumentation des Projekts klar dokumentieren, wann und wie Tests ausgeführt werden.
+        description: Die Projektdokumentation MUSS klar dokumentieren, wann und wie Tests ausgeführt werden.
         details: Fügen Sie der Beitragsdokumentation einen Abschnitt hinzu, der erklärt, wie Tests lokal und in der CI/CD-Pipeline ausgeführt werden. Die Dokumentation sollte erklären, was die Tests testen und wie die Ergebnisse interpretiert werden.
       osps_qa_06_03:
-        description: Während das Projekt aktiv ist, MUSS die Dokumentation des Projekts eine Richtlinie enthalten, dass alle wesentlichen Änderungen an der vom Projekt produzierten Software Tests der Funktionalität in einer automatisierten Testsuite hinzufügen oder aktualisieren sollten.
+        description: Die Projektdokumentation MUSS eine Richtlinie enthalten, nach der bei allen größeren Änderungen an der vom Projekt erstellten Software Tests der Funktionalität zu einer automatisierten Test-Suite hinzugefügt oder aktualisiert werden sollten.
         details: Fügen Sie der Beitragsdokumentation einen Abschnitt hinzu, der die Richtlinie zum Hinzufügen oder Aktualisieren von Tests erklärt. Die Richtlinie sollte erklären, was eine wesentliche Änderung darstellt und welche Tests hinzugefügt oder aktualisiert werden sollten.
       osps_qa_07_01:
         description: Wenn ein Commit in den primären Branch gemacht wird, MUSS das Versionskontrollsystem des Projekts mindestens eine menschliche Genehmigung der Änderungen durch einen Nicht-Autor vor dem Zusammenführen erfordern.
@@ -291,22 +292,22 @@ de:
         description: Wenn das Projekt ein Release erstellt hat, MUSS das Projekt eine Bedrohungsmodellierung und eine Analyse der Angriffsfläche durchführen, um Angriffe auf kritische Codepfade, Funktionen und Interaktionen innerhalb des Systems zu verstehen und sich davor zu schützen.
         details: Bedrohungsmodellierung ist eine Aktivität, bei der das Projekt die Codebasis, zugehörige Prozesse und Infrastruktur, Schnittstellen, Schlüsselkomponenten betrachtet und "wie ein Hacker denkt" und darüber nachdenkt, wie das System kompromittiert werden könnte. Jede identifizierte Bedrohung wird aufgelistet, damit das Projekt dann darüber nachdenken kann, wie Lücken/Schwachstellen, die entstehen könnten, proaktiv vermieden oder geschlossen werden können. Stellen Sie sicher, dass dies für neue Funktionen oder Breaking Changes aktualisiert wird.
       osps_vm_04_02:
-        description: Während das Projekt aktiv ist, MÜSSEN alle Schwachstellen in den Softwarekomponenten, die das Projekt nicht betreffen, in einem VEX-Dokument berücksichtigt werden, das den Schwachstellenbericht mit Details zur Nicht-Ausnutzbarkeit erweitert.
+        description: Alle Schwachstellen in Softwarekomponenten, die das Projekt nicht betreffen, MÜSSEN in einem VEX-Dokument erfasst werden, das den Schwachstellenbericht um Angaben zur Nicht-Ausnutzbarkeit ergänzt.
         details: Richten Sie einen VEX-Feed ein, der den Ausnutzbarkeitsstatus bekannter Schwachstellen kommuniziert, einschließlich Bewertungsdetails oder aller vorhandenen Abhilfemaßnahmen, die verhindern, dass anfälliger Code ausgeführt wird.
       osps_vm_05_01:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie enthalten, die einen Schwellenwert für die Behebung von SCA-Befunden in Bezug auf Schwachstellen und Lizenzen definiert.
+        description: Die Projektdokumentation MUSS eine Richtlinie enthalten, die einen Schwellenwert für die Behebung von SCA-Befunden im Zusammenhang mit Schwachstellen und Lizenzen definiert.
         details: Dokumentieren Sie eine Richtlinie im Projekt, die einen Schwellenwert für die Behebung von SCA-Befunden in Bezug auf Schwachstellen und Lizenzen definiert. Fügen Sie den Prozess zur Identifizierung, Priorisierung und Behebung dieser Befunde hinzu.
       osps_vm_05_02:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie enthalten, um SCA-Verstöße vor jedem Release zu beheben.
+        description: Die Projektdokumentation MUSS eine Richtlinie enthalten, um SCA-Verstöße vor jeder Veröffentlichung zu beheben.
         details: Dokumentieren Sie eine Richtlinie im Projekt, um anwendbare Software Composition Analysis-Ergebnisse vor jedem Release zu beheben, und fügen Sie Statusprüfungen hinzu, die die Einhaltung dieser Richtlinie vor dem Release überprüfen.
       osps_vm_05_03:
-        description: Während das Projekt aktiv ist, MÜSSEN alle Änderungen an der Codebasis des Projekts automatisch anhand einer dokumentierten Richtlinie für bösartige Abhängigkeiten und bekannte Schwachstellen in Abhängigkeiten bewertet und dann im Falle von Verstößen blockiert werden, außer wenn sie als nicht ausnutzbar deklariert und unterdrückt wurden.
+        description: Alle Änderungen an der Codebasis des Projekts MÜSSEN automatisch anhand einer dokumentierten Richtlinie für bösartige Abhängigkeiten und bekannte Schwachstellen in Abhängigkeiten bewertet und im Falle von Verstößen blockiert werden, außer wenn diese als nicht ausnutzbar deklariert und unterdrückt wurden.
         details: Erstellen Sie eine Statusprüfung im Versionskontrollsystem des Projekts, die ein Software Composition Analysis-Tool bei allen Änderungen an der Codebasis ausführt. Fordern Sie an, dass die Statusprüfung bestanden wird, bevor Änderungen zusammengeführt werden können.
       osps_vm_06_01:
-        description: Während das Projekt aktiv ist, MUSS die Projektdokumentation eine Richtlinie enthalten, die einen Schwellenwert für die Behebung von SAST-Befunden definiert.
+        description: Die Projektdokumentation MUSS eine Richtlinie enthalten, die einen Schwellenwert für die Behebung von SAST-Befunden definiert.
         details: Dokumentieren Sie eine Richtlinie im Projekt, die einen Schwellenwert für die Behebung von Befunden aus Static Application Security Testing (SAST) definiert. Fügen Sie den Prozess zur Identifizierung, Priorisierung und Behebung dieser Befunde hinzu.
       osps_vm_06_02:
-        description: Während das Projekt aktiv ist, MÜSSEN alle Änderungen an der Codebasis des Projekts automatisch anhand einer dokumentierten Richtlinie auf Sicherheitsschwachstellen bewertet und im Falle von Verstößen blockiert werden, außer wenn sie als nicht ausnutzbar deklariert und unterdrückt wurden.
+        description: Alle Änderungen an der Codebasis des Projekts MÜSSEN automatisch anhand einer dokumentierten Richtlinie für Sicherheitsschwächen bewertet und im Falle von Verstößen blockiert werden, außer wenn diese als nicht ausnutzbar deklariert und unterdrückt wurden.
         details: Erstellen Sie eine Statusprüfung im Versionskontrollsystem des Projekts, die ein Static Application Security Testing (SAST) Tool bei allen Änderungen an der Codebasis ausführt. Verlangen Sie, dass die Statusprüfung erfolgreich ist, bevor Änderungen zusammengeführt werden können.
       osps_br_01_04:
         description: CI/CD-Pipelines, die vertrauenswürdige Mitarbeitereingaben akzeptieren, MÜSSEN diese Eingaben bereinigen und validieren, bevor sie in der Pipeline verwendet werden.
@@ -387,6 +388,10 @@ de:
   account_activations:
     delay:
       many: Als Anti-Spam-Maßnahme müssen Sie %{count} Stunden nach der Aktivierung warten, bevor Sie sich anmelden können.
+    link_invalid_or_used: Aktivierung fehlgeschlagen. Falls Ihr Konto bereits aktiviert ist, melden Sie sich bitte an.
+    confirm_heading: Aktivieren Sie Ihr Konto
+    confirm_prompt: Klicken Sie auf die Schaltfläche unten, um Ihr Konto zu bestätigen und zu aktivieren.
+    confirm_button: Mein Konto aktivieren
   detectives:
     github:
       repo_public: Repository auf GitHub, das öffentliche Git-Repositorys mit URLs bereitstellt.
@@ -444,3 +449,8 @@ de:
       obsolete: Veraltet
   criteria_overall:
     obsolete: "{Veraltet}"
+  pagination:
+    first: Erste
+    last: Letzte
+  sessions:
+    login_failed: Entschuldigung, dieser Anmeldeversuch konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.
