@@ -4,6 +4,7 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
+require 'shellwords'
 require_relative 'translation_instructions_template'
 
 # Helper methods for machine translation rake tasks.
@@ -32,8 +33,25 @@ module MachineTranslationHelpers
     'es' => 'Spanish', 'ru' => 'Russian', 'sw' => 'Swahili'
   }.freeze
 
-  # Default batch size for Copilot translations (balance speed vs accuracy)
-  COPILOT_BATCH_SIZE = 20
+  # Default batch size for AI-assisted translations (balance speed vs accuracy)
+  AI_BATCH_SIZE = 20
+
+  # Which AI CLI tool to run for automated translation, and how to invoke
+  # it. All configurable via environment variables so we can switch tools
+  # without a code change; we've already had to do this once, when GitHub
+  # Copilot CLI access went away. Defaults target the Claude Code CLI,
+  # restricted to reading/writing files, confined to the tmp/ working
+  # directory, with edits auto-accepted (no human is present to approve
+  # them) and no on-disk session saved. A different CLI will need different
+  # flags for the same restrictions; override AI_CLI_ARGS entirely in that
+  # case rather than trying to keep one flag syntax working for every tool.
+  AI_CLI = ENV.fetch('BADGEAPP_TRANSLATION_AI_CLI', 'claude')
+  AI_CLI_MODEL = ENV.fetch('BADGEAPP_TRANSLATION_AI_MODEL', 'sonnet')
+  AI_CLI_ARGS = ENV.fetch(
+    'BADGEAPP_TRANSLATION_AI_ARGS',
+    '--tools Read,Write --permission-mode acceptEdits --restricted ' \
+    "--model #{AI_CLI_MODEL} --no-session-persistence"
+  )
 
   # Translation example counts for consistency and quality
   MIN_TRANSLATION_EXAMPLES = 20 # Minimum examples to provide (if available)
@@ -338,15 +356,15 @@ module MachineTranslationHelpers
       end
     end
 
-    # Copilot integration methods
+    # AI CLI integration methods
 
-    def copilot_lock_path
-      Rails.root.join('tmp', 'copilot_translation.lock')
+    def ai_lock_path
+      Rails.root.join('tmp', 'ai_translation.lock')
     end
 
     # rubocop:disable Naming/PredicateMethod
-    def acquire_copilot_lock
-      lockfile = copilot_lock_path
+    def acquire_ai_lock
+      lockfile = ai_lock_path
 
       # Check if lock exists and handle stale locks
       if File.exist?(lockfile)
@@ -362,8 +380,8 @@ module MachineTranslationHelpers
     end
     # rubocop:enable Naming/PredicateMethod
 
-    def release_copilot_lock
-      FileUtils.rm_f(copilot_lock_path)
+    def release_ai_lock
+      FileUtils.rm_f(ai_lock_path)
     end
 
     def language_name(locale)
@@ -379,22 +397,22 @@ module MachineTranslationHelpers
       puts
     end
 
-    # Copilot-specific: Create empty target file for Copilot to fill
-    # Copilot needs an empty structure showing what keys to translate
-    def export_for_copilot(locale, keys)
+    # AI-specific: Create empty target file for the AI tool to fill in
+    # An empty structure shows the AI tool exactly what keys to translate
+    def export_for_ai(locale, keys)
       # Use generic export which creates source file and examples
       export_result = export_keys_for_translation(locale, keys)
 
-      # Create empty target file with just the key structure for Copilot
+      # Create empty target file with just the key structure for the AI tool
       tmp_dir = Rails.root.join('tmp')
       timestamp = export_result[:timestamp]
       target_output = { locale => {} }
       keys.each { |key| set_nested_key(target_output[locale], key, '') }
-      target_name = "copilot_target_#{locale}_#{timestamp}.yml"
+      target_name = "ai_target_#{locale}_#{timestamp}.yml"
       target_file = tmp_dir.join(target_name)
       File.write(target_file, yaml_dump(target_output))
 
-      # Return combined result for Copilot
+      # Return combined result for the AI tool
       {
         source: export_result[:filepath],         # Source English text
         target: target_file,                      # Empty target structure
@@ -483,8 +501,8 @@ module MachineTranslationHelpers
       end
     end
 
-    # Copilot-specific: Build prompt that references the instructions file
-    def build_copilot_prompt(locale, source_name, target_name, instructions_name)
+    # AI-specific: Build prompt that references the instructions file
+    def build_ai_prompt(locale, source_name, target_name, instructions_name)
       lang = language_name(locale)
 
       <<~PROMPT
@@ -517,7 +535,7 @@ module MachineTranslationHelpers
       PROMPT
     end
 
-    def run_copilot_translation(locale, batch_size: COPILOT_BATCH_SIZE)
+    def run_ai_translation(locale, batch_size: AI_BATCH_SIZE)
       missing_keys = find_untranslated_keys(locale)
       if missing_keys.empty?
         puts "No untranslated keys for #{locale}!"
@@ -527,18 +545,18 @@ module MachineTranslationHelpers
       keys_to_translate = missing_keys.first(batch_size)
       puts "Translating #{keys_to_translate.length} keys to #{language_name(locale)}..."
 
-      files = export_for_copilot(locale, keys_to_translate)
-      # Use basenames in prompt (copilot runs from tmp/ directory)
-      prompt = build_copilot_prompt(
+      files = export_for_ai(locale, keys_to_translate)
+      # Use basenames in prompt (the AI tool runs from the tmp/ directory)
+      prompt = build_ai_prompt(
         locale,
         files[:source_name],
         files[:target_name],
         files[:instructions_name]
       )
-      prompt_file = Rails.root.join('tmp', "copilot_prompt_#{locale}_#{files[:timestamp]}.txt")
+      prompt_file = Rails.root.join('tmp', "ai_prompt_#{locale}_#{files[:timestamp]}.txt")
       File.write(prompt_file, prompt)
 
-      # Print all inputs for insight into copilot translation
+      # Print all inputs for insight into the AI translation
       if files[:examples]
         print_file('Sample English translations (YAML)', files[:examples][:en_filepath])
         print_file("Sample #{language_name(locale)} translations (YAML)",
@@ -547,16 +565,16 @@ module MachineTranslationHelpers
       print_file('English to translate (YAML)', files[:source])
       print_file('Translation instructions', files[:instructions])
 
-      copilot_success = execute_copilot(prompt, files[:target])
+      ai_success = execute_ai(prompt, files[:target])
 
       # Print resulting translation for insight
       if File.exist?(files[:target])
         print_file("Resulting #{language_name(locale)} translation (YAML)", files[:target])
       end
 
-      # Try to import translations even if copilot had issues - use what we can
+      # Try to import translations even if the AI tool had issues - use what we can
       imported_count = false
-      if copilot_success && File.exist?(files[:target])
+      if ai_success && File.exist?(files[:target])
         imported_count = import_translations(locale, files[:target], expected_keys: keys_to_translate)
       end
 
@@ -966,22 +984,15 @@ module MachineTranslationHelpers
       text.scan(%r{https?://|www\.}).length
     end
 
-    # Copilot execution helpers
+    # AI CLI execution helpers
 
     # rubocop:disable Naming/PredicateMethod
-    def execute_copilot(prompt, target_file)
-      # Build copilot command with minimal permissions (read + write only)
-      # Runs from tmp/ directory so copilot can only access files there
-      cmd = [
-        'copilot',
-        '-p', prompt,
-        '--allow-tool', 'read',
-        '--allow-tool', 'write',
-        '--silent',
-        '--no-ask-user'
-      ]
+    def execute_ai(prompt, target_file)
+      # AI_CLI_ARGS carries the tool's own flags (see the constant comment
+      # above for why these aren't hardcoded here).
+      cmd = [AI_CLI, *Shellwords.split(AI_CLI_ARGS), '-p', prompt]
 
-      puts 'Running Copilot translation...'
+      puts "Running #{AI_CLI} translation..."
       # Run from tmp/ directory to restrict file access to only that directory
       result = Dir.chdir(Rails.root.join('tmp')) { system(*cmd) }
 
@@ -1022,7 +1033,7 @@ module MachineTranslationHelpers
       end
     end
 
-    # Fix common YAML quoting issues in Copilot output
+    # Fix common YAML quoting issues in AI-generated output
     # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     def fix_yaml_quoting(content, _locale)
       lines = content.split("\n")

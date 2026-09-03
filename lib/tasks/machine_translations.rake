@@ -10,7 +10,7 @@
 # translations aren't yet available. The workflow is:
 #
 # 1. Export untranslated keys: rake translation:export[fr,50]
-# 2. Translate that file using any tool (Copilot, ChatGPT, human, etc.)
+# 2. Translate that file using any tool (an AI CLI, ChatGPT, human, etc.)
 # 3. Import the translated file: rake translation:import[fr,tmp/file.yml]
 # 4. Periodically clean up: rake translation:cleanup
 #
@@ -76,19 +76,19 @@ namespace :translation do
     MachineTranslationHelpers.print_status
   end
 
-  desc 'Run automated translation via GitHub Copilot (safe for cron/timer)'
-  task :copilot, %i[locale count] => :environment do |_t, args|
-    unless MachineTranslationHelpers.acquire_copilot_lock
-      puts 'Another Copilot translation is in progress. Skipping.'
+  desc 'Run automated translation via an AI CLI tool (safe for cron/timer)'
+  task :ai, %i[locale count] => :environment do |_t, args|
+    unless MachineTranslationHelpers.acquire_ai_lock
+      puts 'Another AI translation is in progress. Skipping.'
       next
     end
 
     begin
       locale = args[:locale] || MachineTranslationHelpers.next_locale_needing_translation
-      count = (args[:count] || MachineTranslationHelpers::COPILOT_BATCH_SIZE).to_i
+      count = (args[:count] || MachineTranslationHelpers::AI_BATCH_SIZE).to_i
       MachineTranslationHelpers.validate_locale!(locale)
 
-      result = MachineTranslationHelpers.run_copilot_translation(locale, batch_size: count)
+      result = MachineTranslationHelpers.run_ai_translation(locale, batch_size: count)
 
       if result[:success]
         puts "Successfully translated #{result[:translated]} keys for #{result[:locale]}"
@@ -98,13 +98,13 @@ namespace :translation do
         exit 1
       end
     ensure
-      MachineTranslationHelpers.release_copilot_lock
+      MachineTranslationHelpers.release_ai_lock
     end
   end
 
   desc 'Translate all missing/obsolete segments in all locales (runs until complete)'
   task :all, [:batch_size] => :environment do |_t, args|
-    batch_size = (args[:batch_size] || MachineTranslationHelpers::COPILOT_BATCH_SIZE).to_i
+    batch_size = (args[:batch_size] || MachineTranslationHelpers::AI_BATCH_SIZE).to_i
     wait_time = 10 # Seconds to wait between batches
 
     puts 'Starting automated machine translation for all locales...'
@@ -140,11 +140,11 @@ namespace :translation do
       # Run translation for this locale, catching any exit/failure
       puts "Translating batch of #{[batch_size, missing_keys.length].min} keys..."
       begin
-        Rake::Task['translation:copilot'].reenable # Allow task to be called again
-        Rake::Task['translation:copilot'].invoke(locale, batch_size)
+        Rake::Task['translation:ai'].reenable # Allow task to be called again
+        Rake::Task['translation:ai'].invoke(locale, batch_size)
       rescue SystemExit => e
-        # Copilot task exited with error - log it but continue
-        puts "Copilot task exited with status #{e.status} - continuing anyway..."
+        # AI translation task exited with error - log it but continue
+        puts "AI translation task exited with status #{e.status} - continuing anyway..."
       end
 
       # Check if we made progress (even partial success counts)

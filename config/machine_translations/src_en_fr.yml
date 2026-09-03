@@ -319,6 +319,9 @@ en:
       many: 'As an anti-spam measure, you must wait %{count} hours after activation before you can log in.
 
         '
+    link_invalid_or_used: 'Activation failed. If your account is already activated, please log in.
+
+      '
   detectives:
     github:
       repo_public: Repository on GitHub, which provides public git repositories with URLs.
@@ -376,3 +379,6 @@ en:
       obsolete: Obsolete
   criteria_overall:
     obsolete: "{Obsolete}"
+  pagination:
+    first: First
+    last: Last

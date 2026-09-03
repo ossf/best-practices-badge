@@ -99,7 +99,7 @@ automatically invalidated.
 
 ### Example-Based Translation
 
-When automated translation is performed using Copilot, the system
+When automated translation is performed using an AI CLI tool, the system
 automatically provides example translations to help maintain consistent
 terminology across the application.
 
@@ -117,8 +117,8 @@ terminology across the application.
    (limited to 15 examples to avoid overwhelming the AI).
 
 3. **Example Files**: Creates two example YAML files:
-   - `copilot_examples_en_*.yml` - English source with technical terms
-   - `copilot_examples_{locale}_*.yml` - How those terms were previously translated
+   - `examples_en_{locale}_*.yml` - English source with technical terms
+   - `examples_{locale}_*.yml` - How those terms were previously translated
 
 4. **Prompt Integration**: The translation prompt instructs the AI to review
    these examples and use the same translations for the same terms.
@@ -209,7 +209,7 @@ Lists keys that need translation for a specific locale.
    ```
 
 2. **Translate** the exported YAML file using any tool:
-   - GitHub Copilot
+   - An AI CLI tool (e.g., `rake translation:ai`)
    - ChatGPT or other LLMs
    - Human translator
    - Any translation service
@@ -249,9 +249,12 @@ Machine translations are processed in this priority order:
 
 ## Automatically translating
 
-Run `translation:copilot` to automatically call GitHub pilot to
-perform translations of what needs translating and add them.
-When run, copilot only has read/write access to a `tmp` directory.
+Run `translation:ai` to automatically call an AI CLI tool to perform
+translations of what needs translating and add them. When run, the AI tool
+only has read/write access to a `tmp` directory. The specific tool invoked
+is configurable (see [machine-translations.md](./machine-translations.md))
+since we've already had to switch tools once, when GitHub Copilot CLI
+access went away; it currently defaults to the Claude Code CLI.
 
 Run `translation:all` to repeatedly call this, with breaks in between.
 The goal is to slowly fill in

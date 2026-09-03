@@ -357,9 +357,10 @@ rake translation:all
 
 This iterates over all locales that have untranslated or stale segments
 (i.e., where the English source has changed since the machine translation
-was generated) and translates them using GitHub Copilot. It runs until all
-locales are up to date. Human translations always take precedence over
-machine translations.
+was generated) and translates them using an AI CLI tool (see
+[machine-translations.md](./machine-translations.md) for which tool and
+how to change it). It runs until all locales are up to date. Human
+translations always take precedence over machine translations.
 
 You can check translation status before and after with:
 

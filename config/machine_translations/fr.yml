@@ -315,6 +315,9 @@ fr:
   account_activations:
     delay:
       many: En tant que mesure anti-spam, vous devez attendre %{count} heures après l'activation avant de pouvoir vous connecter.
+    link_invalid_or_used: 'L''activation a échoué. Si votre compte est déjà activé, veuillez vous connecter.
+
+      '
   detectives:
     github:
       repo_public: Dépôt sur GitHub, qui fournit des dépôts git publics avec des URLs.
@@ -372,3 +375,6 @@ fr:
       obsolete: Obsolète
   criteria_overall:
     obsolete: "{Obsolète}"
+  pagination:
+    first: Première
+    last: Dernière
