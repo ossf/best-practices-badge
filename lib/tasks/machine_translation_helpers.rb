@@ -110,13 +110,8 @@ module MachineTranslationHelpers
     # Whether `human_translations` has a REAL (non-blank) value for
     # `key`, not just an entry for it. translation.io exports every
     # tracked segment with a blank placeholder until a human actually
-    # translates it, so mere key presence (`human_translations.key?`)
-    # doesn't mean a human translation exists. Treating presence alone as
-    # "translated" was a real bug: it let a key with a blank human
-    # placeholder, but an existing machine translation, silently skip
-    # staleness detection when the English source changed - and
-    # separately, let that same machine translation (of possibly-stale
-    # English) be picked as if it were a trustworthy human example.
+    # translates it, so mere key existence (`human_translations.key?`)
+    # doesn't mean a human translation was created.
     def human_translation_present?(human_translations, key)
       !human_translations[key].to_s.strip.empty?
     end
