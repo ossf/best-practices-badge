@@ -103,6 +103,10 @@ fr:
     warned_level_message: |-
       Ceci est un avis préalable que le badge "%{old_level}" de votre projet pourrait être perdu le %{effective_date} lors de l'entrée en vigueur des critères mis à jour.
       Veuillez consulter votre entrée de badge à l'URL suivante avant cette date :
+    warned_level_message_no_date: |-
+      Ceci est un avis préalable indiquant que le badge "%{old_level}" de votre projet peut
+      être perdu lorsque les critères mis à jour entreront en vigueur.
+      Veuillez consulter votre entrée de badge à l'URL suivante :
   criteria:
     baseline-1:
       osps_ac_01_01:
@@ -118,7 +122,7 @@ fr:
         description: Lorsqu'une tentative est faite de supprimer la branche principale du projet, le système de contrôle de version DOIT traiter cela comme une activité sensible et exiger une confirmation explicite de l'intention.
         details: Définissez une protection de branche sur la branche principale dans le système de contrôle de version du projet pour empêcher la suppression.
       osps_br_01_01:
-        description: Lorsqu'un pipeline CI/CD accepte un paramètre d'entrée, ce paramètre DOIT être assaini et validé avant d'être utilisé dans le pipeline.
+        description: Lorsqu'un pipeline CI/CD fonctionne sur des métadonnées non fiables, ces paramètres DOIVENT être nettoyés et validés avant d'être utilisés dans le pipeline.
         details: Les pipelines CI/CD doivent assainir (mettre entre guillemets, échapper ou quitter pour les valeurs attendues) toutes les entrées de métadonnées correspondant à des sources non fiables. Cela inclut des données telles que les noms de branches, les messages de commit, les tags, les titres des pull requests et les informations sur l'auteur.
       osps_br_01_02:
         description: Lorsqu'un pipeline CI/CD utilise un nom de branche dans sa fonctionnalité, cette valeur de nom DOIT être assainie et validée avant d'être utilisée dans le pipeline.
@@ -126,8 +130,8 @@ fr:
         description: Lorsque le projet liste un URI comme canal officiel du projet, cet URI DOIT être exclusivement fourni en utilisant des canaux chiffrés.
         details: Configurez les sites Web et les systèmes de contrôle de version du projet pour utiliser des canaux chiffrés tels que SSH ou HTTPS pour la transmission de données. Assurez-vous que tous les outils et domaines référencés dans la documentation du projet ne peuvent être accessibles que via des canaux chiffrés.
       osps_br_03_02:
-        description: Lorsque le projet liste un URI comme canal de distribution officiel, cet URI DOIT être exclusivement fourni en utilisant des canaux chiffrés.
-        details: Configurez le pipeline de publication du projet pour récupérer uniquement les données des sites Web, réponses API et autres services qui utilisent des canaux chiffrés tels que SSH ou HTTPS pour la transmission de données.
+        description: Lorsque le projet répertorie une URI comme canal de distribution officiel, ce canal DOIT être protégé contre les attaques de l'adversaire au milieu (adversary-in-the-middle) à l'aide de canaux authentifiés cryptographiquement.
+        details: Les artefacts distribués par le projet devraient être distribués par des canaux qui garantissent l'intégrité et l'authenticité. L'utilisation de HTTPS pour les téléchargements, de versions signées ou de la distribution via des gestionnaires de paquets fiables sont toutes des méthodes acceptables pour se protéger contre les attaques de l'adversaire au milieu.
       osps_br_07_01:
         description: Le projet DOIT empêcher le stockage involontaire de données sensibles non chiffrées, telles que des secrets et des informations d'identification, dans le système de contrôle de version.
         details: Configurez .gitignore ou équivalent pour exclure les fichiers susceptibles de contenir des informations sensibles. Utilisez des hooks de pré-commit et des outils d'analyse automatisés pour détecter et empêcher l'inclusion de données sensibles dans les commits.
@@ -138,25 +142,25 @@ fr:
         description: Lorsque le projet a effectué une publication, la documentation du projet DOIT inclure un guide pour signaler les défauts.
         details: Il est recommandé que les projets utilisent le suivi de problèmes par défaut de leur VCS. Si une source externe est utilisée, assurez-vous que la documentation du projet et le guide de contribution expliquent clairement et visiblement comment utiliser le système de signalement. Il est recommandé que la documentation du projet établisse également des attentes quant à la manière dont les défauts seront triés et résolus.
       osps_gv_02_01:
-        description: Tant qu'il est actif, le projet DOIT avoir un ou plusieurs mécanismes pour des discussions publiques sur les modifications proposées et les obstacles d'utilisation.
+        description: Le projet DOIT disposer d'un ou plusieurs mécanismes pour les discussions publiques concernant les changements proposés et les obstacles à l'utilisation.
         details: Établissez un ou plusieurs mécanismes pour des discussions publiques au sein du projet, tels que des listes de diffusion, de la messagerie instantanée ou des systèmes de suivi de problèmes, pour faciliter une communication et des retours ouverts.
       osps_gv_03_01:
-        description: Tant qu'il est actif, la documentation du projet DOIT inclure une explication du processus de contribution.
+        description: La documentation du projet DOIT inclure une explication du processus de contribution, ou indiquer clairement que les contributions publiques ne sont pas acceptées
         details: Créez un fichier CONTRIBUTING.md ou un répertoire CONTRIBUTING/ pour décrire le processus de contribution, y compris les étapes pour soumettre des modifications et interagir avec les mainteneurs du projet.
       osps_le_02_01:
-        description: Tant qu'il est actif, la licence du code source DOIT répondre à la définition de l'Open Source de l'OSI ou à la définition du logiciel libre de la FSF.
+        description: La licence du code source DOIT satisfaire à l'Open Source Definition de l'OSI ou à la Free Software Definition de la FSF.
         details: Ajoutez un fichier LICENSE au dépôt du projet avec une licence qui est une licence approuvée par l'Open Source Initiative (OSI), ou une licence libre approuvée par la Free Software Foundation (FSF). Des exemples de telles licences incluent MIT, BSD 2-clause, BSD 3-clause révisée, Apache 2.0, Lesser GNU General Public License (LGPL) et GNU General Public License (GPL). Publier dans le domaine public répond à ce contrôle s'il n'y a pas d'autres restrictions telles que des brevets.
       osps_le_02_02:
-        description: Tant qu'il est actif, la licence des ressources logicielles publiées DOIT répondre à la définition de l'Open Source de l'OSI ou à la définition du logiciel libre de la FSF.
+        description: La licence des ressources logicielles publiées DOIT satisfaire à l'Open Source Definition de l'OSI ou à la Free Software Definition de la FSF.
         details: Si une licence différente est incluse avec les ressources logicielles publiées, assurez-vous qu'il s'agit d'une licence approuvée par l'Open Source Initiative (OSI), ou d'une licence libre approuvée par la Free Software Foundation (FSF). Des exemples de telles licenses incluent MIT, BSD 2-clause, BSD 3-clause révisée, Apache 2.0, Lesser GNU General Public License (LGPL) et GNU General Public License (GPL). Notez que la licence des ressources logicielles publiées peut être différente de celle du code source.
       osps_le_03_01:
-        description: Tant qu'il est actif, la licence du code source DOIT être maintenue dans le fichier LICENSE, le fichier COPYING ou le répertoire LICENSE/ du dépôt correspondant.
-        details: Incluez la licence du code source du projet dans le fichier LICENSE, le fichier COPYING ou le répertoire LICENSE/ du projet pour fournir visibilité et clarté sur les termes de la licence. Le nom de fichier PEUT avoir une extension. Si le projet a plusieurs dépôts, assurez-vous que chaque dépôt inclut le fichier de licence.
+        description: La licence du code source DOIT être conservée dans le fichier LICENSE, le fichier COPYING, le répertoire LICENSES/ ou le répertoire LICENSE/ du dépôt correspondant.
+        details: Incluez la licence du code source du projet dans le fichier LICENSE, le fichier COPYING, le répertoire LICENSES/ ou le répertoire LICENSE/ du projet afin de fournir de la visibilité et de la clarté sur les conditions de licence. Le nom de fichier PEUT avoir une extension. Si le projet dispose de plusieurs dépôts, assurez-vous que chaque dépôt inclut le fichier de licence.
       osps_le_03_02:
-        description: Tant qu'il est actif, la licence des ressources logicielles publiées DOIT être incluse dans le code source publié, ou dans un fichier LICENSE, un fichier COPYING ou un répertoire LICENSE/ aux côtés des ressources de publication correspondantes.
+        description: La licence des ressources logicielles publiées DOIT être incluse dans le code source publié, ou dans un fichier LICENSE, un fichier COPYING, ou un répertoire LICENSE/ accompagnant les ressources de la version correspondante.
         details: Incluez la licence des ressources logicielles publiées du projet dans le code source publié, ou dans un fichier LICENSE, un fichier COPYING ou un répertoire LICENSE/ aux côtés des ressources de publication correspondantes pour fournir visibilité et clarté sur les termes de la licence. Le nom de fichier PEUT avoir une extension. Si le projet a plusieurs dépôts, assurez-vous que chaque dépôt inclut le fichier de licence.
       osps_qa_01_01:
-        description: Pendant son activité, le référentiel de code source du projet DOIT être publiquement lisible à une URL statique.
+        description: Le dépôt de code source du projet DOIT être lisible publiquement à une URL statique.
         details: Utilisez un VCS commun tel que GitHub, GitLab ou Bitbucket. Assurez-vous que le référentiel est publiquement lisible. Évitez la duplication ou la mise en miroir de référentiels à moins qu'une documentation très visible ne clarifie la source principale. Évitez les changements fréquents du référentiel qui affecteraient l'URL du référentiel. Assurez-vous que le référentiel est public.
       osps_qa_01_02:
         description: Le système de contrôle de version DOIT contenir un enregistrement publiquement lisible de toutes les modifications apportées, qui les a apportées et quand elles ont été apportées.
@@ -165,16 +169,16 @@ fr:
         description: Lorsque le système de gestion de paquets le prend en charge, le référentiel de code source DOIT contenir une liste de dépendances qui tient compte des dépendances directes du langage.
         details: Cela peut prendre la forme d'un fichier de gestionnaire de paquets ou de dépendances de langage qui énumère toutes les dépendances directes telles que package.json, Gemfile ou go.mod.
       osps_qa_04_01:
-        description: Pendant son activité, la documentation du projet DOIT contenir une liste de tous les codes sources qui sont considérés comme des sous-projets.
+        description: Les projets comportant plusieurs dépôts DOIVENT documenter une liste des bases de code qui font partie du projet.
         details: Documentez tous les référentiels de code de sous-projets supplémentaires produits par le projet et compilés dans une version. Cette documentation doit inclure l'état et l'intention du code source respectif.
       osps_qa_05_01:
-        description: Pendant son activité, le système de contrôle de version NE DOIT PAS contenir d'artefacts exécutables générés.
+        description: Le système de contrôle de version NE DOIT PAS contenir d'artefacts exécutables générés.
         details: Supprimez les artefacts exécutables générés dans le système de contrôle de version du projet. Il est recommandé que tout scénario où un artefact exécutable généré apparaît critique pour un processus tel que les tests, il devrait plutôt être généré au moment de la compilation ou stocké séparément et récupéré lors d'une étape de pipeline spécifique bien documentée.
       osps_qa_05_02:
-        description: Pendant son activité, le système de contrôle de version NE DOIT PAS contenir d'artefacts binaires non révisables.
+        description: Le système de contrôle de version NE DOIT PAS contenir d'artefacts binaires non révisables.
         details: N'ajoutez aucun artefact binaire non révisable au système de contrôle de version du projet. Cela inclut les binaires d'applications exécutables, les fichiers de bibliothèque et les artefacts similaires. Cela n'inclut pas les ressources telles que les images graphiques, les fichiers sonores ou musicaux et le contenu similaire généralement stocké dans un format binaire.
       osps_vm_02_01:
-        description: Pendant son activité, la documentation du projet DOIT contenir des contacts de sécurité.
+        description: La documentation du projet DOIT contenir des contacts de sécurité.
         details: Créez un fichier security.md (ou portant un nom similaire) qui contient les contacts de sécurité pour le projet.
       osps_br_01_03:
         description: Lorsqu'un pipeline CI/CD opère sur des instantanés de code non fiables, il DOIT empêcher l'accès aux identifiants et aux ressources privilégiés du CI/CD.
@@ -318,6 +322,11 @@ fr:
     link_invalid_or_used: 'L''activation a échoué. Si votre compte est déjà activé, veuillez vous connecter.
 
       '
+    confirm_heading: Activez votre compte
+    confirm_prompt: 'Cliquez sur le bouton ci-dessous pour confirmer et activer votre compte.
+
+      '
+    confirm_button: Activer mon compte
   detectives:
     github:
       repo_public: Dépôt sur GitHub, qui fournit des dépôts git publics avec des URLs.
@@ -378,3 +387,5 @@ fr:
   pagination:
     first: Première
     last: Dernière
+  sessions:
+    login_failed: Désolé, cette tentative de connexion n'a pas pu être effectuée. Veuillez réessayer.
