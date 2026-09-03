@@ -83,7 +83,10 @@ module TranslationInstructionsTemplate
       - URL count matches
 
       WORKFLOW:
-      1. Review examples (if provided) to understand style
+      1. Review examples (if provided) to understand style.
+         In some cases the examples translate an older version of the text,
+         so some examples may not be exact translations but they should
+         still be helpful examples of style and terminology.
       2. Read the source file (English text)
       3. Write translations to the TARGET file with '#{locale}:' as root key
       4. Translate values accurately and naturally for #{lang}
