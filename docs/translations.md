@@ -110,11 +110,15 @@ terminology across the application.
    - Acronyms (MFA, CI/CD, VCS)
    - Proper nouns (GitHub, OpenSSF, Scorecard)
    - Technical compounds (multi-factor, version-control)
-   - Long technical words (authentication, vulnerability)
+   - Words or short phrases (1-3 words) that recur elsewhere in the
+     English source text (e.g., "badge", "repository", "version
+     control") - independent of word length, since many real terms
+     ("badge," "license") are too short for a length-based heuristic
+     to catch
 
 2. **Example Selection**: For each identified term, the system finds existing
    human translations containing that term and includes them as examples
-   (limited to 15 examples to avoid overwhelming the AI).
+   (limited to 30 examples to avoid overwhelming the AI).
 
 3. **Example Files**: Creates two example YAML files:
    - `examples_en_{locale}_*.yml` - English source with technical terms

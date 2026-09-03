@@ -158,7 +158,11 @@ When machine-translating text to a target language (e.g., French):
    - Acronyms (2+ consecutive capitals: MFA, HTTPS, CI/CD)
    - Proper nouns (capitalized words: GitHub, OpenSSF)
    - Technical compounds (hyphenated: multi-factor, version-control)
-   - Long technical words (>12 characters: authentication, vulnerability)
+   - Words or short phrases (1-3 words, HTML/URLs stripped first) that
+     recur in 2+ different English strings elsewhere in the app (e.g.,
+     "badge", "repository", "version control"). Frequency, not word
+     length, is what makes something "terminology" here, so this also
+     catches short domain words a length cutoff would miss.
 
 3. **Find translation examples**: Search existing human translations for
    entries containing those same technical terms. For example, if we're
