@@ -131,7 +131,7 @@ for quality through:
 
 Translation APIs charge per character or request. With thousands of
 translation keys and frequent updates, costs would accumulate quickly.
-Our approach uses AI (like GitHub Copilot) in controlled batches,
+Our approach uses an AI CLI tool in controlled batches,
 keeping costs predictable and manageable.
 
 ### 5. Source Tracking
@@ -166,8 +166,8 @@ When machine-translating text to a target language (e.g., French):
    human translations that already use that phrase.
 
 4. **Create example files**: Generate two YAML files:
-   - `copilot_examples_en_*.yml`: English text with the identified terms
-   - `copilot_examples_fr_*.yml`: How humans translated those terms
+   - `examples_en_fr_*.yml`: English text with the identified terms
+   - `examples_fr_*.yml`: How humans translated those terms
 
 5. **Generate translations**: Provide the AI with:
    - The text to translate
@@ -339,9 +339,9 @@ rake translation:export
 5. Creates example files showing how humans translated similar content
 6. Generates:
    - `tmp/translate_to_LOCALE_TIMESTAMP.yml` (keys to translate)
-   - `copilot_examples_en_TIMESTAMP.yml` (English examples)
-   - `copilot_examples_LOCALE_TIMESTAMP.yml` (translated examples)
-   - `tmp/translate_instructions_LOCALE_TIMESTAMP.txt` (detailed instructions)
+   - `tmp/examples_en_LOCALE_TIMESTAMP.yml` (English examples)
+   - `tmp/examples_LOCALE_TIMESTAMP.yml` (translated examples)
+   - `tmp/TRANSLATION_INSTRUCTIONS_LOCALE.txt` (detailed instructions)
 
 The output files contain everything needed to translate the keys, whether
 using an AI, a human translator, or any translation tool.
@@ -413,13 +413,25 @@ Lists keys needing translation for a specific locale.
 Shows the first 20 untranslated keys and a count of how many total
 untranslated keys exist. Useful for understanding translation workload.
 
-### Automated Translation via GitHub Copilot
+### Automated Translation via an AI CLI Tool
 
 ```bash
-rake translation:copilot[LOCALE,COUNT]
+rake translation:ai[LOCALE,COUNT]
 ```
 
-Fully automated translation using GitHub Copilot CLI.
+Fully automated translation using an AI CLI tool.
+
+**Which tool runs**: Set by the `BADGEAPP_TRANSLATION_AI_CLI` environment
+variable (default: `claude`, invoking the Claude Code CLI). We made this
+configurable rather than hardcoding a specific vendor's tool because
+we've already had to switch once, when GitHub Copilot CLI access went
+away. `BADGEAPP_TRANSLATION_AI_MODEL` selects the model (default:
+`sonnet`), and `BADGEAPP_TRANSLATION_AI_ARGS` overrides the full argument
+list the tool is invoked with (default: read/write-only tool access,
+confined to the `tmp/` working directory, with file edits auto-accepted
+and no on-disk session saved) if a replacement tool needs different flags
+to get the same restrictions. See `AI_CLI`, `AI_CLI_MODEL`, and
+`AI_CLI_ARGS` in `lib/tasks/machine_translation_helpers.rb`.
 
 **Parameters:**
 
@@ -430,10 +442,10 @@ Fully automated translation using GitHub Copilot CLI.
 
 ```bash
 # Translate 20 keys to French
-rake translation:copilot[fr,20]
+rake translation:ai[fr,20]
 
 # Auto-select locale and translate 20 keys
-rake translation:copilot
+rake translation:ai
 ```
 
 **What it does:**
@@ -441,14 +453,14 @@ rake translation:copilot
 This is a complete end-to-end automation:
 
 1. Runs `translation:export` to create files
-2. Invokes GitHub Copilot CLI with detailed translation instructions
-3. Copilot translates the keys using the provided examples
-4. Copilot reviews its own translations for quality
+2. Invokes the configured AI CLI tool with detailed translation instructions
+3. The AI tool translates the keys using the provided examples
+4. The AI tool reviews its own translations for quality
 5. Validates the resulting YAML
 6. Runs `translation:import` to add the translations
 
-**Security**: The Copilot process runs in a restricted environment
-with read/write access only to a `tmp/` directory. It cannot modify
+**Security**: The AI tool runs in a restricted environment with
+read/write access only to a `tmp/` directory. It cannot modify
 source code or configuration directly.
 
 This task is safe to run repeatedly.
@@ -457,7 +469,7 @@ translations without overwhelming the AI or incurring high costs.
 
 ## Translation Workflow (Manual)
 
-For human review or non-Copilot translation:
+For human review or manual (non-`translation:ai`) translation:
 
 1. **Export** untranslated keys:
 
@@ -525,7 +537,7 @@ Machine translations go through multiple validation layers:
 
 ### 1. AI Self-Review
 
-When using Copilot, we use a two-step process:
+When using `translation:ai`, we use a two-step process:
 
 1. Initial translation
 2. AI reviews its own translation, comparing to source and examples,
