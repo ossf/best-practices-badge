@@ -467,7 +467,6 @@ pt-BR:
       done: O projeto foi excluído com sucesso.
     baseline_version_notice:
       current: Estes são critérios da versão %{version}.
-      transition_html: Estes critérios são da versão de base %{current_version} com texto de critérios atualizado da versão %{new_version}. Os critérios novos na versão %{new_version} estão rotulados como &ldquo;futuros&rdquo; e começarão a ser aplicados a partir de %{enforce_date}. Por favor, forneça respostas para os critérios &ldquo;futuros&rdquo; antes dessa data.
       transition: Estes critérios são da versão de referência %{current_version} com texto de critérios atualizado da versão %{new_version}. Os critérios novos na versão %{new_version} são rotulados como "futuros" e começarão a ser aplicados a partir de %{enforce_date}. Por favor, forneça respostas para os critérios "futuros" antes dessa data.
     choose_edit:
       title: Escolha uma Seção para Editar

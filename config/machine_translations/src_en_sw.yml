@@ -313,7 +313,6 @@ en:
       done: Project was successfully deleted.
     baseline_version_notice:
       current: These are criteria version %{version}.
-      transition_html: These criteria are from baseline version %{current_version} with updated criteria text from version %{new_version}. Criteria that are new in version %{new_version} are labeled &ldquo;future&rdquo; and will begin to be enforced starting %{enforce_date}. Please provide answers to the &ldquo;future&rdquo; criteria before that date.
       transition: These criteria are from baseline version %{current_version} with updated criteria text from version %{new_version}. Criteria that are new in version %{new_version} are labeled "future" and will begin to be enforced starting %{enforce_date}. Please provide answers to the "future" criteria before that date.
     choose_edit:
       title: Choose a Section to Edit
