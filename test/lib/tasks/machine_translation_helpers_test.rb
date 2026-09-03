@@ -198,5 +198,19 @@ class MachineTranslationHelpersTest < ActiveSupport::TestCase
   test 'machine_translation_outdated? is false when there is no tracked source at all' do
     assert_not MachineTranslationHelpers.machine_translation_outdated?({}, 'some.key', 'Some text')
   end
+
+  test 'find_general_style_examples sorts longest English text first' do
+    english = MachineTranslationHelpers.send(:load_flat_translations, 'en')
+    result = MachineTranslationHelpers.find_general_style_examples('fr', english)
+    lengths = result.map { |key| english[key].to_s.length }
+    assert_equal lengths.sort.reverse, lengths
+  end
+
+  test 'find_general_style_examples excludes keys already selected' do
+    english = MachineTranslationHelpers.send(:load_flat_translations, 'en')
+    already_selected = MachineTranslationHelpers.find_general_style_examples('fr', english).first(5)
+    result = MachineTranslationHelpers.find_general_style_examples('fr', english, exclude: already_selected)
+    assert_empty(already_selected & result)
+  end
 end
 # rubocop:enable Metrics/ClassLength

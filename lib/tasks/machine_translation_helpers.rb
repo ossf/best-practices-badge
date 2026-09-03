@@ -667,9 +667,13 @@ module MachineTranslationHelpers
       selected
     end
 
-    # Find general style examples from existing human translations
-    # Prefers shorter, clearer examples that demonstrate style
-    # Excludes keys already in the exclude list
+    # Find human-translated examples to fill any slots
+    # find_example_translations left empty after covering every
+    # reachable term. Prefers the LONGEST available English text: a
+    # fixed number of example slots teaches the AI more style and
+    # terminology per slot when each one carries as much translated text
+    # as possible, rather than a few words from a short button label.
+    # Excludes keys already in the exclude list.
     def find_general_style_examples(locale, english, exclude: [])
       human_translations = load_flat_translations(locale, human_only: true)
       existing_translations = load_flat_translations(locale)
@@ -681,20 +685,9 @@ module MachineTranslationHelpers
             existing_translations[key].to_s.strip.empty?
         end
 
-      # Sort by text length (prefer shorter, clearer examples)
-      # but prioritize those with common patterns (buttons, labels, messages)
-      available_keys.sort_by do |key|
-        text = english[key].to_s
-        length = text.length
-
-        # Boost priority for common UI patterns (lower score = higher priority)
-        priority_boost = 0
-        priority_boost -= 500 if key.match?(/\.(name|title|label|button|link|submit|header)$/)
-        priority_boost -= 300 if key.match?(/\.(description|help|message|notice)$/)
-        priority_boost -= 200 if text.include?('%{') # Has placeholders - good for learning
-
-        length + priority_boost
-      end
+      # Longest English text first, so scarce example slots carry the
+      # most text for the AI to learn from.
+      available_keys.sort_by { |key| -english[key].to_s.length }
     end
 
     # AI-specific: Build prompt that references the instructions file
