@@ -105,6 +105,10 @@ en:
       This is an advance notice that your project's "%{old_level}" badge may be
       lost on %{effective_date} when updated criteria take effect.
       Please review your badge entry at the following URL before that date:
+    warned_level_message_no_date: |-
+      This is an advance notice that your project's "%{old_level}" badge may be
+      lost when updated criteria take effect.
+      Please review your badge entry at the following URL:
   criteria:
     baseline-1:
       osps_ac_01_01:
@@ -120,7 +124,7 @@ en:
         description: When an attempt is made to delete the project's primary branch, the version control system MUST treat this as a sensitive activity and require explicit confirmation of intent.
         details: Set branch protection on the primary branch in the project's version control system to prevent deletion.
       osps_br_01_01:
-        description: When a CI/CD pipeline accepts an input parameter, that parameter MUST be sanitized and validated prior to use in the pipeline.
+        description: When a CI/CD pipeline operates on untrusted metadata, those parameters MUST be sanitized and validated prior to use in the pipeline.
         details: CI/CD pipelines should sanitize (quote, escape or exit on expected values) all metadata inputs which correspond to untrusted sources. This includes data such as branch names, commit messages, tags, pull request titles, and author information.
       osps_br_01_02:
         description: When a CI/CD pipeline uses a branch name in its functionality, that name value MUST be sanitized and validated prior to use in the pipeline.
@@ -128,8 +132,8 @@ en:
         description: When the project lists a URI as an official project channel, that URI MUST be exclusively delivered using encrypted channels.
         details: Configure the project's websites and version control systems to use encrypted channels such as SSH or HTTPS for data transmission. Ensure all tools and domains referenced in project documentation can only be accessed via encrypted channels.
       osps_br_03_02:
-        description: When the project lists a URI as an official distribution channel, that URI MUST be exclusively delivered using encrypted channels.
-        details: Configure the project's release pipeline to only fetch data from websites, API responses, and other services which use encrypted channels such as SSH or HTTPS for data transmission.
+        description: When the project lists a URI as an official distribution channel, that channel MUST be protected from adversary-in-the-middle attacks using cryptographically authenticated channels.
+        details: Artifacts distributed by the project should be distributed through channels which ensure integrity and authenticity. Use of HTTPS for downloads, signed releases, or distribution through trusted package managers are all acceptable methods to protect against adversary-in-the-middle attacks.
       osps_br_07_01:
         description: The project MUST prevent the unintentional storage of unencrypted sensitive data, such as secrets and credentials, in the version control system.
         details: Configure .gitignore or equivalent to exclude files that may contain sensitive information. Use pre-commit hooks and automated scanning tools to detect and prevent the inclusion of sensitive data in commits.
@@ -140,25 +144,25 @@ en:
         description: When the project has made a release, the project documentation MUST include a guide for reporting defects.
         details: It is recommended that projects use their VCS default issue tracker. If an external source is used, ensure that the project documentation and contributing guide clearly and visibly explain how to use the reporting system. It is recommended that project documentation also sets expectations for how defects will be triaged and resolved.
       osps_gv_02_01:
-        description: While active, the project MUST have one or more mechanisms for public discussions about proposed changes and usage obstacles.
+        description: The project MUST have one or more mechanisms for public discussions about proposed changes and usage obstacles.
         details: Establish one or more mechanisms for public discussions within the project, such as mailing lists, instant messaging, or issue trackers, to facilitate open communication and feedback.
       osps_gv_03_01:
-        description: While active, the project documentation MUST include an explanation of the contribution process.
+        description: The project documentation MUST include an explanation of the contribution process, or clearly state that public contributions are not accepted
         details: Create a CONTRIBUTING.md or CONTRIBUTING/ directory to outline the contribution process including the steps for submitting changes, and engaging with the project maintainers.
       osps_le_02_01:
-        description: While active, the license for the source code MUST meet the OSI Open Source Definition or the FSF Free Software Definition.
+        description: The license for the source code MUST meet the OSI Open Source Definition or the FSF Free Software Definition.
         details: Add a LICENSE file to the project's repo with a license that is an approved license by the Open Source Initiative (OSI), or a free license as approved by the Free Software Foundation (FSF). Examples of such licenses include the MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), and the GNU General Public License (GPL). Releasing to the public domain meets this control if there are no other encumbrances such as patents.
       osps_le_02_02:
-        description: While active, the license for the released software assets MUST meet the OSI Open Source Definition or the FSF Free Software Definition.
+        description: The license for the released software assets MUST meet the OSI Open Source Definition or the FSF Free Software Definition.
         details: If a different license is included with released software assets, ensure it is an approved license by the Open Source Initiative (OSI), or a free license as approved by the Free Software Foundation (FSF). Examples of such licenses include the MIT, BSD 2-clause, BSD 3-clause revised, Apache 2.0, Lesser GNU General Public License (LGPL), and the GNU General Public License (GPL). Note that the license for the released software assets may be different than the source code.
       osps_le_03_01:
-        description: While active, the license for the source code MUST be maintained in the corresponding repository's LICENSE file, COPYING file, or LICENSE/ directory.
-        details: Include the project's source code license in the project's LICENSE file, COPYING file, or LICENSE/ directory to provide visibility and clarity on the licensing terms. The filename MAY have an extension. If the project has multiple repositories, ensure that each repository includes the license file.
+        description: The license for the source code MUST be maintained in the corresponding repository's LICENSE file, COPYING file, LICENSES/ directory, or LICENSE/ directory.
+        details: Include the project's source code license in the project's LICENSE file, COPYING file, LICENSES/ directory, or LICENSE/ directory to provide visibility and clarity on the licensing terms. The filename MAY have an extension. If the project has multiple repositories, ensure that each repository includes the license file.
       osps_le_03_02:
-        description: While active, the license for the released software assets MUST be included in the released source code, or in a LICENSE file, COPYING file, or LICENSE/ directory alongside the corresponding release assets.
+        description: The license for the released software assets MUST be included in the released source code, or in a LICENSE file, COPYING file, or LICENSE/ directory alongside the corresponding release assets.
         details: Include the project's released software assets license in the released source code, or in a LICENSE file, COPYING file, or LICENSE/ directory alongside the corresponding release assets to provide visibility and clarity on the licensing terms. The filename MAY have an extension. If the project has multiple repositories, ensure that each repository includes the license file.
       osps_qa_01_01:
-        description: While active, the project's source code repository MUST be publicly readable at a static URL.
+        description: The project's source code repository MUST be publicly readable at a static URL.
         details: Use a common VCS such as GitHub, GitLab, or Bitbucket. Ensure the repository is publicly readable. Avoid duplication or mirroring of repositories unless highly visible documentation clarifies the primary source. Avoid frequent changes to the repository that would impact the repository URL. Ensure the repository is public.
       osps_qa_01_02:
         description: The version control system MUST contain a publicly readable record of all changes made, who made the changes, and when the changes were made.
@@ -167,16 +171,16 @@ en:
         description: When the package management system supports it, the source code repository MUST contain a dependency list that accounts for the direct language dependencies.
         details: This may take the form of a package manager or language dependency file that enumerates all direct dependencies such as package.json, Gemfile, or go.mod.
       osps_qa_04_01:
-        description: While active, the project documentation MUST contain a list of any codebases that are considered subprojects.
+        description: Projects with multiple repositories MUST document a list of codebases that are part of the project.
         details: Document any additional subproject code repositories produced by the project and compiled into a release. This documentation should include the status and intent of the respective codebase.
       osps_qa_05_01:
-        description: While active, the version control system MUST NOT contain generated executable artifacts.
+        description: The version control system MUST NOT contain generated executable artifacts.
         details: Remove generated executable artifacts in the project's version control system. It is recommended that any scenario where a generated executable artifact appears critical to a process such as testing, it should be instead be generated at build time or stored separately and fetched during a specific well-documented pipeline step.
       osps_qa_05_02:
-        description: While active, the version control system MUST NOT contain unreviewable binary artifacts.
+        description: The version control system MUST NOT contain unreviewable binary artifacts.
         details: Do not add any unreviewable binary artifacts to the project's version control system. This includes executable application binaries, library files, and similar artifacts. It does not include assets such as graphical images, sound or music files, and similar content typically stored in a binary format.
       osps_vm_02_01:
-        description: While active, the project documentation MUST contain security contacts.
+        description: The project documentation MUST contain security contacts.
         details: Create a security.md (or similarly-named) file that contains security contacts for the project.
       osps_br_01_03:
         description: When a CI/CD pipeline operates on untrusted code snapshots, it MUST prevent access to privileged CI/CD credentials and assets.
@@ -322,6 +326,11 @@ en:
     link_invalid_or_used: 'Activation failed. If your account is already activated, please log in.
 
       '
+    confirm_heading: Activate Your Account
+    confirm_prompt: 'Click the button below to confirm and activate your account.
+
+      '
+    confirm_button: Activate my account
   detectives:
     github:
       repo_public: Repository on GitHub, which provides public git repositories with URLs.
@@ -382,3 +391,5 @@ en:
   pagination:
     first: First
     last: Last
+  sessions:
+    login_failed: Sorry, that login attempt could not be completed. Please try again.
