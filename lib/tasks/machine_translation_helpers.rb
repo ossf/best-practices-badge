@@ -107,6 +107,15 @@ module MachineTranslationHelpers
       Rails.root.join('config', 'machine_translations', "src_en_#{locale}.yml")
     end
 
+    # Whether `human_translations` has a REAL (non-blank) value for
+    # `key`, not just an entry for it. translation.io exports every
+    # tracked segment with a blank placeholder until a human actually
+    # translates it, so mere key existence (`human_translations.key?`)
+    # doesn't mean a human translation was created.
+    def human_translation_present?(human_translations, key)
+      !human_translations[key].to_s.strip.empty?
+    end
+
     def find_untranslated_keys(locale)
       english = load_flat_translations('en')
       translated = load_flat_translations(locale)
@@ -127,7 +136,7 @@ module MachineTranslationHelpers
         # 1. No translation exists or is empty, OR
         # 2. English source has changed since machine translation (and no human translation)
         next true if value.nil? || value.to_s.strip.empty?
-        next false if human_translated.key?(key) # Has human translation - ignore source changes
+        next false if human_translation_present?(human_translated, key) # ignore source changes
 
         # Check if English source has changed since machine translation
         source_tracking.key?(key) && source_tracking[key] != english_value
@@ -616,7 +625,7 @@ module MachineTranslationHelpers
       terms.each do |term|
         pattern = word_boundary_pattern(term)
         english.each_key do |key|
-          next unless human_translations.key?(key)
+          next unless human_translation_present?(human_translations, key)
           next if existing_translations[key].to_s.strip.empty?
           next unless english[key].to_s.match?(pattern)
 
@@ -658,7 +667,8 @@ module MachineTranslationHelpers
       # Get all available human translation keys
       available_keys =
         human_translations.keys.reject do |key|
-          exclude.include?(key) || existing_translations[key].to_s.strip.empty?
+          exclude.include?(key) || !human_translation_present?(human_translations, key) ||
+            existing_translations[key].to_s.strip.empty?
         end
 
       # Sort by text length (prefer shorter, clearer examples)

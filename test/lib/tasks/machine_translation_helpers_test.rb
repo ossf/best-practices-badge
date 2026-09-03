@@ -165,5 +165,20 @@ class MachineTranslationHelpersTest < ActiveSupport::TestCase
     selected = %w[a b]
     assert_equal selected, MachineTranslationHelpers.fill_with_touching_examples(coverage, selected, 2)
   end
+
+  test 'human_translation_present? is false for a key present but blank' do
+    # translation.io exports every tracked segment with a blank
+    # placeholder until a human actually translates it, so the key
+    # existing in the hash does not mean a human translation exists.
+    human_translations = { 'osps_gv_02_01.description' => nil, 'osps_gv_02_01.details' => '' }
+    assert_not MachineTranslationHelpers.human_translation_present?(human_translations, 'osps_gv_02_01.description')
+    assert_not MachineTranslationHelpers.human_translation_present?(human_translations, 'osps_gv_02_01.details')
+  end
+
+  test 'human_translation_present? is true only for a real, non-blank value' do
+    human_translations = { 'sessions.signed_in' => 'Connecte !' }
+    assert MachineTranslationHelpers.human_translation_present?(human_translations, 'sessions.signed_in')
+    assert_not MachineTranslationHelpers.human_translation_present?(human_translations, 'no_such_key')
+  end
 end
 # rubocop:enable Metrics/ClassLength
