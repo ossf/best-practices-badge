@@ -205,16 +205,16 @@ en:
         description: When the project has made a release, the project documentation MUST include a description of how the project selects, obtains, and tracks its dependencies.
         details: It is recommended to publish this information alongside the project's technical & design documentation on a publicly viewable resource such as the source code repository, project website, or other channel.
       osps_gv_01_01:
-        description: While active, the project documentation MUST include a list of project members with access to sensitive resources.
+        description: The project documentation MUST include a list of project members with access to sensitive resources.
         details: Document project participants and their roles through such artifacts as members.md, governance.md, maintainers.md, or similar file within the source code repository of the project. This may be as simple as including names or account handles in a list of maintainers, or more complex depending on the project's governance.
       osps_gv_01_02:
-        description: While active, the project documentation MUST include descriptions of the roles and responsibilities for members of the project.
+        description: The project documentation MUST include descriptions of the roles and responsibilities for members of the project
         details: Document project participants and their roles through such artifacts as members.md, governance.md, maintainers.md, or similar file within the source code repository of the project.
       osps_gv_03_02:
-        description: While active, the project documentation MUST include a guide for code contributors that includes requirements for acceptable contributions.
+        description: The project documentation MUST include a guide for code contributors that includes requirements for acceptable contributions.
         details: Extend the CONTRIBUTING.md or CONTRIBUTING/ contents in the project documentation to outline the requirements for acceptable contributions, including coding standards, testing requirements, and submission guidelines for code contributors. It is recommended that this guide is the source of truth for both contributors and approvers.
       osps_le_01_01:
-        description: While active, the version control system MUST require all code contributors to assert that they are legally authorized to make the associated contributions on every commit.
+        description: The version control system MUST require all code contributors to assert that they are legally authorized to make the associated contributions on every commit.
         details: Include a DCO in the project's repository, requiring code contributors to assert that they are legally authorized to commit the associated contributions on every commit. Use a status check to ensure the assertion is made. A CLA also satisfies this requirement. Some version control systems, such as GitHub, may include this in the platform terms of service.
       osps_qa_03_01:
         description: When a commit is made to the primary branch, any automated status checks for commits MUST pass or be manually bypassed.
@@ -232,13 +232,13 @@ en:
         description: When the project has made a release, the project MUST perform a security assessment to understand the most likely and impactful potential security problems that could occur within the software.
         details: Performing a security assessment informs both project members as well as downstream consumers that the project understands what problems could arise within the software. Understanding what threats could be realized helps the project manage and address risk. This information is useful to downstream consumers to demonstrate the security acumen and practices of the project. Ensure this is updated for new features or breaking changes.
       osps_vm_01_01:
-        description: While active, the project documentation MUST include a policy for coordinated vulnerability disclosure (CVD), with a clear timeframe for response.
+        description: The project documentation MUST include a policy for coordinated vulnerability disclosure (CVD), with a clear timeframe for response.
         details: Create a SECURITY.md file at the root of the directory, outlining the project's policy for coordinated vulnerability disclosure. Include a method for reporting vulnerabilities. Set expectations for how the project will respond and address reported issues.
       osps_vm_03_01:
-        description: While active, the project documentation MUST provide a means for private vulnerability reporting directly to the security contacts within the project.
+        description: The project documentation MUST provide a means for private vulnerability reporting directly to the security contacts within the project.
         details: Provide a means for security researchers to report vulnerabilities privately to the project. This may be a dedicated email address, a web form, VCS specialized tools, email addresses for security contacts, or other methods.
       osps_vm_04_01:
-        description: While active, the project documentation MUST publicly publish data about discovered vulnerabilities.
+        description: The project documentation MUST publicly publish data about discovered vulnerabilities.
         details: Provide information about known vulnerabilities in a predictable public channel, such as a CVE entry, blog post, or other medium. To the degree possible, this information should include affected version(s), how a consumer can determine if they are vulnerable, and instructions for mitigation or remediation.
       osps_do_07_01:
         description: The project documentation MUST include instructions on how to build the software, including required libraries, frameworks, SDKs, and dependencies.
@@ -266,7 +266,7 @@ en:
         description: When the project has made a release, the project documentation MUST provide a descriptive statement when releases or versions will no longer receive security updates.
         details: In order to communicate the scope and duration of support for security fixes, the project should have a SUPPORT.md or other documentation explaining the project's policy for security updates.
       osps_gv_04_01:
-        description: While active, the project documentation MUST have a policy that code collaborators are reviewed prior to granting escalated permissions to sensitive resources.
+        description: The project documentation MUST have a policy that code collaborators are reviewed prior to granting escalated permissions to sensitive resources.
         details: Publish an enforceable policy in the project documentation that requires code collaborators to be reviewed and approved before being granted escalated permissions to sensitive resources, such as merge approval or access to secrets. It is recommended that vetting includes establishing a justifiable lineage of identity such as confirming the contributor's association with a known trusted organization.
       osps_qa_02_02:
         description: When the project has made a release, all compiled released software assets MUST be delivered with a software bill of materials.
@@ -275,10 +275,10 @@ en:
         description: When the project has made a release comprising multiple source code repositories, all subprojects MUST enforce security requirements that are as strict or stricter than the primary codebase.
         details: Any additional subproject code repositories produced by the project and compiled into a release must enforce security requirements as applicable to the status and intent of the respective codebase. In addition to following the corresponding OSPS Baseline requirements, this may include requiring a security review, ensuring that it is free of vulnerabilities, and ensuring that it is free of known security issues.
       osps_qa_06_02:
-        description: While active, project's documentation MUST clearly document when and how tests are run.
+        description: The project documentation MUST clearly document when and how tests are run.
         details: Add a section to the contributing documentation that explains how to run the tests locally and how to run the tests in the CI/CD pipeline. The documentation should explain what the tests are testing and how to interpret the results.
       osps_qa_06_03:
-        description: While active, the project's documentation MUST include a policy that all major changes to the software produced by the project should add or update tests of the functionality in an automated test suite.
+        description: The project documentation MUST include a policy that all major changes to the software produced by the project should add or update tests of the functionality in an automated test suite.
         details: Add a section to the contributing documentation that explains the policy for adding or updating tests. The policy should explain what constitutes a major change and what tests should be added or updated.
       osps_qa_07_01:
         description: When a commit is made to the primary branch, the project's version control system MUST require at least one non-author human approval of the changes before merging.
@@ -287,22 +287,22 @@ en:
         description: When the project has made a release, the project MUST perform a threat modeling and attack surface analysis to understand and protect against attacks on critical code paths, functions, and interactions within the system.
         details: Threat modeling is an activity where the project looks at the codebase, associated processes and infrastructure, interfaces, key components and "thinks like a hacker" and brainstorms how the system be be broken or compromised. Each identified threat is listed out so the project can then think about how to proactively avoid or close off any gaps/vulnerabilities that could arise. Ensure this is updated for new features or breaking changes.
       osps_vm_04_02:
-        description: While active, any vulnerabilities in the software components not affecting the project MUST be accounted for in a VEX document, augmenting the vulnerability report with non-exploitability details.
+        description: Any vulnerabilities in the software components not affecting the project MUST be accounted for in a VEX document, augmenting the vulnerability report with non-exploitability details.
         details: Establish a VEX feed communicating the exploitability status of known vulnerabilities, including assessment details or any mitigations in place preventing vulnerable code from being executed.
       osps_vm_05_01:
-        description: While active, the project documentation MUST include a policy that defines a threshold for remediation of SCA findings related to vulnerabilities and licenses.
+        description: The project documentation MUST include a policy that defines a threshold for remediation of SCA findings related to vulnerabilities and licenses.
         details: Document a policy in the project that defines a threshold for remediation of SCA findings related to vulnerabilities and licenses. Include the process for identifying, prioritizing, and remediating these findings.
       osps_vm_05_02:
-        description: While active, the project documentation MUST include a policy to address SCA violations prior to any release.
+        description: The project documentation MUST include a policy to address SCA violations prior to any release.
         details: Document a policy in the project to address applicable Software Composition Analysis results before any release, and add status checks that verify compliance with that policy prior to release.
       osps_vm_05_03:
-        description: While active, all changes to the project's codebase MUST be automatically evaluated against a documented policy for malicious dependencies and known vulnerabilities in dependencies, then blocked in the event of violations, except when declared and suppressed as non-exploitable.
+        description: All changes to the project's codebase MUST be automatically evaluated against a documented policy for malicious dependencies and known vulnerabilities in dependencies, then blocked in the event of violations, except when declared and suppressed as non-exploitable.
         details: Create a status check in the project's version control system that runs a Software Composition Analysis tool on all changes to the codebase. Require that the status check passes before changes can be merged.
       osps_vm_06_01:
-        description: While active, the project documentation MUST include a policy that defines a threshold for remediation of SAST findings.
+        description: The project documentation MUST include a policy that defines a threshold for remediation of SAST findings.
         details: Document a policy in the project that defines a threshold for remediation of Static Application Security Testing (SAST) findings. Include the process for identifying, prioritizing, and remediating these findings.
       osps_vm_06_02:
-        description: While active, all changes to the project's codebase MUST be automatically evaluated against a documented policy for security weaknesses and blocked in the event of violations except when declared and suppressed as non-exploitable.
+        description: All changes to the project's codebase MUST be automatically evaluated against a documented policy for security weaknesses and blocked in the event of violations except when declared and suppressed as non-exploitable.
         details: Create a status check in the project's version control system that runs a Static Application Security Testing (SAST) tool on all changes to the codebase. Require that the status check passes before changes can be merged.
       osps_br_01_04:
         description: CI/CD pipelines which accept trusted collaborator input MUST sanitize and validate that input prior to use in the pipeline.
