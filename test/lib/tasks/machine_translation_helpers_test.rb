@@ -180,5 +180,23 @@ class MachineTranslationHelpersTest < ActiveSupport::TestCase
     assert MachineTranslationHelpers.human_translation_present?(human_translations, 'sessions.signed_in')
     assert_not MachineTranslationHelpers.human_translation_present?(human_translations, 'no_such_key')
   end
+
+  test 'machine_translation_outdated? is true when the tracked source differs from current English' do
+    source_tracking = { 'osps_gv_02_01.description' => 'While active, the project MUST...' }
+    assert MachineTranslationHelpers.machine_translation_outdated?(
+      source_tracking, 'osps_gv_02_01.description', 'The project MUST...'
+    )
+  end
+
+  test 'machine_translation_outdated? is false when the tracked source still matches' do
+    source_tracking = { 'pagination.first' => 'First' }
+    assert_not MachineTranslationHelpers.machine_translation_outdated?(
+      source_tracking, 'pagination.first', 'First'
+    )
+  end
+
+  test 'machine_translation_outdated? is false when there is no tracked source at all' do
+    assert_not MachineTranslationHelpers.machine_translation_outdated?({}, 'some.key', 'Some text')
+  end
 end
 # rubocop:enable Metrics/ClassLength
