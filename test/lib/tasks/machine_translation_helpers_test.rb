@@ -212,5 +212,54 @@ class MachineTranslationHelpersTest < ActiveSupport::TestCase
     result = MachineTranslationHelpers.find_general_style_examples('fr', english, exclude: already_selected)
     assert_empty(already_selected & result)
   end
+
+  test 'available_human_example_keys excludes keys with blank English text' do
+    # pt-BR has few human translations and picks up some of Rails' own
+    # built-in locale keys (e.g. number.currency.format.*) via the glob
+    # that loads config/locales/*.pt-BR.yml - this app never gave those
+    # English text, so they must never be offered as examples.
+    english = MachineTranslationHelpers.send(:load_flat_translations, 'en')
+    pool = MachineTranslationHelpers.available_human_example_keys('pt-BR', english, [])
+    assert(pool.none? { |key| english[key].to_s.strip.empty? })
+  end
+
+  # rubocop:disable Style/FormatStringToken -- a %{} literal we assert
+  # was preserved as a token, not a format() template string.
+  test 'ensure_placeholder_examples adds the longest example for a specific needed name' do
+    english = MachineTranslationHelpers.send(:load_flat_translations, 'en')
+    keys = ['report_mailer.warned_level_message_no_date'] # needs %{old_level}
+    example_keys = %w[pagination.first pagination.last] # neither has a placeholder
+    result = MachineTranslationHelpers.ensure_placeholder_examples('fr', keys, english, example_keys)
+    added = result - example_keys
+    assert_equal 1, added.length
+    assert_includes MachineTranslationHelpers.send(:extract_placeholders, english[added.first]), '%{old_level}'
+  end
+  # rubocop:enable Style/FormatStringToken
+
+  test 'ensure_placeholder_examples does nothing when the batch has no placeholder' do
+    english = MachineTranslationHelpers.send(:load_flat_translations, 'en')
+    example_keys = ['pagination.last']
+    result = MachineTranslationHelpers.ensure_placeholder_examples('fr', ['pagination.first'], english, example_keys)
+    assert_equal example_keys, result
+  end
+
+  test 'ensure_placeholder_examples does nothing when the needed name is already covered' do
+    english = MachineTranslationHelpers.send(:load_flat_translations, 'en')
+    keys = ['report_mailer.warned_level_message_no_date'] # needs %{old_level}
+    example_keys = ['report_mailer.lost_level_message'] # already has %{old_level} (and %{new_level})
+    result = MachineTranslationHelpers.ensure_placeholder_examples('fr', keys, english, example_keys)
+    assert_equal example_keys, result
+  end
+
+  test 'ensure_placeholder_examples never offers a batch key as its own example' do
+    english = MachineTranslationHelpers.send(:load_flat_translations, 'en')
+    # sessions.signed_in has a real human translation and its own
+    # %{last_login_at} placeholder; treating it as a batch key (as if it
+    # were awaiting translation, which it wouldn't be in practice) must
+    # not let it be selected as an "example" of itself.
+    keys = %w[projects_count.one sessions.signed_in]
+    result = MachineTranslationHelpers.ensure_placeholder_examples('fr', keys, english, [])
+    assert_empty(result & keys)
+  end
 end
 # rubocop:enable Metrics/ClassLength
