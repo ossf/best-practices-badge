@@ -325,10 +325,13 @@ metal series and without a full CDN flush:
   every project's baseline pages. Purge this whenever
   `criteria/baseline_criteria.yml` text changed (Steps 4/6), which is the
   normal case for a baseline update.
-- `baseline_badges` — covers the baseline badge SVGs. Purge this only if
-  Step 8a actually regenerated them (i.e. `CURRENT_VERSION` changed).
-  Purging it when nothing changed is harmless, just an unneeded cache
-  miss on the next badge request.
+- `baseline_badges` — covers every project's baseline badge SVG *and* the
+  generic, project-independent preview at `/badge_static/baseline-N` and
+  `/badge_static/baseline-pct-N` (`BadgeStaticController`), since both
+  read the same on-disk SVG files. Purge this only if Step 8a actually
+  regenerated them (i.e. `CURRENT_VERSION` changed). Purging it when
+  nothing changed is harmless, just an unneeded cache miss on the next
+  badge request.
 
 Purge both keys with a one-off dyno via the Heroku CLI:
 
