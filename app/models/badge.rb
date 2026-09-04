@@ -95,6 +95,19 @@ class Badge
       ACCEPTABLE_INPUTS.include?(level)
     end
 
+    # Checks if the given level belongs to the baseline badge series
+    # (baseline-1/2/3 or baseline-pct-0..99), as opposed to the metal
+    # series (percentages 0..99, or passing/silver/gold). Backed by the
+    # same enumerated level sets as ACCEPTABLE_INPUTS, so this stays a
+    # single source of truth as those sets change -- callers should use
+    # this instead of pattern-matching the level's name themselves.
+    # @param level [String, Integer] the badge level
+    # @return [Boolean] true if level is a baseline-series level
+    def baseline?(level)
+      ACCEPTABLE_BASELINE_LEVELS.include?(level) ||
+        ACCEPTABLE_BASELINE_PERCENTAGES.include?(level)
+    end
+
     # Resets cached badge widths. Useful after regenerating badge images.
     # @return [void]
     def reset_widths!
@@ -105,13 +118,13 @@ class Badge
     # @param level [String, Integer] the badge level
     # @return [String] the file path
     def svg_path(level)
+      return "#{BADGE_DIR}/badge_static_#{level}.svg" unless baseline?(level)
+
       level_str = level.to_s
-      if level_str.start_with?('baseline-pct-')
+      if ACCEPTABLE_BASELINE_PERCENTAGES.include?(level)
         "#{BADGE_DIR}/badge_baseline_pct_#{level_str[13..]}.svg"
-      elsif level_str.start_with?('baseline')
-        "#{BADGE_DIR}/badge_#{level_str.tr('-', '_')}.svg"
       else
-        "#{BADGE_DIR}/badge_static_#{level}.svg"
+        "#{BADGE_DIR}/badge_#{level_str.tr('-', '_')}.svg"
       end
     end
 

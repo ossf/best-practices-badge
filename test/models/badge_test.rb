@@ -63,6 +63,24 @@ class BadgeTest < ActiveSupport::TestCase
     assert badge.to_s.include?('openssf baseline')
   end
 
+  test 'Badge.baseline? is true for baseline levels and percentages' do
+    assert Badge.baseline?('baseline-1')
+    assert Badge.baseline?('baseline-2')
+    assert Badge.baseline?('baseline-3')
+    assert Badge.baseline?('baseline-pct-0')
+    assert Badge.baseline?('baseline-pct-42')
+    assert Badge.baseline?('baseline-pct-99')
+  end
+
+  test 'Badge.baseline? is false for metal levels and percentages' do
+    assert_not Badge.baseline?('passing')
+    assert_not Badge.baseline?('silver')
+    assert_not Badge.baseline?('gold')
+    assert_not Badge.baseline?(0)
+    assert_not Badge.baseline?(42)
+    assert_not Badge.baseline?(99)
+  end
+
   test 'Badge requires integer < 100 parameters' do
     assert_raise(ArgumentError) { Badge[5.5] }
     assert_raise(ArgumentError) { Badge[100] }
