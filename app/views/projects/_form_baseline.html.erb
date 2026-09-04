@@ -102,11 +102,21 @@
   </div>
       <br>
       <div class="center">
+      <%# Shown unconditionally (view and edit) so people reading a
+          project's page, not just editing it, learn that tools and AI
+          systems can propose criteria changes via a simple URL. %>
+      <%= t 'projects.edit.automation_hint_html',
+            badge_hostname: (ENV['PUBLIC_HOSTNAME'] || 'bestpractices.dev'),
+            app_locale: I18n.locale,
+            project_id: project.id,
+            automation_proposals_url: ApplicationHelper::AUTOMATION_PROPOSALS_URL %>
       <% if view_only %>
         <%= t "projects.show.#{project.data_license_field}",
               user: project.user_display_name %>
       <% else %>
-        <%= render 'form_submit_notice', project: project %>
+        <%= t 'projects.edit.submit_cdla_permissive_20_html' %>
+        <br>
+        <br>
         <%= f.button "#{t('projects.edit.save_and_continue')} #{ApplicationHelper::ROBOT_EMOJI_SAFE}".html_safe, type: 'submit', name: 'continue',
           value: 'Save', class:"btn btn-success btn-submit",
           title: t('projects.edit.save_and_continue_tooltip') %>
