@@ -438,8 +438,12 @@ class ProjectsController < ApplicationController
     @section = @criteria_level
     validate_section(@section)
 
-    # Tell CDN the surrogate key so we can quickly erase cache later
-    set_surrogate_key_header @project.record_key
+    # Tell CDN the surrogate key(s) so we can quickly erase cache later.
+    # The series text key (nil for the "permissions" special section) lets a
+    # criteria-text/wording change purge every project's page for that series
+    # at once, without touching the other series or any badge/JSON cache.
+    series_text_key = SERIES_TEXT_SURROGATE_KEY[Sections.section_type(@section)]
+    set_surrogate_key_header(*[@project.record_key, series_text_key].compact)
 
     # Load section-specific data for rendering
     load_section_data_for_show(@section)
@@ -539,18 +543,24 @@ class ProjectsController < ApplicationController
     # will eventually lead (correctly) to a failure report.
     @project = Project.select(BADGE_PROJECT_FIELDS).find(params[:id])
 
-    # Tell CDN the surrogate key so we can quickly erase it later
-    # We presume the CDN can associate multiple items with one key
-    # (Fastly can), so that when we remove this key from the cache, all
-    # related cache entries will be removed.
-    set_surrogate_key_header @project.record_key
-
     respond_to do |format|
       format.svg do
+        # We presume the CDN can associate multiple items with one key
+        # (Fastly can), so that when we remove this key from the cache, all
+        # related cache entries will be removed. METAL_BADGES_SURROGATE_KEY
+        # lets a metal badge artwork change purge every project's metal
+        # badge image at once, without touching baseline badges or any
+        # show/JSON cache.
+        set_surrogate_key_header @project.record_key, METAL_BADGES_SURROGATE_KEY
         send_data Badge[@project.badge_value],
                   type: 'image/svg+xml', disposition: 'inline'
       end
-      format.json { render :badge, status: :ok }
+      format.json do
+        # JSON carries only per-project numbers (no image, no translatable
+        # text), so it needs no series key -- record_key alone is enough.
+        set_surrogate_key_header @project.record_key
+        render :badge, status: :ok
+      end
     end
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
@@ -563,15 +573,20 @@ class ProjectsController < ApplicationController
     # Select only the fields we need for performance
     @project = Project.select(BASELINE_BADGE_PROJECT_FIELDS).find(params[:id])
 
-    # Tell CDN the surrogate key so we can quickly erase it later
-    set_surrogate_key_header @project.record_key
-
     respond_to do |format|
       format.svg do
+        # BASELINE_BADGES_SURROGATE_KEY lets a baseline badge artwork change
+        # (e.g. the version date baked into the image) purge every
+        # project's baseline badge image at once, without touching metal
+        # badges or any show/JSON cache.
+        set_surrogate_key_header @project.record_key, BASELINE_BADGES_SURROGATE_KEY
         send_data Badge[@project.baseline_badge_value],
                   type: 'image/svg+xml', disposition: 'inline'
       end
       format.json do
+        # JSON carries only per-project numbers (no image, no translatable
+        # text), so it needs no series key -- record_key alone is enough.
+        set_surrogate_key_header @project.record_key
         render :baseline_badge, status: :ok, location: @project
       end
     end

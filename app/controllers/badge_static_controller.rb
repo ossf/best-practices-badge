@@ -29,7 +29,12 @@ class BadgeStaticController < ApplicationController
     # The router should prevent invalid values from reaching here.
     return unless Badge.valid?(value)
 
-    set_surrogate_key_header "/badge_percent/#{value}"
+    # This serves the same on-disk SVG files as the metal/baseline badge
+    # actions (e.g. "baseline-1" -> badge_baseline_1.svg), so it needs the
+    # matching series key too -- otherwise a badge-artwork purge (e.g. after
+    # a baseline version bump) would miss this generic preview endpoint.
+    series_key = Badge.baseline?(value) ? BASELINE_BADGES_SURROGATE_KEY : METAL_BADGES_SURROGATE_KEY
+    set_surrogate_key_header "/badge_percent/#{value}", series_key
     send_data Badge[value], type: 'image/svg+xml', disposition: 'inline'
     # Our application router now prevents invalid values. Before we did that,
     # we had an "else" clause that sent a 404 by doing this:

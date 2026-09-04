@@ -206,6 +206,35 @@ class ApplicationController < ActionController::Base
   # needlessly evict the valuable project-show, JSON, and badge caches.
   UNCHANGING_SURROGATE_KEY = 'unchanging'
 
+  # Shared surrogate keys for each badge series (metal: passing/silver/gold;
+  # baseline: baseline-1/2/3), each split into "badges" (the SVG badge image)
+  # and "text" (the translatable criteria/page content shown on a project's
+  # show page for that series). Every project's badge/show response carries
+  # its own record_key *plus* the appropriate key(s) below, so a global change
+  # can purge just the affected slice across every project instead of every
+  # project's record_key, or a full purge_all:
+  #   - Retouch metal badge artwork (e.g. colors) -> purge METAL_BADGES only.
+  #   - Fix a typo in a metal criterion's description -> purge METAL_TEXT only.
+  #   - Bump the baseline version (new badge art + new criteria text) ->
+  #     purge both BASELINE_BADGES and BASELINE_TEXT.
+  # JSON badge/project responses (badge.json, baseline_badge.json, show_json)
+  # carry neither key: they contain only per-project numbers (id, level,
+  # percentage) and are already documented as locale-independent, so they
+  # are unaffected by either a badge-artwork or criteria-text change; a
+  # per-project value change is already handled by the existing record_key
+  # purge on save. See docs/cdn-cache-not-logged-in.md.
+  METAL_BADGES_SURROGATE_KEY = 'metal_badges'
+  METAL_TEXT_SURROGATE_KEY = 'metal_text'
+  BASELINE_BADGES_SURROGATE_KEY = 'baseline_badges'
+  BASELINE_TEXT_SURROGATE_KEY = 'baseline_text'
+
+  # Maps a Sections.section_type result to its "text" surrogate key.
+  # :special (e.g. "permissions") has no series, hence no entry -> nil.
+  SERIES_TEXT_SURROGATE_KEY = {
+    metal: METAL_TEXT_SURROGATE_KEY,
+    baseline: BASELINE_TEXT_SURROGATE_KEY
+  }.freeze
+
   # Fewer pages are cacheable than you might initially expect.
   # Most of the pages on this site vary depending on whether or not
   # you're logged in (because the header varies), so we can't cache most

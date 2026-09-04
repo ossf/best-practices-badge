@@ -310,6 +310,73 @@ rails s
 In production, follow the standard deployment procedure (e.g., restart
 Puma workers).
 
+## Step 9a: Purge the CDN Surrogate Keys
+
+Restarting the app makes the new baseline text (and, if Step 8a
+regenerated them, new badge images) available from Rails, but Fastly may
+still be serving the old versions from cache. In addition to its own
+per-project key, every project's baseline show page and baseline badge
+carry one of two shared surrogate keys (see the `*_SURROGATE_KEY`
+constants in `app/controllers/application_controller.rb`), so a single
+purge refreshes that content across every project, without touching the
+metal series and without a full CDN flush:
+
+- `baseline_text` — covers the criteria descriptions/details shown on
+  every project's baseline pages. Purge this whenever
+  `criteria/baseline_criteria.yml` text changed (Steps 4/6), which is the
+  normal case for a baseline update.
+- `baseline_badges` — covers every project's baseline badge SVG *and* the
+  generic, project-independent preview at `/badge_static/baseline-N` and
+  `/badge_static/baseline-pct-N` (`BadgeStaticController`), since both
+  read the same on-disk SVG files. Purge this only if Step 8a actually
+  regenerated them (i.e. `CURRENT_VERSION` changed). Purging it when
+  nothing changed is harmless, just an unneeded cache miss on the next
+  badge request.
+
+Purge both keys with a one-off dyno via the Heroku CLI:
+
+```bash
+heroku run --app production-bestpractices -- \
+  bundle exec rake "fastly:purge_key[baseline_text,baseline_badges]"
+```
+
+Or from the Heroku Dashboard, without a local CLI: open the app, click
+**More > Run console**, and enter:
+
+```text
+bundle exec rake "fastly:purge_key[baseline_text,baseline_badges]"
+```
+
+Both of the above require `FASTLY_API_KEY` and `FASTLY_SERVICE_ID` to
+already be set in the app's config vars (they are, in production). See
+`app/lib/fastly_rails.rb` and the `fastly:purge_key` task in
+`lib/tasks/default.rake` for how the purge itself works, and
+[cdn-cache-not-logged-in.md](./cdn-cache-not-logged-in.md) for the
+broader CDN caching design.
+
+**Simplest option: purge directly from the Fastly dashboard.** This skips
+Heroku and the rake task entirely, and needs no app credentials, only a
+Fastly login:
+
+1. **Identify the service.** Find `FASTLY_SERVICE_ID` on the Heroku app
+   (`heroku config -a production-bestpractices | grep FASTLY_SERVICE_ID`)
+   and match it to a service at
+   [manage.fastly.com](https://manage.fastly.com).
+2. **Open the Purge panel.** Open the service, then use its **Purge**
+   button/tab (near the top of the service view, alongside Domains,
+   Origins, Content, Settings). Exact wording varies by Fastly UI version;
+   look for an option to purge **by key** (a.k.a. **surrogate key**), as
+   distinct from **Purge All** or **Purge by URL**.
+3. **Purge one key at a time.** Enter `baseline_text`, submit, then repeat
+   for `baseline_badges` if Step 8a regenerated the badge images. The
+   dashboard purges a single key per submission, unlike `fastly:purge_key`
+   which accepts a comma-separated list in one call.
+
+This is a live, immediate action against production, not a draft you
+activate later (unlike the Request Settings changes in
+[cdn-cache-not-logged-in.md](./cdn-cache-not-logged-in.md)) — double-check
+the key name before submitting.
+
 ## Step 10: Verify a Changed Criterion Shows the Updated Text
 
 Open a project's baseline form (e.g., `/en/projects/1/baseline-1`) and
@@ -516,7 +583,31 @@ criteria from display, and close out the version notice.
    included in `Criteria.active(level)`. Obsolete criteria will no
    longer appear on the form.
 
-6. **Recalculate badge percentages and purge the CDN.** After the
+6. **Purge the CDN's shared baseline surrogate keys.** `CURRENT_VERSION`
+   changed in Step 4, so the regenerated badge images (Step 4's badge
+   regeneration) are stale in Fastly for every project, not just the ones
+   the next step's recalculation touches. The criteria list itself also
+   changed for every project's baseline pages (obsolete criteria removed,
+   "(upcoming criterion)" labels gone from newly-activated ones). Purge
+   the two shared keys that cover this (see Step 9a for what they mean):
+
+   ```bash
+   heroku run --app production-bestpractices -- \
+     bundle exec rake "fastly:purge_key[baseline_text,baseline_badges]"
+   ```
+
+   Or from the Heroku Dashboard: **More > Run console**, then enter
+   `bundle exec rake "fastly:purge_key[baseline_text,baseline_badges]"`.
+   Or purge both keys directly from the Fastly dashboard instead of going
+   through Heroku at all -- see Step 9a's "Simplest option" for how.
+
+   This is separate from, and in addition to, the per-project purging the
+   next step already does automatically -- that one only purges the
+   individual projects whose stored percentage actually changed, not the
+   shared badge artwork and criteria-list content that changed for
+   everyone.
+
+7. **Recalculate badge percentages and purge the CDN.** After the
    application restarts, the stored `badge_percentage_baseline_*`
    values in the database are stale; they were computed under the old
    set of active criteria. Projects will be corrected one-by-one as
@@ -573,7 +664,7 @@ criteria from display, and close out the version notice.
    See [Email notification rate configuration](#email-notification-rate-configuration)
    for how to adjust the daily cap if the default is too slow or too fast.
 
-7. **Verify** from the Rails console:
+8. **Verify** from the Rails console:
 
    ```ruby
    # Previously-future criteria should now be active:

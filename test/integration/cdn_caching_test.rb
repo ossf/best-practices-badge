@@ -158,11 +158,22 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
 
   # Lock in the purge path: the cached HTML show response must carry the
   # project's surrogate key, so the existing edit-time purge (which purges
-  # that exact key) also evicts the cached show page (Section 9.3).
-  test 'show advertises the project surrogate key for purging' do
+  # that exact key) also evicts the cached show page (Section 9.3). It must
+  # ALSO carry the series-wide text key matching the section shown (metal vs.
+  # baseline; "permissions" carries neither), so a criteria-wording fix can
+  # purge every project's page for that series at once without a full
+  # purge_all -- see ApplicationController::SERIES_TEXT_SURROGATE_KEY.
+  test 'show advertises the project and series surrogate keys for purging' do
     get "/en/projects/#{@project.id}/passing"
-    assert_equal "projects/#{@project.id}",
+    assert_equal "projects/#{@project.id} #{ApplicationController::METAL_TEXT_SURROGATE_KEY}",
                  response.headers['Surrogate-Key']
+
+    get "/en/projects/#{@project.id}/baseline-1"
+    assert_equal "projects/#{@project.id} #{ApplicationController::BASELINE_TEXT_SURROGATE_KEY}",
+                 response.headers['Surrogate-Key']
+
+    get "/en/projects/#{@project.id}/permissions"
+    assert_equal "projects/#{@project.id}", response.headers['Surrogate-Key']
   end
 
   # A permissions-only edit changes the AdditionalRight table -- which the
