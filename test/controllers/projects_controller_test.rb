@@ -1205,6 +1205,23 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_nil @response.headers['Access-Control-Allow-Origin']
   end
 
+  test 'badge SVG has CDN caching headers' do
+    get "/projects/#{@project.id}/badge", params: { format: 'svg' }
+    assert_response :success
+    # Surrogate-Key must carry both the project's own key (for the existing
+    # edit-time purge) and METAL_BADGES_SURROGATE_KEY (so a metal badge
+    # artwork change can purge every project's metal badge at once).
+    assert_equal "#{@project.record_key} #{ApplicationController::METAL_BADGES_SURROGATE_KEY}",
+                 @response.headers['Surrogate-Key']
+  end
+
+  test 'badge JSON has CDN caching headers' do
+    get "/projects/#{@project.id}/badge.json"
+    assert_response :success
+    # JSON has no image and no translatable text, so it needs no series key.
+    assert_equal @project.record_key, @response.headers['Surrogate-Key']
+  end
+
   test 'A perfect passing project requested with CORS' do
     get "/en/projects/#{@project.id}/badge.json",
         headers: { Origin: 'example.com' }
@@ -2318,15 +2335,19 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     # Verify Vary header for proper CDN caching
     assert_equal 'Accept-Encoding', @response.headers['Vary']
-    # Verify Surrogate-Key header for Fastly CDN purging
-    # This key is used to purge all cached versions when project data changes
-    assert_equal @project.record_key, @response.headers['Surrogate-Key']
+    # Surrogate-Key must carry both the project's own key (for the existing
+    # edit-time purge) and BASELINE_BADGES_SURROGATE_KEY (so a baseline badge
+    # artwork change, e.g. a version bump, can purge every project's
+    # baseline badge at once).
+    assert_equal "#{@project.record_key} #{ApplicationController::BASELINE_BADGES_SURROGATE_KEY}",
+                 @response.headers['Surrogate-Key']
   end
 
   test 'baseline_badge JSON has CDN caching headers' do
     get "/projects/#{@project.id}/baseline.json"
     assert_response :success
     assert_equal 'Accept-Encoding', @response.headers['Vary']
+    # JSON has no image and no translatable text, so it needs no series key.
     assert_equal @project.record_key, @response.headers['Surrogate-Key']
   end
 
