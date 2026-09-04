@@ -14,6 +14,21 @@
 
 # We could require 'net/http', but that needs more code for HTTPS.
 
+# Explicit require: inside the full Rails app, Bundler.require already loads
+# this, so it's a no-op there. But the fastly:purge_all and fastly:purge_key
+# rake tasks are deliberately :no_rails (no app boot, to stay fast) and load
+# this file directly via $LOAD_PATH, so nothing else requires the gem first.
+# Without this line, `include HTTParty` below raises
+# "uninitialized constant FastlyRails::HTTParty" in that standalone context.
+require 'httparty'
+
+# Same reasoning as above: USER_AGENT is normally defined by
+# config/initializers/00_user_agent.rb during app boot. That file has no
+# Rails dependencies of its own, so it's safe to load directly here for the
+# :no_rails rake-task path; inside the full app it's already defined, so
+# this is a no-op.
+require_relative '../../config/initializers/00_user_agent' unless defined?(USER_AGENT)
+
 class FastlyRails
   include HTTParty
 

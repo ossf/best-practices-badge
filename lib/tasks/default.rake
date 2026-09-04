@@ -1102,6 +1102,32 @@ namespace :fastly do
     puts 'Cache purged'
   end
 
+  # Purge one or more Fastly surrogate keys (e.g. after a baseline version
+  # bump changes baseline badge artwork and/or criteria text -- see
+  # docs/baseline_update.md and the *_SURROGATE_KEY constants in
+  # app/controllers/application_controller.rb for the current key names).
+  # Invoke using:
+  #   heroku run --app HEROKU_APP_HERE -- \
+  #     bundle exec rake "fastly:purge_key[key_one,key_two]"
+  # Unlike purge_all, this touches only the given key(s), leaving every
+  # other cached surrogate key (including the untouched badge series)
+  # intact. Same environment variable requirements as purge_all.
+  desc 'Purge one or more Fastly surrogate keys (comma-separated)'
+  task :purge_key, [:key] => :no_rails do |_t, args|
+    keys = [args.key, *args.extras].compact
+    if keys.empty?
+      raise ArgumentError, 'Usage: rake "fastly:purge_key[key_one,key_two,...]"'
+    end
+
+    $LOAD_PATH.append("#{Dir.getwd}/app/lib")
+    require 'fastly_rails'
+    keys.each do |key|
+      puts "Purging Fastly surrogate key: #{key}"
+      FastlyRails.purge_by_key(key)
+    end
+    puts 'Done'
+  end
+
   desc 'Test Fastly Caching'
   task :test, [:site_name] => :no_rails do |_t, args|
     args.with_defaults site_name: 'https://staging.bestpractices.dev/projects/1/badge'
