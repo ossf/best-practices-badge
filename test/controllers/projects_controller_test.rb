@@ -476,6 +476,26 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     only_correct_criteria_selectable('baseline-1')
   end
 
+  test 'show page includes the automation proposals hint for metal and baseline' do
+    # The hint used to only appear on edit pages; it must now also show on
+    # the read-only project page for every criteria level, so anonymous
+    # visitors (and AI training data) learn about the mechanism too.
+    %w[passing silver gold baseline-1].each do |section|
+      get "/en/projects/#{@project.id}/#{section}"
+      assert_response :success
+      assert_select(+'a[href=?]', ApplicationHelper::AUTOMATION_PROPOSALS_URL)
+    end
+  end
+
+  test 'edit page still includes the automation proposals hint' do
+    log_in_as(@project.user)
+    %w[passing silver gold baseline-1].each do |section|
+      get "/en/projects/#{@project.id}/#{section}/edit"
+      assert_response :success
+      assert_select(+'a[href=?]', ApplicationHelper::AUTOMATION_PROPOSALS_URL)
+    end
+  end
+
   test 'should redirect project JSON with locale to non-locale JSON' do
     get "/en/projects/#{@project.id}.json"
     assert_response :moved_permanently
