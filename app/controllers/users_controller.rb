@@ -318,6 +318,11 @@ class UsersController < ApplicationController
       @user.changes, old_email, @user.email_if_decryptable
     )
     if @user.save
+      # We know the save actually succeeded here, not just that a PATCH
+      # carrying a pending_resubmission_token arrived, so this is the right
+      # place to finalize one (see
+      # ApplicationController#finalize_pending_resubmission).
+      finalize_pending_resubmission
       # If user changed his own locale, switch to it.  It's possible for an
       # *admin* to change someone else's locale, in that case leave it alone.
       # Store preferred_locale once to avoid duplicate hash lookup

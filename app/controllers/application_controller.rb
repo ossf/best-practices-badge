@@ -103,11 +103,6 @@ class ApplicationController < ActionController::Base
   after_action :update_session_timestamp
   after_action :drop_unneeded_session_cookie
 
-  # Consumes a stashed pending resubmission the moment it's actually
-  # resubmitted, wherever that request lands (not just
-  # PendingResubmissionsController). See #finalize_pending_resubmission.
-  before_action :finalize_pending_resubmission
-
   # For the PaperTrail gem. We must call this *after* the action
   # `setup_authentication_state`; this action calls
   # our method `user_for_paper_trail` which reads from @session_user_id.
@@ -870,29 +865,46 @@ class ApplicationController < ActionController::Base
     pending.raw_token
   end
 
-  # Destroys a stashed pending resubmission once its resubmit form is
-  # actually submitted back, wherever that request lands (an ordinary
-  # controller action like ProjectsController#update, not
-  # PendingResubmissionsController's own #show, which reads only session
-  # and never this request's params). This is the ONLY place a row is
-  # destroyed in pending resubmissions in the normal application run; #show
-  # deliberately leaves it
-  # alone so revisiting the resume page after a closed tab or dropped
+  # Destroys a stashed pending resubmission once its resubmit form has
+  # actually been resubmitted AND the resulting change was accepted.
+  # Callers must call this only from a confirmed-successful save branch
+  # (ProjectsController#successful_update, UsersController#update's
+  # `if @user.save` branch), never as a blanket before_action keyed only on
+  # param presence. This is the ONLY place a row is destroyed in pending
+  # resubmissions in the normal application run; #show deliberately leaves
+  # it alone so revisiting the resume page after a closed tab or dropped
   # connection still works, and an abandoned stash is instead swept up
   # later by PendingResubmission.purge_stale.
   #
+  # This used to be a before_action, firing on any request carrying a
+  # pending_resubmission_token param regardless of outcome. That destroyed
+  # the stash the instant the *browser* GET'd the login page the initial
+  # redirect sent it to (login_path embeds the token in that URL so the
+  # view can thread it into the GitHub/local-login links), before the user
+  # had even logged in, let alone resubmitted anything (a real incident on
+  # staging, 2026-09-12). Worse, even confined to the real resubmit
+  # request, destroying it merely because a PATCH arrived (rather than
+  # because the PATCH's own save succeeded) would lose the draft for good
+  # on a validation failure or an ActiveRecord::StaleObjectError conflict,
+  # exactly what this whole feature exists to prevent. Gating on the HTTP
+  # response instead of the model's own save result isn't reliable either:
+  # ProjectsController#successful_update can *render* (not redirect) after
+  # a successful save (Save-and-Continue, Chief overrides), so "did this
+  # response redirect" doesn't mean "did this save succeed."
+  #
   # Reading the token from params here (rather than only from session, as
   # PendingResubmissionsController's own comment insists on for *display*)
-  # is safe: this only destroys a row, never shows its contents, and the
-  # token a request carries here is never one the requester merely
-  # guessed (it's 128 bits of SecureRandom that only ever reached a
-  # browser by that browser first passing the session-gated check in
-  # PendingResubmissionsController#show). Whoever can present it here could
-  # already have replayed the stash's own params directly.
+  # is safe from a malicious replay: this only destroys a row, never shows
+  # its contents, and the token a request carries here is never one the
+  # requester merely guessed (it's 128 bits of SecureRandom that only ever
+  # reached a browser by that browser first passing the session-gated
+  # check in PendingResubmissionsController#show). Whoever can present it
+  # here could already have replayed the stash's own params directly. That
+  # property was never the problem; premature destruction on an innocent,
+  # non-malicious request was.
   #
-  # A blank param is the overwhelmingly common case (an ordinary request
-  # never resubmits a stash), so this is a cheap early return on every
-  # other request in the app.
+  # A blank param is the overwhelmingly common case (an ordinary successful
+  # save never resubmits a stash), so this is a cheap early return.
   # @return [void]
   def finalize_pending_resubmission
     token = params[:pending_resubmission_token]

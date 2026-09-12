@@ -5,7 +5,8 @@
 <%= form_with url: @resubmit_path, method: @resubmit_method do %>
   <%# Carries the stash's token forward so
       ApplicationController#finalize_pending_resubmission can consume it
-      once this actually gets resubmitted; see the class comment above. %>
+      once this actually gets resubmitted and the save succeeds; see the
+      class comment above. %>
   <%= hidden_field_tag :pending_resubmission_token, @pending_resubmission_token %>
   <% @fields.each do |name, value| %>
     <%= hidden_field_tag name, value %>
