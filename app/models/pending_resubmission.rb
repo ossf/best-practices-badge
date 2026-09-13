@@ -73,7 +73,8 @@ class PendingResubmission < ApplicationRecord
   # PendingResubmissionsController#show renders lost the stash for good if
   # the browser never actually completed the resubmission, e.g. a closed
   # tab); ApplicationController#finalize_pending_resubmission only destroys
-  # a row once the browser actually resubmits it. Kept at the original 3
+  # a row once the browser actually resubmits it and that resubmission's
+  # save succeeds. Kept at the original 3
   # days (not shortened to 1, despite there no longer being an earlier
   # natural cleanup point) so a brief outage of the daily task itself, or
   # of the site, doesn't purge someone's still-unresumed edit out from

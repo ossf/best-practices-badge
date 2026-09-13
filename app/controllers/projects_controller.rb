@@ -1624,6 +1624,10 @@ class ProjectsController < ApplicationController
   # Handles successful project update responses and badge level changes.
   # Generates appropriate redirects, sends status change emails, and displays
   # congratulations or warning messages based on badge level changes.
+  # Only ever called from the `if @project.save` branch in #update, so this
+  # is also the one place that finalizes a pending resubmission: we know at
+  # this point the save actually succeeded, not just that a PATCH carrying
+  # a token arrived (see ApplicationController#finalize_pending_resubmission).
   # @param format [ActionController::MimeResponds::Collector] Response format
   # @param old_badge_level [String] Previous badge level before update
   # @param criteria_level [String] Current criteria level for navigation
@@ -1632,6 +1636,7 @@ class ProjectsController < ApplicationController
   # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   # TODO: Break this into smaller pieces
   def successful_update(format, old_badge_level, criteria_level)
+    finalize_pending_resubmission
     # Use Sections::DEFAULT_SECTION instead of hardcoded 'passing'
     section = criteria_level || Sections::DEFAULT_SECTION
     # @project.purge

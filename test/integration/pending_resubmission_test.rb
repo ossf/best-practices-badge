@@ -15,6 +15,7 @@ require 'test_helper'
 # real browser's login-form hidden field or GitHub auth link would carry it,
 # rather than session; these tests thread it through that way instead of
 # reading it back from session mid-flow.
+# rubocop:disable Metrics/ClassLength
 class PendingResubmissionTest < ActionDispatch::IntegrationTest
   setup do
     @project = projects(:one)
@@ -136,6 +137,93 @@ class PendingResubmissionTest < ActionDispatch::IntegrationTest
     OmniAuth.config.mock_auth[:github] = nil
   end
 
+  test 'merely viewing the login page the stash redirect sends you to does not destroy it' do
+    # Regression test for a real incident on staging (2026-09-12):
+    # ApplicationController#finalize_pending_resubmission used to be a
+    # before_action, firing on ANY request carrying a pending_resubmission_token
+    # param. redirect_to_login_stashing embeds that exact token in the
+    # /login URL it redirects to (so the login page's view can thread it
+    # into the GitHub/local-login links), so simply following that
+    # redirect (a GET, not a resubmission) destroyed the row before the
+    # user had even logged in, let alone resubmitted anything.
+    patch "/en/projects/#{@project.id}", params: { project: { name: 'never resubmitted yet' } }
+    token = pending_resubmission_token_from_redirect
+    assert_not_nil token
+
+    follow_redirect! # GET /en/login?pending_resubmission_token=...&return_to=...
+    assert_response :success
+    assert PendingResubmission.exists?(hashed_random_id: PendingResubmission.digest(token))
+
+    # The normal flow still works fine afterward: logging in still resumes it.
+    log_in_with_token(token)
+    assert_redirected_to pending_resubmission_path
+  end
+
+  test 'a successful resubmission destroys the stash' do
+    new_name = "#{@project.name}_resubmitted"
+    patch "/en/projects/#{@project.id}", params: { project: { name: new_name } }
+    token = pending_resubmission_token_from_redirect
+    log_in_with_token(token)
+    follow_redirect!
+
+    patch "/en/projects/#{@project.id}", params: {
+      project: { name: new_name }, pending_resubmission_token: token
+    }
+    @project.reload
+    assert_equal new_name, @project.name
+    assert_not PendingResubmission.exists?(hashed_random_id: PendingResubmission.digest(token))
+  end
+
+  test 'a resubmission that fails validation keeps the stash' do
+    # finalize_pending_resubmission must only fire once we KNOW the change
+    # was accepted (ProjectsController#successful_update only runs inside
+    # `if @project.save`), not merely because a PATCH carrying the token
+    # arrived: otherwise a validation failure on resubmission would lose
+    # the draft for good, exactly what this whole feature exists to
+    # prevent. TextValidator (app/validators/text_validator.rb) rejects
+    # control characters, giving a reliable, unconditional validation
+    # failure regardless of the project's other field values.
+    patch "/en/projects/#{@project.id}", params: { project: { name: 'will retry' } }
+    token = pending_resubmission_token_from_redirect
+    log_in_with_token(token)
+    follow_redirect!
+
+    patch "/en/projects/#{@project.id}", params: {
+      project: { name: "bad\x01name" }, pending_resubmission_token: token
+    }
+    assert_response :success # re-renders :edit; the save failed
+    assert PendingResubmission.exists?(hashed_random_id: PendingResubmission.digest(token))
+  end
+
+  test 'a successful user-profile resubmission destroys the stash too' do
+    # UsersController#update's `if @user.save` branch finalizes a pending
+    # resubmission the same way ProjectsController#successful_update does;
+    # this exercises that call site specifically; the tests above only
+    # cover the ProjectsController one. Reuses the 'foo@bar.com' email
+    # change and its matching VCR cassette from
+    # test/integration/users_edit_test.rb's "successful edit" test: any
+    # successful save by a local-provider user calls User#gravatar_exists?
+    # (an HTTP HEAD to Gravatar), whether or not this particular update
+    # actually changes the email, so the resubmit step needs a cassette
+    # recorded for whatever email ends up saved.
+    new_name = "#{@user.name}_resubmitted"
+    patch "/en/users/#{@user.id}", params: { user: { name: new_name } }
+    token = pending_resubmission_token_from_redirect
+    assert_not_nil token
+
+    log_in_with_token(token)
+    follow_redirect!
+
+    VCR.use_cassette('successful_edit_-_name_email') do
+      patch "/en/users/#{@user.id}", params: {
+        user: { name: new_name, email: 'foo@bar.com' }, pending_resubmission_token: token
+      }
+    end
+    @user.reload
+    assert_equal new_name, @user.name
+    assert_not PendingResubmission.exists?(hashed_random_id: PendingResubmission.digest(token))
+  end
+
   test 'a login without its own pending_resubmission_token never resumes a leftover one' do
     # Regression guard for the cross-user disclosure docs/login-session-18.md
     # "Step 21" closes: on a shared browser, an earlier abandoned stash must
@@ -174,3 +262,4 @@ class PendingResubmissionTest < ActionDispatch::IntegrationTest
     }
   end
 end
+# rubocop:enable Metrics/ClassLength

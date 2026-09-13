@@ -28,8 +28,9 @@
 # "Resume" lost the stashed edit for good, with no way back. Revisiting
 # this page now just re-shows the same stash. A row is only ever consumed
 # by ApplicationController#finalize_pending_resubmission, once the browser
-# actually resubmits it (the hidden pending_resubmission_token field the
-# view below adds carries the token forward for that); an abandoned one is
+# actually resubmits it and that resubmission's save succeeds (the hidden
+# pending_resubmission_token field the view below adds carries the token
+# forward for that); an abandoned one is
 # swept up later by PendingResubmission.purge_stale (lib/tasks/default.rake's
 # `daily` task), so nothing lingers forever.
 class PendingResubmissionsController < ApplicationController
