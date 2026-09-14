@@ -26,6 +26,7 @@
               <li><%= link_to Icon[:'fa-address-card'] + t(:profile, scope: :layouts), user_path(@session_user_id) %></li>
               <% if current_user&.admin? %>
                 <li><%= link_to Icon[:'fa-list'] + 'Login Sessions', login_sessions_path %></li>
+                <li><%= link_to Icon[:'fa-list'] + t(:users, scope: :layouts), users_path %></li>
               <% end %>
               <li>
                 <%= link_to Icon[:'fa-sign-out-alt'] + t(:logout_html, scope: :layouts), logout_path, method: "delete" %>
