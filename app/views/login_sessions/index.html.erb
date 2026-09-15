@@ -7,6 +7,7 @@ Revoke a suspicious session with
 <table class='table-bordered table-striped'>
   <thead>
     <tr>
+      <th>User ID</th>
       <th>User</th>
       <th>Role</th>
       <th>IP address</th>
@@ -20,6 +21,7 @@ Revoke a suspicious session with
   <tbody>
     <% @login_sessions.each do |login_session| %>
       <tr>
+        <td><%= link_to login_session.user.id, user_path(login_session.user) %></td>
         <td><%= link_to login_session.user.name, user_path(login_session.user) %></td>
         <%# Raw role string (blank for a normal user), not admin?'s
             true/false: stays correct on its own if a role besides

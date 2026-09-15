@@ -32,9 +32,10 @@ class LoginSessionsControllerTest < ActionDispatch::IntegrationTest
     get '/en/login_sessions'
     assert_response :success
     # log_in_as itself created a LoginSession row for @admin; it should
-    # be listed, linked to the admin's own name.
+    # be listed, linked to the admin's own name and ID.
     assert_includes @response.body, @admin.name
     assert_select "a[href='#{user_path(@admin)}']", text: @admin.name
+    assert_select "a[href='#{user_path(@admin)}']", text: @admin.id.to_s
   end
 
   test 'shows the role column, blank for a normal user, admin for an admin' do
