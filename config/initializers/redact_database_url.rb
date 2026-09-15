@@ -12,7 +12,13 @@
 # reuses that cached config, not ENV again. So nothing downstream
 # needs the raw value, here or in a "heroku run" migration/console
 # process, each of which resolves and caches its own config the same
-# way before this file loads.
+# way before this file loads. Confirmed empirically, not just by
+# reading Rails' source: a 2026-09-15 incident raised this exact
+# question, and a fresh connection pool built from the cached config
+# AFTER deleting ENV['DATABASE_URL'] still used the original resolved
+# host. This file was not the cause of that incident; see
+# lib/database_url_guard.rb below for the fail-fast check the same
+# incident did motivate.
 #
 # This eliminates a specific leak vector: a bug that dumps ENV (a debug
 # or error page showing ENV.inspect, say) can no longer reveal this
@@ -33,4 +39,7 @@
 # entry for how those two are told apart), so development and test
 # consoles keep DATABASE_URL visible for debugging. Neither sets it
 # anyway, so the guard changes no behavior there beyond stating intent.
-ENV.delete('DATABASE_URL') if Rails.env.production?
+if Rails.env.production?
+  DatabaseUrlGuard.check!(database_url: ENV.fetch('DATABASE_URL', nil))
+  ENV.delete('DATABASE_URL')
+end

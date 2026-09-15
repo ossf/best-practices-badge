@@ -49,6 +49,15 @@
 # need to use the Platform API rather than rely solely on the git push
 # exit code", so the deploy job polls that API instead.  See
 # .circleci/config.yml.
-release: bundle exec rails db:migrate
+#
+# Retried once, right here, because db:migrate is already documented
+# above as idempotent.  On 2026-09-15 a release failed when Heroku
+# didn't deliver DATABASE_URL to this process for a few seconds (never
+# reproduced outside Heroku's platform; ruled out our own
+# redact_database_url.rb initializer by direct test).  A manual "heroku
+# releases:retry" fixed it immediately, so trying again automatically,
+# once, absorbs that class of transient failure without needing anyone
+# to notice and intervene.
+release: bundle exec rails db:migrate || bundle exec rails db:migrate
 
 web: ./ignore-termerr env BUNDLE_DISABLE_EXEC_LOAD=true bundle exec puma -C config/puma.rb
