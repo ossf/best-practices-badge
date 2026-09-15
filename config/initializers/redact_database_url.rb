@@ -39,7 +39,13 @@
 # entry for how those two are told apart), so development and test
 # consoles keep DATABASE_URL visible for debugging. Neither sets it
 # anyway, so the guard changes no behavior there beyond stating intent.
+#
 if Rails.env.production?
+  # require IS NEEDED before referencing DatabaseUrlGuard: Zeitwerk's
+  # main autoloader is only set up in Rails' Finisher, which runs after
+  # all of config/initializers, so a bare reference here raises
+  # "uninitialized constant DatabaseUrlGuard" instead of autoloading.
+  require 'database_url_guard'
   DatabaseUrlGuard.check!(database_url: ENV.fetch('DATABASE_URL', nil))
   ENV.delete('DATABASE_URL')
 end

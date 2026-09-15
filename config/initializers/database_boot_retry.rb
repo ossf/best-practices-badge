@@ -9,6 +9,12 @@
 # loading a model with a class-level query, such as Project's default
 # scope. The module implementation is in lib/database_boot_retry.rb.
 #
+# The require below is NOT optional. Zeitwerk's main autoloader is set
+# up in Rails' Finisher, which runs *after* all of config/initializers,
+# so a bare reference to DatabaseBootRetry here raises "uninitialized
+# constant DatabaseBootRetry" instead of autoloading the file.
+require 'database_boot_retry'
+
 # Guarded to production only, with no exemption for asset
 # precompilation: eager loading already requires a working database
 # connection on any production-flagged boot regardless of this file
