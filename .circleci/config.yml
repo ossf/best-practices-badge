@@ -1535,6 +1535,15 @@ jobs:
 workflows:
   version: 2
   build-deploy:
+    # Without a "when", this workflow runs unconditionally, including on
+    # the scheduled pipelines that exist only to rotate DB credentials
+    # (see rotate-staging-db/rotate-production-db below). That ran a full
+    # ~4-minute static+build (and, on the production schedule, a deploy)
+    # on every scheduled rotation for no reason: rotation touches no
+    # code, so nothing here needs rebuilding or redeploying. Excluding
+    # "scheduled_pipeline" leaves this workflow running for every other
+    # trigger (push, API, "Trigger Pipeline" in the UI) exactly as before.
+    when: pipeline.trigger_source != "scheduled_pipeline"
     jobs:
       # "build" and "static" have no "requires", so CircleCI starts them
       # at the same time. That is the entire point: they are independent
