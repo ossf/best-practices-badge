@@ -5,6 +5,11 @@
 This document provides basic information for web application administrators
 for the best practices badge site.
 
+## Thank you
+
+First: thank you! Being an administrator is an important but
+mostly-thankless job. We hope this document helps you.
+
 ## Expectations
 
 See [governance - Web application admin](governance.md#web_application_admin)
@@ -16,8 +21,8 @@ abuse their access, which includes the ability to edit or delete
 arbitrary project badge entries and user profiles.
 In particular, admins can see the email addresses of every user.
 
-You *must* keep user email addresses private. Many email addresses are
-publicly known, but not all.
+You *must* keep user email addresses private unless the email address
+owner indicates otherwise. Many email addresses are publicly known, but not all.
 
 ## Becoming an admin
 
@@ -38,7 +43,16 @@ Note that Gravatar lets sites look up an avatar image of a user based on the
 [*cryptographic hash*](https://docs.gravatar.com/rest/hash/) of their email
 address. We *never* send unencrypted email addresses to Gravatar!
 
-## GDPR requests
+## Modifying project data
+
+Normal users can only edit projects that they own or have been
+granted edit rights to.
+
+Admins can use the web interface to edit any project, and to delete
+projects and users (e.g., if they're abusive). Use this power wisely.
+See below for more about deleting bad data.
+
+## Processing GDPR requests
 
 We, the Linux Foundation, occasionally receive GDPR requests on user
 accounts, e.g., to delete their own accounts.
@@ -47,8 +61,11 @@ individuals located in the EU/EEA. However, by policy, we honor such
 requests from anyone. Typically we receive a collection of requests;
 we then search for each user name and email address.
 
-To search for an individual's name and email address, go to
-<https://www.bestpractices.dev/en/users> (log in if necessary).
+To search for an individual's name and email address,
+first log in as an admin on <https://www.bestpractices.dev>.
+
+Now go to Account -> Users which will display
+<https://www.bestpractices.dev/en/users>.
 Scroll to the bottom to see "New Search".
 Enter the name and email address. As noted on the page,
 name search is case-insensitive and supports wildcards (use `%` for
@@ -75,7 +92,7 @@ If that's the case, send an email like this:
 Hi! Can you help me understand what specifically you want done with your
 request to delete your accounts?
 
-We at the Linux Foundation received a GDPR request (DR234) from you to
+We at the Linux Foundation received a GDPR request from you to
 "Delete account and all data". We're sad to see you go, but it's
 your right to make that request and we'll honor it.
 In fact, we honor such requests even when we aren't
@@ -87,7 +104,7 @@ OpenSSF Best Practices badge site here:
 This account currently owns one or more project badge entries.
 
 Here's our problem. We can't delete user accounts that own 1+ badge entries,
-because all badge entries must have an owner.
+because all badge entries MUST have an owner.
 It's a database data consistency requirement.
 So that leaves us uncertain about what you want us to do.
 
@@ -95,17 +112,21 @@ So: What would you like us to do? Here are the options:
 
 1. Retain your OpenSSF Best Practices badge user account as an exception,
    and basically leave everything unchanged on that site.
-2. Transfer your project badge entries to someone else,
-   then delete your user account. If that is your preference,
-   please provide the user# to us who is willing to receive the badge entry.
-3. Delete your project badge entries and then delete your user account.
-   Once the project badge entries are deleted, your user account can
-   be deleted.
+2. Transfer some or all of your project badge entries to someone else.
+   To do this, log in to https://www.bestpractices.dev and view each
+   badge entry. View Section -> Permissions and select Edit. You can
+   then enter the user# to own that project and submit the change.
+   Once you no longer own any projects, you can delete your user account.
+3. Delete some or all of your project badge entries.
+   To do this, view each badge entry, delete Delete, and confirm it.
+   Again, once you no longer own any projects, you can delete your user account.
 
-You can, at any time, perform option 2 or 3 yourself. Simply log in
-and perform the actions you wish to take. You don't need to wait for us
-to do it. However, if you'd prefer that we take these steps on your behalf,
-please let us know what you want us to do.
+Please note that you can *always* delete your account by performing
+options 2 and/or 3 yourself. You do NOT need to wait for us!
+Simply log in and perform the actions you wish to take.
+However, if you'd prefer that we take these steps on your behalf, that's fine,
+but please let us know what you want us to do so that your account
+can be deleted.
 
 Thank you.
 </blockquote>
@@ -115,10 +136,15 @@ Thank you.
 The badge system has built-in system to transfer ownership, so the *easy*
 thing to do is to ask the current badge-owner to log in and
 edit the project badge entry.
-The information is near the bottom of the first tab of the passing badge
-(currently).
-They must know the user number of the new owner, and enter it twice
-(to counter mistyping).
+Once you're viewing the project, view Section -> Permissions,
+select Edit, and change owner to the new owner's user number (user#).
+Enter it twice (to counter mistyping), and submit.
+
+If you don't know the user# of the new owner, use
+Account -> Users, scroll to the bottom, and search for the user.
+The user# is the value after /users in the URL.
+Be cautious, anyone can set their name to any value.
+Use email addresses instead, they are separately confirmed.
 
 If someone who is *not* the current badge owner asks us to transfer
 ownership, try to get the *current* badge owner to do it or agree to the
@@ -176,6 +202,10 @@ confused or making an honest mistake),
 *immediately* delete their malicious data and their account.
 Don't bother contacting them. That is a waste of everyone's time and
 delays fixing the problem.
+
+## Current logged-in users
+
+To see current logged-in users, view Account -> Login Sessions.
 
 ## Security and logging
 
