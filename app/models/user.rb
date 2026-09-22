@@ -4,7 +4,7 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class User < ApplicationRecord
   extend HexKeyManagement
 
@@ -498,4 +498,3 @@ class User < ApplicationRecord
     provider == 'github'
   end
 end
-# rubocop:enable Metrics/ClassLength

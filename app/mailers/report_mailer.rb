@@ -25,7 +25,7 @@
 # let's not ask them to translate unused text!).
 
 # Mailer for report email notifications.
-# rubocop:disable Metrics/MethodLength, Metrics/ClassLength
+# rubocop:disable-next Metrics/MethodLength, Metrics/ClassLength
 class ReportMailer < ApplicationMailer
   include SessionsHelper
   include UnsubscribeHelper
@@ -135,7 +135,7 @@ class ReportMailer < ApplicationMailer
   # @param user [User] The project owner (already loaded)
   # @param old_level [String] The badge level that will be lost
   # @param badge_suffix [String] URL suffix for badge image ('badge' or 'baseline')
-  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+  # rubocop:disable-next Metrics/AbcSize, Metrics/CyclomaticComplexity
   def warn_owner_with_user(project, user, old_level, badge_suffix)
     return if project.nil? || project.id.nil?
     return if user.nil?
@@ -159,11 +159,10 @@ class ReportMailer < ApplicationMailer
       )
     end
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity
 
   # Create reminder email to inactive badge entry owner
   # @param project [Project] The project for which to send a reminder
-  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+  # rubocop:disable-next Metrics/AbcSize, Metrics/CyclomaticComplexity
   def email_reminder_owner(project)
     return if project.nil? || project.id.nil? || project.user_id.nil?
 
@@ -192,7 +191,6 @@ class ReportMailer < ApplicationMailer
       )
     end
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity
 
   # Report on reminders sent.  This is internal, so we haven't bothered
   # to internationalize this.
@@ -240,7 +238,7 @@ class ReportMailer < ApplicationMailer
 
   # Email user when they add a new project.
   # @param project [Project] The newly created project to send welcome email for
-  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+  # rubocop:disable-next Metrics/AbcSize, Metrics/CyclomaticComplexity
   def email_new_project_owner(project)
     return if project.nil? || project.id.nil? || project.user_id.nil?
 
@@ -261,7 +259,6 @@ class ReportMailer < ApplicationMailer
       )
     end
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity
 
   # Report if a project is deleted.  "deletion_rationale" is untrusted
   # data from a user.
@@ -285,4 +282,3 @@ class ReportMailer < ApplicationMailer
     end
   end
 end
-# rubocop:enable Metrics/MethodLength, Metrics/ClassLength

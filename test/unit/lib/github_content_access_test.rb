@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class GithubContentAccessTest < ActiveSupport::TestCase
   # Mock Octokit client that raises NotFound (simulates empty repo)
   class MockOctokitEmpty
@@ -222,4 +222,3 @@ class GithubContentAccessTest < ActiveSupport::TestCase
     assert_nil result
   end
 end
-# rubocop:enable Metrics/ClassLength

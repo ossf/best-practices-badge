@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class SecurityInsightsDetectiveTest < ActiveSupport::TestCase
   # ---------------------------------------------------------------------------
   # Test helpers
@@ -843,4 +843,3 @@ class SecurityInsightsDetectiveTest < ActiveSupport::TestCase
            "#{label}: '#{m['target_criterion']}' is not a known criterion"
   end
 end
-# rubocop:enable Metrics/ClassLength

@@ -9,7 +9,7 @@ require 'test_helper'
 # Tests for MappingDetective analyze logic, exercised via MetalToBaselineDetective.
 # Most tests pass a `current` hash with the relevant _status key and use a
 # minimal project stub for justification — no database needed for pure-logic tests.
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class MappingDetectiveTest < ActiveSupport::TestCase
   # Minimal project stub that supports [] and attribute_present? for justification fields
   class StubProject
@@ -305,4 +305,3 @@ class MappingDetectiveTest < ActiveSupport::TestCase
     assert_equal '[require_2FA]', results[TARGET][:explanation]
   end
 end
-# rubocop:enable Metrics/ClassLength

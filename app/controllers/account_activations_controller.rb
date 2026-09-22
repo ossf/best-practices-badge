@@ -27,7 +27,7 @@ class AccountActivationsController < ApplicationController
   end
 
   # Process a local user account activation request (POST/PATCH).
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def update
     activation_params = params.permit(:email, :token)
     unless valid_activation_params?(activation_params[:token], activation_params[:email])
@@ -53,7 +53,6 @@ class AccountActivationsController < ApplicationController
     end
     redirect_to login_path
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   private
 

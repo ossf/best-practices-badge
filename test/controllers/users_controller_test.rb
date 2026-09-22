@@ -7,7 +7,7 @@
 require 'test_helper'
 require 'minitest/mock'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class UsersControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:test_user_melissa)
@@ -750,4 +750,3 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
                     'You were automatically logged out, please log in to continue.'
   end
 end
-# rubocop:enable Metrics/ClassLength

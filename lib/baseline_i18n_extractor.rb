@@ -53,7 +53,7 @@ class BaselineI18nExtractor
   end
 
   # Extract description, details, placeholders from criteria
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def extract_i18n_data(criteria)
     i18n_hash = {}
 
@@ -76,7 +76,6 @@ class BaselineI18nExtractor
 
     i18n_hash
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   # Recursively traverse nested criteria structure
   def traverse_criteria(data, &block)
@@ -132,7 +131,7 @@ class BaselineI18nExtractor
     File.write(@en_locale_file, new_content)
   end
 
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def generate_yaml_content(i18n_data)
     lines = []
     lines << BEGIN_MARKER
@@ -163,7 +162,6 @@ class BaselineI18nExtractor
     lines << END_MARKER
     lines.join("\n") + "\n"
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 end
 
 # rubocop:enable Rails/Output

@@ -13,7 +13,7 @@
 # the Detective INPUTS and OUTPUTS to determine what order to run, and
 # run them in parallel in an appropriate order.
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class Chief
   # Confidence scale: integers in 1..MAX_CONFIDENCE.
   # At CONFIDENCE_OVERRIDE or above, automation overrides human-entered values.
@@ -54,7 +54,7 @@ class Chief
   # List fields allowed to be written into Project (an ActiveRecord).
   ALLOWED_FIELDS = Project::PROJECT_PERMITTED_FIELDS.to_set.freeze
 
-  # rubocop:disable Style/ConditionalAssignment
+  # rubocop:disable-next Style/ConditionalAssignment
   def initialize(project, client_factory, entry_locale: nil, detectives: ALL_DETECTIVES)
     @evidence = Evidence.new(project)
     @client_factory = client_factory
@@ -70,7 +70,6 @@ class Chief
       @intercept_exception = StandardError
     end
   end
-  # rubocop:enable Style/ConditionalAssignment
 
   # Given two changesets, produce merged "best" version
   # When confidence is the same, c1 wins.
@@ -141,7 +140,7 @@ class Chief
   # Invoke one "Detective", which will
   # analyze the project and reply with an updated changeset in the form
   # { fieldname1: { value: value, confidence: 1..5, explanation: text}, ...}
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def propose_one_change(detective, current_proposal)
     begin
       current_data = compute_current(
@@ -158,7 +157,6 @@ class Chief
     end
     current_proposal
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Like propose_one_change but for MappingDetective subclasses.
   # Passes the full current_proposal as a third argument to analyze so the
@@ -184,7 +182,7 @@ class Chief
   # @param needed_outputs [Set] Set of field symbols we want to produce
   # @param pool [Array<Class>] Detective classes to search (default ALL_DETECTIVES)
   # @return [Array<Class>] Array of detective classes needed
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def filter_needed_detectives(needed_outputs, pool = ALL_DETECTIVES)
     return pool if needed_outputs.blank?
 
@@ -211,13 +209,12 @@ class Chief
 
     required_detectives.to_a
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Sort detectives in topological order based on their INPUTS/OUTPUTS.
   # Uses Kahn's algorithm for topological sort.
   # @param detectives [Array<Class>] Detective classes to sort
   # @return [Array<Class>] Sorted detective classes
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def topological_sort_detectives(detectives)
     # Build dependency graph: detective => Set of detectives it depends on
     dependencies = {}
@@ -259,7 +256,6 @@ class Chief
     # Fall back to original order for safety
     sorted.size == detectives.size ? sorted : detectives
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Determine which detective outputs are needed.
   # The caller supplies the set of fields relevant to the current section;
@@ -299,7 +295,7 @@ class Chief
   # @param only_consider_overrides [Boolean] Whether to only run detectives that
   #   can force overrides (confidence >= CONFIDENCE_OVERRIDE). Default false.
   #   Set to true for "save and exit" to skip unnecessary work.
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def propose_changes(needed_fields: nil, changed_fields: nil, only_consider_overrides: false)
     with_project_locale do
       current_proposal = {} # Current best changeset.
@@ -360,7 +356,6 @@ class Chief
       current_proposal
     end
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Given project data, return it with the proposed changeset applied.
   # Note: This should probably be class-level
@@ -417,7 +412,7 @@ class Chief
   # backward search in filter_needed_detectives.
   # @param needed [Set<Symbol>] output fields needed (nil means all)
   # @return [Array(Array<Class>, Class, nil)] [pool, selected_mapping_class]
-  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/MethodLength
+  # rubocop:disable-next Metrics/CyclomaticComplexity, Metrics/MethodLength
   def partition_mapping_detective(needed)
     pool = []
     candidates = []
@@ -434,11 +429,9 @@ class Chief
       end
     [pool, selected]
   end
-  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/MethodLength
 
   # Check if repo_files is available (HowAccessRepoFilesDetective ran)
   def repo_files_available?
     @evidence.project.repo_url.present?
   end
 end
-# rubocop:enable Metrics/ClassLength

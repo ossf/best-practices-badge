@@ -9,7 +9,7 @@ require 'test_helper'
 # Load the initializer code that defines gc_compact_as_needed
 require_relative '../../../config/initializers/gc_compact_thread'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class GcCompactThreadTest < ActiveSupport::TestCase
   # Test memory_use_in_bytes with default.
   # It will try to read from /proc/self/status, which works on Linux.
@@ -226,4 +226,3 @@ class GcCompactThreadTest < ActiveSupport::TestCase
     assert_equal 'OTHER', GcCompactThread.categorize_string_content(utf32)
   end
 end
-# rubocop:enable Metrics/ClassLength

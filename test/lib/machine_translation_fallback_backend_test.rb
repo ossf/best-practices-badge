@@ -5,7 +5,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class MachineTranslationFallbackBackendTest < ActiveSupport::TestCase
   def setup
     super
@@ -30,14 +30,13 @@ class MachineTranslationFallbackBackendTest < ActiveSupport::TestCase
     assert t[:en].key?('feed_title') && t[:en].key?('layouts.projects')
   end
 
-  # rubocop:disable Rails/DotSeparatedKeys
+  # rubocop:disable-next Rails/DotSeparatedKeys
   test 'translate handles scope parameter' do
     assert_equal 'Notions de base', I18n.t('Basics', scope: :headings, locale: :fr)
     assert_equal 'Contrôles', I18n.t('Controls', scope: :headings, locale: :fr)
     assert_equal I18n.t('Basics', scope: :headings, locale: :fr), I18n.t('headings.Basics', locale: :fr)
     assert_equal 'Submit (and exit)', I18n.t('submit_and_exit', scope: %i[projects edit], locale: :en)
   end
-  # rubocop:enable Rails/DotSeparatedKeys
 
   test 'translate uses English fallback and returns nil for missing' do
     result = I18n.t('feed_title', locale: :fr)
@@ -376,4 +375,3 @@ class MachineTranslationFallbackBackendTest < ActiveSupport::TestCase
     assert time_en != time_fr || time_en.present?
   end
 end
-# rubocop:enable Metrics/ClassLength

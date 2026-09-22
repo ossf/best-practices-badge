@@ -61,7 +61,7 @@ class MappingDetective < Detective
   # @param current [Hash] current best status values for INPUTS fields
   # @param source_proposals [Hash] full current_proposal from Chief (may be empty)
   # @return [Hash] proposed target criterion _status values
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def analyze(evidence, current, source_proposals = {})
     return {} if evidence.nil?
 
@@ -109,7 +109,6 @@ class MappingDetective < Detective
 
     results
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   private
 
@@ -124,7 +123,7 @@ class MappingDetective < Detective
   # @param source_status [Integer, nil] source criterion status integer
   # @return [Array(Integer, Integer)] [yaml_confidence (0-3), target_status integer]
   #   confidence 0 means "no inference; skip this entry"
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def resolve_confidence(mapping, source_status)
     conf_key =
       case source_status
@@ -148,7 +147,6 @@ class MappingDetective < Detective
 
     [confidence, target_status]
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Scale a YAML confidence value by a prior detective's source confidence.
   # Returns the fractional product if >= 0.5, or 0 (meaning "drop this result").

@@ -38,7 +38,7 @@ class ProjectSitesHttpsDetective < Detective
 
   private
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def set_http_results
     @results[:sites_https_status] =
       {
@@ -62,7 +62,6 @@ class ProjectSitesHttpsDetective < Detective
         explanation: I18n.t('detectives.project_sites_https.url_uses_http')
       }
   end
-  # rubocop:enable Metrics/MethodLength
 
   def met_result(explanation)
     { value: CriterionStatus::MET, confidence: 3, explanation: explanation }

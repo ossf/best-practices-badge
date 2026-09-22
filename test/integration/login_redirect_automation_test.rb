@@ -10,7 +10,7 @@ require 'test_helper'
 # automation query params are redirected to login with a return_to param,
 # and after successful login are sent back to the original URL with params
 # preserved.
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class LoginRedirectAutomationTest < ActionDispatch::IntegrationTest
   setup do
     @project = projects(:one)
@@ -260,4 +260,3 @@ class LoginRedirectAutomationTest < ActionDispatch::IntegrationTest
     OmniAuth.config.mock_auth[:github] = nil
   end
 end
-# rubocop:enable Metrics/ClassLength

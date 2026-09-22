@@ -54,7 +54,7 @@ end
 # Build a lookup hash: criterion_id => { description:, details: }
 # Covers both metal levels ('0','1','2') and OSPS Baseline levels
 # ('baseline-1','baseline-2','baseline-3').
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def build_criteria_lookup(en_yml_path)
   data = YAML.safe_load_file(en_yml_path, aliases: true)
   all_criteria = data.dig('en', 'criteria')
@@ -74,14 +74,13 @@ def build_criteria_lookup(en_yml_path)
   end
   lookup
 end
-# rubocop:enable Metrics/MethodLength
 
 # Wrap text into comment lines for a labeled sub-block within a Source/Target block.
 # First line:    {indent}#   {label}: "{words...}
 # Continuation:  {indent}#     {words...}"  (5 spaces after # to align)
 #
 # Returns an array of strings (without trailing newlines).
-# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+# rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
 def wrap_labeled_block(label, text, indent)
   prefix_first = "#{indent}#   #{label}: \""
   prefix_cont  = "#{indent}#     "
@@ -115,11 +114,10 @@ def wrap_labeled_block(label, text, indent)
     "#{prefix}#{seg}#{suffix}"
   end
 end
-# rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
 # Build the full replacement comment block for a Source or Target entry.
 # Returns an array of strings (without trailing newlines).
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def build_comment_block(kind, criterion_id, lookup, indent)
   unless criterion_id
     warn "WARNING: #{kind}: block found with no tracked criterion ID"
@@ -142,11 +140,10 @@ def build_comment_block(kind, criterion_id, lookup, indent)
 
   lines
 end
-# rubocop:enable Metrics/MethodLength
 
 # Process a single mapping file, replacing # Source: and # Target: blocks.
 # Returns the updated file content as a string.
-# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+# rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
 def process_file(filepath, lookup)
   input_lines = File.readlines(filepath)
   output_lines = []
@@ -196,7 +193,6 @@ def process_file(filepath, lookup)
 
   output_lines.join
 end
-# rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
 def main
   puts "Loading #{EN_YML}..."

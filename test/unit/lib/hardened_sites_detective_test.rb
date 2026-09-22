@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class HardenedSitesDetectiveTest < ActiveSupport::TestCase
   setup do
     @project = projects(:perfect)
@@ -200,4 +200,3 @@ class HardenedSitesDetectiveTest < ActiveSupport::TestCase
     assert_equal({}, result)
   end
 end
-# rubocop:enable Metrics/ClassLength

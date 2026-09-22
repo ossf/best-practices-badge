@@ -15,9 +15,8 @@ module ApplicationHelper
 
   # Frozen string constant: robot emoji for automation (memory optimization)
   ROBOT_EMOJI = '🤖 '
-  # rubocop:disable Rails/OutputSafety
+  # rubocop:disable-next Rails/OutputSafety
   ROBOT_EMOJI_SAFE = ROBOT_EMOJI.html_safe.freeze
-  # rubocop:enable Rails/OutputSafety
 
   # Frozen string constants for highlight CSS classes (memory optimization)
   HIGHLIGHT_AUTOMATED_CLASS  = 'highlight-automated'
@@ -31,7 +30,7 @@ module ApplicationHelper
   # single-threaded initialization before Puma starts its thread pool.
   # @return [Hash{Symbol => Array<Hash>}] frozen hash keyed by locale;
   #   each value is an array of {name:, level:} section descriptors
-  # rubocop:disable Metrics/MethodLength, Style/MethodCalledOnDoEndBlock
+  # rubocop:disable-next Metrics/MethodLength, Style/MethodCalledOnDoEndBlock
   def self.project_nav_sections
     @project_nav_sections ||= {}.tap do |hash|
       I18n.available_locales.each do |locale|
@@ -72,7 +71,6 @@ module ApplicationHelper
       end
     end.freeze
   end
-  # rubocop:enable Metrics/MethodLength, Style/MethodCalledOnDoEndBlock
 
   # This is like the ActionView view helper `cache`
   # (specifically ActionView::Helpers::CacheHelper)

@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class UserTest < ActiveSupport::TestCase
   setup do
     @user = User.new(
@@ -438,4 +438,3 @@ class UserTest < ActiveSupport::TestCase
     assert User.exists?(u.id)
   end
 end
-# rubocop:enable Metrics/ClassLength

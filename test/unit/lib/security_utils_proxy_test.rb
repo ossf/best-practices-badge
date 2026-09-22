@@ -4,7 +4,7 @@ require 'test_helper'
 require 'security_utils'
 require 'minitest/mock'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class SecurityUtilsProxyTest < ActiveSupport::TestCase
   FASTLY_IPS = %w[
     23.235.32.0/20 43.249.72.0/22 103.244.50.0/24 103.245.222.0/23
@@ -156,4 +156,3 @@ class SecurityUtilsProxyTest < ActiveSupport::TestCase
     assert_not SecurityUtils.edge_proxy?('')
   end
 end
-# rubocop:enable Metrics/ClassLength

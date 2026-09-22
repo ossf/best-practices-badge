@@ -54,7 +54,7 @@ class BaselineMigrationGenerator
     end
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def sync_mapping_with_criteria(mapping)
     criteria = YAML.safe_load_file(
       @criteria_file,
@@ -91,9 +91,8 @@ class BaselineMigrationGenerator
 
     mapping
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def generate_mapping_from_criteria
     criteria = YAML.safe_load_file(
       @criteria_file,
@@ -123,7 +122,6 @@ class BaselineMigrationGenerator
       'mappings' => mappings
     }
   end
-  # rubocop:enable Metrics/MethodLength
 
   def traverse_criteria(data, &block)
     return unless data.is_a?(Hash)
@@ -142,7 +140,7 @@ class BaselineMigrationGenerator
   # Find new fields that need to be added to the database
   # IMPORTANT: Only returns fields that DON'T already exist in the schema
   # This prevents duplicate column errors when re-running after upstream updates
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def find_new_fields(mapping)
     # Get existing columns from the database
     existing_columns = Project.column_names.to_set
@@ -171,7 +169,6 @@ class BaselineMigrationGenerator
 
     new_fields
   end
-  # rubocop:enable Metrics/MethodLength
 
   def generate_migration_file(new_fields, mapping)
     timestamp = Time.current.strftime('%Y%m%d%H%M%S')
@@ -189,7 +186,7 @@ class BaselineMigrationGenerator
     puts '  2. Run: rails db:migrate'
   end
 
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def generate_migration_content(by_level, _mapping)
     class_name = "AddBaselineCriteriaSync#{by_level.values.flatten.size}Fields"
 
@@ -220,7 +217,6 @@ class BaselineMigrationGenerator
 
     lines.join("\n")
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 end
 
 # rubocop:enable Rails/Output, Metrics/ClassLength

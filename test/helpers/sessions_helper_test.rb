@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop: disable Metrics/BlockLength, Metrics/ClassLength
+# rubocop: disable-next Metrics/BlockLength, Metrics/ClassLength
 class SessionsHelperTest < ActionView::TestCase
   setup do
     @user = users(:test_user)
@@ -284,4 +284,3 @@ class SessionsHelperTest < ActionView::TestCase
     ENV['RATE_LOGINS_USER_PERIOD'] = saved_period
   end
 end
-# rubocop: enable Metrics/BlockLength, Metrics/ClassLength

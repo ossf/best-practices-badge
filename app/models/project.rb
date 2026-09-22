@@ -6,7 +6,7 @@
 
 require 'security_utils'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class Project < ApplicationRecord
   has_many :additional_rights, dependent: :destroy
   cattr_accessor :skip_callbacks
@@ -199,7 +199,7 @@ class Project < ApplicationRecord
   # Maps level names/numbers to their corresponding database field symbols
   # Computed from existing constants to avoid duplication and stay in sync
   # Disable cop for do...end with chained .freeze (required for frozen constant)
-  # rubocop:disable Style/MethodCalledOnDoEndBlock
+  # rubocop:disable-next Style/MethodCalledOnDoEndBlock
   BADGE_PERCENTAGE_FIELD_NAMES =
     {}.tap do |hash|
       # Add metal level mappings (both name and number forms)
@@ -213,13 +213,12 @@ class Project < ApplicationRecord
         hash[level] = :"badge_percentage_baseline_#{index + 1}"
       end
     end.freeze
-  # rubocop:enable Style/MethodCalledOnDoEndBlock
 
   # Pre-computed grouping of criteria by normalized panel names (memory optimization)
   # Nested hash: level => normalized_panel_name => array of criteria
   # Normalized panel names are lowercase with spaces removed (e.g., 'changecontrol')
   # This eliminates repeated string operations and array allocations in get_satisfaction_data
-  # rubocop:disable Style/MethodCalledOnDoEndBlock
+  # rubocop:disable-next Style/MethodCalledOnDoEndBlock
   CRITERIA_BY_PANEL =
     {}.tap do |hash|
       # Include metal levels (0, 1, 2)
@@ -239,7 +238,6 @@ class Project < ApplicationRecord
           end.transform_values(&:freeze).freeze
       end
     end.freeze
-  # rubocop:enable Style/MethodCalledOnDoEndBlock
 
   # Returns the database field name for a level's badge percentage
   # Handles mapping from level names (with hyphens) to valid field names
@@ -747,7 +745,7 @@ class Project < ApplicationRecord
   # @raise [TypeError] if levels is not an Array
   # @raise [ArgumentError] if any level is invalid
   # @return [void]
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def self.update_all_badge_percentages(levels, notify_losses: true)
     raise TypeError, 'levels must be an Array' unless levels.is_a?(Array)
 
@@ -816,7 +814,6 @@ class Project < ApplicationRecord
       'the CDN.'
     )
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Purge one project's cached data from the CDN, now and again shortly
   # afterward.
@@ -902,7 +899,7 @@ class Project < ApplicationRecord
   # @param report [Boolean] when true, print a human-readable report to
   #   stdout instead of writing to the database (default: false)
   # @return [void]
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def self.update_all_badge_warnings(levels, effective_date:, report: false)
     raise TypeError, 'levels must be an Array' unless levels.is_a?(Array)
 
@@ -919,7 +916,6 @@ class Project < ApplicationRecord
                                       report: report)
     end
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Recalculates badge levels for one project and either prints a warning
   # report line (report: true) or writes warning columns to the DB.
@@ -1119,7 +1115,7 @@ class Project < ApplicationRecord
   # Selects in-progress projects that are inactive, not recently reminded,
   # have valid email, and owner accepts emails. Uses single database query.
   # @return [ActiveRecord::Relation] projects eligible for reminders
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def self.projects_to_remind
     # This is computed entirely using the ActiveRecord query interface
     # as a single select+sort+limit, and not implemented using methods or
@@ -1197,7 +1193,6 @@ class Project < ApplicationRecord
       .reorder(Arel.sql('COALESCE(last_reminder_at, projects.updated_at)'))
       .first(MAX_REMINDERS)
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   # Returns projects with a pending badge-loss notification (either series).
   # Selects only the columns needed for notification — no criteria data.
@@ -1259,7 +1254,7 @@ class Project < ApplicationRecord
   # @raise [ArgumentError] if asked to write something that is not a column
   # This is a command that reports whether it succeeded, not a predicate;
   # a trailing "?" would wrongly suggest it has no side effects.
-  # rubocop:disable Naming/PredicateMethod
+  # rubocop:disable-next Naming/PredicateMethod
   def self.write_bookkeeping_columns(project, columns)
     rows_updated = update_one_project(project.id, columns)
     return true if rows_updated == 1
@@ -1267,7 +1262,6 @@ class Project < ApplicationRecord
     report_failed_bookkeeping_write(project, columns, rows_updated)
     false
   end
-  # rubocop:enable Naming/PredicateMethod
 
   # Set the given columns on exactly one project, by parameterized SQL.
   # See write_bookkeeping_columns for why this does not use the ORM.
@@ -1487,7 +1481,7 @@ class Project < ApplicationRecord
   # @return [Boolean] true if the notification is still pending
   # Writes to the database, so it is a command that answers a question,
   # not a predicate; a trailing "?" would suggest it has no effect.
-  # rubocop:disable Naming/PredicateMethod
+  # rubocop:disable-next Naming/PredicateMethod
   def self.handle_send_failure(project, kind, series, outcome)
     attempts = project[series[:attempts]] + 1
     if outcome == :transient_failure &&
@@ -1500,7 +1494,6 @@ class Project < ApplicationRecord
       false
     end
   end
-  # rubocop:enable Naming/PredicateMethod
   private_class_method :handle_send_failure
 
   # Give up on a notification.  Clear the flag so it stops being
@@ -1619,7 +1612,7 @@ class Project < ApplicationRecord
   # @yieldreturn [Symbol] one of NOTIFICATION_OUTCOMES
   # @return [Array(Integer, Boolean)] emails sent, and whether anything
   #   is still pending for this project afterward
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def self.notify_project(project, series, allowed, &block)
     # Tight SELECT: only the fields needed for sending or skipping.
     # Bounded by the cap, so N+1 cost is minimal.
@@ -1647,7 +1640,6 @@ class Project < ApplicationRecord
     end
     [sent, still_pending]
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
   private_class_method :notify_project
 
   # Send badge-loss notification emails in a rate-limited daily batch.
@@ -1890,7 +1882,7 @@ class Project < ApplicationRecord
 
   # Update achieved_..._at & lost_..._at fields given level as number
   # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def update_passing_times(level, old_badge_percentage, current_time)
     # Determine level name for field names
     level_name =
@@ -1915,7 +1907,6 @@ class Project < ApplicationRecord
       self[:"lost_#{level_name}_at"] = current_time
     end
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
   # rubocop:enable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
 
   # Given numeric level 1+, set the value of
@@ -1954,4 +1945,3 @@ class Project < ApplicationRecord
   # - Output: View helper status_radio_button converts integers → strings for display
   # - Internal: Model works exclusively with integers (0,1,2,3)
 end
-# rubocop:enable Metrics/ClassLength

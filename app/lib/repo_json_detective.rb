@@ -69,7 +69,7 @@ class RepoJsonDetective < Detective
   private
 
   # Read JSON from first available file location
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def read_and_parse_json(repo_files)
     FILE_LOCATIONS.each do |path|
       content = repo_files.get_content(path, max_size: MAX_FILE_SIZE)
@@ -87,9 +87,8 @@ class RepoJsonDetective < Detective
     end
     nil
   end
-  # rubocop:enable Metrics/MethodLength
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def validate_and_convert_fields(json_data)
     results = {}
     processed_justifications = Set.new
@@ -118,7 +117,7 @@ class RepoJsonDetective < Detective
 
     # Second pass: standalone justifications (no corresponding status)
     # Can't be combined with first pass - needs to process statuses first
-    # rubocop:disable Style/CombinableLoops
+    # rubocop:disable-next Style/CombinableLoops
     json_data.each do |key, value|
       field_sym = CriterionFieldValidator.validate_field_name(key)
       next unless field_sym && CriterionFieldValidator.justification_field?(field_sym)
@@ -133,9 +132,7 @@ class RepoJsonDetective < Detective
         explanation: I18n.t('detectives.repo_json.field_from_file')
       }
     end
-    # rubocop:enable Style/CombinableLoops
 
     results
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end

@@ -7,7 +7,7 @@
 # rubocop:disable Metrics/ClassLength
 # We ".freeze" a lot of results here, in part to optimize and in part
 # to prevent potential threading issues, so this isn't worth it:
-# rubocop: disable Style/MethodCalledOnDoEndBlock
+# rubocop: disable-next Style/MethodCalledOnDoEndBlock
 class ProjectStatsController < ApplicationController
   # Our graphing component (chartkick) requires exceptions in our
   # content security policy (CSP), so poke holes in the policy.
@@ -126,7 +126,7 @@ class ProjectStatsController < ApplicationController
 
   # GET /project_stats
   # GET /project_stats.json
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def index
     use_secure_headers_override :headers_stats_index
     # Only load the full set of project stats if we need to
@@ -169,7 +169,6 @@ class ProjectStatsController < ApplicationController
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Use separate JSON endpoints for charts.
   # This greatly speeds graph display & makes it easy to cache the data on the CDN
@@ -233,7 +232,7 @@ class ProjectStatsController < ApplicationController
   # GET /project_stats/nontrivial_projects.json
   # Dataset of nontrivial project entries
   # Note that this does NOT take a locale.
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def nontrivial_projects
     cache_until_next_stat
 
@@ -253,12 +252,11 @@ class ProjectStatsController < ApplicationController
 
     render_json_fast dataset
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # GET /:locale/project_stats/activity_30.json
   # Dataset of activity
   # Note: The names of the datasets are translated
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def activity_30
     cache_until_next_stat
     dataset = []
@@ -313,12 +311,11 @@ class ProjectStatsController < ApplicationController
 
     render_json_fast dataset
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # GET /:locale/project_stats/daily_activity.json
   # Dataset of daily activity
   # Note: The names of the datasets are translated
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/BlockLength
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize, Metrics/BlockLength
   def daily_activity
     # Show new and edited projects
     # These are expected to be smaller numbers, and show detailed activity,
@@ -373,12 +370,11 @@ class ProjectStatsController < ApplicationController
 
     render_json_fast dataset.freeze
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/BlockLength
 
   # GET /:locale/project_stats/reminders.json
   # Reminders sent, reactivated after reminders
   # Note: The names of the datasets are translated
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def reminders
     cache_until_next_stat
     dataset = []
@@ -410,7 +406,6 @@ class ProjectStatsController < ApplicationController
 
     render_json_fast dataset
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Level 1 (silver) database fields that are more than 25%
   LEVEL1_GT25_FIELDS =
@@ -419,7 +414,7 @@ class ProjectStatsController < ApplicationController
     end.freeze
 
   # GET /project_stats/silver.json
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def silver
     # Show project counts, but skip 25% because that makes chart scale unusable
     # The 25% value is a little misleading (because of overlaps), and messes
@@ -443,7 +438,6 @@ class ProjectStatsController < ApplicationController
 
     render_json_fast dataset
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Level 2 (gold) database fields that are more than 25%
   LEVEL2_GT25_FIELDS =
@@ -452,7 +446,7 @@ class ProjectStatsController < ApplicationController
     end.freeze
 
   # GET /project_stats/gold.json
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def gold
     # Show project counts, but skip 25% because that makes chart scale unusable
     # The 25% value is a little misleading (because of overlaps), and messes
@@ -476,7 +470,6 @@ class ProjectStatsController < ApplicationController
 
     render_json_fast dataset
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # GET /:locale/project_stats/silver_and_gold.json
   # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
@@ -535,7 +528,7 @@ class ProjectStatsController < ApplicationController
   # @param fields [Array] Array of field names for chart creation
 
   # Return JSON-formatted chart data with the given fields
-  # rubocop: disable Metrics/MethodLength
+  # rubocop: disable-next Metrics/MethodLength
   def create_line_chart(fields)
     # Retrieve just the data we need
     database_fields = [:created_at] + fields.map(&:to_sym)
@@ -556,7 +549,6 @@ class ProjectStatsController < ApplicationController
     end
     dataset.freeze
   end
-  # rubocop:enable Metrics/MethodLength
 
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
   # GET /:locale/project_stats/user_statistics.json
@@ -602,5 +594,4 @@ class ProjectStatsController < ApplicationController
   #     :percent_ge_50, :percent_ge_75, :percent_ge_90, :percent_ge_100)
   # end
 end
-# rubocop: enable Style/MethodCalledOnDoEndBlock
 # rubocop:enable Metrics/ClassLength

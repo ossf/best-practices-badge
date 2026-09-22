@@ -7,7 +7,7 @@
 require_relative '../../lib/locale_utils'
 require 'security_utils'
 
-# rubocop:disable Metrics/ModuleLength
+# rubocop:disable-next Metrics/ModuleLength
 module SessionsHelper
   SESSION_TTL = 48.hours # Automatically log off session if inactive this long
   RESET_SESSION_TIMER = 1.hour # Active sessions older than this reset timer
@@ -62,7 +62,7 @@ module SessionsHelper
   # This doesn't set the last_login_at or forward elsewhere.
   # @param user [User] the user to log in
   # @return [void]
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def log_in(user)
     # session[:login_session_id] is OUR random session id (LoginSession),
     # not Rack's own bookkeeping session_id; see design doc section 6.6.
@@ -86,7 +86,6 @@ module SessionsHelper
       session[:forwarding_url], I18n.locale
     )
   end
-  # rubocop:enable Metrics/AbcSize
 
   # Resets the session (countering session fixation) while preserving any
   # key in SESSION_KEYS_SURVIVING_RESET (currently just :forwarding_url).
@@ -454,4 +453,3 @@ module SessionsHelper
     url.present? && url.match(GITHUB_PATTERN).present?
   end
 end
-# rubocop:enable Metrics/ModuleLength

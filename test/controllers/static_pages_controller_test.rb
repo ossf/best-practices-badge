@@ -8,7 +8,7 @@ require 'test_helper'
 
 # NOTE: we inherit from ActionDispatch::IntegrationTest, not
 # ActionController::TestCase, because the latter is obsolete.
-# rubocop: disable Metrics/BlockLength, Metrics/ClassLength
+# rubocop: disable-next Metrics/BlockLength, Metrics/ClassLength
 class StaticPagesControllerTest < ActionDispatch::IntegrationTest
   test 'should get home' do
     get root_path(locale: 'en')
@@ -193,4 +193,3 @@ class StaticPagesControllerTest < ActionDispatch::IntegrationTest
                  @response.body
   end
 end
-# rubocop: enable Metrics/BlockLength, Metrics/ClassLength

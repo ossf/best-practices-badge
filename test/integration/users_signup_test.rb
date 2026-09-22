@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop: disable Metrics/ClassLength
+# rubocop: disable-next Metrics/ClassLength
 class UsersSignupTest < ActionDispatch::IntegrationTest
   setup do
     ActionMailer::Base.deliveries.clear
@@ -29,7 +29,7 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url(locale: :en)
   end
 
-  # rubocop: disable Metrics/BlockLength
+  # rubocop: disable-next Metrics/BlockLength
   test 'reject bad passwords' do
     VCR.use_cassette('reject_bad_passwords') do
       assert_no_difference 'User.count' do
@@ -56,9 +56,8 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
       end
     end
   end
-  # rubocop: enable Metrics/BlockLength
 
-  # rubocop: disable Metrics/BlockLength
+  # rubocop: disable-next Metrics/BlockLength
   test 'valid signup information with account activation' do
     VCR.use_cassette('valid_signup_information_with_account_activation') do
       get signup_path
@@ -163,9 +162,8 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
       assert user_logged_in?
     end
   end
-  # rubocop: enable Metrics/BlockLength
 
-  # rubocop: disable Metrics/BlockLength
+  # rubocop: disable-next Metrics/BlockLength
   test 'resend account activation for unactivated account' do
     VCR.use_cassette('resend_account_activation_for_unactivated_account') do
       user = User.find_by(email: 'forgetful@example.com')
@@ -211,7 +209,6 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
       assert_not user_logged_in?
     end
   end
-  # rubocop: enable Metrics/BlockLength
 
   test 'activated user still shows root page' do
     @user = users(:test_user)
@@ -232,4 +229,3 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
     follow_redirect!
   end
 end
-# rubocop: enable Metrics/ClassLength

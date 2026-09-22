@@ -4,7 +4,7 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# rubocop:disable Metrics/BlockLength
+# rubocop:disable-next Metrics/BlockLength
 Rails.application.configure do
   # Settings specified here will take precedence over those in
   # config/application.rb.
@@ -69,4 +69,3 @@ Rails.application.configure do
   # more like production
   config.middleware.use Rack::Deflater
 end
-# rubocop:enable Metrics/BlockLength

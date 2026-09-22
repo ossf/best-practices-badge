@@ -64,7 +64,7 @@ module LocaleUtils
   # @param original_url [String] The URL to modify
   # @param locale [String, Symbol, nil] The locale to insert into the URL
   # @return [String] The modified URL with locale parameter
-  # rubocop: disable Metrics/AbcSize
+  # rubocop: disable-next Metrics/AbcSize
   def self.safe_localized_internal_url(original_url, locale)
     url = URI.parse(original_url)
     url.host = ENV.fetch('PUBLIC_HOSTNAME', url.host)
@@ -81,5 +81,4 @@ module LocaleUtils
     url.path = locale.present? ? "/#{locale}#{new_path}" : new_path
     url.to_s
   end
-  # rubocop: enable Metrics/AbcSize
 end

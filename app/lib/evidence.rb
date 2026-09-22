@@ -33,7 +33,7 @@ require 'timeout'
 # result before we can send the real request, so DNS resolver caching
 # is important to reduce overall latency.
 #
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class Evidence
   # Initialize an Evidence collector for a project.
   #
@@ -352,7 +352,7 @@ class Evidence
   #
   # @param url [String] The URL to fetch data from.
   # @return [void]
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def get_secure(url, store_body:)
     # Use ssrf_filter to ensure GET requests are not performed if the
     # domain dynamically resolves (possibly via redirects) to a
@@ -375,7 +375,6 @@ class Evidence
     Rails.logger.warn "SSRF Filter error fetching URL #{url}: #{e.message}"
     nil
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Perform an insecure GET request (allows private IPs) using open-uri.
   # This is only used if ALLOW_PRIVATE_IPS is set (never on real production).
@@ -386,7 +385,7 @@ class Evidence
   # @param url [String] The URL to fetch data from.
   # @param store_body [Boolean] Whether to also read and stash the raw body.
   # @return [Hash, nil] the fetch bundle, or nil on error.
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def get_insecure(url, store_body:)
     require 'open-uri'
     result = nil
@@ -409,7 +408,6 @@ class Evidence
     Rails.logger.warn "Error fetching URL #{url} (insecure): #{e.message}"
     nil
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Extract headers from open-uri file result.
   #
@@ -445,4 +443,3 @@ class Evidence
     end.freeze
   end
 end
-# rubocop:enable Metrics/ClassLength

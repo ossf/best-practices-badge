@@ -6,14 +6,14 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ProjectGetTest < ActionDispatch::IntegrationTest
   setup do
     # @user = users(:test_user)
     @project_one = projects(:one)
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'ensure getting project has expected values (esp. security headers)' do
     # Check project page values, primarily the various hardening headers
     # (in particular the Content Security Policy (CSP) header).
@@ -70,7 +70,6 @@ class ProjectGetTest < ActionDispatch::IntegrationTest
     assert_nil(@response.headers['Access-Control-Allow-Methods'])
     assert_nil(@response.headers['Access-Control-Allow-Credentials'])
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'ensure CORS set when origin set' do
     get project_section_path(@project_one, 'passing', locale: :en),
@@ -228,4 +227,3 @@ class ProjectGetTest < ActionDispatch::IntegrationTest
                  'Feed should contain lang="fr" for descriptions')
   end
 end
-# rubocop:enable Metrics/ClassLength

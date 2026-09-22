@@ -9,7 +9,7 @@ require 'minitest/mock'
 require 'zlib'
 require 'stringio'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class EvidenceTest < ActiveSupport::TestCase
   setup do
     @project = projects(:perfect)
@@ -434,4 +434,3 @@ class EvidenceTest < ActiveSupport::TestCase
     assert_nil evidence.get_body(url)
   end
 end
-# rubocop:enable Metrics/ClassLength

@@ -93,7 +93,7 @@ class GithubContentAccess
   # transport is no more in-scope than a raw oversized response. Both are
   # bounded only by trusting GitHub over HTTPS; the size caps bound what we
   # actually retain.
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def get_content(filename, max_size: 100_000)
     # First, get metadata to check size BEFORE fetching content
     file_info = get_info(filename)
@@ -132,5 +132,4 @@ class GithubContentAccess
   rescue StandardError
     nil
   end
-  # rubocop:enable Metrics/MethodLength
 end

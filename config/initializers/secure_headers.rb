@@ -4,7 +4,7 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# rubocop:disable Metrics/BlockLength
+# rubocop:disable-next Metrics/BlockLength
 SecureHeaders::Configuration.default do |config|
   normal_src = ["'self'"]
   normal_src += ['https://' + ENV['PUBLIC_HOSTNAME'] + '.global.ssl.fastly.net'] if ENV['PUBLIC_HOSTNAME']
@@ -58,7 +58,6 @@ SecureHeaders::Configuration.default do |config|
   # one wrong move can render the site useless, and it makes it hard to
   # switch CAs if the CA behaves badly.
 end
-# rubocop:enable Metrics/BlockLength
 
 # override default configuration
 SecureHeaders::Configuration.override(:allow_github_form_action) do |config|

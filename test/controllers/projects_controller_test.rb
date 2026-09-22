@@ -7,7 +7,7 @@
 require 'test_helper'
 require 'ostruct'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ProjectsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @project = projects(:one)
@@ -22,7 +22,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   # Ensure that every criterion that is *supposed* to be in this level is
   # selectable, and that every criterion that is *not* supposed to be in this
   # level is not selectable.
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def only_correct_criteria_selectable(level)
     Criteria.keys do |query_level|
       Criteria[query_level].each do |criterion|
@@ -37,7 +37,6 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   test 'should get index' do
     get '/en/projects'
@@ -165,7 +164,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       .to_return(status: 200, body: '', headers: {})
     # Use assert_difference to verify that project record created & email sent
     # This actually raises an exception, so we'll need to catch & ignore it
-    # rubocop:disable Style/RescueStandardError
+    # rubocop:disable-next Style/RescueStandardError
     assert_no_difference [
       'Project.count', 'ActionMailer::Base.deliveries.size'
     ] do
@@ -181,7 +180,6 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     rescue
       # We don't care what the exception is
     end
-    # rubocop:enable Style/RescueStandardError
   end
 
   test 'should fail to create project' do
@@ -352,7 +350,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     OmniAuth.config.mock_auth[:github] = nil
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'github reconnect flow restores token and redirects to new project' do
     github_user = users(:github_user)
     OmniAuth.config.test_mode = true
@@ -382,7 +380,6 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     OmniAuth.config.test_mode = false
     OmniAuth.config.mock_auth[:github] = nil
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'find_homepage_url returns nil when no repo data' do
     controller = ProjectsController.new
@@ -669,7 +666,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_includes @response.body, 'Edit Project Badge Status'
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'can add users with additional rights using "+"' do
     log_in_as(@project.user)
     # Ensure that our test setup is correct & get current state
@@ -706,7 +703,6 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     @project.reload
     assert_not_equal previous_update, @project.updated_at
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'can remove a user with additional rights using "-"' do
     AdditionalRight.new(
@@ -1054,7 +1050,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
   end
 
-  # rubocop: disable Metrics/BlockLength
+  # rubocop: disable-next Metrics/BlockLength
   test 'should fail to update stale project due to optimistic locking' do
     # Check for proper handling of project[lock_version] in the HTML like
     # <input type="hidden" value="73" name="project[lock_version]"
@@ -1089,7 +1085,6 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_equal @project.name, new_name1
   end
-  # rubocop: enable Metrics/BlockLength
 
   test 'should fail update project with invalid control in name' do
     log_in_as(@project.user)
@@ -3197,7 +3192,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   # to the per-pass unit tests below.
   # -----------------------------------------------------------------------
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'integration decision matrix: _status fields — all 6 rows' do
     # Row 1 (unparsable proposed): field has real value, proposed is garbage → Skip (none)
     # Row 2 (proposed '?', even forced): field has real value → Skip (pre-screen)
@@ -3262,7 +3257,6 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
                  'row6: proposed justification must be applied to project'
     assert_not divergent.key?(:floss_license_status)
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'integration decision matrix: _justification fields — coupling rule + all 3 rows' do
     # Coupling rule: if paired status is divergent, justification is blocked always
@@ -3825,4 +3819,3 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     }
   end
 end
-# rubocop:enable Metrics/ClassLength

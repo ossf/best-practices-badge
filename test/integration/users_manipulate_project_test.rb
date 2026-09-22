@@ -6,13 +6,13 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:test_user)
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'logged-in user adds a project' do
     # Go to login_path to initialize the session
     get login_path(locale: :en)
@@ -110,7 +110,6 @@ class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
       #  assert_select 'a[href=?]', user_path(@user), count: 0
     end
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'logged-in user adds assimilation-official' do
     # Regression test, see:
@@ -193,4 +192,3 @@ class UsersManipulateProjectTest < ActionDispatch::IntegrationTest
     assert_nil response.location
   end
 end
-# rubocop:enable Metrics/ClassLength

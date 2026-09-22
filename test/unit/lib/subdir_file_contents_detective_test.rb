@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class SubdirFileContentsDetectiveTest < ActiveSupport::TestCase
   def setup
     super
@@ -190,4 +190,3 @@ class SubdirFileContentsDetectiveTest < ActiveSupport::TestCase
     assert_equal CriterionStatus::UNMET, dbs[:value]
   end
 end
-# rubocop:enable Metrics/ClassLength

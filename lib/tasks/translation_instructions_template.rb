@@ -8,7 +8,7 @@
 module TranslationInstructionsTemplate
   # We need to disable FormatStringToken, because our instructions will
   # specifically discuss show such tokens as examples.
-  # rubocop:disable Metrics/MethodLength, Style/FormatStringToken
+  # rubocop:disable-next Metrics/MethodLength, Style/FormatStringToken
   def self.generate(locale:, lang:, examples: nil)
     examples_text =
       if examples
@@ -95,5 +95,4 @@ module TranslationInstructionsTemplate
       We can later import them with rake translation:import[#{locale},PATH]
     INSTRUCTIONS
   end
-  # rubocop:enable Metrics/MethodLength, Style/FormatStringToken
 end

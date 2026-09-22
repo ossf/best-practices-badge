@@ -80,7 +80,7 @@ initial_mem = nil
 previous_total = nil
 measurements = []
 
-# rubocop:disable Metrics/BlockLength
+# rubocop:disable-next Metrics/BlockLength
 loop do
   mem = get_memory_kb(pid)
 
@@ -138,4 +138,3 @@ rescue Interrupt
   puts '=' * 75
   break
 end
-# rubocop:enable Metrics/BlockLength

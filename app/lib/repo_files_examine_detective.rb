@@ -8,7 +8,7 @@
 # (those conventionally used for source and documentation).
 # Note that a key precondition is determining how to open repo files.
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class RepoFilesExamineDetective < Detective
   INPUTS = [:repo_files].freeze
   OUTPUTS = %i[
@@ -91,7 +91,7 @@ class RepoFilesExamineDetective < Detective
       met_result(result_description, html_url_directory['html_url'])
   end
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def analyze(_evidence, current)
     repo_files = current[:repo_files]
     return {} if repo_files.blank?
@@ -111,7 +111,6 @@ class RepoFilesExamineDetective < Detective
 
     @results
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Check for contribution files and set both metal and baseline criteria
   def check_contribution_files
@@ -144,7 +143,7 @@ class RepoFilesExamineDetective < Detective
   end
 
   # Check for license files and set both metal and baseline criteria
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def check_license_files
     # Use forced confidence (5) for UNMET only when @top_level is non-empty,
     # confirming we actually scanned the repo and found no license file.
@@ -168,10 +167,9 @@ class RepoFilesExamineDetective < Detective
 
     set_baseline_license_status
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Set baseline license-file-presence criteria if license location is met
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def set_baseline_license_status
     if @results[:license_location_status]&.dig(:value) == CriterionStatus::MET
       confidence = @results[:license_location_status][:confidence]
@@ -191,7 +189,6 @@ class RepoFilesExamineDetective < Detective
       }
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Check for release notes files
   def check_release_notes
@@ -202,4 +199,3 @@ class RepoFilesExamineDetective < Detective
     )
   end
 end
-# rubocop:enable Metrics/ClassLength

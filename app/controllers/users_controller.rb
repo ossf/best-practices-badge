@@ -100,7 +100,7 @@ class UsersController < ApplicationController
   # @param search_emails_list [String] Newline-separated emails (can be nil)
   # @param max_num_results [Integer] Maximum number of results allowed
   # @return [Hash] { user_ids: Array<Integer>, error: String|nil }
-  # rubocop: disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
+  # rubocop: disable-next Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
   def search_users_by_lists(
     search_names_list,
     search_emails_list,
@@ -173,14 +173,13 @@ class UsersController < ApplicationController
 
     { user_ids: found_user_ids.to_a, error: nil }
   end
-  # rubocop: enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
 
   # Search users. Search is ONLY supported for admin, so that we can't leak
   # email data about users, and to discourage people from being harassed
   # if they can be searched by name. It also counters DoS, since we will
   # refuse to provide a service we don't want to provide.
   # For normal users we ignore search parameters.
-  # rubocop: disable Metrics/AbcSize
+  # rubocop: disable-next Metrics/AbcSize
   def search_users
     result = User.all
     search_names = params[:search_names]
@@ -195,7 +194,6 @@ class UsersController < ApplicationController
     end
     result
   end
-  # rubocop: enable Metrics/AbcSize
 
   private :search_name, :search_email, :valid_email_format?,
           :search_users_by_lists, :search_users
@@ -310,7 +308,7 @@ class UsersController < ApplicationController
     result
   end
 
-  # rubocop: disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop: disable-next Metrics/AbcSize, Metrics/MethodLength
   def update
     @user = User.find(params.expect(:id))
     old_email = @user&.email_if_decryptable
@@ -352,9 +350,8 @@ class UsersController < ApplicationController
       render 'edit'
     end
   end
-  # rubocop: enable Metrics/AbcSize, Metrics/MethodLength
 
-  # rubocop: disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop: disable-next Metrics/MethodLength, Metrics/AbcSize
   def destroy
     id_to_delete = Integer(params[:id], 10)
     # TODO: Should we show a more graceful output if id is not found?
@@ -378,7 +375,6 @@ class UsersController < ApplicationController
       end
     end
   end
-  # rubocop: enable Metrics/MethodLength, Metrics/AbcSize
 
   DELAY_BETWEEN_ACTIVATION_EMAILS = Integer(
     ENV['BADGEAPP_DELAY_BETWEEN_ACTIVATION_EMAIL'] ||
@@ -441,7 +437,7 @@ class UsersController < ApplicationController
   # when that applies). Anything else (destroy, or a malformed PATCH with
   # no user param) has nothing sensible to return to here, so it falls
   # through to the plain flash-and-redirect below.
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def redir_unless_logged_in
     return if logged_in?
     return redirect_to_login_stashing(:user, User.find_by(id: params[:id])) { compute_user_params } if
@@ -454,7 +450,6 @@ class UsersController < ApplicationController
     end
     redirect_to login_path
   end
-  # rubocop:enable Metrics/AbcSize
 
   # Return true if current_user can edit account 'user'
   def current_user_can_edit?(user)

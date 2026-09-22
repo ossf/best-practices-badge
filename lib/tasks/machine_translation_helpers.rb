@@ -419,7 +419,7 @@ module MachineTranslationHelpers
       Rails.root.join('tmp', 'ai_translation.lock')
     end
 
-    # rubocop:disable Naming/PredicateMethod
+    # rubocop:disable-next Naming/PredicateMethod
     def acquire_ai_lock
       lockfile = ai_lock_path
 
@@ -435,7 +435,6 @@ module MachineTranslationHelpers
       File.write(lockfile, "#{Process.pid}\n#{Time.zone.now.iso8601}")
       true
     end
-    # rubocop:enable Naming/PredicateMethod
 
     def release_ai_lock
       FileUtils.rm_f(ai_lock_path)
@@ -920,7 +919,7 @@ module MachineTranslationHelpers
       existing
     end
 
-    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable-next Metrics/CyclomaticComplexity
     def cleanup_locale(locale)
       machine_file = machine_translation_path(locale)
       source_file = source_tracking_path(locale)
@@ -953,7 +952,6 @@ module MachineTranslationHelpers
 
       cleaned
     end
-    # rubocop:enable Metrics/CyclomaticComplexity
 
     def merge_flat!(target, source, prefix = '')
       source.each do |key, value|
@@ -1077,7 +1075,7 @@ module MachineTranslationHelpers
       puts "Note: #{missing.length} keys not translated" if missing.any?
     end
 
-    # rubocop:disable Metrics/CyclomaticComplexity, Metrics/BlockLength
+    # rubocop:disable-next Metrics/CyclomaticComplexity, Metrics/BlockLength
     def build_filtered_translations(expected_keys, translated_flat)
       english = load_flat_translations('en')
       filtered = {}
@@ -1140,7 +1138,6 @@ module MachineTranslationHelpers
       report_validation_failures(validation_failures) if validation_failures.any?
       filtered
     end
-    # rubocop:enable Metrics/CyclomaticComplexity, Metrics/BlockLength
 
     def report_validation_failures(failures)
       puts ''
@@ -1236,7 +1233,7 @@ module MachineTranslationHelpers
 
     # AI CLI execution helpers
 
-    # rubocop:disable Naming/PredicateMethod
+    # rubocop:disable-next Naming/PredicateMethod
     def execute_ai(prompt, target_file)
       # AI_CLI_ARGS carries the tool's own flags (see the constant comment
       # above for why these aren't hardcoded here).
@@ -1255,7 +1252,6 @@ module MachineTranslationHelpers
 
       false
     end
-    # rubocop:enable Naming/PredicateMethod
 
     # Load YAML file, attempting to fix common issues if normal parsing fails
     def load_yaml_with_fallback(file, locale)
@@ -1284,7 +1280,7 @@ module MachineTranslationHelpers
     end
 
     # Fix common YAML quoting issues in AI-generated output
-    # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    # rubocop:disable-next Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     def fix_yaml_quoting(content, _locale)
       lines = content.split("\n")
       fixed_lines =
@@ -1329,7 +1325,6 @@ module MachineTranslationHelpers
         end
       fixed_lines.join("\n")
     end
-    # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
     # Fix unescaped double quotes inside double-quoted YAML values
     # e.g., key: "The "term" means..." -> key: "The \"term\" means..."

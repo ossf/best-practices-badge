@@ -27,7 +27,7 @@ class AssetStalenessChecker
   # @param env [String, Symbol, nil] Rails environment. If 'development' or
   #   'test', raises on stale assets. Otherwise just warns.
   # @return [Boolean] true if stale assets were found
-  # rubocop:disable Naming/PredicateMethod
+  # rubocop:disable-next Naming/PredicateMethod
   def check_and_warn(env: nil)
     return false unless assets_stale?
 
@@ -40,7 +40,6 @@ class AssetStalenessChecker
     warn_about_stale_assets
     true
   end
-  # rubocop:enable Naming/PredicateMethod
 
   # Check if assets are stale
   # @return [Boolean] true if any source file is newer than newest compiled
@@ -60,7 +59,7 @@ class AssetStalenessChecker
   # Find the newest file (by mtime) in the given paths
   # @param paths [Array<Pathname>] Paths to search recursively
   # @return [String, Time] Path to newest and its modification time
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def find_newest_file(paths)
     newest = nil
     found_path = nil
@@ -91,7 +90,6 @@ class AssetStalenessChecker
 
     [found_path, newest]
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Build error message for development/test environments
   # @return [String] Error message

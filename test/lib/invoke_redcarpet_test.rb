@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class InvokeRedcarpetTest < ActiveSupport::TestCase
   # Reset between tests to ensure clean state
   def setup
@@ -79,4 +79,3 @@ class InvokeRedcarpetTest < ActiveSupport::TestCase
     assert_equal '*test*', result # Lightly escaped
   end
 end
-# rubocop:enable Metrics/ClassLength

@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @project_stat = project_stats(:one)
@@ -43,7 +43,7 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
     assert @response.body.include?('Percentage of projects earning badges')
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'should get index, CSV format' do
     get '/en/project_stats.csv'
     assert_response :success
@@ -84,7 +84,6 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
     # Do *NOT* include "Accept" in the Vary heading.
     assert 'Accept-Encoding', @response.headers['Vary']
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'should get index, JSON format' do
     get '/en/project_stats.json'
@@ -277,4 +276,3 @@ class ProjectStatsControllerTest < ActionDispatch::IntegrationTest
     assert_equal seconds_in_day - 400, controller.cache_time(log_time + 400)
   end
 end
-# rubocop:enable Metrics/ClassLength

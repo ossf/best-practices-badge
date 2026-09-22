@@ -10,7 +10,7 @@
 
 require 'security_utils'
 
-# rubocop:disable Metrics/ModuleLength
+# rubocop:disable-next Metrics/ModuleLength
 module MarkdownProcessor
   # Try to avoid calling markdown processor, then call if necessary.
   #
@@ -316,7 +316,7 @@ module MarkdownProcessor
   # advanced reasoning needed to determine this isn't vulnerable to CSS.
   # The MARKDOWN_UNNECESSARY pattern doesn't match "<" etc.
   # The markdown + sanitizer process is configured to output safe strings.
-  # rubocop:disable Rails/OutputSafety, Metrics/MethodLength
+  # rubocop:disable-next Rails/OutputSafety, Metrics/MethodLength
   def self.render(content, use_redcarpet = USE_REDCARPET_BY_DEFAULT)
     # Return empty string if content is blank.
     # Ruby always returns the exact same empty string object (per object_id)
@@ -380,6 +380,4 @@ module MarkdownProcessor
       InvokeCommonmarker.invoke_and_sanitize(content)
     end
   end
-  # rubocop:enable Rails/OutputSafety, Metrics/MethodLength
 end
-# rubocop:enable Metrics/ModuleLength

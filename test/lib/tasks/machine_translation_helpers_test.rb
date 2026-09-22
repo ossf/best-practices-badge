@@ -12,7 +12,7 @@ require Rails.root.join('lib/tasks/machine_translation_helpers')
 # helper functions below are cheap to test and worth getting right, since
 # a mistake here silently degrades translation consistency rather than
 # raising an error.
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class MachineTranslationHelpersTest < ActiveSupport::TestCase
   test 'strip_html_and_urls removes tags and full URLs' do
     text = 'See <a href="https://example.com/path?x=1">the docs</a> for HTTPS.'
@@ -262,4 +262,3 @@ class MachineTranslationHelpersTest < ActiveSupport::TestCase
     assert_empty(result & keys)
   end
 end
-# rubocop:enable Metrics/ClassLength

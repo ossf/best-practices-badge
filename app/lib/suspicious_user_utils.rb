@@ -23,7 +23,7 @@ module SuspiciousUserUtils
 
   # Returns an array of reasons why the name string looks suspicious.
   # Returns an empty array if the name looks legitimate.
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def name_suspicion_reasons(name)
     return [] if name.match?(NON_LATIN_SCRIPT)
 
@@ -53,5 +53,4 @@ module SuspiciousUserUtils
                                  rare.to_f / inner.length >= 0.35
     reasons
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end

@@ -4,7 +4,7 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# rubocop:disable Metrics/BlockLength
+# rubocop:disable-next Metrics/BlockLength
 Rails.application.configure do
   # Settings specified here will take precedence over those in
   # config/application.rb.
@@ -256,7 +256,7 @@ Rails.application.configure do
   # recovery mechanism if things get stuck.  We don't do this in test or
   # development, because it interferes with their purposes.
   # This call will fail in fake_production, so we ignore the exception.
-  # rubocop:disable Lint/SuppressedException
+  # rubocop:disable-next Lint/SuppressedException
   begin
     # Unfortunately Rack::Timeout doesn't provide a lot of control over logging.
     # What it provides (now) is described here:
@@ -267,7 +267,6 @@ Rails.application.configure do
   rescue NameError
     # Do nothing if it's unavailable (this happens if we didn't load the gem)
   end
-  # rubocop:enable Lint/SuppressedException
 
   # Configure active_job to use solid_queue as its back end when in production.
   config.active_job.queue_adapter = :solid_queue
@@ -276,4 +275,3 @@ Rails.application.configure do
   # jobs to go into their own database, you'd need to do something like:
   # config.solid_queue.connects_to = { database: { writing: :queue } }
 end
-# rubocop:enable Metrics/BlockLength

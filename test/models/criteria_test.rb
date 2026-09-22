@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class CriteriaTest < ActiveSupport::TestCase
   test 'Criteria should have floss_license_osi' do
     assert Criteria['0'][:floss_license_osi]
@@ -161,4 +161,3 @@ class CriteriaTest < ActiveSupport::TestCase
     assert_equal '', key_with_nil_value(Criteria.for_js)
   end
 end
-# rubocop:enable Metrics/ClassLength

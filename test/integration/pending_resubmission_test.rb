@@ -28,7 +28,7 @@ require 'test_helper'
 # edit_project_section_path/user_path: those need an explicit locale: to
 # resolve outside of an actual request/view context, where
 # ApplicationController#default_url_options isn't there to supply one.)
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class PendingResubmissionTest < ActionDispatch::IntegrationTest
   setup do
     @project = projects(:one)
@@ -459,4 +459,3 @@ class PendingResubmissionTest < ActionDispatch::IntegrationTest
     }
   end
 end
-# rubocop:enable Metrics/ClassLength

@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop: disable Metrics/ClassLength
+# rubocop: disable-next Metrics/ClassLength
 class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
   def setup
     super
@@ -14,7 +14,7 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     @user = users(:test_user)
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'password resets' do
     get '/en/password_resets/new'
     assert_includes @response.body, 'Forgot password'
@@ -141,7 +141,6 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     # Ensure that password is actually set - reload record and check it!
     assert @user.reload.authenticated?(:password, 'foo1234!')
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'successful password reset revokes existing sessions' do
     # Simulate @user's own already-open browser tab, logged in elsewhere,
@@ -220,4 +219,3 @@ class PasswordResetsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url
   end
 end
-# rubocop: enable Metrics/ClassLength

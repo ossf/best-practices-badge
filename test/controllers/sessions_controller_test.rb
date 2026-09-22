@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class SessionsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:test_user_melissa)
@@ -552,4 +552,3 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     }
   end
 end
-# rubocop:enable Metrics/ClassLength

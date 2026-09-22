@@ -9,7 +9,7 @@
 # Manages session creation, destruction, and security measures like
 # session fixation protection.
 #
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class SessionsController < ApplicationController
   include SessionsHelper
 
@@ -45,7 +45,7 @@ class SessionsController < ApplicationController
   # NOTE: Rate limiting for login attempts is handled by Rack::Attack
   # (see config/initializers/rack_attack.rb)
   # @return [void]
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def create
     # session[:locale] was stashed by store_location_and_locale when the
     # login form was first shown (GET /login), so this POST's own response
@@ -74,7 +74,6 @@ class SessionsController < ApplicationController
       render 'new'
     end
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   # Log out current user and redirect to home page.
   # Supports `DELETE /logout`.
@@ -143,9 +142,8 @@ class SessionsController < ApplicationController
     # it works even if we don't have the correct email decryption keys,
     # and so it won't change updated_at (so updated_at becomes more useful).
     # We don't need the model validations, we're just setting a timestamp.
-    # rubocop: disable Rails/SkipsModelValidations
+    # rubocop: disable-next Rails/SkipsModelValidations
     user.update_columns(last_login_at: Time.now.utc)
-    # rubocop: enable Rails/SkipsModelValidations
   end
 
   # Renders the "too many logins" response if user is rate-limited
@@ -199,7 +197,7 @@ class SessionsController < ApplicationController
   # Handles OAuth authentication via GitHub.
   # Creates or finds user account and establishes session.
   # @return [void]
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def omniauth_login
     auth = request.env['omniauth.auth']
     user = User.find_by(provider: auth['provider'], uid: auth['uid']) ||
@@ -213,7 +211,6 @@ class SessionsController < ApplicationController
       request.env['omniauth.params']&.dig('pending_resubmission_token')
     successful_login(user, return_to, pending_resubmission_token)
   end
-  # rubocop:enable Metrics/AbcSize
 
   # Keeps User#nickname in sync with the GitHub username this login's OAuth
   # payload carries. SessionsHelper#current_user_is_github_owner? trusts
@@ -245,11 +242,10 @@ class SessionsController < ApplicationController
     # which always ends in successful_login's redirect_to, never a
     # render, so the notice must survive that redirect. RuboCop can't see
     # across the two methods to confirm that.
-    # rubocop: disable Rails/ActionControllerFlashBeforeRender
+    # rubocop: disable-next Rails/ActionControllerFlashBeforeRender
     flash[:info] = t('sessions.github_nickname_changed',
                      old_nickname: old_nickname,
                      new_nickname: new_nickname)
-    # rubocop: enable Rails/ActionControllerFlashBeforeRender
   end
 
   # Logs a failed GitHub nickname update instead of silently proceeding as
@@ -270,7 +266,7 @@ class SessionsController < ApplicationController
   #
   # @param user [User] The user attempting to log in
   # @return [void]
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def local_login_procedure(user)
     if !user.activated?
       flash[:warning] = t('sessions.not_activated')
@@ -286,6 +282,4 @@ class SessionsController < ApplicationController
       session_params[:remember_me] == '1' ? remember(user) : forget(user)
     end
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 end
-# rubocop:enable Metrics/ClassLength

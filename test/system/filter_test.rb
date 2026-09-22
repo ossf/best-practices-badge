@@ -7,7 +7,7 @@
 require 'application_system_test_case'
 
 class FilterTest < ApplicationSystemTestCase
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'Can Filter Projects' do
     visit '/en/projects'
     assert_text 'Add New Project'
@@ -134,5 +134,4 @@ class FilterTest < ApplicationSystemTestCase
     assert has_no_content? 'Justified perfect silver project'
     assert has_no_content? 'Justified perfect project'
   end
-  # rubocop:enable Metrics/BlockLength
 end

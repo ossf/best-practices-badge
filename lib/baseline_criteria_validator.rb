@@ -11,7 +11,7 @@ require 'json'
 # internal consistency. Used by CI rake tasks and pre-migration checks
 # to catch errors before they reach production.
 # Requires Rails.root and the BASELINE_CONFIG initializer constant.
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class BaselineCriteriaValidator
   # @return [Array<String>] human-readable error messages from the last
   #   call to {#validate}; empty if all checks passed
@@ -68,7 +68,7 @@ class BaselineCriteriaValidator
     false
   end
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def validate_criteria_content
     return false unless validate_criteria_file_exists
 
@@ -91,7 +91,6 @@ class BaselineCriteriaValidator
   rescue Psych::SyntaxError
     false # YAML errors already reported by validate_criteria_yaml_valid
   end
-  # rubocop:enable Metrics/MethodLength
 
   def traverse_criteria(data, &block)
     return unless data.is_a?(Hash)
@@ -119,7 +118,7 @@ class BaselineCriteriaValidator
     @errors << "Criterion '#{key}' has no description"
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def validate_i18n_descriptions
     return false unless validate_criteria_file_exists
     return true unless File.exist?(@en_locale_file)
@@ -148,7 +147,6 @@ class BaselineCriteriaValidator
   rescue Psych::SyntaxError
     false
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   def validate_mapping_file_exists
     unless File.exist?(@mapping_file)
@@ -166,4 +164,3 @@ class BaselineCriteriaValidator
   end
   # rubocop:enable Naming/PredicateMethod
 end
-# rubocop:enable Metrics/ClassLength

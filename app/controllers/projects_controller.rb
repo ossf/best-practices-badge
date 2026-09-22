@@ -7,7 +7,7 @@
 require 'addressable/uri'
 require 'net/http'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ProjectsController < ApplicationController
   include ProjectsHelper
 
@@ -152,7 +152,7 @@ class ProjectsController < ApplicationController
   # Pre-computed sort strings to avoid string concatenation on every request
   # Maps: sort_field => { 'asc' => 'field asc', 'desc' => 'field desc' }
   # Disable cop for do...end with chained .freeze (required for frozen constant)
-  # rubocop:disable Style/MethodCalledOnDoEndBlock
+  # rubocop:disable-next Style/MethodCalledOnDoEndBlock
   SORT_STRINGS =
     ALLOWED_SORT.index_with do |field|
       {
@@ -160,7 +160,6 @@ class ProjectsController < ApplicationController
         'desc' => "#{field} desc".freeze
       }.freeze
     end.freeze
-  # rubocop:enable Style/MethodCalledOnDoEndBlock
 
   # Pre-computed created_at sort strings for fallback ordering
   CREATED_AT_ASC = 'created_at asc'
@@ -245,7 +244,7 @@ class ProjectsController < ApplicationController
   # Pre-computed as comma-separated strings to avoid runtime symbol-to-string
   # conversion and array splatting (saves ~130 objects per request)
   # Dynamically computed from Criteria data - updates automatically when criteria change
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   PROJECT_FIELDS_FOR_SECTION =
     {}.tap do |hash|
       # Add fields for each criteria level section (passing, silver, gold, baseline-N)
@@ -286,7 +285,6 @@ class ProjectsController < ApplicationController
         end
       hash['permissions'] = quoted_base.join(',').freeze
     end.freeze # rubocop:disable Style/MethodCalledOnDoEndBlock
-  # rubocop:enable Metrics/BlockLength
 
   # as= values, which redirect to alternative views
   ALLOWED_AS = %w[badge edit entry].freeze
@@ -482,7 +480,7 @@ class ProjectsController < ApplicationController
   # Performance: Uses project ID directly without loading from database.
   # If project doesn't exist, the redirected URL will return 404.
   # @return [void]
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def redirect_to_default_section
     # Use project ID directly - no need to load project from database
     project_id = params[:id]
@@ -521,7 +519,6 @@ class ProjectsController < ApplicationController
                                      format: format_param),
                 status: :found # 302 temporary (may become configurable)
   end
-  # rubocop:enable Metrics/AbcSize
 
   # Display project deletion confirmation form.
   # Supports `GET /projects/:id/delete_form(.:format)`.
@@ -542,7 +539,7 @@ class ProjectsController < ApplicationController
   # Generate and serve project badge in SVG or JSON format.
   # Optimized to select only necessary fields for performance.
   # @return [void]
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def badge
     # Don't use "set_project", but instead specifically find the project
     # ourselves.  That way, we select *only* the fields we need
@@ -573,12 +570,11 @@ class ProjectsController < ApplicationController
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Generate and serve baseline badge in SVG or JSON format.
   # Optimized to select only necessary fields for performance.
   # @return [void]
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def baseline_badge
     # Select only the fields we need for performance
     @project = Project.select(BASELINE_BADGE_PROJECT_FIELDS).find(params.expect(:id))
@@ -601,7 +597,6 @@ class ProjectsController < ApplicationController
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Display new project form with GitHub integration support.
   # Supports `GET /projects/new`.
@@ -848,7 +843,7 @@ class ProjectsController < ApplicationController
   # Supports `DELETE /projects/1` and `DELETE /projects/1.json`.
   # Form parameter **deletion_rationale** has the user-provided rationale.
   # @return [void]
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def destroy
     @project.destroy!
     ReportMailer.report_project_deleted(
@@ -875,7 +870,6 @@ class ProjectsController < ApplicationController
       wait: BADGE_PURGE_DELAY.seconds
     ).perform_later(@project.record_key)
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Database fields for feed display (performance optimization).
   # The /feed only displays a small set of the project fields, so only
@@ -991,7 +985,7 @@ class ProjectsController < ApplicationController
   # previous month to the month before that, highlighting new badge recipients.
   # @return [Array<Integer>] Array of project IDs that newly achieved passing
   #   badge status in the previous month
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.send_monthly_announcement
     consider_today = Time.zone.today
     prev_month = consider_today.prev_month
@@ -1011,7 +1005,6 @@ class ProjectsController < ApplicationController
     # To simplify certain tests, return list of project ids newly passing
     projects.first.ids
   end
-  # rubocop:enable Metrics/MethodLength
   private_class_method :send_monthly_announcement
 
   # Validates if a query parameter key-value pair is allowed.
@@ -1033,7 +1026,7 @@ class ProjectsController < ApplicationController
   # @param key [String] The query parameter key to validate
   # @param value [String] The query parameter value to validate
   # @return [Boolean] True if the query parameter is allowed, false otherwise
-  # rubocop:disable Metrics/CyclomaticComplexity
+  # rubocop:disable-next Metrics/CyclomaticComplexity
   def allowed_other_query?(key, value)
     return ALLOWED_SORT.include?(value) if key == 'sort'
     return ALLOWED_SORT_DIRECTIONS.include?(value) if key == 'sort_direction'
@@ -1049,7 +1042,6 @@ class ProjectsController < ApplicationController
 
     false
   end
-  # rubocop:enable Metrics/CyclomaticComplexity
 
   # Convert all status fields from strings to integers in hash h.
   # This modifies the hash IN PLACE.
@@ -1167,7 +1159,7 @@ class ProjectsController < ApplicationController
   # 15+ non-whitespace) for project deletion to prevent abuse.
   # @return [Boolean] True if rationale is adequate, otherwise redirects
   #   to deletion form with error message
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def require_adequate_deletion_rationale
     return true if current_user&.admin?
 
@@ -1181,7 +1173,6 @@ class ProjectsController < ApplicationController
       redirect_to delete_form_project_path(@project)
     end
   end
-  # rubocop:enable Metrics/AbcSize
 
   # Forcibly updates additional rights for a project with validated input.
   # Adds or removes user edit permissions based on command prefix.
@@ -1190,7 +1181,7 @@ class ProjectsController < ApplicationController
   # @param new_additional_rights [String] Command string with format
   #   "+user1,user2" (add) or "-user1,user2" (remove)
   # @return [void]
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def update_additional_rights_forced(id, new_additional_rights)
     command = new_additional_rights[0] # rubocop:disable Style/ArrayFirstLast
     new_list = new_additional_rights[1..].split(',').map(&:to_i).sort.uniq
@@ -1205,14 +1196,13 @@ class ProjectsController < ApplicationController
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Validates and processes additional rights changes from request parameters.
   # Performs input validation and permission checks before delegating to
   # update_additional_rights_forced. Only users with control permissions
   # can remove additional editors.
   # @return [void] Silently returns if validation fails or no changes requested
-  # rubocop:disable Metrics/CyclomaticComplexity
+  # rubocop:disable-next Metrics/CyclomaticComplexity
   def update_additional_rights
     return unless can_edit? # Double-check - must be able to edit
     return unless params.key?(:project)
@@ -1230,7 +1220,6 @@ class ProjectsController < ApplicationController
 
     update_additional_rights_forced(@project.id, additional_rights_changes)
   end
-  # rubocop:enable Metrics/CyclomaticComplexity
 
   # Creates a GitHub client factory based on current user authentication.
   # Returns authenticated client if user is logged in via GitHub, otherwise
@@ -1341,7 +1330,7 @@ class ProjectsController < ApplicationController
   # @return [Array<Array>, nil] Array of repo data arrays [name, fork,
   #   homepage, html_url] or nil if unauthorized/no repos
   # rubocop:disable Style/MethodCalledOnDoEndBlock, Metrics/MethodLength
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def repo_data(github = nil)
     github ||= Octokit::Client.new access_token: session[:user_token]
     # Take extra steps to prevent a timeout when retrieving repo data.
@@ -1384,7 +1373,6 @@ class ProjectsController < ApplicationController
       [repo.full_name, repo.fork, repo.homepage, repo.html_url]
     end
   end
-  # rubocop:enable Metrics/AbcSize
   # rubocop:enable Style/MethodCalledOnDoEndBlock, Metrics/MethodLength
 
   # Retrieves and filters project data based on query parameters.
@@ -1627,7 +1615,7 @@ class ProjectsController < ApplicationController
   # Validates sort parameter against allowed values and applies direction
   # (asc/desc) with fallback ordering by created_at.
   # @return [void] Modifies @projects instance variable with new ordering
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def sort_projects
     # Sort, if there is a requested order (otherwise use default created_at)
     return if params[:sort].blank? || ALLOWED_SORT.exclude?(params[:sort])
@@ -1638,7 +1626,6 @@ class ProjectsController < ApplicationController
                 .reorder(SORT_STRINGS[params[:sort]][direction])
                 .order(direction == 'desc' ? CREATED_AT_DESC : CREATED_AT_ASC)
   end
-  # rubocop:enable Metrics/AbcSize
 
   # Handles successful project update responses and badge level changes.
   # Generates appropriate redirects, sends status change emails, and displays
@@ -1744,7 +1731,7 @@ class ProjectsController < ApplicationController
   # That flag is only set when the user actually clicks save, so that
   # re-opening the form without saving always re-runs automation and shows
   # fresh highlighting.
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def run_first_edit_automation_if_needed
     return if level_already_saved? && !params.key?(:reanalyze)
 
@@ -1776,7 +1763,6 @@ class ProjectsController < ApplicationController
     Rails.logger.error("Chief first-edit analysis failed: #{e.class} #{e.message}")
     init_automation_fields
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Compute the set of field symbols that are "forced" by the `overrides`
   # URL param.  A forced field will overwrite an existing real value;
@@ -1844,7 +1830,7 @@ class ProjectsController < ApplicationController
   # @param valid_fields [Set<Symbol>]
   # @param forced_fields [Set<Symbol>]
   # @return [Hash{Symbol => Hash}] { value:, forced:, explanation:, ... }
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def build_url_proposals(valid_fields, forced_fields)
     proposals = {}
     params.each do |key, value|
@@ -1872,7 +1858,6 @@ class ProjectsController < ApplicationController
     end
     proposals
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Read URL query-string params and apply them as automation proposals to
   # @project for the current criteria section.  See classify_status_pass and
@@ -2083,13 +2068,12 @@ class ProjectsController < ApplicationController
 
   # Mark the saved flag for the current badge level
   # @param value [Boolean]
-  # rubocop:disable Naming/AccessorMethodName, Rails/SkipsModelValidations
+  # rubocop:disable-next Naming/AccessorMethodName, Rails/SkipsModelValidations
   def set_level_saved_flag(value)
     flag_name = level_saved_flag_name
     # Use update_column to avoid triggering callbacks during automation
     @project.update_column(flag_name, value) if flag_name
   end
-  # rubocop:enable Naming/AccessorMethodName, Rails/SkipsModelValidations
 
   # Initialize (or reset) the three automation highlight hashes.
   # Called as a before_action for edit and update, and in the rescue block of
@@ -2161,7 +2145,7 @@ class ProjectsController < ApplicationController
   #   false = save-and-exit: apply ONLY forced proposals, record only orange —
   #            non-forced blank→fills are silently skipped so nothing lands
   #            in the database without user awareness
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def run_save_automation(changed_fields, user_set_values, chief_instance: nil, track_automated: true)
     chief = chief_instance || Chief.new(@project, client_factory, entry_locale: @project.entry_locale)
     proposed_changes = chief.propose_changes(
@@ -2206,7 +2190,6 @@ class ProjectsController < ApplicationController
   rescue StandardError => e
     handle_chief_save_failure(e, changed_fields, user_set_values)
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Filter a Hash to only include fields in the current section.
   # @param collection [Hash] Items keyed by field symbol
@@ -2292,7 +2275,7 @@ class ProjectsController < ApplicationController
   # without URL-param serialisation.
   # @param section [String] The section/level being edited
   # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
-  # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
+  # rubocop:disable-next Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
   def perform_html_redirect_after_save(section)
     if @chief_failed
       flash.now[:warning] = t(
@@ -2319,12 +2302,11 @@ class ProjectsController < ApplicationController
                   success: t('projects.edit.successfully_updated')
     end
   end
-  # rubocop:enable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Build automation metadata for JSON response
   # @return [Hash] Automation details (overridden and automated fields)
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def build_automation_metadata
     {
       overridden: @overridden_fields&.map do |field, data|
@@ -2344,7 +2326,6 @@ class ProjectsController < ApplicationController
       end || []
     }
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Handle JSON response with automation details
   def handle_json_response_with_automation
@@ -2361,4 +2342,3 @@ class ProjectsController < ApplicationController
     render json: response_data, status: :ok
   end
 end
-# rubocop:enable Metrics/ClassLength

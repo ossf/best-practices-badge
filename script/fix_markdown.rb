@@ -79,7 +79,7 @@ option_parser =
   end
 option_parser.parse!
 
-# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+# rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
 def fix_markdown(input_file, output_file, dry_run: false, verbose: true)
   lines = File.readlines(input_file)
   fixed_lines = []
@@ -246,7 +246,6 @@ rescue StandardError => e
   warn e.backtrace.join("\n") if verbose
   exit 1
 end
-# rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
 # Main execution
 if ARGV.empty?

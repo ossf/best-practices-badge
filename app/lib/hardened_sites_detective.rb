@@ -103,7 +103,7 @@ class HardenedSitesDetective < Detective
   end
 
   # Internal method that does the inspection work for the 'analyze' method.
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def report_on_check_urls(evidence, homepage_url, repo_url)
     results = {}
     # Only complain if we have *both* a homepage_url AND repo_url.
@@ -122,7 +122,6 @@ class HardenedSitesDetective < Detective
     end
     results
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Analyze the home page and repository URLs to make sure that security
   # hardening headers are returned in the headers of a GET response.

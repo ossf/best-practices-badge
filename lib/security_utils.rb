@@ -47,7 +47,7 @@ module SecurityUtils
   end
 
   # Attempts to fetch and parse JSON from a dynamic URL (e.g., Fastly API).
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.fetch_dynamic_proxies(url)
     return [] if url.blank?
 
@@ -64,7 +64,6 @@ module SecurityUtils
       []
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Parses a comma-separated list of CIDR strings into an array.
   def self.parse_static_proxies(static)
@@ -117,7 +116,7 @@ module SecurityUtils
   # 2. Requires at least one dot in the hostname (rejects localhost, internal
   #    network hostnames, and malformed entries like 'containrrr').
   # 3. Only allows http and https protocols.
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.dubious_url?(url)
     # Empty/nil URLs are not "dubious" themselves; the caller should
     # decide if empty values are acceptable.
@@ -149,5 +148,4 @@ module SecurityUtils
     end
     false
   end
-  # rubocop:enable Metrics/MethodLength
 end

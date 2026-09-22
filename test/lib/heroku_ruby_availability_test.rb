@@ -22,7 +22,7 @@ require 'test_helper'
 # Grouped into few tests, each a table, because they were the same six
 # lines with different numbers and each test block costs a startup. The
 # ROW LABELS are the documentation, and a failure names its row.
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class HerokuRubyAvailabilityTest < ActiveSupport::TestCase
   STACK = 'heroku-24'
 
@@ -175,4 +175,3 @@ class HerokuRubyAvailabilityTest < ActiveSupport::TestCase
     )
   end
 end
-# rubocop:enable Metrics/ClassLength

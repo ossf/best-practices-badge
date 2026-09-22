@@ -18,7 +18,7 @@
 
 require_relative 'machine_translation_helpers'
 
-# rubocop:disable Metrics/BlockLength
+# rubocop:disable-next Metrics/BlockLength
 namespace :translation do
   desc 'List untranslated keys for a locale (e.g., rake translation:untranslated[fr])'
   task :untranslated, [:locale] => :environment do |_t, args|
@@ -177,4 +177,3 @@ namespace :translation do
     puts "Completed #{iteration} iterations."
   end
 end
-# rubocop:enable Metrics/BlockLength

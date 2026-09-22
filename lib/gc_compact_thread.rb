@@ -16,7 +16,7 @@
 # but I've made a number of changes.
 
 # Module to handle periodic GC compaction in a background thread
-# rubocop:disable Metrics/ModuleLength
+# rubocop:disable-next Metrics/ModuleLength
 module GcCompactThread
   module_function
 
@@ -134,7 +134,7 @@ module GcCompactThread
   # Analyze string memory to identify sources of growth
   # The tracing_enabled parameter allows testing without global state.
   # The test_allocation_sources parameter allows injecting sources for testing.
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def report_string_analysis(
     tracing_enabled: GcCompactThread.allocation_tracing_enabled,
     test_allocation_sources: nil
@@ -201,10 +201,9 @@ module GcCompactThread
 
     log_allocation_sources(sources_to_report)
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
   # Track memory growth between compactions
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def report_growth_delta
     current_count = 0
     current_bytes = 0
@@ -223,7 +222,6 @@ module GcCompactThread
     GcCompactThread.previous_string_count = current_count
     GcCompactThread.previous_string_bytes = current_bytes
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Report Rails cache statistics
   def report_cache_stats
@@ -238,7 +236,7 @@ module GcCompactThread
 
   # Detect duplicate large strings (same content as both frozen and unfrozen)
   # This helps identify cache-related duplication issues
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity
   def report_duplicate_analysis
     # Collect large strings (>50KB) grouped by content hash
     large_by_hash = Hash.new { |h, k| h[k] = { frozen: [], unfrozen: [] } }
@@ -281,10 +279,9 @@ module GcCompactThread
                                    .first(5)
     Rails.logger.warn "GC.compact - Large string patterns: #{top_patterns.to_h}"
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity
 
   # Categorize a string by its content pattern
-  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/MethodLength
+  # rubocop:disable-next Metrics/CyclomaticComplexity, Metrics/MethodLength
   def categorize_string_content(str)
     # Classify as 'OTHER' any string whose encoding can't interoperate
     # with US-ASCII regexps (UTF-32LE, UTF-32BE, UTF-16LE, etc.).
@@ -311,9 +308,8 @@ module GcCompactThread
       'OTHER'
     end
   end
-  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/MethodLength
 
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def compact_with_logging(mem = nil)
     return unless GC.respond_to?(:compact)
 
@@ -336,7 +332,6 @@ module GcCompactThread
     report_cache_stats
     report_duplicate_analysis
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   # Return current memory use in bytes
   # The status_path parameter is primarily for testing the fallback path
@@ -433,4 +428,3 @@ module GcCompactThread
     end
   end
 end
-# rubocop:enable Metrics/ModuleLength

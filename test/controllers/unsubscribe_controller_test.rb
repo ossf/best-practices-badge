@@ -8,7 +8,7 @@ require 'test_helper'
 require 'cgi'
 
 # Security tests for UnsubscribeController
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class UnsubscribeControllerTest < ActionDispatch::IntegrationTest
   def setup
     super
@@ -453,4 +453,3 @@ class UnsubscribeControllerTest < ActionDispatch::IntegrationTest
     OpenSSL::HMAC.hexdigest('SHA256', secret_key, message)
   end
 end
-# rubocop:enable Metrics/ClassLength

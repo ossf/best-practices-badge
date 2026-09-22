@@ -11,7 +11,7 @@ module LevelConversion
   # Baseline levels map to numeric values for ordering purposes
   # @param level [String, Integer] level name or number
   # @return [Integer] numeric level for comparison
-  # rubocop:disable Lint/DuplicateBranch
+  # rubocop:disable-next Lint/DuplicateBranch
   def level_to_number(level)
     case level.to_s
     when '0', 'passing' then 0
@@ -24,5 +24,4 @@ module LevelConversion
       level.to_i # Fallback for unknown levels
     end
   end
-  # rubocop:enable Lint/DuplicateBranch
 end

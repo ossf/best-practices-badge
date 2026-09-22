@@ -4,7 +4,7 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class Criteria
   include ActiveModel::Model
   include LevelConversion # Shared level name/number conversion
@@ -116,7 +116,7 @@ class Criteria
     # Returns criteria data formatted for JavaScript consumption,
     # with locale-keyed translations merged into each criterion's fields.
     # @return [Hash] criteria hash with translated fields per available locale
-    # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
+    # rubocop:disable-next Metrics/AbcSize,Metrics/MethodLength
     def for_js
       CriteriaHash.deep_dup.each do |level, criteria_set|
         criteria_set.each do |criterion, fields|
@@ -137,7 +137,6 @@ class Criteria
         end
       end
     end
-    # rubocop:enable Metrics/AbcSize,Metrics/MethodLength
 
     # Get list of field keys for a criterion.
     # Works with both nested and flat backends.
@@ -167,9 +166,8 @@ class Criteria
     return unless I18n.exists?(key)
 
     # Descriptions only come from trusted data source, so we can safely disable
-    # rubocop:disable Rails/OutputSafety
+    # rubocop:disable-next Rails/OutputSafety
     I18n.t(key).html_safe
-    # rubocop:enable Rails/OutputSafety
   end
 
   # Returns the localized details for this criterion.
@@ -284,9 +282,8 @@ class Criteria
       t_key = "criteria.#{l}.#{name}.#{field}"
       # Disable HTML output safety. I18n translations are internal data
       # and are considered a trusted source.
-      # rubocop:disable Rails/OutputSafety
+      # rubocop:disable-next Rails/OutputSafety
       return I18n.t(t_key).html_safe if I18n.exists?(t_key)
-      # rubocop:enable Rails/OutputSafety
     end
     nil
   end
@@ -298,4 +295,3 @@ class Criteria
     level_num1 > level_num2
   end
 end
-# rubocop:enable Metrics/ClassLength

@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class RepoJsonDetectiveTest < ActiveSupport::TestCase
   # Mock for repo_files that returns JSON content
   class MockRepoFiles
@@ -265,4 +265,3 @@ class RepoJsonDetectiveTest < ActiveSupport::TestCase
     assert_equal 'Valid justification', result[:contribution_status][:explanation]
   end
 end
-# rubocop:enable Metrics/ClassLength

@@ -7,7 +7,7 @@
 require 'test_helper'
 
 # Test the section name constants defined in config/initializers/01_section_names.rb
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class SectionNamesTest < ActiveSupport::TestCase
   test 'Sections::METAL_LEVEL_NAMES contains expected canonical names' do
     assert_equal %w[passing silver gold], Sections::METAL_LEVEL_NAMES
@@ -164,4 +164,3 @@ class SectionNamesTest < ActiveSupport::TestCase
     assert_nil Sections.section_type('')
   end
 end
-# rubocop:enable Metrics/ClassLength

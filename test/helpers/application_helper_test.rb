@@ -11,11 +11,10 @@ class ApplicationHelperTest < ActionView::TestCase
   test 'cache_frozen yields block when caching disabled' do
     # Stub controller to report caching is disabled
     stub_controller = Object.new
-    # rubocop:disable Naming/PredicateMethod
+    # rubocop:disable-next Naming/PredicateMethod
     def stub_controller.perform_caching
       false
     end
-    # rubocop:enable Naming/PredicateMethod
 
     def stub_controller.respond_to?(method)
       method == :perform_caching
@@ -36,11 +35,10 @@ class ApplicationHelperTest < ActionView::TestCase
   test 'cache_frozen_if calls cache_frozen when condition is true' do
     # Stub controller to make caching disabled for simpler test
     stub_controller = Object.new
-    # rubocop:disable Naming/PredicateMethod
+    # rubocop:disable-next Naming/PredicateMethod
     def stub_controller.perform_caching
       false
     end
-    # rubocop:enable Naming/PredicateMethod
 
     def stub_controller.respond_to?(method)
       method == :perform_caching
@@ -63,11 +61,10 @@ class ApplicationHelperTest < ActionView::TestCase
   test 'cache_frozen_unless caches when condition is false' do
     # Stub controller to report caching is disabled for simpler test
     stub_controller = Object.new
-    # rubocop:disable Naming/PredicateMethod
+    # rubocop:disable-next Naming/PredicateMethod
     def stub_controller.perform_caching
       false
     end
-    # rubocop:enable Naming/PredicateMethod
 
     def stub_controller.respond_to?(method)
       method == :perform_caching

@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class LoginSessionTest < ActiveSupport::TestCase
   setup do
     @user = users(:test_user)
@@ -155,4 +155,3 @@ class LoginSessionTest < ActiveSupport::TestCase
     ENV['SESSION_ID_HMAC_KEY'] = saved
   end
 end
-# rubocop:enable Metrics/ClassLength

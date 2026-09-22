@@ -7,7 +7,7 @@
 require 'test_helper'
 require 'ipaddr'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ApplicationControllerTest < ActionDispatch::IntegrationTest
   # These are special tests for how the ApplicationController works,
   # in particular for handling IP addresses.
@@ -311,4 +311,3 @@ class ApplicationControllerTest < ActionDispatch::IntegrationTest
     Rails.env = saved_env
   end
 end
-# rubocop:enable Metrics/ClassLength

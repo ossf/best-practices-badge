@@ -15,8 +15,7 @@ class IconTest < ActiveSupport::TestCase
     result = Icon[:'fa-edit']
     assert result.present?
     assert result.length > 10
-    # rubocop: disable Rails/OutputSafety
+    # rubocop: disable-next Rails/OutputSafety
     assert_equal result, ''.html_safe + result
-    # rubocop: enable Rails/OutputSafety
   end
 end

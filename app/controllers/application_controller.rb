@@ -11,7 +11,7 @@ require 'ipaddr'
 # locale handling, HTTPS enforcement, and CDN cache configuration.
 # All other controllers inherit from this class.
 #
-# rubocop: disable Metrics/ClassLength
+# rubocop: disable-next Metrics/ClassLength
 class ApplicationController < ActionController::Base
   include Pagy::Method
 
@@ -521,7 +521,7 @@ class ApplicationController < ActionController::Base
   #
   # @param options [Hash] Additional URL options to merge
   # @return [Hash] URL options with locale included
-  # rubocop: disable Style/OptionHash
+  # rubocop: disable-next Style/OptionHash
   def default_url_options(options = {})
     # Memory optimization: avoid merge allocation when options is empty (common case)
     return { locale: I18n.locale } if options.empty?
@@ -529,7 +529,6 @@ class ApplicationController < ActionController::Base
     # Merge locale into options copy to avoid creating intermediate hash
     options.merge(locale: I18n.locale)
   end
-  # rubocop: enable Style/OptionHash
 
   # Fail if the client IP is invalid.
   # raise exception if text value client_ip isn't in valid_client_ips
@@ -692,7 +691,7 @@ class ApplicationController < ActionController::Base
   # we *did* have to do a database lookup (so we will avoid doing it twice).
   #
   # @return [void]
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def setup_authentication_state
     return if Rails.application.config.deny_login
 
@@ -740,7 +739,6 @@ class ApplicationController < ActionController::Base
     @login_session = login_session
     @session_user_token = session[:user_token]
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   # Updates session timestamp if user is logged in and timestamp is old.
   # This is called as after_action, so it runs after the controller action.
@@ -762,9 +760,8 @@ class ApplicationController < ActionController::Base
     # for this single-column, non-user-facing timestamp bump, matching
     # SessionsController#successful_login's use of update_columns for
     # last_login_at.
-    # rubocop: disable Rails/SkipsModelValidations
+    # rubocop: disable-next Rails/SkipsModelValidations
     @login_session.update_column(:last_used_at, Time.now.utc)
-    # rubocop: enable Rails/SkipsModelValidations
     @session_timestamp = @login_session.last_used_at # Update cache
   end
 
@@ -826,7 +823,7 @@ class ApplicationController < ActionController::Base
   #
   # @return [LoginSession, nil] the newly created session, or nil if the
   #   remember-me cookie is missing, invalid, or belongs to a GitHub user
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def try_remember_token_login
     cookie_user_id = cookies.signed[:user_id]
     return unless cookie_user_id
@@ -863,7 +860,6 @@ class ApplicationController < ActionController::Base
     @current_user = user
     @login_session # set by log_in itself; no re-lookup needed
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Redirects non-admin users away from an admin-only action. Usable as a
   # before_action (e.g. LoginSessionsController#index); leaves
@@ -915,7 +911,7 @@ class ApplicationController < ActionController::Base
   # @param permitted_params [ActionController::Parameters] params to stash
   # @return [String, nil] the stashed row's raw random token, or nil if
   #   there was no record to diff against or nothing actually changed
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def stash_pending_resubmission(resubmit_path, model, permitted_params)
     return if model.nil?
 
@@ -939,7 +935,6 @@ class ApplicationController < ActionController::Base
     )
     pending.raw_token
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Destroys a stashed pending resubmission once its resubmit form has
   # actually been resubmitted AND the resulting change was accepted.
@@ -1083,7 +1078,7 @@ class ApplicationController < ActionController::Base
   # @param model [ActiveRecord::Base, nil] passed through to
   #   stash_pending_resubmission to diff against
   # @return [void]
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def redirect_to_login_stashing(param_key, model)
     login_params = { return_to: scalar_param(:return_to).presence || request.original_fullpath }
     if request.patch? && params[param_key].present?
@@ -1093,8 +1088,6 @@ class ApplicationController < ActionController::Base
     flash[:warning] = t('sessions.auto_logged_out') if @auto_logged_out
     redirect_to login_path(**login_params)
   end
-  # rubocop:enable Metrics/AbcSize
 
   include SessionsHelper
 end
-# rubocop: enable Metrics/ClassLength

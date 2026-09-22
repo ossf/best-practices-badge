@@ -25,7 +25,7 @@ def status_label(val)
   }[val] || val.to_s
 end
 
-# rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+# rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
 def print_comparison(repo_name, with_si, without_si)
   si_outputs = SecurityInsightsDetective::OUTPUTS.to_set
 
@@ -67,7 +67,6 @@ def print_comparison(repo_name, with_si, without_si)
   puts "\n  LOST when SI enabled — sanity check, should be empty (#{only_without.size}):"
   only_without.each_key { |k| puts "    #{k}" }
 end
-# rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
 pool_without_si = Chief::ALL_DETECTIVES.reject { |d| d == SecurityInsightsDetective }
 

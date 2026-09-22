@@ -7,7 +7,7 @@
 require 'test_helper'
 require 'minitest/mock' # for stubbing the mailer to raise
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class RecalcTest < ActionDispatch::IntegrationTest
   include ActionMailer::TestHelper
   include ActiveJob::TestHelper
@@ -44,7 +44,7 @@ class RecalcTest < ActionDispatch::IntegrationTest
     )
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'Make sure recalc percentages only updates levels affected' do
     project = projects(:one)
     old_percentage0 = project.badge_percentage_0
@@ -85,7 +85,6 @@ class RecalcTest < ActionDispatch::IntegrationTest
       'silver badge percentage is supposed to change'
     )
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'Raises TypeError' do
     assert_raises(TypeError) { Project.update_all_badge_percentages('1') }
@@ -836,4 +835,3 @@ class RecalcTest < ActionDispatch::IntegrationTest
     end
   end
 end
-# rubocop:enable Metrics/ClassLength

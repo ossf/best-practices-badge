@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class CriteriaControllerTest < ActionDispatch::IntegrationTest
   # test "the truth" do
   #   assert true
@@ -205,4 +205,3 @@ class CriteriaControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes @response.body, 'Autofill:'
   end
 end
-# rubocop:enable Metrics/ClassLength

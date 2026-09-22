@@ -8,7 +8,7 @@ require 'application_system_test_case'
 
 include ActionView::Helpers::TextHelper
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class LoginTest < ApplicationSystemTestCase
   CHECK = /result_symbol_check/
   DASH = /result_symbol_dash/
@@ -54,7 +54,7 @@ class LoginTest < ApplicationSystemTestCase
     assert_equal login_path(locale: :en), current_path
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'Can login and edit using custom account' do
     visit projects_path(locale: :en)
     click_on 'Login'
@@ -144,7 +144,6 @@ class LoginTest < ApplicationSystemTestCase
     wait_for_page_load
     assert_match X, find('#discussion_enough')['src']
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'Can Login custom where GitHub account has same email' do
     # Make GitHub account have same email address as custom account
@@ -198,4 +197,3 @@ class LoginTest < ApplicationSystemTestCase
     assert_equal '/fr', current_path
   end
 end
-# rubocop:enable Metrics/ClassLength

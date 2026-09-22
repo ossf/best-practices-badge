@@ -77,7 +77,7 @@ module InvokeCommonmarker
   # @param content [String] The content to render as Markdown
   # @return [String] HTML-safe rendered and sanitized output
   #
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.invoke_and_sanitize(content)
     # Commonmarker releases the GVL here for thread-safe parallel execution
     # Using unsafe: false (default), so raw HTML is blocked.
@@ -116,9 +116,7 @@ module InvokeCommonmarker
     end
 
     # Mark as html_safe since Commonmarker escapes HTML and we've validated URLs
-    # rubocop:disable Rails/OutputSafety
+    # rubocop:disable-next Rails/OutputSafety
     html.html_safe
-    # rubocop:enable Rails/OutputSafety
   end
-  # rubocop:enable Metrics/MethodLength
 end

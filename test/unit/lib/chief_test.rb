@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ChiefTest < ActiveSupport::TestCase
   # Use the same field sets as production (computed from Criteria at load time).
   # Keys: '0' = passing, '1' = silver, '2' = gold, 'baseline-1', etc.
@@ -22,7 +22,7 @@ class ChiefTest < ActiveSupport::TestCase
     @sample_project[:repo_url] = "https://github.com/#{@full_name}"
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'OpenSSF badge results correct' do
     new_chief = Chief.new(@sample_project, proc { Octokit::Client.new })
     VCR.use_cassette('github') do
@@ -59,7 +59,6 @@ class ChiefTest < ActiveSupport::TestCase
     assert_equal CriterionStatus::MET, results[:osps_le_02_01_status],
                  'FlossLicenseDetective should set osps_le_02_01 for OSI license'
   end
-  # rubocop:enable Metrics/BlockLength
 
   # Create special exception that happens nowhere else.  That way if
   # a *different* exception happens we don't accidentally pass the test.
@@ -423,4 +422,3 @@ class ChiefTest < ActiveSupport::TestCase
                  project2[:contribution_status]
   end
 end
-# rubocop:enable Metrics/ClassLength

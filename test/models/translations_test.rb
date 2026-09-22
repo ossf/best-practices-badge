@@ -88,7 +88,7 @@ class TranslationsTest < ActiveSupport::TestCase
   # We pass "from" so that if there's a problem we can report exactly
   # where the problem comes from (making it easier to fix).
   # To recurse we really want kind_of?, not is_a?, so disable rubocop rule
-  # rubocop:disable Style/ClassCheck, Metrics/MethodLength
+  # rubocop:disable-next Style/ClassCheck, Metrics/MethodLength
   def check_text(translation, from)
     if translation.kind_of?(Array)
       translation.each_with_index { |i, part| check_text(part, from + [i]) }
@@ -102,7 +102,6 @@ class TranslationsTest < ActiveSupport::TestCase
              "Locale text type failure in #{from.join('.')} : #{translation}"
     end
   end
-  # rubocop:enable Style/ClassCheck, Metrics/MethodLength
 
   test 'All text values (all locales) include only acceptable HTML' do
     I18n.available_locales.each do |loc|

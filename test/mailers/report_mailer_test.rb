@@ -7,7 +7,7 @@
 require 'test_helper'
 # See http://guides.rubyonrails.org/testing.html#testing-your-mailers
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ReportMailerTest < ActionMailer::TestCase
   setup do
     @perfect_project = projects(:perfect_passing)
@@ -150,4 +150,3 @@ class ReportMailerTest < ActionMailer::TestCase
     assert_predicate email.subject, :present?
   end
 end
-# rubocop:enable Metrics/ClassLength

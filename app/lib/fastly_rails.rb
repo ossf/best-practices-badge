@@ -50,7 +50,7 @@ class FastlyRails
   # false if the purge failed (HTTP error or network exception).
   # Does not raise — callers that need to retry on failure should check
   # the return value and raise themselves (see PurgeCdnProjectJob).
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.purge_by_key(key, force = false, base = FASTLY_BASE)
     return true if !force && (FASTLY_API_KEY.blank? || FASTLY_SERVICE_ID.blank?)
 
@@ -85,9 +85,8 @@ class FastlyRails
       false
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.purge_all(force = false, base = FASTLY_BASE)
     return if !force && (FASTLY_API_KEY.blank? || FASTLY_SERVICE_ID.blank?)
 
@@ -120,7 +119,6 @@ class FastlyRails
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Log the Fastly service name returned at startup.
   # If expected_name is set (via FASTLY_SERVICE_NAME_EXPECTED), logs an error

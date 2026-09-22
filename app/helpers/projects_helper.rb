@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: MIT
 
 # Helper module providing projects view functionality.
-# rubocop:disable Metrics/ModuleLength
+# rubocop:disable-next Metrics/ModuleLength
 module ProjectsHelper
   NO_REPOS = [[], []].freeze # No forks and no originals
   EMPTY_ARRAY = [].freeze # Memory optimization for empty header returns
@@ -49,7 +49,7 @@ module ProjectsHelper
   # @param detail_body [String] Translated body text
   # @param extra_class [String, nil] Additional CSS class
   # @return [ActiveSupport::SafeBuffer] HTML for the disclosure block
-  # rubocop:disable Rails/OutputSafety
+  # rubocop:disable-next Rails/OutputSafety
   def override_detail_block(detail_body, extra_class: nil)
     css = ['override-detail-block', extra_class].compact.join(' ')
     content_tag(:details, class: css) do
@@ -60,14 +60,13 @@ module ProjectsHelper
         content_tag(:div, detail_body, class: 'override-detail-body')
     end
   end
-  # rubocop:enable Rails/OutputSafety
 
   # Builds a full-width ≠ divergent disclosure block.
   # Used by non_criteria_automation_display and _status_chooser.html.erb.
   # @param detail_body [String] Translated body text
   # @param extra_class [String, nil] Additional CSS class
   # @return [ActiveSupport::SafeBuffer] HTML for the disclosure block
-  # rubocop:disable Rails/OutputSafety
+  # rubocop:disable-next Rails/OutputSafety
   def divergent_detail_block(detail_body, extra_class: nil)
     css = ['divergent-detail-block', extra_class].compact.join(' ')
     content_tag(:details, class: css) do
@@ -78,7 +77,6 @@ module ProjectsHelper
         content_tag(:div, detail_body, class: 'divergent-detail-body')
     end
   end
-  # rubocop:enable Rails/OutputSafety
 
   # Returns [highlight_css_class, icon_html] for a non-criteria field.
   # Used by _form_basics to show yellow (automated), orange (overridden),
@@ -86,7 +84,7 @@ module ProjectsHelper
   # Returns [nil, nil] when the field was not touched by automation.
   # @param field_sym [Symbol] Non-criteria field symbol (e.g., :name, :license)
   # @return [Array(String?, ActiveSupport::SafeBuffer?)] [css_class, icon_html]
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
   def non_criteria_automation_display(field_sym)
     if (override_data = overridden_field_set[field_sym])
       old_justification_part =
@@ -135,7 +133,6 @@ module ProjectsHelper
       [nil, nil]
     end
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Convert a status integer value to its string representation.
   # @param value [Integer] Status value (0-3)
@@ -280,9 +277,8 @@ module ProjectsHelper
         criterion == minor_criteria.last
       )
     end
-    # rubocop:disable Rails/OutputSafety
+    # rubocop:disable-next Rails/OutputSafety
     results << safe_join(['</li>'.html_safe]) if wrapped
-    # rubocop:enable Rails/OutputSafety
     results
   end
 
@@ -306,15 +302,14 @@ module ProjectsHelper
     # params.merge performs the URL encoding as required, and "title" is
     # trusted (it's provided by the code, not by a potential attacker).
     # We use "nofollow" to discourage search engines from following it
-    # rubocop:disable Rails/OutputSafety
+    # rubocop:disable-next Rails/OutputSafety
     "<a href=\"#{url_for(new_params)}\" rel=\"nofollow\">#{title}</a>".html_safe
-    # rubocop:enable Rails/OutputSafety
   end
 
   # Given tiered percentage as integer value, return its string representation
   # @param value [Object] tiered percentage integer (0-300), or blank
   # @return [String, nil] localized progress string, or nil if blank
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def tiered_percent_as_string(value)
     return if value.blank?
 
@@ -329,15 +324,13 @@ module ProjectsHelper
       I18n.t 'projects.form_early.level.2'
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   # We sometimes insert <wbr> after sequences of these characters.
   WORD_BREAK_DIVIDERS = /([,_\-.]+)/
 
   # This text is considered safe, so we can directly mark it as such.
-  # rubocop:disable Rails/OutputSafety
+  # rubocop:disable-next Rails/OutputSafety
   SAFE_WORD_BREAK = '<wbr>'.html_safe
-  # rubocop:enable Rails/OutputSafety
 
   # Insert wbr (HTML word break) after _ etc. per WORD_BREAK_DIVIDERS.
   # The text is presumed to be unsafe; output is escaped HTML.
@@ -361,7 +354,7 @@ module ProjectsHelper
   # Display: OSPS-AC-03.01_status
   # @param id_str [String] baseline ID or field name in internal form
   # @return [String] baseline ID or field name in display form, or original
-  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize
   def self.compute_baseline_display_name(id_str)
     # Only convert if it looks like a baseline ID (starts with osps_)
     return id_str unless id_str.start_with?('osps_')
@@ -381,7 +374,6 @@ module ProjectsHelper
       id_str # Return original if not recognized format
     end
   end
-  # rubocop:enable Metrics/AbcSize
   private_class_method :compute_baseline_display_name
 
   # Module method: Computes internal form for a baseline ID in display form.
@@ -486,4 +478,3 @@ module ProjectsHelper
     form.radio_button(status_field, string_value, checked: checked, **)
   end
 end
-# rubocop:enable Metrics/ModuleLength

@@ -258,7 +258,7 @@ end
 # rubocop:disable Metrics/BlockLength
 desc 'Run bundle-audit - check for known vulnerabilities in dependencies'
 task bundle_audit: :no_rails do
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def bundle_audit_update_successful?
     max_retries = 4
     current_try = 0
@@ -283,7 +283,6 @@ task bundle_audit: :no_rails do
     end
     false
   end
-  # rubocop:enable Metrics/MethodLength
 
   # If SKIP_BUNDLE_AUDIT set, skip `bundle audit` to allow other checks.
   next if ENV['SKIP_BUNDLE_AUDIT']
@@ -1250,7 +1249,7 @@ task precompile: :no_rails do
   sh 'bundle exec rake assets:precompile'
 end
 
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def normalize_values(input, locale)
   # The destination locale is "locale".
   input.transform_values! do |value|
@@ -1265,9 +1264,8 @@ def normalize_values(input, locale)
     end
   end
 end
-# rubocop:enable Metrics/MethodLength
 
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def normalize_string(value, locale)
   # Remove trailing whitespace
   value.sub!(/\s+$/, '')
@@ -1305,7 +1303,6 @@ def normalize_string(value, locale)
        .gsub(%r{href="/en/}, "href=\"/#{locale}/")
        .gsub(%r{href='/en/}, "href='/#{locale}/")
 end
-# rubocop:enable Metrics/MethodLength
 
 def normalize_yaml(path)
   # Reformats with a line-width of 80, removes trailing whitespace from all
@@ -1385,9 +1382,8 @@ task fix_use_gravatar: :environment do
       # Use "update_column" so that updated_at isn't changed, and also
       # to do things more quickly.  There are no model validations that
       # can be affected setting this boolean value, so let's skip them.
-      # rubocop: disable Rails/SkipsModelValidations
+      # rubocop: disable-next Rails/SkipsModelValidations
       u.update_column(:use_gravatar, actually_exists)
-      # rubocop: enable Rails/SkipsModelValidations
     end
   end
 end
@@ -1395,7 +1391,7 @@ end
 require 'net/http'
 # Request uri, reply true if fetchable. Follow redirects 'limit' times.
 # See: https://docs.ruby-lang.org/en/2.0.0/Net/HTTP.html
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def fetchable?(uri_str, limit = 10)
   return false if limit <= 0
 
@@ -1414,7 +1410,6 @@ def fetchable?(uri_str, limit = 10)
     return false
   end
 end
-# rubocop:enable Metrics/MethodLength
 
 def link_okay?(link)
   return false if link.blank?
@@ -1446,7 +1441,7 @@ end
 
 # Recursive validate links.  "seen" refers to a set of links already seen.
 # To recurse we really want kind_of?, not is_a?, so disable rubocop rule
-# rubocop:disable Style/ClassCheck
+# rubocop:disable-next Style/ClassCheck
 def validate_links(translation, from, seen)
   if translation.kind_of?(Array)
     translation.each_with_index do |i, part|
@@ -1458,7 +1453,6 @@ def validate_links(translation, from, seen)
     validate_links_in_string(translation.to_s, from, seen)
   end
 end
-# rubocop:enable Style/ClassCheck
 
 desc 'Validate hypertext links'
 task validate_hypertext_links: :environment do
@@ -1602,7 +1596,7 @@ desc 'Rekey (change keys) of email addresses'
 task rekey: :environment do
   old_key = [ENV.fetch('EMAIL_ENCRYPTION_KEY_OLD', nil)].pack('H*')
   User.find_each do |u|
-    # rubocop:disable Style/RedundantBegin
+    # rubocop:disable-next Style/RedundantBegin
     begin
       u.rekey(old_key) # Raises exception if there's a CipherError.
       Rails.logger.info "Rekeyed email address of user id #{u.id}"
@@ -1610,7 +1604,6 @@ task rekey: :environment do
     rescue OpenSSL::Cipher::CipherError
       Rails.logger.info "Cannot rekey user #{u.id}"
     end
-    # rubocop:enable Style/RedundantBegin
   end
 end
 
@@ -1813,7 +1806,7 @@ end
 #
 
 # Yields each suspicious activated user with their decrypted email and reasons.
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def each_suspicious_activated_user
   one_year_ago = 1.year.ago
   User.where(provider: 'local', activated: true)
@@ -1830,7 +1823,6 @@ def each_suspicious_activated_user
     yield user, email, reasons
   end
 end
-# rubocop:enable Metrics/MethodLength
 
 desc 'Print suspicious activated local accounts to stdout as CSV.'
 task list_suspicious_activated_users: :environment do

@@ -7,7 +7,7 @@
 # Examine software license (already determined), expressed with SPDX,
 # to report if it's open source software (OSS) and meets OSI requirements.
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class FlossLicenseDetective < Detective
   # Individual detectives must identify their inputs, outputs
   INPUTS = [:license].freeze
@@ -135,7 +135,7 @@ class FlossLicenseDetective < Detective
   end
 
   # Individual detectives must implement "analyze"
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def analyze(_evidence, current)
     license = current[:license]
     return {} if license.blank?
@@ -183,6 +183,4 @@ class FlossLicenseDetective < Detective
       {}
     end
   end
-  # rubocop:enable Metrics/MethodLength
 end
-# rubocop:enable Metrics/ClassLength

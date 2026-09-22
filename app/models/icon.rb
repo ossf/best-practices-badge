@@ -65,9 +65,8 @@ class Icon
     # Default class.
     # Unfortunately, rubocop doesn't realize that concatenating
     # constants we define is safe.
-    # rubocop: disable Rails/OutputSafety
+    # rubocop: disable-next Rails/OutputSafety
     FA_HTML_SAFE = 'fa'.html_safe
-    # rubocop: enable Rails/OutputSafety
 
     private
 

@@ -12,7 +12,7 @@ class GithubProjectTest < ApplicationSystemTestCase
     OmniAuth.config.mock_auth[:github] = nil
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'Can Create new project via GitHub login' do
     configure_omniauth_mock('github_project') unless ENV['GITHUB_PASSWORD']
 
@@ -94,5 +94,4 @@ class GithubProjectTest < ApplicationSystemTestCase
       puts 'Revoke the app "Test BadgeApp (not for production use)".\n\n'
     end
   end
-  # rubocop:enable Metrics/BlockLength
 end

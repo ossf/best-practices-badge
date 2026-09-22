@@ -13,7 +13,7 @@ require 'json'
 # Be sure to use strings, NOT symbols, as a key when accessing JSON-parsed
 # results (because strings and symbols are distinct in basic Ruby).
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class GithubBasicDetective < Detective
   # Individual detectives must identify their inputs, outputs
   INPUTS = [:repo_url].freeze
@@ -167,4 +167,3 @@ class GithubBasicDetective < Detective
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
   # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 end
-# rubocop:enable Metrics/ClassLength

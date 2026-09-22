@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop: disable Metrics/BlockLength
+# rubocop: disable-next Metrics/BlockLength
 class UnsubscribeHelperTest < ActionView::TestCase
   test 'compute_key_array with one key' do
     key_string = 'fake_key_123'
@@ -64,4 +64,3 @@ class UnsubscribeHelperTest < ActionView::TestCase
     assert result.frozen?
   end
 end
-# rubocop: enable Metrics/BlockLength

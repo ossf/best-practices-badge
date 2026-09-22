@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ProjectsHelperTest < ActionView::TestCase
   include ProjectsHelper
 
@@ -606,7 +606,7 @@ class ProjectsHelperTest < ActionView::TestCase
   # Tests for MARKDOWN_UNNECESSARY pattern to ensure it detects
   # texts that don't need markdown processing.
   # We presume we don't use smartyquotes, so ' and " are passed through.
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'MARKDOWN_UNNECESSARY matches simple text that needs no processing' do
     simple_texts = [
       'Simple text',
@@ -667,7 +667,6 @@ class ProjectsHelperTest < ActionView::TestCase
              "Expected #{text.inspect} to match MARKDOWN_UNNECESSARY"
     end
   end
-  # rubocop:enable Metrics/BlockLength
 
   # rubocop:disable Metrics/BlockLength
   test 'MARKDOWN_UNNECESSARY rejects text requiring markdown processing' do
@@ -894,4 +893,3 @@ class ProjectsHelperTest < ActionView::TestCase
     assert_match(/detected from repo/, icon)
   end
 end
-# rubocop:enable Metrics/ClassLength

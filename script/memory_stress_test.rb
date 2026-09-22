@@ -81,7 +81,7 @@ def parse_duration(str)
 end
 
 # Format duration in human-readable form
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def format_duration(seconds)
   return '0s' if seconds.nil? || seconds <= 0
 
@@ -104,7 +104,6 @@ def format_duration(seconds)
   parts << "#{seconds.round}s" if seconds.positive? || parts.empty?
   parts.join(' ')
 end
-# rubocop:enable Metrics/MethodLength
 
 # Check if a path is valid for use in URLs
 # Must be ASCII-only and start with /
@@ -119,7 +118,7 @@ def valid_path?(path)
 end
 
 # Load paths from requested-paths-*.txt files
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def load_paths_from_files
   paths = []
   skipped = 0
@@ -149,10 +148,9 @@ def load_paths_from_files
   puts "Skipped #{skipped} invalid paths" if skipped.positive?
   paths
 end
-# rubocop:enable Metrics/MethodLength
 
 # Fetch project IDs from the server for generating additional paths
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable-next Metrics/MethodLength
 def fetch_project_ids(base_url)
   uri = URI("#{base_url}/#{LOCALES.first}/projects.json")
   response = Net::HTTP.get_response(uri)
@@ -169,7 +167,6 @@ rescue StandardError => e
   warn "Failed to fetch project IDs: #{e.message}"
   [1]
 end
-# rubocop:enable Metrics/MethodLength
 
 # Generate a random path for iteration i
 # Uses multiple locales to simulate real production traffic

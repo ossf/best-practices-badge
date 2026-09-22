@@ -11,7 +11,7 @@ require 'stringio'
 require 'minitest/mock'
 require_relative '../../lib/asset_staleness_checker'
 
-# rubocop:disable Metrics/ClassLength, Rails/TimeZone
+# rubocop:disable-next Metrics/ClassLength, Rails/TimeZone
 class AssetStalenessCheckerTest < ActiveSupport::TestCase
   def setup
     super
@@ -176,4 +176,3 @@ class AssetStalenessCheckerTest < ActiveSupport::TestCase
     assert_instance_of AssetStalenessChecker, checker
   end
 end
-# rubocop:enable Metrics/ClassLength, Rails/TimeZone

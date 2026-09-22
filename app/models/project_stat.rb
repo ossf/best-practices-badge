@@ -4,7 +4,7 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ProjectStat < ApplicationRecord
   # Percentage values that we record as statistics.
   # We only record percentage "0" for level 0 (passing),
@@ -45,7 +45,7 @@ class ProjectStat < ApplicationRecord
   # Called automatically via before_create; wraps all DB reads in a transaction
   # to ensure a consistent snapshot.
   # @return [ProjectStat] self, to support method chaining
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength, Metrics/BlockLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength, Metrics/BlockLength
   def stamp
     # Use a transaction to get values from a single consistent point in time.
     Project.transaction do
@@ -141,7 +141,6 @@ class ProjectStat < ApplicationRecord
 
     self # Return self to support method chaining
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength, Metrics/BlockLength
 
   # Return the last ProjectStat value available in the month of "date";
   # returns nil if no ProjectStat is available in that month.
@@ -171,7 +170,7 @@ class ProjectStat < ApplicationRecord
   # and percentage.
   # They aren't internationalized, since they're used in
   # system reports instead of user interaction.
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.percent_field_description(level, percentage)
     return "Bad level #{level}" if Project::LEVEL_IDS.exclude?(level.to_s)
 
@@ -189,7 +188,6 @@ class ProjectStat < ApplicationRecord
       "#{prev_name} Projects, #{percentage}%+ to #{level_name}"
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Return the name of the field for a given baseline level 1..3
   # and percentage (as an integer: 25, 50, 75, 90, or 100).
@@ -200,7 +198,7 @@ class ProjectStat < ApplicationRecord
 
   # Return human-readable name of the baseline field for a given level 1..3
   # and percentage. Not internationalized (used in system reports).
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.baseline_percent_field_description(level, percentage)
     level_i = level.to_i
     percentage_i = percentage.to_i
@@ -218,7 +216,6 @@ class ProjectStat < ApplicationRecord
       "#{prev_name} Projects, #{percentage}%+ to #{level_name}"
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   private
 
@@ -248,4 +245,3 @@ class ProjectStat < ApplicationRecord
     query.count
   end
 end
-# rubocop:enable Metrics/ClassLength

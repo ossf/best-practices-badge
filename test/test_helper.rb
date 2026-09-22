@@ -136,7 +136,7 @@ require 'uri'
 # checking.
 
 module ActiveSupport
-  # rubocop: disable Metrics/ClassLength
+  # rubocop: disable-next Metrics/ClassLength
   class TestCase
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical
     # order.
@@ -167,9 +167,8 @@ module ActiveSupport
     # between tests (e.g., when a test logs in as a user with French preference)
     def setup
       @original_locale = I18n.locale
-      # rubocop:disable Rails/I18nLocaleAssignment
+      # rubocop:disable-next Rails/I18nLocaleAssignment
       I18n.locale = :en
-      # rubocop:enable Rails/I18nLocaleAssignment
       # The projects-index count cache key is process-global and is NOT rolled
       # back with the test transaction, so clear it before each test to keep a
       # stale count from leaking between tests. (after_commit invalidation does
@@ -178,9 +177,8 @@ module ActiveSupport
     end
 
     def teardown
-      # rubocop:disable Rails/I18nLocaleAssignment
+      # rubocop:disable-next Rails/I18nLocaleAssignment
       I18n.locale = @original_locale
-      # rubocop:enable Rails/I18nLocaleAssignment
     end
 
     def configure_omniauth_mock(cassette = 'github_login')
@@ -205,7 +203,7 @@ module ActiveSupport
       File.read "test/fixtures/files/#{file_name}"
     end
 
-    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable-next Metrics/MethodLength
     def kill_sticky_headers
       # https://alisdair.mcdiarmid.org/kill-sticky-headers/
       script = <<-JAVASCRIPT_KILL_STICKY_HEADERS
@@ -221,7 +219,6 @@ module ActiveSupport
       JAVASCRIPT_KILL_STICKY_HEADERS
       execute_script script
     end
-    # rubocop:enable Metrics/MethodLength
 
     # rubocop:disable Metrics/MethodLength
     # Note: In many tests we use "password" as the password.
@@ -256,7 +253,7 @@ module ActiveSupport
     # Click a radio button and verify it becomes checked.
     # Scrolls into view first to avoid fixed headers intercepting the click.
     # Retries if the click doesn't take (a known Capybara/Selenium issue).
-    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable-next Metrics/MethodLength
     def ensure_choice(radio_button_id, wait_time: Capybara.default_max_wait_time)
       Timeout.timeout(wait_time) do
         loop do
@@ -285,7 +282,6 @@ module ActiveSupport
       raise Timeout::Error,
             "Timeout: radio button '#{radio_button_id}' never became checked"
     end
-    # rubocop:enable Metrics/MethodLength
 
     def user_logged_in?
       # Returns true if a test user is logged in.
@@ -306,7 +302,7 @@ module ActiveSupport
     # find(...), ensure_choice, clicking radio buttons, and filling in forms.
     # You should INSTEAD use wait_for_page_load after
     # a page navigation ("visit").
-    # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+    # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
     def wait_for_jquery
       Timeout.timeout(Capybara.default_max_wait_time) do
         # 1. Wait for jQuery and all AJAX requests to complete
@@ -354,7 +350,6 @@ module ActiveSupport
       raise Timeout::Error, "Timeout waiting for jQuery. jQuery defined: #{jquery_defined}, " \
                             "jQuery.active: #{jquery_active}"
     end
-    # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
     def wait_for_url(url)
       Timeout.timeout(Capybara.default_max_wait_time) do
@@ -372,7 +367,7 @@ module ActiveSupport
     # You should generally use this call after any page navigation ("visit").
     # This is more reliable than wait_for_jquery for standard form submissions
     # with redirects, as it waits for the entire page lifecycle to complete.
-    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable-next Metrics/MethodLength
     def wait_for_page_load(timeout: Capybara.default_max_wait_time * 2)
       Timeout.timeout(timeout) do
         # Wait for document.readyState to be 'complete'
@@ -409,7 +404,6 @@ module ActiveSupport
       raise Timeout::Error, 'Timeout waiting for page load. ' \
                             "readyState: #{ready_state}, jQuery.active: #{jquery_active}"
     end
-    # rubocop:enable Metrics/MethodLength
 
     private
 
@@ -466,7 +460,7 @@ module ActiveSupport
     # The problem is that assert_select fails oddly when running a global
     # "rails test" (though it works fine if running "rails test FILENAME").
     # To solve this, we re-implement assert_select so we have a working version.
-    # rubocop:disable Naming/PredicateMethod
+    # rubocop:disable-next Naming/PredicateMethod
     def my_assert_select(selector, contents)
       results = css_select(selector)
       results.each do |selection|
@@ -474,7 +468,6 @@ module ActiveSupport
       end
       false
     end
-    # rubocop:enable Naming/PredicateMethod
 
     # Assert that the current page has no form validation errors
     # This is useful in system tests to detect when forms fail validation,
@@ -497,5 +490,4 @@ module ActiveSupport
                          'Form has error alert'
     end
   end
-  # rubocop: enable Metrics/ClassLength
 end

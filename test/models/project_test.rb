@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class ProjectTest < ActiveSupport::TestCase
   setup do
     @user = users(:test_user)
@@ -62,7 +62,7 @@ class ProjectTest < ActiveSupport::TestCase
     assert_not Project.new.contains_url? 'http://nodothost'
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'Rigorous project and repo URL checker' do
     regex = UrlValidator::URL_REGEX
     my_url = 'https://github.com/ossf/best-practices-badge'
@@ -129,7 +129,6 @@ class ProjectTest < ActiveSupport::TestCase
     assert_not validator.url_acceptable?('https://github.com/linuxfoundation/' \
                                          'cii-best-practices-badge%ff%ff')
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'UTF-8 validator should refute non-UTF-8 encoding' do
     validator = TextValidator.new(attributes: %i[name description])
@@ -158,7 +157,7 @@ class ProjectTest < ActiveSupport::TestCase
     assert validator.text_acceptable?(multibyte)
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'test get_criterion_result returns correct values' do
     assert_equal(
       :criterion_url_required,
@@ -203,7 +202,6 @@ class ProjectTest < ActiveSupport::TestCase
       )
     )
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'check correct badge levels are returned' do
     assert_equal 'in_progress', @unjustified_project.badge_level
@@ -290,7 +288,7 @@ class ProjectTest < ActiveSupport::TestCase
     assert_not @unjustified_project.send(:justification_good?, nil)
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'test :skip_callbacks works as expected' do
     project_one = projects(:one)
     Project.skip_callbacks = true
@@ -322,7 +320,6 @@ class ProjectTest < ActiveSupport::TestCase
       old_percentage1
     )
   end
-  # rubocop:enable Metrics/BlockLength
 
   test 'compute_tiered_percentage works' do
     # Simple unit test of 'compute_tiered_percentage'
@@ -770,4 +767,3 @@ class ProjectTest < ActiveSupport::TestCase
     assert_not @project_built.valid?, 'Full language name should be rejected'
   end
 end
-# rubocop:enable Metrics/ClassLength

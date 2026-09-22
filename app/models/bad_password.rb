@@ -60,7 +60,7 @@ class BadPassword < ApplicationRecord
   # Loads bad passwords from compressed file and returns array of hashed records.
   # @param max [Integer, nil] maximum number of passwords to load, nil for all
   # @return [Array<Hash>] array of hashes with :forbidden_hash keys
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def self.bad_passwords_from_file(max = nil)
     require 'zlib'
     bad_password_array = []
@@ -76,7 +76,6 @@ class BadPassword < ApplicationRecord
     end
     bad_password_array
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Forces reload of bad password database from file.
   # Deletes all existing records and loads fresh data from file.
@@ -86,9 +85,8 @@ class BadPassword < ApplicationRecord
     BadPassword.delete_all
     bad_password_array = bad_passwords_from_file(max)
     # Bulk insert all records in a single SQL statement for performance
-    # rubocop:disable Rails/SkipsModelValidations
+    # rubocop:disable-next Rails/SkipsModelValidations
     BadPassword.insert_all!(bad_password_array) # No validations to skip
-    # rubocop:enable Rails/SkipsModelValidations
   end
 
   # Check if a password exists in the "bad password" database.

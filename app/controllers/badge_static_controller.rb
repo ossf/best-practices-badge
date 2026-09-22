@@ -14,7 +14,7 @@ class BadgeStaticController < ApplicationController
   skip_before_action :set_default_cache_control, only: %i[show]
   before_action :cache_on_cdn, only: %i[show]
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def show
     # Show the badge static display given a value.
     # "Value" must be 0..99, passing, silver, or gold
@@ -43,5 +43,4 @@ class BadgeStaticController < ApplicationController
     #   formats: [:html], layout: false, status: :not_found # 404
     # )
   end
-  # rubocop:enable Metrics/MethodLength
 end

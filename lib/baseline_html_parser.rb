@@ -47,7 +47,7 @@ class BaselineHtmlParser
 
   private
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def parse_control(h4_element)
     original_id = h4_element.text.strip
     return if original_id.empty?
@@ -80,7 +80,6 @@ class BaselineHtmlParser
       maturity_level: maturity_level
     }
   end
-  # rubocop:enable Metrics/MethodLength
 
   def extract_requirement(elements)
     elements.each do |el|

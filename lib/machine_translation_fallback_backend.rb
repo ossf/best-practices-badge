@@ -25,7 +25,7 @@
 # Hot path optimization: Uses frozen constants to avoid allocating new objects
 # on every method call.
 
-# rubocop:disable Style/Send, Metrics/ClassLength
+# rubocop:disable-next Style/Send, Metrics/ClassLength
 class MachineTranslationFallbackBackend < I18n::Backend::Simple
   # Pluralization keys used by I18n to select singular/plural forms.
   # Stored as a Set for O(1) membership testing.
@@ -54,7 +54,7 @@ class MachineTranslationFallbackBackend < I18n::Backend::Simple
   # @param key [String, Symbol] the translation key
   # @param options [Hash] options including :scope, :count, :default
   # @return [String, Hash, nil] the translated value or nil if not found
-  # rubocop:disable Style/OptionHash
+  # rubocop:disable-next Style/OptionHash
   def translate(locale, key, options = EMPTY_HASH)
     lookup_key = build_lookup_key(key, options[:scope])
 
@@ -67,7 +67,6 @@ class MachineTranslationFallbackBackend < I18n::Backend::Simple
 
     nil
   end
-  # rubocop:enable Style/OptionHash
 
   # Override parent's lookup to use our flat hash structure.
   # This is called by parent's translate() method.
@@ -76,24 +75,22 @@ class MachineTranslationFallbackBackend < I18n::Backend::Simple
   # @param scope [Array, nil] the scope
   # @param options [Hash] additional options (unused - parameter kept for API compatibility)
   # @return [String, Hash, nil] the value or nil if not found
-  # rubocop:disable Style/OptionHash
+  # rubocop:disable-next Style/OptionHash
   def lookup(locale, key, scope = EMPTY_ARRAY, _options = EMPTY_HASH)
     lookup_key = build_lookup_key(key, scope)
     @translations.dig(locale, lookup_key)
   end
-  # rubocop:enable Style/OptionHash
 
   # Override parent's exists? to check our flat hash structure.
   # @param locale [Symbol] the locale
   # @param key [String, Symbol] the translation key
   # @param options [Hash] options including :scope
   # @return [Boolean] true if the translation exists
-  # rubocop:disable Style/OptionHash
+  # rubocop:disable-next Style/OptionHash
   def exists?(locale, key, options = EMPTY_HASH)
     lookup_key = build_lookup_key(key, options[:scope])
     @translations.dig(locale, lookup_key).present?
   end
-  # rubocop:enable Style/OptionHash
 
   # Override parent's available_locales to return keys from our merged hash.
   # @return [Array<Symbol>] available locales
@@ -114,14 +111,13 @@ class MachineTranslationFallbackBackend < I18n::Backend::Simple
   # @param locale [Symbol] the locale
   # @param data [Hash] the nested data to store
   # @param options [Hash] options (unused - parameter kept for API compatibility)
-  # rubocop:disable Style/OptionHash
+  # rubocop:disable-next Style/OptionHash
   def store_translations(locale, data, _options = EMPTY_HASH)
     return unless data.is_a?(Hash)
 
     @translations[locale] ||= {}
     store_nested(locale, data, '')
   end
-  # rubocop:enable Style/OptionHash
 
   # Return the merged flat translations hash.
   # Note: This returns flat format {"dotted.key" => value}, not nested.
@@ -379,4 +375,3 @@ class MachineTranslationFallbackBackend < I18n::Backend::Simple
     end
   end
 end
-# rubocop:enable Style/Send, Metrics/ClassLength

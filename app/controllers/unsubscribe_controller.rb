@@ -26,7 +26,7 @@ class UnsubscribeController < ApplicationController
 
   # POST /unsubscribe
   # Process the unsubscribe request
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def create
     # Extract params once to avoid multiple hash lookups
     @email = params[:email]
@@ -51,11 +51,10 @@ class UnsubscribeController < ApplicationController
     # Security: Use safe database queries with parameterized statements
     # Note: update_all is safe here since we're only updating a simple boolean field
     # and we've already validated all inputs above
-    # rubocop:disable Rails/SkipsModelValidations
+    # rubocop:disable-next Rails/SkipsModelValidations
     updated_count = User.where(email: @email, notification_emails: true)
                         .update_all(notification_emails: false,
                                     updated_at: Time.current)
-    # rubocop:enable Rails/SkipsModelValidations
 
     if updated_count.zero?
       flash.now[:error] = t('unsubscribe.no_matching_accounts')
@@ -71,13 +70,12 @@ class UnsubscribeController < ApplicationController
 
     redirect_to root_path
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   private
 
   # Security: Validate all unsubscribe parameters
   # Uses instance variables @email, @issued, @token set by calling methods
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def validate_unsubscribe_params?
     # Step 1: Check for required parameters
     if @email.blank? || @issued.blank? || @token.blank?
@@ -105,5 +103,4 @@ class UnsubscribeController < ApplicationController
 
     true
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 end

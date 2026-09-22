@@ -56,7 +56,7 @@
 #   No SQL is constructed from SI data. The explanation/justification string
 #   is stored in a plain text column and rendered through Rails ERB templates,
 #   which auto-escape HTML by default.
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class SecurityInsightsDetective < Detective
   # Maximum size of a security-insights file we will fetch and parse.
   # 100 KB is generous; real files are typically a few kilobytes.
@@ -376,4 +376,3 @@ class SecurityInsightsDetective < Detective
     parent.is_a?(Hash) ? parent['comment'] : nil
   end
 end
-# rubocop:enable Metrics/ClassLength

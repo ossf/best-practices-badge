@@ -90,12 +90,11 @@ module InvokeRedcarpet
   # `rake test:coverage_gaps`. Moving the `{` back onto its own line brings
   # the phantom straight back - which is exactly what the cop disabled here
   # would do, so it must stay disabled.
-  # rubocop:disable Layout/FirstHashElementLineBreak
+  # rubocop:disable-next Layout/FirstHashElementLineBreak
   REDCARPET_MARKDOWN_RENDERER_OPTS = { filter_html: true, no_images: true,
                                        no_styles: true,
                                        safe_links_only: true,
                                        link_attributes: LINK_ATTRS }.freeze
-  # rubocop:enable Layout/FirstHashElementLineBreak
 
   REDCARPET_MARKDOWN_PROCESSOR_OPTS = {
     no_intra_emphasis: true, autolink: true,
@@ -122,7 +121,7 @@ module InvokeRedcarpet
   # @param current_content [String] The content being rendered when error occurred
   # @param previous_content [String, nil] The previously rendered content
   # @return [void]
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def self.log_render_error(exception, current_content)
     Rails.logger.error(
       "Redcarpet render failed: #{exception.class} - #{exception.message}"
@@ -135,7 +134,6 @@ module InvokeRedcarpet
 
     Rails.logger.error("Redcarpet backtrace: #{exception.backtrace.first(10).join("\n  ")}")
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   # Create a new markdown processor for our current thread, along with
   # its associated render object, and store it

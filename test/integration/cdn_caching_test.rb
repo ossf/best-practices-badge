@@ -5,7 +5,7 @@
 
 require 'test_helper'
 
-# rubocop:disable Metrics/ClassLength
+# rubocop:disable-next Metrics/ClassLength
 class CdnCachingTest < ActionDispatch::IntegrationTest
   include ActiveJob::TestHelper
 
@@ -318,4 +318,3 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
     assert_nil response.headers['Surrogate-Control']
   end
 end
-# rubocop:enable Metrics/ClassLength

@@ -15,7 +15,7 @@ class GithubBasicDetectiveTest < ActiveSupport::TestCase
     @repo_url = "https://github.com/#{@full_name}"
   end
 
-  # rubocop:disable Metrics/BlockLength
+  # rubocop:disable-next Metrics/BlockLength
   test 'Mocked GitHub retrieves name, description (no emojis), and license' do
     VCR.use_cassette('unit_test_github_basic_detective') do
       detective = GithubBasicDetective.new
@@ -66,5 +66,4 @@ class GithubBasicDetectiveTest < ActiveSupport::TestCase
       # rubocop:enable Style/HashSyntax
     end
   end
-  # rubocop:enable Metrics/BlockLength
 end

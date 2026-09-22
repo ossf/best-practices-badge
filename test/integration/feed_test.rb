@@ -46,8 +46,7 @@ class FeedTest < ActionDispatch::IntegrationTest
     # Attempt to parse it as XML to verify if it's well-formed.
     # It might not be valid XML, but we'd need a schema definition to check.
     # Disable Rubocop check - rubocop is very confused by this.
-    # rubocop:disable Style/SymbolProc
+    # rubocop:disable-next Style/SymbolProc
     _result = Nokogiri::XML(response.body) { |config| config.strict }
-    # rubocop:enable Style/SymbolProc
   end
 end
