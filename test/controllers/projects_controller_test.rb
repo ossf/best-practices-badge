@@ -1472,7 +1472,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @user2.id, logged_in_user_id
     new_repo_url = @project.repo_url + '_new'
     patch "/en/projects/#{@project_two.id}", params: {
-      project: { repo_url:  new_repo_url }
+      project: { repo_url: new_repo_url }
     }
     # Check for success
     @project_two.reload
@@ -1481,7 +1481,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     # Now let's do it again. *This* should fail, it's too soon.
     second_repo_url = new_repo_url + '_second'
     patch "/en/projects/#{@project_two.id}", params: {
-      project: { repo_url:  second_repo_url }
+      project: { repo_url: second_repo_url }
     }
     # Ensure the second attempt failed.
     assert_not_empty flash
