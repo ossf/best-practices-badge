@@ -103,11 +103,13 @@ sudo snap install chromium
 ~~~~
 
 `test/application_system_test_case.rb` auto-detects this: on arm64 Linux,
-if `SE_CHROMEDRIVER` isn't already set, it points Selenium at
-`/snap/bin/chromium.chromedriver` itself, so it never tries (and fails)
-to resolve one another way. There's nothing to configure once the snap
-above is installed, and system tests fail immediately with a clear
-message if it isn't. Set `SE_CHROMEDRIVER` yourself only if you installed
+if `SE_CHROMEDRIVER` isn't already set, it points Selenium at a
+`chromedriver` on your `PATH` (e.g., from your distribution's Chromium
+driver package), else at the Chromium snap's (under `/snap/bin` or
+`/var/lib/snapd/snap/bin`), so it never tries (and fails) to resolve one
+another way. There's nothing to configure once one of those is
+installed, and system tests fail immediately with a clear message if
+neither is. Set `SE_CHROMEDRIVER` yourself only if you installed
 the snap somewhere nonstandard, or want a different chromedriver; add it
 to your shell init file so it persists: `~/.bash_aliases` if your
 `~/.bashrc` sources it (Ubuntu's default one does), otherwise `~/.bashrc`
@@ -119,6 +121,22 @@ export SE_CHROMEDRIVER=/snap/bin/chromium.chromedriver
 
 `SE_CHROMEDRIVER` is read directly by the `selenium-webdriver` gem, and
 takes precedence over the auto-detection above.
+
+If you run the tests inside a Landlock-based sandbox such as
+[nono](https://nono.sh/) (e.g., to confine an AI coding agent), the
+snap's launcher can't start at all: it relies on file capabilities, and
+Landlock's `no_new_privs` means the kernel never grants them. The
+auto-detection handles this too: if the test process has `no_new_privs`
+set (`NoNewPrivs: 1` in `/proc/self/status`) and the Chromium snap is
+installed, it uses `script/snap-chromedriver` and `script/snap-chromium`,
+which run the snap's chromedriver and browser binaries directly without
+snap's launcher. It does this without consulting `PATH`, since a
+`chromedriver` there may just be a shim that runs the snap. An explicit
+`SE_CHROMEDRIVER` is used as-is unless it's the snap's launcher; without
+`no_new_privs`, nothing changes. The sandbox must grant
+read-only access to `/snap` (or `/var/lib/snapd/snap`), `/etc/fonts`, and
+`/sys`; nothing else, and in particular no access to snapd's state or your
+real browser profile.
 
 **Don't also set a `CHROME_BINARY` pointing at `/snap/bin/chromium`.** That
 path is a symlink to `/usr/bin/snap`, which re-enters snap's privileged

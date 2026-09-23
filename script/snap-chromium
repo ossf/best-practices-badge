@@ -1,0 +1,105 @@
+#!/bin/sh
+# Copyright the OpenSSF Best Practices badge contributors
+# SPDX-License-Identifier: MIT
+
+# Run the Chromium snap's chrome, or its chromedriver when invoked as
+# snap-chromedriver (a symlink to this script), *without* snap's launcher.
+#
+# Why: /snap/bin/chromium* run snap-confine, which needs file capabilities
+# (cap_sys_admin etc.) to build the snap's mount namespace. Inside a
+# Landlock sandbox such as nono, no_new_privs is set, so the kernel never
+# grants them and the snap can't start at all; no filesystem grant fixes
+# that. The binaries themselves are ordinary ELF files, though. We run
+# them directly with the host's loader and glibc (newer than the snap's
+# core24 base, so backward compatible), plus the libraries the snap would
+# have mounted in: its own and those of its GNOME and GPU content snaps.
+#
+# test/application_system_test_case.rb selects this only under
+# no_new_privs. A sandbox needs read access to /snap, /etc/fonts, and
+# /sys for this to work; see docs/INSTALL.md.
+#
+# Limitation: the host's glibc must be at least as new as the snap base's
+# (core24 has 2.39). On older hosts the loader fails with an explicit
+# "GLIBC_2.39 not found" error.
+
+set -eu
+
+# Debian and Ubuntu mount snaps at /snap, Fedora and Arch at
+# /var/lib/snapd/snap. Inside a snap, paths use the base's (Ubuntu's)
+# layout on every distro, e.g., usr/lib/aarch64-linux-gnu.
+# We test by actually reading: "[ -r ]" uses access(2), which Landlock
+# doesn't restrict, so it can claim a file is readable when it isn't.
+S=
+for mnt in /snap /var/lib/snapd/snap; do
+  if head -c 1 "$mnt/chromium/current/meta/snap.yaml" >/dev/null 2>&1; then
+    S="$mnt/chromium/current"
+    break
+  fi
+done
+if [ -z "$S" ]; then
+  echo "$0: can't read the chromium snap under /snap or" \
+    "/var/lib/snapd/snap; is it installed, and can this sandbox read" \
+    "that directory?" >&2
+  exit 1
+fi
+bindir="$S/usr/lib/chromium-browser"
+
+A="$(uname -m)-linux-gnu"
+libs="$bindir:$S/usr/lib/$A:$S/lib/$A"
+# The snap mounts its GNOME platform and GPU (mesa) content snaps at
+# $SNAP/gnome-platform and $SNAP/gpu-<base>. Read which snaps provide them
+# instead of hard-coding names that change with each new base. Snap names
+# can't contain whitespace, so word splitting is safe.
+# shellcheck disable=SC2013
+for provider in $(awk '
+    /^ *target:/ { target = $2 }
+    /^ *default-provider:/ {
+      if (target ~ /\/(gnome-platform|gpu-[0-9]+)$/) {
+        sub(/:.*/, "", $2); print $2
+      }
+    }' "$S/meta/snap.yaml"); do
+  libs="$libs:$mnt/$provider/current/usr/lib/$A"
+done
+LD_LIBRARY_PATH="$libs${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export LD_LIBRARY_PATH
+
+# Map our name to the program's file name in the Chromium snap's $bindir.
+# Those names are fixed by the snap's layout, not by the host (which may
+# also have, e.g., google-chrome installed; we never run that).
+case "$(basename "$0")" in
+  snap-chromedriver) program=chromedriver ;;
+  snap-chromium) program=chrome ;;
+  *)
+    echo "$0: invoke as snap-chromium or snap-chromedriver" >&2
+    exit 1
+    ;;
+esac
+
+# The rest applies to both programs. Chromedriver passes its environment
+# to the chrome it starts, and it silently ignores flags it doesn't know,
+# so we don't need separate cases.
+
+# Keep GTK settings in memory instead of writing /run/user/<uid>/dconf
+# (otherwise chrome prints dconf-CRITICAL warnings), and keep crash
+# reports and caches out of the real ~/.config/chromium and ~/.cache
+# (which may hold a real browser profile). A strict sandbox would deny
+# those writes anyway, but this wrapper runs under any sandbox that sets
+# no_new_privs, and a looser one might allow them.
+export GSETTINGS_BACKEND=memory
+state="${TMPDIR:-/tmp}/snap-chromium-$(id -u)"
+mkdir -p "$state"
+export XDG_CONFIG_HOME="$state/config" XDG_CACHE_HOME="$state/cache"
+
+# --no-sandbox: Chrome's own sandbox needs a setuid helper, which
+# no_new_privs disables; the outer sandbox confines it instead.
+# --disable-dev-shm-usage: sandboxes often deny /dev/shm, since all the
+# user's processes share it. Both programs then fail to create shared
+# memory: chrome crashes, and chromedriver's requests to chrome fail, so
+# it retries until the session times out (a hang, not an error). With
+# this flag they use $TMPDIR instead. test/application_system_test_case.rb
+# also passes both flags to chrome, but nothing passes them to
+# chromedriver, so we need them here too.
+# Chrome still collects GPU info through libpci, which exit()s the whole
+# process if it can't read /sys/bus/pci; that's why a sandbox must grant
+# /sys read access.
+exec "$bindir/$program" --no-sandbox --disable-dev-shm-usage "$@"
