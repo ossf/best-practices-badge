@@ -347,7 +347,7 @@ using GitHub's usual algorithm:
 2. Remove everything except Unicode alphanumerics, hyphens, and spaces.
 3. Convert spaces to hyphens.
 4. Collapse multiple adjacent hyphens into one hyphen.
-4. Remove leading and trailing hyphens.
+5. Remove leading and trailing hyphens.
 
 ## Mapping SACM diagram symbols to mermaid
 

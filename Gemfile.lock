@@ -257,12 +257,13 @@ GEM
       net-smtp
     marcel (1.2.1)
     matrix (0.4.3)
-    mdl (0.13.0)
-      kramdown (~> 2.3)
+    mdl (0.18.1)
+      kramdown (~> 2.5)
       kramdown-parser-gfm (~> 1.1)
-      mixlib-cli (~> 2.1, >= 2.1.1)
-      mixlib-config (>= 2.2.1, < 4)
+      mixlib-cli
+      mixlib-config
       mixlib-shellout
+      uri
     memory_profiler (1.1.0)
     method_source (1.1.0)
     mini_mime (1.1.5)
@@ -638,7 +639,7 @@ DEPENDENCIES
   json (~> 2.16)
   lograge (~> 0.12)
   mail (~> 2.7)
-  mdl (= 0.13.0)
+  mdl (= 0.18.1)
   memory_profiler (~> 1.1.0)
   minitest (< 6.0)
   minitest-reporters (< 1.9.0)
@@ -795,7 +796,7 @@ CHECKSUMS
   mail (2.9.1) sha256=06574eca475253d6c18145dd70af80d0eb970182d55053497c5f4d797ea160e8
   marcel (1.2.1) sha256=1678e9360e32f9eafa917c80029e2f6d10b2715c66a4b87b6d0da9b9cd1f859f
   matrix (0.4.3) sha256=a0d5ab7ddcc1973ff690ab361b67f359acbb16958d1dc072b8b956a286564c5b
-  mdl (0.13.0) sha256=207a5e26a4c4e19095b39be0201834a69d31d838982a57eba343918dba1c86a8
+  mdl (0.18.1) sha256=14c7ab8264bbeac4010bd54adb5d125cf1d29b3848c3b6bfacb239b8bc70037a
   memory_profiler (1.1.0) sha256=79a17df7980a140c83c469785905409d3027ca614c42c086089d128b805aa8f8
   method_source (1.1.0) sha256=181301c9c45b731b4769bc81e8860e72f9161ad7d66dd99103c9ab84f560f5c5
   mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef

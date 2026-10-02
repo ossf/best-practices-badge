@@ -18,8 +18,8 @@ Like all plans, we will need to make adjustments as we go. The purpose of creati
 5. [Phase 3: Full Baseline-1 Support](#phase-3-full-baseline-1-support)
 6. [Phase 4: Baseline Badge Images](#phase-4-baseline-badge-images)
 7. [Phase 5: Baseline-2 and Baseline-3](#phase-5-baseline-2-and-baseline-3)
-9. [Phase 6: Translation Support](#phase-7-translation-support)
-8. [Phase 7: Trivial Automation](#phase-6-automation)
+8. [Phase 6: Translation Support](#phase-6-translation-support)
+9. [Phase 7: Trivial Automation](#phase-7-trivial-automation)
 10. [Phase 8: Project Search and Filtering](#phase-8-project-search-and-filtering)
 
 ### Supporting Information

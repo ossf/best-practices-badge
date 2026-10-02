@@ -183,7 +183,7 @@ group :development, :test do
   gem 'dotenv', '~> 3.0' # Load env vars from .env files into Rails ENV
   gem 'eslintrb' # Linter for JavaScript code.
   gem 'json', '~> 2.16' # Process JSON format
-  gem 'mdl', '0.13.0' # Markdownlint - linter for markdown format
+  gem 'mdl', '0.18.1' # Markdownlint - linter for markdown format
   # Removed pronto gems - comprehensive linting now handled by rake default
   gem 'rails_best_practices', '~> 1.23', require: false # Code quality
   # gem 'railroader', '4.3.8' # Security static analyzer. OSS fork of Brakeman
