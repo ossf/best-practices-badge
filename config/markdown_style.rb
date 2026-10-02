@@ -24,7 +24,15 @@ exclude_rule 'MD004'
 exclude_rule 'MD007'
 exclude_rule 'MD024' # Duplicate headers are okay, e.g., "Added"
 exclude_rule 'MD026'
-rule 'MD029', style: 'ordered'
+# Exclude MD029 (ordered list item prefix). MD029 forbids number
+# continuation with the use of the *real* number identifiers.
+# Yet that is absurdly overconstraining. We often use number continuation,
+# that is, we often continue a list's numbering across intervening
+# text or headings, as having unique number ids is valuable.
+# CommonMark (and so GitHub) support number continuation;
+# a list starts at its first # item's number, e.g., a list
+# beginning "3." renders as <ol start="3">.
+exclude_rule 'MD029'
 exclude_rule 'MD030'
 # We include rule MD032, which requires that
 # lists be surrounded by blank lines (MD032).

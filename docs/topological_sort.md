@@ -25,9 +25,7 @@ Kahn's algorithm (lines 206-222)
 The algorithm:
 
 1. Starts with all detectives that have zero dependencies (no_dependencies
-
-queue)
-
+   queue)
 2. Pops one off, adds it to sorted
 3. Removes that detective from every other detective's dependency set
 4. When a dependency set becomes empty, adds that detective to the queue
