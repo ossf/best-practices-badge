@@ -67,7 +67,7 @@ ruby File.read('.ruby-version').strip
 # Loading only what we use reduces memory use & attack surface.
 # gem 'actioncable' # Not used. Client/server comm channel.
 # gem 'activestorage' # Not used. Attaches cloud files to ActiveRecord.
-gem 'actionmailer', '~> 8.1.1' # Rails. Send email.
+gem 'actionmailer', '~> 8.1.4' # Rails. Send email.
 gem 'actionpack', '~> 8.1.1' # Rails. MVC framework.
 gem 'actionview', '~> 8.1.1' # Rails. View.
 gem 'activejob', '~> 8.1.1' # Rails. Async jobs.
