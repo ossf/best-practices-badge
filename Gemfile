@@ -99,7 +99,7 @@ gem 'jbuilder', '~> 2.11' # Template mechanism for JSON format results
 gem 'jquery-rails', '~> 4.4' # JavaScript jQuery library (for Rails)
 # We once used 'jquery-ui-rails', JavaScript jQueryUI library (for Rails),
 # for jquery-ui/autocomplete (a polyfill for missing functionality in Safari).
-gem 'lograge', '~> 0.12' # Simplify logs
+gem 'lograge', '~> 0.15' # Simplify logs
 gem 'mail', '~> 2.7' # Ruby mail handler
 #
 # Specially pin multi_json because of an incompatibility with sawyer.
