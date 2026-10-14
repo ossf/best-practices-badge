@@ -94,7 +94,7 @@ GEM
       encryptor (~> 3.0.0)
     auth-sanitizer (0.2.3)
       version_gem (~> 1.1, >= 1.1.14)
-    autoprefixer-rails (10.4.21.0)
+    autoprefixer-rails (10.6.1.0)
       execjs (~> 2)
     awesome_print (1.9.2)
     base64 (0.3.0)
@@ -344,7 +344,7 @@ GEM
       actionpack (>= 4.2)
       omniauth (~> 2.0)
     ostruct (0.6.3)
-    pagy (43.6.3)
+    pagy (43.7.0)
       json
       uri
       yaml
@@ -352,17 +352,17 @@ GEM
     paper_trail (17.0.0)
       activerecord (>= 7.1)
       request_store (~> 1.4)
-    parallel (2.2.0)
+    parallel (2.3.0)
     parser (3.3.12.0)
       ast (~> 2.4.1)
       racc
-    pg (1.6.3)
-    pg (1.6.3-aarch64-linux)
-    pg (1.6.3-aarch64-linux-musl)
-    pg (1.6.3-arm64-darwin)
-    pg (1.6.3-x86_64-darwin)
-    pg (1.6.3-x86_64-linux)
-    pg (1.6.3-x86_64-linux-musl)
+    pg (1.7.0)
+    pg (1.7.0-aarch64-linux)
+    pg (1.7.0-aarch64-linux-musl)
+    pg (1.7.0-arm64-darwin)
+    pg (1.7.0-x86_64-darwin)
+    pg (1.7.0-x86_64-linux)
+    pg (1.7.0-x86_64-linux-musl)
     pg_search (2.4.0)
       activerecord (>= 8.0)
       activesupport (>= 8.0)
@@ -515,10 +515,9 @@ GEM
     secure_headers (7.3.0)
       cgi (>= 0.1)
     securerandom (0.4.1)
-    selenium-webdriver (4.49.0)
+    selenium-webdriver (4.50.0)
       base64 (~> 0.2)
       logger (~> 1.4)
-      rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
     sentry-rails (6.7.0)
@@ -567,7 +566,7 @@ GEM
       unicode-emoji (~> 4.3)
     unicode-emoji (4.3.0)
     uniform_notifier (1.18.0)
-    uri (1.1.1)
+    uri (1.1.2)
     useragent (0.16.11)
     vcr (5.0.0)
     version_gem (1.1.15)
@@ -649,10 +648,10 @@ DEPENDENCIES
   omniauth-github (~> 2.0)
   omniauth-rails_csrf_protection (~> 2.0)
   ostruct
-  pagy (~> 43.6)
+  pagy (~> 43.7)
   paleta (~> 0.3)
   paper_trail (~> 17.0)
-  pg (~> 1.4)
+  pg (~> 1.7)
   pg_search (~> 2.4)
   pry-byebug
   puma (~> 8.0)
@@ -709,7 +708,7 @@ CHECKSUMS
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
   attr_encrypted (4.2.0) sha256=7e5c80159e6e38ed40dc4e2e65c4f57234fe1f376bddc40c8b773bfb9b81ad51
   auth-sanitizer (0.2.3) sha256=db10aac92cfbe4c64ab637eebcbe1d67395d1694798041362173370f59933e3c
-  autoprefixer-rails (10.4.21.0) sha256=71b48caf850fc25275abd96f0b1fdd51c82e1c9b99cd30085cacb05da9c70235
+  autoprefixer-rails (10.6.1.0) sha256=85107de290831d4fa5bf77c0ccf2e4b4988f801f55ab9c24320d98a25ba7216f
   awesome_print (1.9.2) sha256=e99b32b704acff16d768b3468680793ced40bfdc4537eb07e06a4be11133786e
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   bcrypt (3.1.22) sha256=1f0072e88c2d705d94aff7f2c5cb02eb3f1ec4b8368671e19112527489f29032
@@ -832,18 +831,18 @@ CHECKSUMS
   omniauth-oauth2 (1.9.0) sha256=ed15f6d9d20991807ce114cc5b9c1453bce3645b64e51c68c90cff5ff153fee8
   omniauth-rails_csrf_protection (2.0.1) sha256=c6e3204d7e3925bb537cb52d50fdfc9f05293f1a9d87c5d4ab4ca3a39ba8c32d
   ostruct (0.6.3) sha256=95a2ed4a4bd1d190784e666b47b2d3f078e4a9efda2fccf18f84ddc6538ed912
-  pagy (43.6.3) sha256=3b7cd5b5b08e975b85cb48c1e7b729d90125a46c9ac14bd830fde1a8c6719a85
+  pagy (43.7.0) sha256=877fd7f531eeb7a406b8046dfafb81b499e2b4352c976ce116e0a4909e82fd3d
   paleta (0.3.0) sha256=1a8745f0a9097c1e0df60336dda096bc1411185e7b6ed65f21a0b6523fd955f2
   paper_trail (17.0.0) sha256=1c2842061d3874ca7015908e821e2aa14f9b982af2acb2a7974713bf79021c85
-  parallel (2.2.0) sha256=e1059c5fd7b649558a0aec38a769f06a42942bdb40503d005a59c352fe011cd8
+  parallel (2.3.0) sha256=f75a3e904101ce6a1ccb6b8dc800cbafd42166d83330192438dcf29395167a6f
   parser (3.3.12.0) sha256=21a6d7f755d5a24dfbdc6e6b772e4e879a52e7631a88bc5a3a134606052c9828
-  pg (1.6.3) sha256=1388d0563e13d2758c1089e35e973a3249e955c659592d10e5b77c468f628a99
-  pg (1.6.3-aarch64-linux) sha256=0698ad563e02383c27510b76bf7d4cd2de19cd1d16a5013f375dd473e4be72ea
-  pg (1.6.3-aarch64-linux-musl) sha256=06a75f4ea04b05140146f2a10550b8e0d9f006a79cdaf8b5b130cde40e3ecc2c
-  pg (1.6.3-arm64-darwin) sha256=7240330b572e6355d7c75a7de535edb5dfcbd6295d9c7777df4d9dddfb8c0e5f
-  pg (1.6.3-x86_64-darwin) sha256=ee2e04a17c0627225054ffeb43e31a95be9d7e93abda2737ea3ce4a62f2729d6
-  pg (1.6.3-x86_64-linux) sha256=5d9e188c8f7a0295d162b7b88a768d8452a899977d44f3274d1946d67920ae8d
-  pg (1.6.3-x86_64-linux-musl) sha256=9c9c90d98c72f78eb04c0f55e9618fe55d1512128e411035fe229ff427864009
+  pg (1.7.0) sha256=f7b536501284e883d4c9ef86dbde0313063e4aaafc23575b0017b0d572a26afb
+  pg (1.7.0-aarch64-linux) sha256=101dd3a261000eb64b03ff41a5890674b735b626dbdce88652969b59fb0b1157
+  pg (1.7.0-aarch64-linux-musl) sha256=5ca4d4619a1a39fb22de47350130956ece69cf0512858ee68dca926e46f65e4a
+  pg (1.7.0-arm64-darwin) sha256=9fa895bbe28bdd579b83ccc80464c01d1015ea7549a7919134c9f8f10c060e4b
+  pg (1.7.0-x86_64-darwin) sha256=7b726ba6eab8b143fb803d3b4173b0a3e4b0b032025032212f90d436785022db
+  pg (1.7.0-x86_64-linux) sha256=d0a24f448b3c874c8b2658d4efbbbefce7315c228ede84f6f6f42089d1d704b6
+  pg (1.7.0-x86_64-linux-musl) sha256=0c9bc93b6e0aca2a5b07daef00b7ec4f9882bfe21ef3872b4371f8ecffe1f1e1
   pg_search (2.4.0) sha256=8b0b518aad9d0dcb507f7de35c0145d495c0dbe3c6e0babeeb3b226b5981ccaf
   pp (0.6.4) sha256=dfcb0fce700c41456265922884f9fe195d7fbb0674a3578e6c0f69588e82b570
   prettyprint (0.2.0) sha256=2bc9e15581a94742064a3cc8b0fb9d45aae3d03a1baa6ef80922627a0766f193
@@ -896,7 +895,7 @@ CHECKSUMS
   scout_apm (6.3.1) sha256=61f79ba5af6ebce7efbfd19e0312b9ec9186517ebe355efa914f461c6b508a80
   secure_headers (7.3.0) sha256=fd48af867e00d016edf8a64a179ae45253c1a2d5f7d8ba75e248440cfb2a0c00
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
-  selenium-webdriver (4.49.0) sha256=b430f091a3cababb356b6f6132e0e4f385b017819355f563557e1537819edc89
+  selenium-webdriver (4.50.0) sha256=d12f94025bc33af44428ed6b8def4896a7bb9c4521212579241650d6cb060fcb
   sentry-rails (6.7.0) sha256=d295dc5aa239eb91d4fb123c55d9ff2d3c40e7c29921539c5b4ae684b1490293
   sentry-ruby (6.7.0) sha256=b4b915d79a0395ad02106d4012aa1914641456e042ce36393f15bd1630d8db42
   sexp_processor (4.17.6) sha256=3c5d0e9db06377abde06db51dbacb14ce239ed0bd038ae515bc42c81602c6c1f
@@ -920,7 +919,7 @@ CHECKSUMS
   unicode-display_width (3.3.0) sha256=4b7aa66a4b11db50f6f7e98411215cd0dd10eaecb665d36eec5bcacb3fa0b613
   unicode-emoji (4.3.0) sha256=11c02fa73290378c066bb0562cd4c87d8e1b706fbbe0059ca12746a4244de8ce
   uniform_notifier (1.18.0) sha256=4787785556f66f6418486da0f1d78b3239aaff98e2e7938fb05e2062b0ffce9d
-  uri (1.1.1) sha256=379fa58d27ffb1387eaada68c749d1426738bd0f654d812fcc07e7568f5c57c6
+  uri (1.1.2) sha256=89292e98eabbef6248b0a0ed5e7e398e152f83f17560023a6d94a7f492b169fb
   useragent (0.16.11) sha256=700e6413ad4bb954bb63547fa098dddf7b0ebe75b40cc6f93b8d54255b173844
   vcr (5.0.0) sha256=347b834a7b78b98d4eae8c67b352d9fb7524892daccf3bcc23ffbe75f7ba00f1
   version_gem (1.1.15) sha256=a73241587b29252e3567e0c818ded80730eb754d43b508f6ce4db22ca9ba27d0
