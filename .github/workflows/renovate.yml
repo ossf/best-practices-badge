@@ -80,7 +80,7 @@ jobs:
       - name: Renovate
         # Pin to commit SHA to prevent supply chain attacks via tag mutation.
         # Verify: curl -s https://api.github.com/repos/renovatebot/github-action/git/ref/tags/v46.2.1
-        uses: renovatebot/github-action@a63d9a7bc606f7336fd20b47f2f32259a35e6213 # v46.3.9
+        uses: renovatebot/github-action@2804199d260ad00c1fae0e9e842888369391c776 # v46.3.10
         with:
           # Deliberately no "configurationFile". That input sets
           # Renovate's GLOBAL config, which is a different layer: it
