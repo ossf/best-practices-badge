@@ -2414,10 +2414,12 @@ a cryptographically-strong random number generator. The `email` field
 uses deterministic encryption so matching addresses can be queried.
 
 The application configures Rails encryption with
-`EMAIL_ENCRYPTION_KEY` as its primary key and
-`EMAIL_BLIND_INDEX_KEY` as both its deterministic key and key-derivation
-salt. Despite its legacy name, `EMAIL_BLIND_INDEX_KEY` is not used to
-create a blind index; deterministic encryption supports the email lookup.
+`EMAIL_ENCRYPTION_KEY` as its primary key, and derives its deterministic
+key from `EMAIL_ENCRYPTION_KEY` with HMAC-SHA256, so holding only
+`EMAIL_BLIND_INDEX_KEY` is not enough to decrypt any email address.
+`EMAIL_BLIND_INDEX_KEY` is the key-derivation salt. Despite its legacy
+name, it is not used to create a blind index; deterministic encryption
+supports the email lookup.
 Both environment variables contain 256-bit values encoded as 64
 hexadecimal digits.
 
