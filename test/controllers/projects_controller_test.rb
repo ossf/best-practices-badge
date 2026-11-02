@@ -1558,6 +1558,13 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to '/en/projects?status=passing'
   end
 
+  test 'should not redirect off-site when the path starts with extra slashes' do
+    # Addressable parses '////en/projects' as an empty host and the path
+    # '//en/projects', which a browser would follow to the host 'en'.
+    get 'http://www.example.com////en/projects?q=&status=passing'
+    assert_redirected_to '/en/projects?status=passing'
+  end
+
   test 'query JSON for passing projects' do
     get '/en/projects.json?gteq=100'
     assert_response :success
