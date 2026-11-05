@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Say what's new in a bundle-audit report, for the tracking issue.
+#
+# Copyright the Linux Foundation and the OpenSSF Best Practices badge
+# contributors
+# SPDX-License-Identifier: MIT
+#
+# Usage:  script/bundle_audit_news comment PREVIOUS_BODY_FILE < REPORT
+#         script/bundle_audit_news severe PREVIOUS_BODY_FILE < REPORT
+#
+# "comment" prints the comment to post, or nothing if no advisory is new.
+# "severe" prints "true" if a new advisory is High or Critical, else
+# "false". See lib/bundle_audit_news.rb for why.
+
+require_relative '../lib/bundle_audit_news'
+
+mode, previous_file = ARGV
+report = $stdin.read
+fresh = BundleAuditNews.fresh(report, File.read(previous_file))
+
+case mode
+when 'comment'
+  codeowners = File.read(File.expand_path('../.github/CODEOWNERS', __dir__))
+  puts BundleAuditNews.comment(fresh, BundleAuditNews.owners(codeowners))
+when 'severe'
+  puts BundleAuditNews.severe?(fresh)
+else
+  warn 'Usage: script/bundle_audit_news comment|severe PREVIOUS_BODY_FILE'
+  exit 1
+end
