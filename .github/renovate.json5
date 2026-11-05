@@ -6,17 +6,19 @@
 // SPDX-License-Identifier: MIT
 //
 // WHY BOTH TOOLS. They cover different ground and must not overlap.
-// Dependabot handles the Gemfile, npm and GitHub Actions workflows. It
+// Dependabot handles the Gemfile and GitHub Actions workflows. It
 // cannot read .circleci/config.yml at all: dependabot-core carries one
 // directory per ecosystem, 43 of them, and there is no "circleci" among
 // them. Its "docker" ecosystem reads Dockerfiles, not CI configurations.
 // Nor does Dependabot update Ruby itself: its issue 2254 asks for
-// exactly that and has been open since 2018.
+// exactly that and has been open since 2018. Nor the Node.js pin in
+// package.json "engines", which is a runtime, not a package.
 //
-// Renovate covers both gaps, and this file scopes it to those two and
-// nothing else: the CircleCI images, and .ruby-version together with
-// the Ruby line in Gemfile.lock. At its defaults it would also read the
-// Gemfile and the Dockerfiles, where it would compete with Dependabot.
+// Renovate covers those three gaps, and this file scopes it to them and
+// nothing else: the CircleCI images, .ruby-version together with the
+// Ruby line in Gemfile.lock, and package.json's "engines". At its
+// defaults it would also read the Gemfile and the Dockerfiles, where it
+// would compete with Dependabot.
 //
 // This is written as JSON5 rather than JSON so the reasoning can sit
 // beside the rules instead of in a file nobody opens.
@@ -24,10 +26,25 @@
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
 
   // The scope. "circleci" is the manager Dependabot lacks;
-  // "custom.regex" is the one below that keeps .ruby-version moving.
+  // "custom.regex" is the one below that keeps .ruby-version moving;
+  // "npm" reads package.json, whose only content is the Node.js pin
+  // (we have no npm dependencies, so it has nothing else to find).
   // Naming them explicitly is what keeps Renovate off the Gemfile and
   // the Dockerfiles, where it would compete with Dependabot.
-  enabledManagers: ['circleci', 'custom.regex'],
+  enabledManagers: ['circleci', 'custom.regex', 'npm'],
+
+  // WAIT A WEEK BEFORE PROPOSING A NEWLY PUBLISHED VERSION, the same
+  // cooldown .github/dependabot.yml gives gems and actions, for the same
+  // reason: a compromised release is usually caught within days.
+  //
+  // This needs a release timestamp. Renovate's default,
+  // minimumReleaseAgeBehaviour "timestamp-required", holds back a
+  // release that has none, forever. Docker Hub supplies one (its
+  // "tag_last_pushed"), and a digest gets its tag's, which is exactly
+  // when that digest was pushed. Our Ruby datasource has none; see the
+  // rule exempting it below. Held releases appear on the dependency
+  // dashboard, so a hold is visible rather than silent.
+  minimumReleaseAge: '7 days',
 
   // RUBY, FROM WHAT HEROKU HAS RATHER THAN WHAT RUBY RELEASED.
   //
@@ -171,9 +188,12 @@
   // be perfectly mergeable and never tested together, and
   // .ruby-version and the stack tag are that pair.
   //
-  // THE COST IS BOUNDED BY THE CRON, not by how busy main is, because
-  // we self-host: six weeks open means six rebuilds, not one per push.
-  // The hosted App reacting to webhooks would bill differently.
+  // REBASED ON EVERY PUSH TO main, not just weekly:
+  // .github/workflows/renovate.yml also runs on push, so a proposal
+  // is retested against the main that it would actually land on. The
+  // cost is one CI run per open Renovate pull request per merge. That
+  // stays small because the schedule below means that, outside Monday
+  // morning, these runs only refresh existing proposals.
   //
   // Deliberately NOT "require branches to be up to date before
   // merging", which would impose the same ceremony on every human pull
@@ -181,11 +201,54 @@
   // anyway. This keeps the PROPOSAL honest rather than policing all.
   rebaseWhen: 'behind-base-branch',
 
-  // No schedule here on purpose. How often Renovate runs is decided by
-  // the cron in .github/workflows/renovate.yml, so there is one place to
-  // change the cadence rather than two that can disagree.
+  // NEW PROPOSALS ONLY ON MONDAY MORNING (UTC), when the weekly cron in
+  // .github/workflows/renovate.yml runs at 04:17. Renovate also runs on
+  // every push to main, so it can rebase; without this window, those
+  // runs would also open new proposals at whatever moment someone
+  // merged something. "updateNotScheduled" defaults to true, which is
+  // what lets an off-schedule run still update branches it already
+  // has; it's written out because that default is the whole design.
+  //
+  // To get a proposal sooner, tick its box on the dependency
+  // dashboard, which lists what is waiting for the schedule. Running
+  // the workflow by hand off-schedule only rebases.
+  schedule: ['before 8am on monday'],
+  updateNotScheduled: true,
 
   packageRules: [
+    {
+      description: [
+        'NO COOLDOWN FOR RUBY, because there is nothing to time. Our',
+        'heroku-ruby datasource is a plain list with no release dates, so',
+        'minimumReleaseAge above would hold every Ruby update forever.',
+        'The delay the cooldown buys already exists here: a Ruby reaches',
+        'the list only once Heroku has built it, and Heroku builds it from',
+        'the published release, so this is never the first to install it.',
+      ],
+      matchDatasources: ['custom.heroku-ruby'],
+      minimumReleaseAge: null,
+    },
+    {
+      description: [
+        "package.json \"engines\" IS THE APPLICATION'S NODE. The",
+        'heroku/nodejs buildpack reads it when it builds the slug, and',
+        'that Node runs terser to minify the JavaScript we serve. See the',
+        'comment in package.json.',
+        '',
+        'Even majors only, as for cimg/node below and for the same',
+        'reason: odd numbered Node lines are never promoted to LTS.',
+        '',
+        'The "v?" is not decoration. The node-version datasource hands',
+        'allowedVersions "v24.19.0", not "24.19.0", so the cimg/node',
+        'pattern copied verbatim matches nothing and silently blocks',
+        'every update, minor and patch included. A local dry run showed',
+        'exactly that.',
+      ],
+      matchManagers: ['npm'],
+      matchDepTypes: ['engines'],
+      matchPackageNames: ['node'],
+      allowedVersions: '/^v?\\d*[02468]\\./',
+    },
     {
       description: [
         'heroku/heroku is the stack, and the stack is deliberately one',

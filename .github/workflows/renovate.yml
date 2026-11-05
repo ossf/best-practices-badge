@@ -10,10 +10,10 @@ name: Renovate
 # third party write access to this repository. See
 # docs/build-environment-staleness.md for the due diligence.
 #
-# What it proposes is scoped by .github/renovate.json5 to two things
+# What it proposes is scoped by .github/renovate.json5 to three things
 # Dependabot cannot do: the images pinned in .circleci/config.yml, an
-# ecosystem it has no manager for, and the Ruby version, which it has
-# declined to update since 2018.
+# ecosystem it has no manager for; the Ruby version, which it has
+# declined to update since 2018; and the Node.js pin in package.json.
 
 # Limit permissions per OpenSSF Scorecard best practices.
 # Since we set "permissions", anything unset has access "none".
@@ -28,12 +28,27 @@ on:
     # Weekly, early Monday UTC. Minute chosen off the hour because
     # GitHub delays schedules that pile up on the hour.
     - cron: '17 4 * * 1'
-  # So a human can ask for a run without waiting a week.
+  # So a human can ask for a run without waiting a week. Off-schedule,
+  # that only rebases; see "schedule" in .github/renovate.json5.
   workflow_dispatch:
+  # So open proposals are rebased and retested as soon as main moves,
+  # rather than up to a week later. Only main: a push anywhere else
+  # changes nothing Renovate's branches are based on. Renovate's own
+  # "schedule" keeps these runs from opening new proposals.
+  push:
+    branches: [main]
+
+# Merges can land minutes apart. Queue the runs rather than running two
+# Renovates against the same branches at once, and don't cancel a run in
+# progress, which could leave a branch half updated. GitHub keeps at most
+# one run waiting, the newest, which is the one that sees the latest main.
+concurrency:
+  group: renovate
+  cancel-in-progress: false
 
 jobs:
   renovate:
-    name: Propose CircleCI image updates
+    name: Propose CircleCI image, Ruby, and Node.js updates
     runs-on: ubuntu-latest
 
     steps:
@@ -98,6 +113,19 @@ jobs:
           # Only this repository, whatever the token can otherwise reach.
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           LOG_LEVEL: info
+
+          # DOCKER HUB REFUSES PAGE 11 of a tag list to anonymous callers
+          # ("pagination offset too large for anonymous requests").
+          # Renovate then discards the pages it already has and falls
+          # back to a tag list with no dates, and with minimumReleaseAge
+          # set in .github/renovate.json5, an update with no date is held
+          # forever. A local dry run hit exactly this for cimg/node and
+          # selenium/standalone-chrome, which have over 1000 tags each.
+          # Docker Hub lists newest first, so 10 pages (1000 tags) loses
+          # nothing we'd ever propose. Renovate discussion 46272 has the
+          # account; this is a global option, so it can't go in the
+          # repository config.
+          RENOVATE_DOCKER_MAX_PAGES: '10'
 
           # WHO THE COMMITS COME FROM, stated rather than detected.
           # Renovate normally learns this by asking GitHub who the token

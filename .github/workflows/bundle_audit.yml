@@ -145,6 +145,23 @@ jobs:
           )"
 
           if [ "$STATUS" != '0' ]; then
+            # WHAT'S NEW, worked out against the body BEFORE we replace
+            # it. GitHub notifies nobody about a body edit, so without
+            # this a new advisory arrived silently whenever the issue was
+            # already open. A comment notifies; see
+            # lib/bundle_audit_news.rb.
+            previous=',previous-body.txt'
+            if [ -n "$issue_number" ]; then
+              gh issue view "$issue_number" --repo "$REPO" \
+                --json body --jq .body > "$previous"
+            else
+              : > "$previous"
+            fi
+            comment="$(printf '%s\n' "$REPORT" |
+              script/bundle_audit_news comment "$previous")"
+            severe="$(printf '%s\n' "$REPORT" |
+              script/bundle_audit_news severe "$previous")"
+
             body="$(cat <<BODY_EOF
           $REPORT
 
@@ -159,9 +176,24 @@ jobs:
               gh issue edit "$issue_number" --repo "$REPO" --body "$body"
               echo "Updated issue #$issue_number."
             else
-              gh issue create --repo "$REPO" --title "$TITLE" --body "$body" \
-                --label dependencies
-              echo 'Issue filed.'
+              # "gh issue create" prints the new issue's URL.
+              url="$(gh issue create --repo "$REPO" --title "$TITLE" \
+                --body "$body" --label dependencies)"
+              issue_number="${url##*/}"
+              echo "Filed issue #$issue_number."
+            fi
+            if [ "$severe" = 'true' ]; then
+              # --force creates the label the first time and is a no-op
+              # after; "--add-label" alone fails on a missing label.
+              gh label create security --repo "$REPO" --force \
+                --color B60205 --description 'Known vulnerability'
+              gh issue edit "$issue_number" --repo "$REPO" \
+                --add-label security
+            fi
+            if [ -n "$comment" ]; then
+              gh issue comment "$issue_number" --repo "$REPO" \
+                --body "$comment"
+              echo "Commented on issue #$issue_number about new advisories."
             fi
           elif [ -n "$issue_number" ]; then
             gh issue comment "$issue_number" --repo "$REPO" \

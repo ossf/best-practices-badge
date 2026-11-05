@@ -1602,9 +1602,10 @@ Three tools, distinct ground:
 
 | Tool | Covers |
 | ---- | ------ |
-| Dependabot | `Gemfile`, npm, GitHub Actions workflows |
+| Dependabot | `Gemfile`, GitHub Actions workflows |
 | Renovate | `.circleci/config.yml` images and orbs |
 | Renovate | `.ruby-version` and `Gemfile.lock`, from what Heroku has |
+| Renovate | `package.json` `engines.node`, the Node.js that builds our slug |
 
 Renovate manages `.ruby-version`, but **not** with its own
 `ruby-version` datasource, which knows what Ruby has released rather
@@ -1768,7 +1769,7 @@ Added 2026-08-05, plan step 9. Two files: `.github/renovate.json5` and
 `.github/workflows/renovate.yml`.
 
 **Scoped to one manager**, `circleci`, which is the entire reason
-Renovate is here. Dependabot already covers the `Gemfile`, npm and the
+Renovate is here. Dependabot already covers the `Gemfile` and the
 GitHub Actions workflows, and cannot read `.circleci/config.yml` at all.
 At its defaults Renovate would also read the `Gemfile`, `.ruby-version`
 and Dockerfiles, competing with Dependabot and preempting the Ruby
