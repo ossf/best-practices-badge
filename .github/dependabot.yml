@@ -265,6 +265,12 @@ updates:
     schedule:
       # Every weekday
       interval: "daily"
+    # WAIT A WEEK, as for gems above and for the same reason. This matters
+    # MORE here, not less: an action runs in CI holding our tokens the
+    # moment its bump merges, and a pinned SHA protects nothing when the
+    # bot is the one moving the pin. Security updates still skip this.
+    cooldown:
+      default-days: 7
     # ONE PULL REQUEST FOR ALL OF github/codeql-action. Dependabot keys
     # actions by their full path, so "github/codeql-action/init",
     # ".../analyze" and ".../upload-sarif" look like three unrelated
