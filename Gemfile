@@ -84,7 +84,7 @@ gem 'bootstrap-social-rails', '~> 4.12' # Pretty social media buttons
 gem 'bootstrap_form', '~> 2.7' # DO NOT update unless updating bootstrap
 gem 'bundler' # Ensure it's available
 # Note: if webpacker is used, see chartkick website for added instructions
-gem 'chartkick', '~> 5.2' # Chart project_stats
+gem 'chartkick', '~> 5.3' # Chart project_stats
 gem 'commonmarker', '~> 2.10.1' # Process markdown in textareas
 gem 'faraday-retry', '~> 2.1' # Force retry of faraday requests for reliability
 # We no longer use "fastly-rails"; it doesn't support Rails 6+.
