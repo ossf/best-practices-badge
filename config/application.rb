@@ -62,19 +62,29 @@ Rails.application.configure do
   # variables (or deterministic test defaults when not set).
   # We use hexadecimal encoding (0010=\x00\x10), NOT Base64 or other.
   # 256-bit key in hex = 64 hex digits (256 / 8 * 2).
-  email_encryption_key = [
-    Rails.env.test? ? ('1' * 64) : (ENV['EMAIL_ENCRYPTION_KEY'] || ('1' * 64))
-  ].pack('H*')
-  email_blind_index_key = [
-    Rails.env.test? ? ('2' * 64) : (ENV['EMAIL_BLIND_INDEX_KEY'] || ('2' * 64))
-  ].pack('H*')
-  config.active_record.encryption.primary_key = email_encryption_key
+  # Production fails closed: with a key missing we leave the encryption keys
+  # unset, so Rails raises on any email encrypt/decrypt instead of using the
+  # publicly known fallback. Booting (e.g., assets:precompile) still works.
+  email_key =
+    lambda do |env_var, fallback_hex|
+      hex = Rails.env.test? ? fallback_hex : ENV.fetch(env_var, nil)
+      hex ||= fallback_hex unless Rails.env.production?
+      hex && [hex].pack('H*')
+    end
+  email_encryption_key = email_key.call('EMAIL_ENCRYPTION_KEY', '1' * 64)
+  email_blind_index_key = email_key.call('EMAIL_BLIND_INDEX_KEY', '2' * 64)
+  email_keys_present = email_encryption_key && email_blind_index_key
+  config.active_record.encryption.primary_key =
+    email_keys_present ? email_encryption_key : nil
   # The deterministic key comes from the encryption key, not the blind index
   # key, so whoever holds only the former blind index (HMAC) key cannot
   # decrypt the deterministically encrypted email column.
-  config.active_record.encryption.deterministic_key = OpenSSL::HMAC.digest(
-    'SHA256', email_encryption_key, 'badgeapp deterministic email key'
-  )
+  config.active_record.encryption.deterministic_key =
+    if email_keys_present
+      OpenSSL::HMAC.digest(
+        'SHA256', email_encryption_key, 'badgeapp deterministic email key'
+      )
+    end
   config.active_record.encryption.key_derivation_salt = email_blind_index_key
   config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
 end
