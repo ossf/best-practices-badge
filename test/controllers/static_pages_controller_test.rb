@@ -44,31 +44,59 @@ class StaticPagesControllerTest < ActionDispatch::IntegrationTest
     # flexible to handle the variations that occur in the test environment.
     # See also: projects_controller_test.rb
     #
-    # We'll use assert_select to check that it's being interpreted correctly.
-    # The Rails documentation is *terribly* outdated.  It claims this works:
-    # assert_select 'link[rel="alternate"][hreflang="x-default"][href=?]',
-    # but Rails 4.2 changed the required syntax to use ":match".  See:
-    # https://github.com/rails/rails/issues/19098
-    #
     assert_includes I18n.available_locales, :en
     assert_includes I18n.available_locales, :fr
     I18n.available_locales.each do |loc|
       # Metadata about related pages (useful for search engines)
-      assert_select(
-        'head link[rel="alternate"][hreflang="' + loc.to_s +
-        '"]:match("href", ?)',
+      assert_some_href(
+        "head link[rel=\"alternate\"][hreflang=\"#{loc}\"]",
         %r{\Ahttps?://[a-z0-9.:]+/#{loc}\z}
       )
       # User locale selector (useful for users)
-      assert_select(
-        'li a:match("href", ?)',
-        %r{\Ahttps?://[a-z0-9.:]+/#{loc}\z}
-      )
+      assert_some_href('li a', %r{\Ahttps?://[a-z0-9.:]+/#{loc}\z})
     end
-    assert_select(
-      'head link[rel="alternate"][hreflang="x-default"]:match("href", ?)',
+    assert_some_href(
+      'head link[rel="alternate"][hreflang="x-default"]',
       %r{\Ahttps?://[a-z0-9.:]+/\z}
     )
+  end
+
+  # Assert some element matching selector has an href matching pattern.
+  #
+  # NOT assert_select's ":match(\"href\", ?)". rails-dom-testing passes
+  # the Regexp to Nokogiri as CSS TEXT, and since Nokogiri 1.19.7 that
+  # text gets CSS escape processing: "\A" becomes a newline (CSS hex
+  # escape U+000A) and "\z" becomes "z", so an anchored pattern never
+  # matches. Swapping in "^" and "$" would "work" but weaken the check,
+  # since in Ruby those match at any line. Matching in Ruby keeps the
+  # Regexp exactly as written.
+  def assert_some_href(selector, pattern)
+    hrefs = css_select(selector).pluck('href')
+    assert hrefs.any? { |href| pattern.match?(href) },
+           "No #{selector} href matches #{pattern.inspect}: #{hrefs.inspect}"
+  end
+
+  # These pages are CDN-cached and the same for every client, so their
+  # routes name the format (defaults: FORMAT_HTML in config/routes.rb).
+  # Without that, Rails 8.1.4.1+ negotiates the format, adds
+  # "Vary: X-Requested-With", and lets any client split our CDN cache.
+  CACHED_STATIC_PAGES = %w[
+    /en /en/home /en/cookies /en/criteria_discussion /en/criteria_stats
+  ].freeze
+  PLAIN_AND_XHR = [{}, { 'X-Requested-With' => 'XMLHttpRequest' }].freeze
+
+  test 'cached static pages do not vary on X-Requested-With' do
+    CACHED_STATIC_PAGES.each do |path|
+      PLAIN_AND_XHR.each do |headers|
+        get path, headers: headers
+        label = "#{path} #{headers}"
+        assert_response :success, label
+        assert_equal 'text/html', response.media_type, label
+        assert_not_includes response.headers['Vary'].to_s,
+                            'X-Requested-With', label
+        assert response.headers['Surrogate-Control'], label
+      end
+    end
   end
 
   test 'should get home in French when fr locale in URL' do

@@ -43,7 +43,10 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes @response.body, 'Badge status'
     assert_not_includes @response.body, 'target=[^ >]+>'
-    assert_equal 'Accept-Encoding, Origin', @response.headers['Vary']
+    # X-Requested-With: Rails 8.1.4.1+ adds it when it negotiates the
+    # format. Harmless here, since this page isn't CDN-cached.
+    assert_equal 'X-Requested-With, Accept-Encoding, Origin',
+                 @response.headers['Vary']
   end
 
   test 'new but not logged in' do
@@ -1251,7 +1254,9 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     get "/projects/#{@perfect_passing_project.id}/badge.json/..",
         headers: { Origin: 'example.com' }
     assert_response :not_found
-    assert_equal 'Accept-Encoding, Origin', @response.headers['Vary']
+    # X-Requested-With: as in 'should get index'; 404s aren't CDN-cached.
+    assert_equal 'X-Requested-With, Accept-Encoding, Origin',
+                 @response.headers['Vary']
     assert_equal '*', @response.headers['Access-Control-Allow-Origin']
   end
 
