@@ -124,8 +124,9 @@ function justificationGood(justification) {
 // This function is mirrored in app/models/project.rb by "get_met_result"
 // If you change this function change "get_met_result" accordingly.
 function getMetResult(criterion, justification) {
-  if (criterionHashTrue(criterion, 'met_url_required') &&
-      !containsURL(justification)) {
+  if ((criterionHashTrue(criterion, 'met_url_required') &&
+      !containsURL(justification)) ||
+      /^\/\/ Broken link:/.test(justification)) {
     return 'criterion_url_required';
   } else if (criterionHashTrue(criterion, 'met_justification_required') &&
          !justificationGood(justification)) {
@@ -138,7 +139,9 @@ function getMetResult(criterion, justification) {
 // This function is mirrored in app/models/project.rb by "get_na_result"
 // If you change this function change "get_na_result" accordingly.
 function getNAResult(criterion, justification) {
-  if (criterionHashTrue(criterion, 'na_justification_required') &&
+  if (/^\/\/ Broken link:/.test(justification)) {
+    return 'criterion_url_required';
+  } else if (criterionHashTrue(criterion, 'na_justification_required') &&
       !justificationGood(justification)) {
     return 'criterion_justification_required';
   } else {

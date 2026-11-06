@@ -12,50 +12,22 @@
 # no longer true.
 #
 # User email addresses are encrypted in the database, so for proper
-# testing we must store them as encrypted data.
-# For test purposes, we used a fixed
-# encryption IV (don't do this with real data), and provide precomputed
-# values for "encrypted_email" and "email_bidx".
-# We *must* do this for email_bidx, at least, because the fixture code is
-# loaded and run as an ERB before its keys are fully set up.
-# That's okay; there's lot of infrastructure
-# that has to work correctly to compute these values,
-# and they take time to compute, so providing their fixtures as
-# known-correct precomputed values makes sense.
-# (It means that tests are more independent of the system under test, and
-# thus failures are more likely to help point out the actual problems.)
-#
+# testing we store them as encrypted data (and also retain the legacy
+# attr_encrypted columns while those columns remain in the schema).
 # To find values for new email addresses, run "rails console"
 # (make sure to *not* set 'EMAIL_ENCRYPTION_KEY' nor 'EMAIL_BLIND_INDEX_KEY')
 # and then do something like this:
-# email='test@example.org'
-# encrypted_email_iv: "G4fbeClWL3aFMY9I"
-# encrypted_email: # Find its value with:
-#   User.encrypt_email(email, iv: Base64.decode64('G4fbeClWL3aFMY9I'))
-# email_bidx: # Find its value with:
-#   User.generate_email_bidx(email)
-# Another (longer) way to compute email_bidx is to run:
-#   BlindIndex.generate_bidx("test@example.org", User.blind_indexes[:email])
-# You can create a stub user and find its email_bidx this way:
-# x = User.new; x.email = 'test@example.org'; x.compute_email_bidx
-# This assumes that you're using the usual (default) test keys.
-#
-# Here it is all together:
-# puts('  encrypted_email_iv: "G4fbeClWL3aFMY9I"')
-# puts('  encrypted_email: ' + User.encrypt_email(current_email,
-#      iv: Base64.decode64('G4fbeClWL3aFMY9I')).inspect)
-# puts('  encrypted_email_bidx: ' + BlindIndex.generate_bidx(
-#       current_email, User.blind_indexes[:email]).inspect)
+# x = User.new(email: 'test@example.org')
+# puts('  email: ' + x.ciphertext_for(:email).inspect)
+# puts('  original_email: ' + x.ciphertext_for(:original_email).inspect)
 
 # current_email = 'test@example.org'
 test_user:
   name: Test
-  # This is our conventional IV value
+  email: "{\"p\":\"w2wp28hbgIlIF0ZgmClcxg==\",\"h\":{\"iv\":\"ItsYfG70d+rBLTnc\",\"at\":\"jUdFZvzPyPOa4W3z1n2EJA==\"}}"
+  original_email: "{\"p\":\"yg0A8wZA5vpm5gUHuqMCMw==\",\"h\":{\"iv\":\"s5okI+xyTnWNRNO3\",\"at\":\"2lF7spFUb/glgEpfPJiHoA==\"}}"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
-  # encrypted_email: (%= User.encrypt_email('test@example.com',
-  #                      iv: Base64.decode64('G4fbeClWL3aFMY9I')).inspect %)
   encrypted_email: "ybGkapP1iahMHmhaQwjU9qTfGB7w/KCFTiUGkIVZZ08=\n"
-  # email_bidx: (%= User.generate_email_bidx('test@example.com').inspect %)
   email_bidx: "vmUX8sb4/akruZRPDwQ7e2bZHiAcqxO2BS7u2vdg/Cs="
   password_digest: <%= User.digest('password') %>
   provider: local
@@ -64,13 +36,12 @@ test_user:
   activated_at: <%= Time.zone.now %>
 
 # current_email = 'melissa@example.com'
-# User.encrypt_email('melissa@example.com',
-#                     iv: Base64.decode64('G4fbeClWL3aFMY9I'))
 test_user_melissa:
   name: Melissa Lewis
+  email: "{\"p\":\"eRIR5Vt/VdxedMZb65ytsMb9aA==\",\"h\":{\"iv\":\"8resAhv5ESydEvox\",\"at\":\"94gABl3uNdbt32KehqrqaA==\"}}"
+  original_email: "{\"p\":\"iZjBzCnNJy/kg9PrAadw+5S7Dw==\",\"h\":{\"iv\":\"iaRWapJAsWgsEkRA\",\"at\":\"9zaiYnRuAe2btzCsS9ZNBQ==\"}}"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
   encrypted_email: "0LG7d6DjkIlEFmVSHQvDv5qGImt+oNOl9LLibPvLAwHeWmo=\n"
-  # email_bidx: (%= User.generate_email_bidx('melissa@example.com').inspect %)
   email_bidx: "gkyruOK5LMxyHFElzYO9YtdKJBrIJZnkDamwU6M1+Jc="
   password_digest: <%= User.digest('password1') %>
   provider: local
@@ -81,9 +52,10 @@ test_user_melissa:
 # current_email = 'mark@example.com'
 test_user_mark:
   name: Mark Watney
+  email: "{\"p\":\"fIHpv4Irshzk0dfcYRDmew==\",\"h\":{\"iv\":\"ruZlylqcvjk2TxYj\",\"at\":\"ecmt2o31UzyPWFkepVagBw==\"}}"
+  original_email: "{\"p\":\"JCs4RI2YKvf0634CI7xa4A==\",\"h\":{\"iv\":\"ejhRuFTJJqIq9MIY\",\"at\":\"hjv9i6GGa88fOyWZR/tzZA==\"}}"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
   encrypted_email: "0LWldZP1iahMHmhaQwTJ/JxzMJME5stBTXCm7WcmYyg=\n"
-  # email_bidx: (%= User.generate_email_bidx('mark@example.com').inspect %)
   email_bidx: "PM4RbQebE5i3FU4Zm/+cNT6P0POakuR8Fz9QzP7L01U="
   password_digest: <%= User.digest('password') %>
   provider: local
@@ -94,9 +66,10 @@ test_user_mark:
 # current_email = 'forgetful@example.com'
 test_user_not_active:
   name: Forgetful
+  email: "{\"p\":\"/RpNgX4Utw1XZK5QoyEQ4torvgfH\",\"h\":{\"iv\":\"LsBa9qjPfd++6bp2\",\"at\":\"f4oRIOeEfvnt3FBNx3AYaQ==\"}}"
+  original_email: "{\"p\":\"OXKAJdf1mhZQORB2X5Hpyf/YfG+a\",\"h\":{\"iv\":\"KOSJClCsLJUt4Vlc\",\"at\":\"p32xUS6mNUNRQaEMIdUTSw==\"}}"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
   encrypted_email: "27ulebbkl7xNLmFHDArW/ZzHLEXQQHbOqCyJ9yfVGoZn2ok7ew==\n"
-  # email_bidx: (%= User.generate_email_bidx('forgetful@example.com').inspect %)
   email_bidx: "y5UiQko516f50w/YRAZAuW7FzzpWKmvg1Yzd44ry+JQ="
   password_digest: <%= User.digest('password') %>
   provider: local
@@ -106,9 +79,10 @@ test_user_not_active:
 # current_email = 'CaseSensitive@example.org'
 test_user_cs:
   name: Case Sensitive
+  email: "{\"p\":\"vxmjwDWgL8vgI1RYBgNXm9pwgnJJRhdgaw==\",\"h\":{\"iv\":\"bdvKCVQopXk8fE/Z\",\"at\":\"0nYpKHZKWlu6UOhNbifm3g==\"}}"
+  original_email: "{\"p\":\"0x3ecLM3+w/Q/VsZ7TDlJnohM7Lq3zLVlQ==\",\"h\":{\"iv\":\"ifkg8aI5rclLQ7ql\",\"at\":\"d3AgLReOgHudrJfbCmVW/w==\"}}"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
   encrypted_email: "/rWke4D1n7pIGm1JCCfD6ZiEP0bY51bxymIp4AvOLZGyoX8ln1EALDc=\n"
-  # email_bidx: (%= User.generate_email_bidx('CaseSensitive@example.org'.downcase).inspect %)
   email_bidx: "I5hCRmgHRw0+XSK6TMfTRk/vhkbX+2cXUJzaiWTVqcs="
   password_digest: <%= User.digest('password') %>
   provider: local
@@ -119,9 +93,10 @@ test_user_cs:
 # current_email = 'admin@example.com'
 admin_user:
   name: Admin
+  email: "{\"p\":\"WcLYYN8fK3GZvC5LEt/SJYM=\",\"h\":{\"iv\":\"7HjhHM/CCt3UyFjg\",\"at\":\"jb8MdZFTTFokof7TwEMKcQ==\"}}"
+  original_email: "{\"p\":\"0anBWw0ph2W+rm6epGCvIHY=\",\"h\":{\"iv\":\"yR11zozHdguFNuU9\",\"at\":\"/8EsVA7yDuMsaHyOI+ojAA==\"}}"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
   encrypted_email: "3LC6d73QlLFAA3RTCEnF/pQPuTWBDzfZWpDX1TJ+bsBO\n"
-  # email_bidx: (%= User.generate_email_bidx('admin@example.com').inspect %)
   email_bidx: "pdszbZsBfJRl+Fg0ZZ7/Mwguy64JlXvJ7TflzSEIawM="
   password_digest: <%= User.digest('password') %>
   provider: local
@@ -135,9 +110,10 @@ admin_user:
 github_user:
   name: GitHub The User
   nickname: github-user
+  email: "{\"p\":\"kaosNeTJPCdupphFK9FEeX462joqOiA=\",\"h\":{\"iv\":\"YLl3IDc2nC2f4Tva\",\"at\":\"MuHcP2wGRc+UHb5bXg7apw==\"}}"
+  original_email: "{\"p\":\"GiZlJ2ac78LHRG1QFeQa8CsMiaCd6MY=\",\"h\":{\"iv\":\"7lsVgEJqjPiG7xgm\",\"at\":\"yXEO393k9OF5x4YF5KNcnA==\"}}"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
   encrypted_email: "2r2jdqby3LxSC3Z/CB/H/ImFKgTeplS8IDY+qfw8Fi73KhLn8MYC\n"
-  # email_bidx: (%= User.generate_email_bidx('github-user@example.com').inspect %)
   email_bidx: "ZjENXwF1sT4lGPhlXJMGGojv/NgxQvRgis647Pgotwg="
   password_digest: <%= User.digest('password') %>
   provider: github
@@ -148,9 +124,10 @@ github_user:
 # current_email = 'fr-test@example.org'
 fr_user:
   name: French Test
+  email: "{\"p\":\"4SNB6WhaMPruCXYLAFI3pnTtXQ==\",\"h\":{\"iv\":\"BKAuOWNv4HiAYsLY\",\"at\":\"7Yc7pGimuBS6LvsnMetCPw==\"}}"
+  original_email: "{\"p\":\"Ku6DSCbxL2fx+c2HdexTCZAMsg==\",\"h\":{\"iv\":\"EoAKMuZTy1rCV/ls\",\"at\":\"JFmGFpNz9uU84xNbTmdJrQ==\"}}"
   encrypted_email: "26b6arbjhYlEFmVSHQvDv5abKOzHp6ZN4HPtuqnxJkbq84I=\n"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
-  # email_bidx: (%= User.generate_email_bidx('fr-test@example.org').inspect %)
   email_bidx: "iZlt4P3IjjuMUuajvkGqwatHglhDxoNCUsYMgebOEOQ="
   password_digest: <%= User.digest('password') %>
   provider: local
@@ -162,9 +139,10 @@ fr_user:
 blocked_github_user:
   name: Blocked GitHub The User
   nickname: github-user-blocked
+  email: "{\"p\":\"kaosNeTJPCdupphFK9FEeX462joqOiA=\",\"h\":{\"iv\":\"YLl3IDc2nC2f4Tva\",\"at\":\"MuHcP2wGRc+UHb5bXg7apw==\"}}"
+  original_email: "{\"p\":\"Dp3Xkl/y0UvNmlOynd7aKj5xFd909Mo=\",\"h\":{\"iv\":\"xl3eSOu/DxOVlSth\",\"at\":\"Q5ju2DbGmzGUAz+3qPiasw==\"}}"
   encrypted_email_iv: "G4fbeClWL3aFMY9I"
   encrypted_email: "2r2jdqby3LxSC3Z/CB/H/ImFKgTeplS8IDY+qfw8Fi73KhLn8MYC\n"
-  # email_bidx: (%= User.generate_email_bidx('github-user@example.com').inspect %)
   email_bidx: "ZjENXwF1sT4lGPhlXJMGGojv/NgxQvRgis647Pgotwg="
   password_digest: <%= User.digest('password') %>
   provider: github

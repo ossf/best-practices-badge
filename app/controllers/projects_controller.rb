@@ -1642,6 +1642,7 @@ class ProjectsController < ApplicationController
   # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   # TODO: Break this into smaller pieces
   def successful_update(format, old_badge_level, criteria_level)
+    notify_owner_of_new_broken_links
     finalize_pending_resubmission
     # Use Sections::DEFAULT_SECTION instead of hardcoded 'passing'
     section = criteria_level || Sections::DEFAULT_SECTION
@@ -1682,6 +1683,30 @@ class ProjectsController < ApplicationController
   end
   # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
   # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+
+  def notify_owner_of_new_broken_links
+    broken_links =
+      @project.saved_changes.each_with_object({}) do |(field, values), links|
+        next unless field.end_with?('_justification')
+
+        current_marker = new_broken_link_marker(*values)
+        next unless current_marker
+
+        links[field.delete_suffix('_justification').to_sym] = current_marker[1]
+      end
+    return if broken_links.empty?
+
+    @project.queue_new_broken_link_notification(broken_links)
+  end
+
+  def new_broken_link_marker(previous, current)
+    previous_marker = LinkChecker::BROKEN_LINK_GRACE_REGEX.match(previous.to_s)
+    current_marker = LinkChecker::BROKEN_LINK_GRACE_REGEX.match(current.to_s)
+    return if previous_marker && current_marker &&
+              previous_marker[1..2] == current_marker[1..2]
+
+    current_marker
+  end
 
   # Determines the current working level based on criteria level or badge level.
   # For baseline levels, returns the project's actual achieved baseline badge level

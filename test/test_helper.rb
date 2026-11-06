@@ -144,6 +144,14 @@ module ActiveSupport
     self.use_transactional_tests = true
     fixtures :all
 
+    # WebMock stubs HTTP, but ssrf_filter resolves DNS before reaching it.
+    # Keep link tests independent of public DNS availability and cached failures.
+    def stub_link_check_dns
+      %w[www.example.org public.example.org].each do |hostname|
+        Rails.cache.write("dns:#{hostname}", ['93.184.216.34'])
+      end
+    end
+
     # Enable process-based parallelization for faster test execution.
     # System tests are run separately (see rake test:optimized) due to
     # fixed port binding in Capybara.

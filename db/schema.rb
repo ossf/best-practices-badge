@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_10_180655) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_230000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -174,6 +174,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_10_180655) do
     t.integer "build_status", limit: 2, default: 0, null: false
     t.text "bus_factor_justification"
     t.integer "bus_factor_status", limit: 2, default: 0, null: false
+    t.integer "broken_link_notification_send_attempts", default: 0, null: false, comment: "Failed attempts to deliver the pending broken-link warning"
+    t.text "pending_broken_link_notifications", default: "", null: false, comment: "JSON payload for a broken-link warning awaiting delivery"
     t.text "code_of_conduct_justification"
     t.integer "code_of_conduct_status", limit: 2, default: 0, null: false
     t.text "code_review_standards_justification"
@@ -309,6 +311,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_10_180655) do
     t.integer "know_common_errors_status", limit: 2, default: 0, null: false
     t.text "know_secure_design_justification"
     t.integer "know_secure_design_status", limit: 2, default: 0, null: false
+    t.datetime "last_link_check_at", comment: "Timestamp of most recent automated broken-link check"
     t.datetime "last_loss_sent_at"
     t.datetime "last_reminder_at", precision: nil
     t.datetime "last_warning_sent_at"
@@ -585,6 +588,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_10_180655) do
     t.index ["baseline_tiered_percentage"], name: "index_projects_on_baseline_tiered_percentage"
     t.index ["created_at"], name: "index_projects_on_created_at"
     t.index ["homepage_url"], name: "index_projects_on_homepage_url"
+    t.index ["id"], name: "index_projects_on_pending_broken_link_notifications", where: "(pending_broken_link_notifications <> ''::text)"
     t.index ["last_reminder_at"], name: "index_projects_on_last_reminder_at"
     t.index ["lost_gold_at"], name: "index_projects_on_lost_gold_at"
     t.index ["lost_passing_at"], name: "index_projects_on_lost_passing_at"
@@ -943,7 +947,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_10_180655) do
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "use_gravatar", default: false, null: false
     t.string "validation_code"
+    t.text "email"
+    t.text "original_email"
     t.index ["created_at"], name: "index_users_on_created_at_local", where: "((provider)::text = 'local'::text)"
+    t.index ["email"], name: "email_local_unique", unique: true, where: "((provider)::text = 'local'::text)"
+    t.index ["email"], name: "index_users_on_email"
     t.index ["email_bidx"], name: "email_local_unique_bidx", unique: true, where: "((provider)::text = 'local'::text)"
     t.index ["email_bidx"], name: "index_users_on_email_bidx"
     t.index ["last_login_at"], name: "index_users_on_last_login_at"

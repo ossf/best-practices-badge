@@ -1400,6 +1400,40 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_equal num + 1, ActionMailer::Base.deliveries.size
   end
 
+  test 'emails owner when a broken link grace warning is first saved' do
+    stub_link_check_dns
+    broken_url = 'https://www.example.org/broken'
+    warning = LinkChecker.format_grace_warning(
+      "See #{broken_url}", broken_url, Date.current.iso8601
+    )
+    stub_request(:get, broken_url).to_return(status: 404)
+    project = Project.find(@project.id)
+    project.update!(contribution_justification: "See #{broken_url}")
+    project.update!(contribution_justification: warning)
+    controller = ProjectsController.new
+    controller.instance_variable_set(:@project, project)
+
+    assert_no_emails do
+      controller.send(:notify_owner_of_new_broken_links)
+    end
+
+    notification = JSON.parse(project.reload.pending_broken_link_notifications)
+    assert_equal Project::BROKEN_LINK_GRACE_DAYS, notification['grace_days']
+    assert_equal broken_url, notification.dig('links', 'contribution')
+
+    assert_emails 1 do
+      assert_equal 1, Project.send_broken_link_notifications
+    end
+    assert_includes ActionMailer::Base.deliveries.last.body.encoded, broken_url
+    assert_equal '', project.reload.pending_broken_link_notifications
+
+    project.update!(contribution_justification: "Edited explanation. #{warning}")
+    assert_no_emails do
+      controller.send(:notify_owner_of_new_broken_links)
+    end
+    assert_equal '', project.reload.pending_broken_link_notifications
+  end
+
   test 'should NOT destroy own project if rationale too short' do
     log_in_as(@project.user)
     assert_no_difference('Project.count',

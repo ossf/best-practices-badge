@@ -281,4 +281,52 @@ class ReportMailer < ApplicationMailer
       )
     end
   end
+
+  # Notify project owner that broken links were detected on their badge entry
+  # and that they have a grace period to fix them before criteria fail.
+  # rubocop:disable-next Metrics/AbcSize, Metrics/CyclomaticComplexity
+  def email_broken_links_owner(
+    project,
+    broken_links,
+    grace_days = Project::BROKEN_LINK_GRACE_DAYS
+  )
+    return if project.nil? || project.id.nil? || project.user_id.nil?
+    return if broken_links.blank?
+
+    @project = project
+    user = User.find_by(id: project.user_id)
+    return unless user&.important_notifications? && user.deliverable_email?
+
+    @broken_links = broken_links
+    @grace_days = grace_days
+    @project_info_url =
+      project_url(@project, locale: user.preferred_locale.to_sym)
+    @email_destination = user.email
+    set_standard_headers
+    I18n.with_locale(user.preferred_locale.to_sym) do
+      mail(
+        to: @email_destination,
+        subject: t(
+          'report_mailer.subject_broken_links',
+          project_name: project.name,
+          default: "Broken links detected in #{project.name} badge entry"
+        ).strip
+      )
+    end
+  end
+
+  # Report summary of broken links detected/expired across projects.
+  def report_broken_links_summary(affected_entries)
+    @report_destination = REPORT_EMAIL_DESTINATION
+    return if affected_entries.blank?
+
+    @affected_entries = affected_entries
+    set_standard_headers
+    I18n.with_locale(I18n.default_locale) do
+      mail(
+        to: @report_destination,
+        subject: 'Summary of broken links detected in project badge entries'
+      )
+    end
+  end
 end

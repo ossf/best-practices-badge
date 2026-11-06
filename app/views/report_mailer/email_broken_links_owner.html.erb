@@ -1,0 +1,13 @@
+<%= t 'report_mailer.broken_links_body_html',
+      project_name: @project.name,
+      project_info_url: @project_info_url,
+      grace_days: @grace_days %>
+<ul>
+<% @broken_links.each do |field, url| %>
+  <li><strong><%= field %></strong>: <%= url %></li>
+<% end %>
+</ul>
+
+<p>
+<%= t 'report_mailer.ending' %>
+</p>
