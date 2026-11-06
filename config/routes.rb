@@ -30,6 +30,13 @@ VALID_ID_FULL ||= /\A#{VALID_ID.source}\z/
 # Valid values for static badge display (metal and baseline series)
 VALID_STATIC_VALUE ||= /0|[1-9]{1,2}|passing|silver|gold|baseline-[1-3]|baseline-pct-(?:0|[1-9][0-9]?)/
 
+# Give a route a fixed format (defaults: FORMAT_...) whenever you can; we
+# want the URL, e.g. ".json", to choose the format. A route without one
+# makes Rails negotiate it, and since Rails 8.1.4.1 that adds
+# "Vary: X-Requested-With", which splits CDN caches. That's harmless only
+# on uncached pages, e.g., the projects index and 404s today. Add a
+# default before caching any such page. See:
+# https://github.com/rails/rails/security/advisories/GHSA-r9jg-fmfx-2gv6
 FORMAT_SVG ||= { format: 'svg' }.freeze
 FORMAT_JSON ||= { format: 'json' }.freeze
 FORMAT_TEXT ||= { format: 'text' }.freeze
@@ -138,7 +145,8 @@ Rails.application.routes.draw do
     # a trailing slash), by redirecting the other.
     # For now, we just accept either.
     # The system itself always generates root URLs *without* a trailing slash.
-    root to: 'static_pages#home'
+    # FORMAT_HTML on these CDN-cached pages; see the FORMAT_* comment above.
+    root to: 'static_pages#home', defaults: FORMAT_HTML
 
     # Handle /projects. There are a lot of pages in /projects, so crawlers
     # constantly pound these resources. List them early, so that that
@@ -238,11 +246,13 @@ Rails.application.routes.draw do
     resources :users
     resources :login_sessions, only: [:index]
 
-    # Handle "static" pages (get-only pages)
-    get 'home' => 'static_pages#home'
-    get 'criteria_stats' => 'static_pages#criteria_stats'
-    get 'criteria_discussion' => 'static_pages#criteria_discussion'
-    get 'cookies' => 'static_pages#cookies'
+    # Handle "static" pages (get-only pages). FORMAT_HTML: see root above.
+    get 'home' => 'static_pages#home', defaults: FORMAT_HTML
+    get 'criteria_stats' => 'static_pages#criteria_stats',
+        defaults: FORMAT_HTML
+    get 'criteria_discussion' => 'static_pages#criteria_discussion',
+        defaults: FORMAT_HTML
+    get 'cookies' => 'static_pages#cookies', defaults: FORMAT_HTML
 
     get 'feed' => 'projects#feed', defaults: FORMAT_ATOM
     get 'reminders' => 'projects#reminders_summary'
