@@ -1653,6 +1653,53 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :conflict
   end
 
+  test 'as=baseline works in simple case (single result)' do
+    expected_id = projects(:perfect).id
+    get '/en/projects?as=baseline&' \
+        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
+    assert_response :moved_permanently
+    assert_redirected_to "/projects/#{expected_id}/baseline"
+    follow_redirect!
+    assert_response :success
+    assert_includes @response.body, 'openssf baseline'
+  end
+
+  test 'as=baseline works with trailing space and slash' do
+    expected_id = projects(:perfect).id
+    get '/en/projects?as=baseline&' \
+        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared%2F%20'
+    assert_redirected_to "/projects/#{expected_id}/baseline"
+  end
+
+  test 'as=baseline works in simple case returning JSON' do
+    expected_id = projects(:perfect).id
+    get '/en/projects.json?as=baseline&' \
+        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
+    assert_redirected_to "/projects/#{expected_id}/baseline.json"
+    follow_redirect!
+    assert_response :success
+    assert_equal expected_id, response.parsed_body['id']
+    assert_equal projects(:perfect).baseline_badge_value,
+                 response.parsed_body['badge_level']
+  end
+
+  test 'as=baseline redirects simple case when using pq=' do
+    expected_id = projects(:perfect).id
+    get '/en/projects?as=baseline&' \
+        'pq=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
+    assert_redirected_to "/projects/#{expected_id}/baseline"
+  end
+
+  test 'as=baseline returns status 404 if not found' do
+    get '/en/projects?as=baseline&url=https%3A%2F%2FNO_SUCH_THING'
+    assert_response :not_found
+  end
+
+  test 'as=baseline returns status 409 (conflict) if >1 match' do
+    get '/en/projects?as=baseline&pq=https%3A%2F%2F'
+    assert_response :conflict
+  end
+
   test 'as=entry works in simple case (single result)' do
     expected_id = projects(:perfect).id
     get '/en/projects?as=entry&' \

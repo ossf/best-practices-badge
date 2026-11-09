@@ -136,7 +136,7 @@ paths:
             type: string
         - in: query
           name: as
-          description: Display format for the resulting project badge that matches this query. The query must match exactly *one* project. Note that using this is rate-limited; "as=badge" is great for quick work, but not for mass use.
+          description: Display format for the resulting project badge that matches this query. Use "as=badge" for the metal-series badge or "as=baseline" for the Baseline badge. The query must match exactly *one* project. Note that using this is rate-limited; badge lookup is great for quick work, but not for mass use.
           required: true
           schema:
             type: string

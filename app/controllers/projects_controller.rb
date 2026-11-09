@@ -287,7 +287,7 @@ class ProjectsController < ApplicationController
     end.freeze # rubocop:disable Style/MethodCalledOnDoEndBlock
 
   # as= values, which redirect to alternative views
-  ALLOWED_AS = %w[badge edit entry].freeze
+  ALLOWED_AS = %w[badge baseline edit entry].freeze
 
   # Query parameters consumed by the as=edit redirect (stripped before
   # forwarding to the edit URL so only automation-proposal params remain).
@@ -315,7 +315,7 @@ class ProjectsController < ApplicationController
     if validated_url == request.original_fullpath
       retrieve_projects
 
-      if params[:as] == 'badge' # Redirect to badge view
+      if params[:as] == 'badge' || params[:as] == 'baseline' # Redirect to badge view
         # We redirect, instead of responding directly with the answer, because
         # then the requesting browser and CDN will handle repeat requests.
         # We only retrieve ids, because we don't need any other data.
@@ -374,13 +374,14 @@ class ProjectsController < ApplicationController
       )
     else
       suffix = request&.format&.symbol == :json ? '.json' : ''
+      badge_path = params[:as] == 'baseline' ? 'baseline' : 'badge'
       # In *theory* this hasn't "moved permanently", because someone *could*
       # create a new matching badge entry *and* delete the old badge entry.
       # They could also make a query ambiguous.
       # But in practice, ids are as "permanent" as anything on the web gets.
       # If we say it's moved permanently, then browsers & caches &
       # search engines will do the right thing, so that's the status used.
-      redirect_to "/projects/#{id_list.first}/badge#{suffix}",
+      redirect_to "/projects/#{id_list.first}/#{badge_path}#{suffix}",
                   status: :moved_permanently
     end
   end
