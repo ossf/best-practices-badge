@@ -1,0 +1,6 @@
+.git
+.bundle
+log/
+tmp/
+public/assets/
+,*

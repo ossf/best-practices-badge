@@ -40,4 +40,18 @@ RUN sudo apt-get update && sudo apt-get install -y cmake shared-mime-info
 # - This runs as root (before `USER circleci`), so the bundler is system-wide
 RUN gem install bundler -v '~> 2.7.0' --no-document
 
+RUN mkdir -p /home/circleci/project && chown circleci:circleci /home/circleci/project
+
 USER circleci
+
+WORKDIR /home/circleci/project
+
+# Ensure .dockerignore exists so we don't accidentally bake
+# local assets into the image
+COPY .dockerignore ./
+
+COPY --chown=circleci:circleci . .
+
+# Wipe any potential metadata and force a total recompile
+RUN bundle exec rake assets:clobber
+RUN RAILS_ENV=production bundle exec rake assets:precompile
