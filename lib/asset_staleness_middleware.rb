@@ -14,6 +14,7 @@ class AssetStalenessMiddleware
     @checked = false
   end
 
+  # env is this request's Rack environment, not the process's ENV.
   def call(env)
     # Only check once per server lifetime
     unless @checked

@@ -9,21 +9,23 @@
 class StaticPagesController < ApplicationController
   include SessionsHelper
 
-  # If a page is *invariant* regardless of locale, don't bother
+  # Pages that are *invariant* regardless of locale and visitor.
+  LOCALE_FREE_PAGES = %i[robots security_txt favicon].freeze
+
+  # If a page is invariant regardless of locale, don't bother
   # to figure out what the locale is.
-  skip_before_action :set_locale_to_best_available,
-                     only: %i[robots security_txt]
+  skip_before_action :set_locale_to_best_available, only: LOCALE_FREE_PAGES
 
   # There's no value in redirecting these pages to a locale,
   # so do *not* redirect them to a URL based on locale.
   skip_before_action :redir_missing_locale,
-                     only: %i[robots security_txt error_404 google_verifier]
+                     only: [*LOCALE_FREE_PAGES, :error_404, :google_verifier]
 
   # Omit session cookie.
   # We *must not* set error messages in the flash area,
   # because flashes are stored in the session.
   before_action :omit_session_cookie,
-                only: %i[robots security_txt google_verifier]
+                only: [*LOCALE_FREE_PAGES, :google_verifier]
 
   # Cache "unchanging" pages on the CDN for anonymous users -- pages whose
   # output does not change until the next deploy. These actions render
@@ -91,5 +93,14 @@ class StaticPagesController < ApplicationController
   def security_txt
     respond_to :text
     expires_in 7.days, public: true
+  end
+
+  # Browsers and bots request /favicon.ico directly. Redirect to the
+  # fingerprinted asset, which can be cached as immutable; the redirect
+  # itself must stay short-lived, since the fingerprint changes with the icon.
+  # @return [void]
+  def favicon
+    expires_in 1.day, public: true
+    redirect_to helpers.asset_path('favicon.ico'), status: :moved_permanently
   end
 end

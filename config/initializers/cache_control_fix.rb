@@ -22,6 +22,7 @@ class CacheControlFixMiddleware
     @app = app
   end
 
+  # env is this request's Rack environment, not the process's ENV.
   def call(env)
     result = @app.call(env)
     _status, headers, _body = result

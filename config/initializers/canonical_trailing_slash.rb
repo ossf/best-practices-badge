@@ -18,6 +18,7 @@ module Rack
       @app = app
     end
 
+    # env is this request's Rack environment, not the process's ENV.
     def call(env)
       request = Rack::Request.new env
       if %r{^/(.*)/$}.match?(request.path_info)

@@ -317,4 +317,29 @@ class CdnCachingTest < ActionDispatch::IntegrationTest
     assert_equal 'private, no-store', response.headers['Cache-Control']
     assert_nil response.headers['Surrogate-Control']
   end
+
+  # Only a URL that includes a hash of its content may be cached as immutable;
+  # other public/ files get the short default. These go through the real
+  # static file server, so they'd catch the middleware being dropped.
+  test 'static files are immutable only when fingerprinted' do
+    get ActionController::Base.helpers.asset_path('favicon.ico')
+    assert_response :success
+    assert_equal FingerprintedAssetCacheMiddleware::IMMUTABLE,
+                 response.headers['Cache-Control']
+
+    get '/404.html'
+    assert_response :success
+    assert_equal FingerprintedAssetCacheMiddleware::DEFAULT_HEADERS['cache-control'],
+                 response.headers['Cache-Control']
+  end
+
+  # /favicon.ico redirects (briefly cached) to the immutable fingerprinted icon.
+  test '/favicon.ico redirects to the fingerprinted icon' do
+    get '/favicon.ico'
+    assert_response :moved_permanently
+    assert_redirected_to ActionController::Base.helpers.asset_path('favicon.ico')
+    # 86400 seconds = 1 day.
+    assert_equal 'max-age=86400, public', response.headers['Cache-Control']
+    assert_nil response.headers['Set-Cookie']
+  end
 end
