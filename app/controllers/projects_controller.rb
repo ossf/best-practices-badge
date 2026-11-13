@@ -1592,9 +1592,8 @@ class ProjectsController < ApplicationController
     # Rewrites /projects?q=&status=failing to /projects?status=failing
     original = request.original_fullpath
     parsed = Addressable::URI.parse(original)
-    return original if parsed.query_values.blank?
 
-    valid_queries = parsed.query_values.select { |k, v| allowed_query?(k, v) }
+    valid_queries = parsed.query_values&.select { |k, v| allowed_query?(k, v) }
     if valid_queries.blank?
       parsed.omit!(:query) # Removes trailing '?'
     else
@@ -1607,8 +1606,16 @@ class ProjectsController < ApplicationController
     # constructs like that, we remove the possibility of problems if there's
     # an error elsewhere. We *also* ensure that SAST tools can verify
     # that there is no vulnerability.
+    safe_path = local_path(parsed.path)
     query = parsed.query
-    query.blank? ? parsed.path : "#{parsed.path}?#{query}"
+    query.blank? ? safe_path : "#{safe_path}?#{query}"
+  end
+
+  # Collapses leading slashes so the result is always a same-host path.
+  # @param path [String, nil] the parsed request path
+  # @return [String] the path with exactly one leading '/'
+  def local_path(path)
+    "/#{path.to_s.sub(%r{\A/+}, '')}"
   end
 
   # Applies sorting to the projects collection based on URL parameters.
