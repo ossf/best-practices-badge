@@ -16,9 +16,11 @@ session cookie) on anonymous read-only pages that do not need one.
 > **Status, as of 2026-08-03.** Sections 1 to 10 are **implemented and in
 > production** (#2858, #2859, #2860, #2862). Read them as a record of the
 > design and the reasoning behind it, not as a plan: several are written
-> in the future tense from when they were proposals. Only
-> [section 11](#11-potential-future-work-purge-the-cdn-from-a-model-callback)
-> remains unimplemented, and it is the only part where a new note belongs.
+> in the future tense from when they were proposals.
+> [Section 11](#11-considered-and-rejected-purge-the-cdn-from-a-model-callback)
+> records a design we considered and decided *not* to build.
+> For a short summary of current caching behavior, see
+> [implementation.md](implementation.md#cdn-caching).
 >
 > Sections 7 and 8, the rollout order and the staging verification steps,
 > describe a rollout that has already happened; they are kept because the
@@ -1012,9 +1014,9 @@ that exact key.
   *other* path that changes a displayed project field via `save` /
   `update_column` without purging would leave the cached show page stale until
   `Surrogate-Control`'s `max-age` expires (10 days). No such path is known
-  today, but the safety net is fragile. Moving the purge into an `after_commit`
-  model callback would make purging robust against *any* write path; the design,
-  with its pros and cons, is in **Section 11**.
+  today. We considered moving the purge into an `after_commit` model
+  callback to cover *any* write path, and decided against it;
+  **Section 11** explains why.
 
 ### 9.4 Page variance between users
 
@@ -1326,20 +1328,30 @@ instantly.
 
 ---
 
-## 11. Potential future work: purge the CDN from a model callback
+## 11. Considered and rejected: purge the CDN from a model callback
 
-> **Status: not implemented; a proposal.** Today CDN purging is triggered
-> explicitly from the controller `update`/`destroy` actions and from the bulk
-> recalculation (`Project.update_all_badge_percentages`). This section records
-> the design for making purging a model-level `after_commit` callback — a more
-> robust "single source of truth" — together with its pros, cons, and the
-> pitfalls that make a *naive* callback worse than the status quo. It is written
-> down so the decision can be made deliberately later; it is **not** required
-> for the project-show caching to be correct as shipped.
-
-**Read [11.0](#110-two-objections-raised-2026-08-03) before implementing
-this.** Two objections were raised against the design below after it was
-written, and one of them undercuts its main claim.
+> **Decision: we will not do this.** We purge the CDN explicitly where
+> visible data changes: the controller `update`/`destroy` actions and the
+> bulk recalculation (`Project.update_all_badge_percentages`). This section
+> records the alternative we considered, a model-level `after_commit`
+> callback, and why we rejected it. In short (details in
+> [11.0](#110-two-objections-raised-2026-08-03)):
+>
+> * **It wouldn't catch the writes it was meant to catch.** Today's
+>   non-controller writes deliberately skip callbacks (`update_columns`,
+>   `update_column`, parameterized SQL), so the callback would mostly fire
+>   on paths that already purge. That looks like coverage but isn't.
+> * **Those writes don't need a purge anyway.** They change only
+>   `Project::BOOKKEEPING_FIELDS`, which no cached page shows, so nothing
+>   can go stale. The question to ask of a write isn't "does it purge?"
+>   but "does it change anything a reader can see?"
+>
+> We accept one gap that a `Project` callback wouldn't close either: if an
+> owner changes their display name, cached project pages show the old name
+> until the next project edit or cache expiry (see 11.4).
+>
+> The rest of this section is the original proposal and analysis, kept so
+> you can see the reasoning if the question comes up again.
 
 ### 11.0 Two objections raised 2026-08-03
 
