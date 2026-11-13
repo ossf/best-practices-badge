@@ -549,8 +549,9 @@ to the best matching locale (as recommended by the accept-language
 value provided by the browser, with English as the last resort).
 The API has an important exception: if JSON format is requested, no
 locale redirection occurs (because JSON isn't locale-sensitive).
-The request for the badge image (with `/projects/NNN/badge`)
-is also not redirectored (again, because it isn't locale-sensitive).
+Requests for badge images (`/projects/NNN/badge` and
+`/projects/NNN/baseline`) are also not redirected
+(again, because they aren't locale-sensitive).
 
 Locales are always exactly 2 lowercase letters, or 2 lowercase letters
 followed by an dash and then more alphanumerics.
