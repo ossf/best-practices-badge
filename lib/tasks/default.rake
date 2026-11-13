@@ -1067,7 +1067,7 @@ end
 # Tasks for Fastly including purging and testing the cache.
 namespace :fastly do
   # Implement purge_all (full purge) of Fastly CDN cache.  Invoke using:
-  #   script/heroku_run HEROKU_APP_HERE rake fastly:purge
+  #   script/heroku_run HEROKU_APP_HERE rake fastly:purge_all
   # Run this if code changes will cause a change in badge level, since otherwise
   # the old badge levels will keep being displayed until the cache times out.
   # See: https://robots.thoughtbot.com/

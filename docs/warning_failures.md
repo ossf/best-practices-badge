@@ -1823,11 +1823,10 @@ lately" belongs on the list. A model test asserts every name in it is a
 real column, since a typo would silently publish the field it was meant
 to withhold.
 
-It is also the seed for
-[section 11](cdn-cache-not-logged-in.md#11-potential-future-work-purge-the-cdn-from-a-model-callback) of the CDN document:
-these are exactly the columns whose change cannot make any cached page
-stale, so a future purge callback can skip a write that touched only
-them.
+These are also exactly the columns whose change cannot make any cached
+page stale, so a write that touches only them needs no CDN purge. That's
+part of why we decided against a purge callback; see
+[section 11](cdn-cache-not-logged-in.md#11-considered-and-rejected-purge-the-cdn-from-a-model-callback) of the CDN document.
 
 ### Separable, any time
 

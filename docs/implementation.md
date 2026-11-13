@@ -957,6 +957,60 @@ ActiveSupport::Cache should probably be changed, e.g., to
 MemCached or Redis.
 Otherwise the caches won't be shared between the instances.
 
+## CDN caching
+
+We use the Fastly CDN so that it, or the requester, can answer most
+requests without reaching our application. In summary:
+
+* **Badge images and project JSON** are cached by the CDN for up to
+  10 days (`BADGE_CACHE_MAX_AGE`), tagged with surrogate keys such as
+  the project's `projects/ID` so we can purge them selectively.
+* **Project pages for anonymous users** are cached too. The presence of
+  the session cookie (`_BadgeApp_session`) is the "don't cache" signal,
+  so we avoid setting it for anonymous read-only pages (e.g., we omit the
+  CSRF token there). Kill switch: `BADGEAPP_CACHE_SHOW_PROJECT=false`.
+* **"Unchanging" pages** (home, cookies, and criteria pages), whose
+  output changes only on deploy, share the surrogate key `unchanging`,
+  which `config/puma.rb` purges after each boot. Kill switch:
+  `BADGEAPP_CACHE_UNCHANGING=false`.
+* **Purging is explicit.** Project `update`/`destroy` and the bulk badge
+  recalculation purge the affected project's key, then purge again after
+  a short delay (`PurgeCdnProjectJob`) to catch a stale copy
+  re-cached during a rolling deploy. Writes that change only
+  `Project::BOOKKEEPING_FIELDS` don't purge, since no cached page shows
+  those columns.
+
+The design, its safety arguments, and the staging verification steps
+(`script/verify_cdn_caching.sh`) are in
+[cdn-cache-not-logged-in.md](cdn-cache-not-logged-in.md). Its
+section 11 explains why we decided *not* to purge from a model callback.
+
+### Caching static files
+
+Files we serve from `public/` get one of two cache lifetimes:
+
+* A URL that includes a fingerprint (a SHA-256 hash derived from the
+  file's content), such as `/assets/favicon-f098...588f.ico`, is
+  cached as `immutable` for a year. That's safe because any content
+  change produces a new URL. Sprockets generates these URLs for
+  everything under `/assets/`.
+* Everything else, such as `/404.html`, gets a 1-day lifetime, since
+  its content can change while its URL stays the same.
+
+`FingerprintedAssetCacheMiddleware`
+(`lib/fingerprinted_asset_cache_middleware.rb`) enforces this:
+`config.public_file_server.headers` sets the short default, and the
+middleware upgrades a response to `immutable` only if its URL is
+fingerprinted. So a file you add to `public/` gets the short lifetime
+automatically. Never put `immutable` in `public_file_server.headers`;
+it would apply to every file in `public/`, and caches couldn't pick up
+later changes to unfingerprinted files for up to a year.
+
+If you want a file cached longer, serve it through the asset pipeline
+so its URL is fingerprinted. For example, `/favicon.ico` is a 1-day
+redirect to the fingerprinted icon, because browsers and bots request
+that fixed URL directly.
+
 ## Purging Fastly CDN cache
 
 If a change in the application causes any badge level(s) to change or
@@ -969,7 +1023,7 @@ You can purge the Fastly CDN cache this way (assuming you're
 allowed to log in to the relevant Heroku app):
 
 ~~~~sh
-script/heroku_run HEROKU_APP_HERE rake fastly:purge
+script/heroku_run HEROKU_APP_HERE rake fastly:purge_all
 ~~~~
 
 This command will use the value of the FASTLY_API_KEY
