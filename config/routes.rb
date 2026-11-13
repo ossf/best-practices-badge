@@ -104,6 +104,10 @@ Rails.application.routes.draw do
   get '/robots.txt' => 'static_pages#robots',
       defaults: FORMAT_TEXT, as: :robots
 
+  # Security contact information per RFC 9116; also locale-independent.
+  get '/.well-known/security.txt' => 'static_pages#security_txt',
+      defaults: FORMAT_TEXT, as: :security_txt
+
   # These routes never use locales, so that the cache is shared across locales.
   get '/project_stats/total_projects.json', to: 'project_stats#total_projects',
       as: 'total_projects_project_stats',

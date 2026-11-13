@@ -110,9 +110,6 @@ tmp/baseline_cache/
 !/.github/
 !/.circleci/
 
-# Served to the public by the site itself, e.g. /.well-known/security.txt.
-!/public/.well-known/
-
 # translation.io project state.
 !/config/locales/.translation_io
 

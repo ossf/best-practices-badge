@@ -1,0 +1,12 @@
+# Security contact information per RFC 9116 (https://www.rfc-editor.org/rfc/rfc9116).
+# SECURITY.md is the authoritative policy; this file only points to it.
+Contact: https://github.com/ossf/best-practices-badge/security/advisories/new
+Contact: https://github.com/ossf/best-practices-badge/blob/main/SECURITY.md
+Policy: https://github.com/ossf/best-practices-badge/blob/main/SECURITY.md
+Acknowledgments: https://github.com/ossf/best-practices-badge/blob/main/CREDITS
+Preferred-Languages: en
+Canonical: https://www.bestpractices.dev/.well-known/security.txt
+<%# RFC 9116 requires Expires and recommends it be under a year ahead.
+    We compute it so nobody has to keep editing it; truncating to the
+    day keeps the output stable across requests within a day. -%>
+Expires: <%= (Time.now.utc + 180.days).beginning_of_day.iso8601 %>
