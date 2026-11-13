@@ -21,7 +21,7 @@ badge entry data:
   This mechanism requires authentication and authorization
   (which is an extra step) and writing with REST
   doesn't let the user use the UI to review the changes.
-  That said, see [api](./api) if you want more information.
+  That said, see [api](./api.md) if you want more information.
 * Our automation systems examine the project repo for information.
   This includes looking for a [`.bestpractices.json`](./bestpractices-json.md)
   file which stores
