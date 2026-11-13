@@ -119,6 +119,29 @@ class StaticPagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test 'should get valid security.txt' do
+    get security_txt_path
+    assert_response :success
+    assert_equal 'text/plain; charset=utf-8', @response.content_type
+    # 604800 seconds = 7 days (1 week): 7 * 24 * 60 * 60.
+    assert_equal 'max-age=604800, public', @response.headers['Cache-Control']
+    assert_nil @response.headers['Set-Cookie']
+    # Every non-comment line must be an RFC 9116 field we intend to send.
+    fields = @response.body.lines.grep_v(/\A#/).map { |l| l.chomp.split(': ', 2) }
+    allowed = %w[
+      Contact Policy Acknowledgments Preferred-Languages Canonical Expires
+    ]
+    assert_empty fields.map(&:first) - allowed
+    assert fields.assoc('Contact')
+    assert_equal "https://www.bestpractices.dev#{security_txt_path}",
+                 fields.assoc('Canonical')[1]
+    # RFC 9116 requires exactly one Expires, recommended < 1 year ahead.
+    assert_equal(1, fields.count { |name, _| name == 'Expires' })
+    expiry = Time.iso8601(fields.assoc('Expires')[1])
+    assert_operator expiry, :>, 30.days.from_now
+    assert_operator expiry, :<, 1.year.from_now
+  end
+
   test 'should get criteria' do
     get criteria_stats_path(locale: :en)
     assert_response :success
