@@ -42,6 +42,7 @@ class FingerprintedAssetCacheMiddleware
     @app = app
   end
 
+  # env is this request's Rack environment, not the process's ENV.
   def call(env)
     # Check the path *before* calling the app: a mounted app can change
     # PATH_INFO. E.g., when assets aren't precompiled (as in CI), Sprockets'
