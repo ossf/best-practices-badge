@@ -286,8 +286,22 @@ class ProjectsController < ApplicationController
       hash['permissions'] = quoted_base.join(',').freeze
     end.freeze # rubocop:disable Style/MethodCalledOnDoEndBlock
 
-  # as= values, which redirect to alternative views
-  ALLOWED_AS = %w[badge edit entry].freeze
+  # as= values that redirect to a badge image, one per badge series
+  # (e.g., as=badge and as=baseline). Each is also its URL suffix.
+  BADGE_AS = Sections::BADGE_URL_SUFFIX.values.freeze
+
+  # Allowlist of values for the projects index's "as" query parameter,
+  # which turns a search into a redirect to one matching project's view:
+  # - BADGE_AS values: 301 to that series' badge image (or .json);
+  #   404 if no project matches, 409 if more than one does.
+  # - edit: 302 to the project's edit page, if exactly one matches.
+  # - entry: 301 to the project's page, if exactly one matches.
+  # For edit and entry, zero or several matches show the normal index.
+  # allowed_other_query? checks "as" against this list, so
+  # set_valid_query_url drops any other value by redirecting to the URL
+  # without it. That's what makes it safe for redir_to_badge to put the
+  # value into a path.
+  ALLOWED_AS = (BADGE_AS + %w[edit entry]).freeze
 
   # Query parameters consumed by the as=edit redirect (stripped before
   # forwarding to the edit URL so only automation-proposal params remain).
@@ -315,14 +329,14 @@ class ProjectsController < ApplicationController
     if validated_url == request.original_fullpath
       retrieve_projects
 
-      if params[:as] == 'badge' # Redirect to badge view
+      if BADGE_AS.include?(params[:as]) # Redirect to badge view
         # We redirect, instead of responding directly with the answer, because
         # then the requesting browser and CDN will handle repeat requests.
         # We only retrieve ids, because we don't need any other data.
         # Also, we just need to know if the search is unique, not the
         # full list of matches, so we limit() ourselves to two responses.
         ids = @projects.limit(2).ids
-        redir_to_badge(ids)
+        redir_to_badge(ids, params[:as])
       elsif params[:as] == 'edit' # Redirect to edit view
         ids = @projects.limit(2).ids
         if ids.size == 1
@@ -358,9 +372,10 @@ class ProjectsController < ApplicationController
   # Redirect to the single relevant badge entry, if there is one.
   # Handles cases where search results in 0, 1, or multiple matches.
   # @param id_list [Array<Integer>] List of project IDs from search
+  # @param badge_suffix [String] badge URL suffix, from BADGE_AS
   # @return [void]
-  # rubocop:disable Metrics/MethodLength
-  def redir_to_badge(id_list)
+  # rubocop:disable-next Metrics/MethodLength
+  def redir_to_badge(id_list, badge_suffix)
     count = id_list.size
     if count.zero?
       render(
@@ -380,11 +395,10 @@ class ProjectsController < ApplicationController
       # But in practice, ids are as "permanent" as anything on the web gets.
       # If we say it's moved permanently, then browsers & caches &
       # search engines will do the right thing, so that's the status used.
-      redirect_to "/projects/#{id_list.first}/badge#{suffix}",
+      redirect_to "/projects/#{id_list.first}/#{badge_suffix}#{suffix}",
                   status: :moved_permanently
     end
   end
-  # rubocop:disable Metrics/MethodLength
 
   # Build the redirect URL for as=edit, pointing to the project edit page.
   # Validates the section parameter and strips consumed query parameters,
@@ -480,7 +494,7 @@ class ProjectsController < ApplicationController
   # Performance: Uses project ID directly without loading from database.
   # If project doesn't exist, the redirected URL will return 404.
   # @return [void]
-  # rubocop:disable-next Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def redirect_to_default_section
     # Use project ID directly - no need to load project from database
     project_id = params[:id]

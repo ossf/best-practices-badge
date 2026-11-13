@@ -160,6 +160,17 @@ might request.
     An empty format suffix returns SVG, and the ".json" format suffix
     returns JSON.
 
+    To retrieve the Baseline badge instead of the metal-series badge,
+    use `as=baseline`:
+
+    ```
+    /en/projects?as=baseline&url=https%3A%2F%2Fgithub.com%2FORG%2FPROJECT
+    ```
+
+    This redirects to `/projects/:id/baseline` (or
+    `/projects/:id/baseline.json` when requesting JSON), with the same
+    matching and error behavior.
+
     There's a performance penalty for using this interface. This interface
     makes a query each time to the BadgeApp, which then redirects
     the requestor to the actual badge URL (the latter goes through a CDN
@@ -348,6 +359,8 @@ list of projects in the requested format. The "as" parameter changes this:
 *   as=badge : Display the *single* badge for the resulting project.
     If no project matches the criteria, status 404 (not found) is returned.
     If multiple projects match the criteria, status 409 (conflict) is returned.
+*   as=baseline : Display the *single* Baseline badge for the resulting project,
+    with the same matching and error behavior as `as=badge`.
 *   as=edit : Redirect to the *edit* page for the resulting project.
     If a single project matches, the user is redirected (302) to the
     project's edit URL. If no or multiple projects match, the normal
