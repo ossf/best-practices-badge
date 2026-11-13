@@ -1615,89 +1615,57 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       @response.body
   end
 
-  test 'as=badge works in simple case (single result)' do
-    expected_id = projects(:perfect).id
-    get '/en/projects?as=badge&' \
-        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
-    assert_redirected_to "/projects/#{expected_id}/badge"
+  # Project method giving the JSON badge_level for each badge-series as= value.
+  BADGE_AS_LEVEL = { 'badge' => :badge_level, 'baseline' => :baseline_badge_value }.freeze
+
+  # URL-escaped repo URL that matches exactly one fixture, projects(:perfect).
+  SHARED_REPO = 'https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
+
+  test 'every badge series as= value is tested' do
+    assert_equal ProjectsController::BADGE_AS.sort, BADGE_AS_LEVEL.keys.sort
   end
 
-  test 'as=badge works with trailing space and slash' do
-    expected_id = projects(:perfect).id
-    get '/en/projects?as=badge&' \
-        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared%2F%20'
-    assert_redirected_to "/projects/#{expected_id}/badge"
-  end
+  # Run the same lookup tests for every badge series (as=badge, as=baseline).
+  BADGE_AS_LEVEL.each do |badge_as, level_method|
+    test "as=#{badge_as} works in simple case (single result)" do
+      expected_id = projects(:perfect).id
+      get "/en/projects?as=#{badge_as}&url=#{SHARED_REPO}"
+      assert_response :moved_permanently
+      assert_redirected_to "/projects/#{expected_id}/#{badge_as}"
+      follow_redirect!
+      assert_response :success
+      assert_equal 'image/svg+xml', response.media_type
+    end
 
-  test 'as=badge works in simple case returning JSON' do
-    expected_id = projects(:perfect).id
-    get '/en/projects.json?as=badge&' \
-        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
-    assert_redirected_to "/projects/#{expected_id}/badge.json"
-  end
+    test "as=#{badge_as} works with trailing space and slash" do
+      expected_id = projects(:perfect).id
+      get "/en/projects?as=#{badge_as}&url=#{SHARED_REPO}%2F%20"
+      assert_redirected_to "/projects/#{expected_id}/#{badge_as}"
+    end
 
-  test 'as=badge redirects simple case when using pq=' do
-    expected_id = projects(:perfect).id
-    get '/en/projects?as=badge&' \
-        'pq=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
-    assert_redirected_to "/projects/#{expected_id}/badge"
-  end
+    test "as=#{badge_as} works in simple case returning JSON" do
+      project = projects(:perfect)
+      get "/en/projects.json?as=#{badge_as}&url=#{SHARED_REPO}"
+      assert_redirected_to "/projects/#{project.id}/#{badge_as}.json"
+      follow_redirect!
+      assert_response :success
+      assert_equal project.id, response.parsed_body['id']
+      assert_equal project.public_send(level_method),
+                   response.parsed_body['badge_level']
+    end
 
-  test 'as=badge returns status 404 if not found' do
-    get '/en/projects?as=badge&url=https%3A%2F%2FNO_SUCH_THING'
-    assert_response :not_found
-  end
+    test "as=#{badge_as} redirects simple case when using pq=" do
+      expected_id = projects(:perfect).id
+      get "/en/projects?as=#{badge_as}&pq=#{SHARED_REPO}"
+      assert_redirected_to "/projects/#{expected_id}/#{badge_as}"
+    end
 
-  test 'as=badge returns status 409 (conflict) if >1 match' do
-    get '/en/projects?as=badge&pq=https%3A%2F%2F'
-    assert_response :conflict
-  end
-
-  test 'as=baseline works in simple case (single result)' do
-    expected_id = projects(:perfect).id
-    get '/en/projects?as=baseline&' \
-        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
-    assert_response :moved_permanently
-    assert_redirected_to "/projects/#{expected_id}/baseline"
-    follow_redirect!
-    assert_response :success
-    assert_includes @response.body, 'openssf baseline'
-  end
-
-  test 'as=baseline works with trailing space and slash' do
-    expected_id = projects(:perfect).id
-    get '/en/projects?as=baseline&' \
-        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared%2F%20'
-    assert_redirected_to "/projects/#{expected_id}/baseline"
-  end
-
-  test 'as=baseline works in simple case returning JSON' do
-    expected_id = projects(:perfect).id
-    get '/en/projects.json?as=baseline&' \
-        'url=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
-    assert_redirected_to "/projects/#{expected_id}/baseline.json"
-    follow_redirect!
-    assert_response :success
-    assert_equal expected_id, response.parsed_body['id']
-    assert_equal projects(:perfect).baseline_badge_value,
-                 response.parsed_body['badge_level']
-  end
-
-  test 'as=baseline redirects simple case when using pq=' do
-    expected_id = projects(:perfect).id
-    get '/en/projects?as=baseline&' \
-        'pq=https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
-    assert_redirected_to "/projects/#{expected_id}/baseline"
-  end
-
-  test 'as=baseline returns status 404 if not found' do
-    get '/en/projects?as=baseline&url=https%3A%2F%2FNO_SUCH_THING'
-    assert_response :not_found
-  end
-
-  test 'as=baseline returns status 409 (conflict) if >1 match' do
-    get '/en/projects?as=baseline&pq=https%3A%2F%2F'
-    assert_response :conflict
+    test "as=#{badge_as} returns 404 if no match, 409 (conflict) if >1" do
+      get "/en/projects?as=#{badge_as}&url=https%3A%2F%2FNO_SUCH_THING"
+      assert_response :not_found
+      get "/en/projects?as=#{badge_as}&pq=https%3A%2F%2F"
+      assert_response :conflict
+    end
   end
 
   test 'as=entry works in simple case (single result)' do

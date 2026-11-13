@@ -286,8 +286,12 @@ class ProjectsController < ApplicationController
       hash['permissions'] = quoted_base.join(',').freeze
     end.freeze # rubocop:disable Style/MethodCalledOnDoEndBlock
 
+  # as= values that redirect to a badge image, one per badge series
+  # (e.g., as=badge and as=baseline). Each is also its URL suffix.
+  BADGE_AS = Sections::BADGE_URL_SUFFIX.values.freeze
+
   # as= values, which redirect to alternative views
-  ALLOWED_AS = %w[badge baseline edit entry].freeze
+  ALLOWED_AS = (BADGE_AS + %w[edit entry]).freeze
 
   # Query parameters consumed by the as=edit redirect (stripped before
   # forwarding to the edit URL so only automation-proposal params remain).
@@ -315,14 +319,14 @@ class ProjectsController < ApplicationController
     if validated_url == request.original_fullpath
       retrieve_projects
 
-      if params[:as] == 'badge' || params[:as] == 'baseline' # Redirect to badge view
+      if BADGE_AS.include?(params[:as]) # Redirect to badge view
         # We redirect, instead of responding directly with the answer, because
         # then the requesting browser and CDN will handle repeat requests.
         # We only retrieve ids, because we don't need any other data.
         # Also, we just need to know if the search is unique, not the
         # full list of matches, so we limit() ourselves to two responses.
         ids = @projects.limit(2).ids
-        redir_to_badge(ids)
+        redir_to_badge(ids, params[:as])
       elsif params[:as] == 'edit' # Redirect to edit view
         ids = @projects.limit(2).ids
         if ids.size == 1
@@ -358,9 +362,10 @@ class ProjectsController < ApplicationController
   # Redirect to the single relevant badge entry, if there is one.
   # Handles cases where search results in 0, 1, or multiple matches.
   # @param id_list [Array<Integer>] List of project IDs from search
+  # @param badge_suffix [String] badge URL suffix, from BADGE_AS
   # @return [void]
   # rubocop:disable Metrics/MethodLength
-  def redir_to_badge(id_list)
+  def redir_to_badge(id_list, badge_suffix)
     count = id_list.size
     if count.zero?
       render(
@@ -374,14 +379,13 @@ class ProjectsController < ApplicationController
       )
     else
       suffix = request&.format&.symbol == :json ? '.json' : ''
-      badge_path = params[:as] == 'baseline' ? 'baseline' : 'badge'
       # In *theory* this hasn't "moved permanently", because someone *could*
       # create a new matching badge entry *and* delete the old badge entry.
       # They could also make a query ambiguous.
       # But in practice, ids are as "permanent" as anything on the web gets.
       # If we say it's moved permanently, then browsers & caches &
       # search engines will do the right thing, so that's the status used.
-      redirect_to "/projects/#{id_list.first}/#{badge_path}#{suffix}",
+      redirect_to "/projects/#{id_list.first}/#{badge_suffix}#{suffix}",
                   status: :moved_permanently
     end
   end
