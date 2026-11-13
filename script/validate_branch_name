@@ -28,7 +28,7 @@ fi
 BRANCH_NAME="$1"
 
 # Reject empty branch name
-if [ $# = '' ]; then
+if [ -z "$BRANCH_NAME" ]; then
   echo "ERROR: Branch name must not be empty" >&2
   exit 1
 fi
