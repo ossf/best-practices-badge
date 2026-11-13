@@ -364,7 +364,7 @@ class ProjectsController < ApplicationController
   # @param id_list [Array<Integer>] List of project IDs from search
   # @param badge_suffix [String] badge URL suffix, from BADGE_AS
   # @return [void]
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def redir_to_badge(id_list, badge_suffix)
     count = id_list.size
     if count.zero?
@@ -389,7 +389,6 @@ class ProjectsController < ApplicationController
                   status: :moved_permanently
     end
   end
-  # rubocop:disable Metrics/MethodLength
 
   # Build the redirect URL for as=edit, pointing to the project edit page.
   # Validates the section parameter and strips consumed query parameters,
@@ -485,7 +484,7 @@ class ProjectsController < ApplicationController
   # Performance: Uses project ID directly without loading from database.
   # If project doesn't exist, the redirected URL will return 404.
   # @return [void]
-  # rubocop:disable-next Metrics/AbcSize
+  # rubocop:disable-next Metrics/AbcSize, Metrics/MethodLength
   def redirect_to_default_section
     # Use project ID directly - no need to load project from database
     project_id = params[:id]
