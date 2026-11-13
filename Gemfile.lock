@@ -531,10 +531,10 @@ GEM
       logger (~> 1.4)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
-    sentry-rails (6.7.0)
+    sentry-rails (7.2.0)
       railties (>= 5.2.0)
-      sentry-ruby (~> 6.7.0)
-    sentry-ruby (6.7.0)
+      sentry-ruby (~> 7.2.0)
+    sentry-ruby (7.2.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       logger
@@ -916,8 +916,8 @@ CHECKSUMS
   secure_headers (7.3.0) sha256=fd48af867e00d016edf8a64a179ae45253c1a2d5f7d8ba75e248440cfb2a0c00
   securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
   selenium-webdriver (4.52.0) sha256=5d45ba100ea8b57f5a8c25979a636d48b4c60c39973478930d78e884bdeecd2d
-  sentry-rails (6.7.0) sha256=d295dc5aa239eb91d4fb123c55d9ff2d3c40e7c29921539c5b4ae684b1490293
-  sentry-ruby (6.7.0) sha256=b4b915d79a0395ad02106d4012aa1914641456e042ce36393f15bd1630d8db42
+  sentry-rails (7.2.0) sha256=c3874fed94a68f3f60a917243b6e25414ff284455abd14e3351479a32807af79
+  sentry-ruby (7.2.0) sha256=2da448c2b7028a7691f31ae5c946830b8e694d0aec78ef2b9e5c7e1da9c3e01a
   sexp_processor (4.17.6) sha256=3c5d0e9db06377abde06db51dbacb14ce239ed0bd038ae515bc42c81602c6c1f
   simplecov (1.3.2) sha256=2a22ec1759f1b8db60881a2e038758956fc69ef93ed669be0bde0678de6d0e85
   simplecov_json_formatter (0.1.4) sha256=529418fbe8de1713ac2b2d612aa3daa56d316975d307244399fa4838c601b428
