@@ -51,6 +51,22 @@ class FingerprintedAssetCacheMiddlewareTest < ActiveSupport::TestCase
     assert_equal 'unchanged', cache_control_for('/404.html')
   end
 
+  # Regression test: a mounted app (e.g., Sprockets' /assets server, used
+  # when assets aren't precompiled) strips its mount prefix from PATH_INFO.
+  # The middleware must decide from the path as the request arrived.
+  test 'uses the request path even if the app changes PATH_INFO' do
+    app =
+      lambda do |env|
+        env['PATH_INFO'] = env['PATH_INFO'].delete_prefix('/assets')
+        [200, { 'cache-control' => 'unchanged' }, []]
+      end
+    middleware = FingerprintedAssetCacheMiddleware.new(app)
+    _status, headers, _body =
+      middleware.call('PATH_INFO' => "/assets/favicon-#{HASH}.ico")
+    assert_equal FingerprintedAssetCacheMiddleware::IMMUTABLE,
+                 headers['cache-control']
+  end
+
   test 'the default for public/ files is never immutable' do
     assert_not_includes(
       FingerprintedAssetCacheMiddleware::DEFAULT_HEADERS['cache-control'],

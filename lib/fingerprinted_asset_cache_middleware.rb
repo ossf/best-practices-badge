@@ -43,10 +43,13 @@ class FingerprintedAssetCacheMiddleware
   end
 
   def call(env)
+    # Check the path *before* calling the app: a mounted app can change
+    # PATH_INFO. E.g., when assets aren't precompiled (as in CI), Sprockets'
+    # server mounted at /assets serves them and strips that prefix.
+    fingerprinted = self.class.fingerprinted?(env['PATH_INFO'])
     result = @app.call(env)
     status, headers, _body = result
-    if CACHEABLE_STATUSES.include?(status) &&
-       self.class.fingerprinted?(env['PATH_INFO'])
+    if fingerprinted && CACHEABLE_STATUSES.include?(status)
       headers['cache-control'] = IMMUTABLE
     end
     # Return the original array to avoid unnecessary object creation.
