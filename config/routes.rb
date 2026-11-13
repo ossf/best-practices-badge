@@ -108,6 +108,9 @@ Rails.application.routes.draw do
   get '/.well-known/security.txt' => 'static_pages#security_txt',
       defaults: FORMAT_TEXT, as: :security_txt
 
+  # Bots and browsers request /favicon.ico regardless of our <link> tags.
+  get '/favicon.ico' => 'static_pages#favicon', as: :favicon
+
   # These routes never use locales, so that the cache is shared across locales.
   get '/project_stats/total_projects.json', to: 'project_stats#total_projects',
       as: 'total_projects_project_stats',

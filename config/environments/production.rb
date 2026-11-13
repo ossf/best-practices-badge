@@ -4,6 +4,8 @@
 # OpenSSF Best Practices badge contributors
 # SPDX-License-Identifier: MIT
 
+require_relative '../../lib/fingerprinted_asset_cache_middleware'
+
 # rubocop:disable-next Metrics/BlockLength
 Rails.application.configure do
   # Settings specified here will take precedence over those in
@@ -203,12 +205,11 @@ Rails.application.configure do
   # "config.serve_static_assets = true".  However, this has since been
   # renamed to "config.serve_static_files", which we already conditionally set.
 
-  # Cache static content.  Cache for a long time; the asset cache is
+  # Cache static content from public/. This default applies to every
+  # file there, so it must NOT be "immutable"; middleware upgrades only
+  # fingerprinted asset URLs. See lib/fingerprinted_asset_cache_middleware.rb.
   config.public_file_server.headers =
-    {
-      'Cache-Control' =>
-        'public, s-maxage=31536000, max-age=31536000, immutable'
-    }
+    FingerprintedAssetCacheMiddleware::DEFAULT_HEADERS
 
   # Enable Rack's built-in compression mechanism; this is important for people
   # with slow network connections
