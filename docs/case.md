@@ -15,7 +15,7 @@ easier to put them all in one document.
 
 Sadly, perfection is rare; we really want your help.
 If you find a vulnerability, please see
-[CONTRIBUTING.md#how_to_report_vulnerabilities](../CONTRIBUTING.md#how_to_report_vulnerabilities)
+[SECURITY.md](../SECURITY.md)
 for how to submit a vulnerability report.
 For more technical information on the implementation, see
 [implementation.md](implementation.md).
@@ -4771,6 +4771,13 @@ If unspecified they have the default values specified in
 - logins/ip
 - logins/email
 - signup/ip
+- nonbadge_req/ip, a stricter limit for every request *except*
+  badge images. Badge images of every series (`/projects/N/badge` and
+  `/projects/N/baseline`) may be requested faster, since they're cheap
+  to generate and the CDN usually serves them anyway. The rate limiter
+  identifies them with `BADGE_REGEX_PATH`, built from
+  `Sections::BADGE_URL_SUFFIX` so a new badge series is included
+  automatically. Requests for JSON always count as non-badge requests.
 
 We also have a set of simple FAIL2BAN settings that temporarily
 bans an IP address if it makes too many "suspicious" requests.
@@ -7013,11 +7020,21 @@ believe they are acceptable:
 
 ## Vulnerability report handling process
 
-As noted in CONTRIBUTING.md, if anyone finds a
+As noted in SECURITY.md, if anyone finds a
 significant vulnerability, or evidence of one, we ask that they
-send that information to at least one of the security contacts.
-The CONTRIBUTING.md file explains how to report a vulnerability;
-below we describe what happens once vulnerability is reported.
+report it to us privately.
+SECURITY.md explains how to report a vulnerability (preferably
+through GitHub's private vulnerability reporting);
+below we describe what happens once a vulnerability is reported.
+
+We also publish our vulnerability contact information at
+<https://www.bestpractices.dev/.well-known/security.txt>, per
+[RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), so researchers
+and automated tools can find it. It points to SECURITY.md instead of
+repeating its details, so the two can't disagree. The app generates it
+from `app/views/static_pages/security_txt.text.erb` and computes its
+required `Expires` field (180 days ahead), so it can't lapse;
+a test checks its fields.
 
 Whoever receives that report will share that information with the
 other security contacts, and one of them will analyze it:
