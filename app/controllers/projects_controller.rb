@@ -290,7 +290,17 @@ class ProjectsController < ApplicationController
   # (e.g., as=badge and as=baseline). Each is also its URL suffix.
   BADGE_AS = Sections::BADGE_URL_SUFFIX.values.freeze
 
-  # as= values, which redirect to alternative views
+  # Allowlist of values for the projects index's "as" query parameter,
+  # which turns a search into a redirect to one matching project's view:
+  # - BADGE_AS values: 301 to that series' badge image (or .json);
+  #   404 if no project matches, 409 if more than one does.
+  # - edit: 302 to the project's edit page, if exactly one matches.
+  # - entry: 301 to the project's page, if exactly one matches.
+  # For edit and entry, zero or several matches show the normal index.
+  # allowed_other_query? checks "as" against this list, so
+  # set_valid_query_url drops any other value by redirecting to the URL
+  # without it. That's what makes it safe for redir_to_badge to put the
+  # value into a path.
   ALLOWED_AS = (BADGE_AS + %w[edit entry]).freeze
 
   # Query parameters consumed by the as=edit redirect (stripped before

@@ -1615,18 +1615,22 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       @response.body
   end
 
-  # Project method giving the JSON badge_level for each badge-series as= value.
-  BADGE_AS_LEVEL = { 'badge' => :badge_level, 'baseline' => :baseline_badge_value }.freeze
+  # For each badge-series as= value: the Project method giving its JSON
+  # badge_level, and text that only that series' SVG badge image contains.
+  BADGE_AS_EXPECTED = {
+    'badge' => [:badge_level, 'openssf best practices'],
+    'baseline' => [:baseline_badge_value, 'openssf baseline']
+  }.freeze
 
   # URL-escaped repo URL that matches exactly one fixture, projects(:perfect).
   SHARED_REPO = 'https%3A%2F%2Fgithub.com%2Fbestpracticestest%2Ftest-repo-shared'
 
   test 'every badge series as= value is tested' do
-    assert_equal ProjectsController::BADGE_AS.sort, BADGE_AS_LEVEL.keys.sort
+    assert_equal ProjectsController::BADGE_AS.sort, BADGE_AS_EXPECTED.keys.sort
   end
 
   # Run the same lookup tests for every badge series (as=badge, as=baseline).
-  BADGE_AS_LEVEL.each do |badge_as, level_method|
+  BADGE_AS_EXPECTED.each do |badge_as, (level_method, svg_text)|
     test "as=#{badge_as} works in simple case (single result)" do
       expected_id = projects(:perfect).id
       get "/en/projects?as=#{badge_as}&url=#{SHARED_REPO}"
@@ -1635,6 +1639,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       follow_redirect!
       assert_response :success
       assert_equal 'image/svg+xml', response.media_type
+      assert_includes response.body, svg_text
     end
 
     test "as=#{badge_as} works with trailing space and slash" do
