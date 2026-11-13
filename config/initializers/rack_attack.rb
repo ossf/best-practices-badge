@@ -64,8 +64,14 @@ class Rack::Attack
     end
   end
 
-  # Path for a badge image. Note that this does NOT vary by locale.
-  BADGE_REGEX_PATH = Regexp.compile('^/projects/[1-9][0-9]*/badge$')
+  # Path for a badge image of any series (e.g., /projects/1/badge or
+  # /projects/1/baseline). Note that this does NOT vary by locale.
+  # "01_section_names" comes before "rack_attack" alphabetically, so
+  # Sections::BADGE_URL_SUFFIX is defined by this point.
+  BADGE_REGEX_PATH = %r{
+    \A/projects/[1-9][0-9]*/
+    #{Regexp.union(Sections::BADGE_URL_SUFFIX.values)}\z
+  }x
 
   # Throttle all requests other than badge images by IP (default 31/15sec)
   # Everything other than badge image requests should be made at a reasonable
