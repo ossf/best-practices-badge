@@ -90,8 +90,6 @@ GEM
     argon2-kdf (1.0.0)
       fiddle
     ast (2.4.3)
-    attr_encrypted (4.2.0)
-      encryptor (~> 3.0.0)
     auth-sanitizer (0.2.5)
       version_gem (~> 1.1, >= 1.1.16)
     autoprefixer-rails (10.6.1.0)
@@ -159,7 +157,6 @@ GEM
     date (3.6.0)
     dotenv (3.2.0)
     drb (2.2.3)
-    encryptor (3.0.0)
     erb (6.0.7)
     erubi (1.13.1)
     erubis (2.7.0)
@@ -623,7 +620,6 @@ DEPENDENCIES
   activemodel (~> 8.1.1)
   activerecord (~> 8.1.1)
   activesupport (~> 8.1.1)
-  attr_encrypted (~> 4)
   awesome_print
   bcrypt (~> 3.1.18)
   blind_index (~> 2.8.1)
@@ -717,7 +713,6 @@ CHECKSUMS
   ansi (1.6.0) sha256=ac9ea0c0ea8d32fb4e271348e609963ac78882f34b73836c2a02b3622e666658
   argon2-kdf (1.0.0) sha256=c794576edaaaa85fd1099068dbeefbb2ef6f5dedb5404b9320808012cd4f1d0c
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
-  attr_encrypted (4.2.0) sha256=7e5c80159e6e38ed40dc4e2e65c4f57234fe1f376bddc40c8b773bfb9b81ad51
   auth-sanitizer (0.2.5) sha256=eec0f5ee354931a1431be6f7025bc38d03db1731a2185726cbe6248e49bee177
   autoprefixer-rails (10.6.1.0) sha256=85107de290831d4fa5bf77c0ccf2e4b4988f801f55ab9c24320d98a25ba7216f
   awesome_print (1.9.2) sha256=e99b32b704acff16d768b3468680793ced40bfdc4537eb07e06a4be11133786e
@@ -758,7 +753,6 @@ CHECKSUMS
   date (3.6.0) sha256=18ac945c4e24ebd93534f8eab8c2fd8c5604b3e977105b3798d62a1e8d27b580
   dotenv (3.2.0) sha256=e375b83121ea7ca4ce20f214740076129ab8514cd81378161f11c03853fe619d
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
-  encryptor (3.0.0) sha256=abf23f94ab4d864b8cea85b43f3432044a60001982cda7c33c1cd90da8db1969
   erb (6.0.7) sha256=c5ca6dc25b0ef974a44dc8f59fe847577122483b1968a38dec305c60bf91ee92
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   erubis (2.7.0) sha256=63653f5174a7997f6f1d6f465fbe1494dcc4bdab1fb8e635f6216989fb1148ba

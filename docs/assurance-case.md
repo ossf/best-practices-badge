@@ -2402,71 +2402,33 @@ on Heroku.
 Therefore, we encrypt data that is more sensitive, instead of
 encrypting everything.
 
-We encrypt email addresses using the Rails-specific approach outlined in
-["Securing User Emails in Rails" by Andrew Kane (May 14, 2018)](https://shorts.dokkuapp.com/securing-user-emails-in-rails/).
-We use the gem `attr_encrypted` to encrypt email addresses, and
-gem `blind_index` to index encrypted email addresses.
-This approach builds on standard general-purpose approaches for
-encrypting data and indexing the data, e.g., see
-["How to Search on Securely Encrypted Database Fields" by Scott Arciszewski](https://www.sitepoint.com/how-to-search-on-securely-encrypted-database-fields/).
+We encrypt email addresses using Rails' built-in Active Record Encryption
+(`encrypts :email, deterministic: true, ignore_case: true`), which replaced
+our earlier use of the `attr_encrypted` and `blind_index` gems.
 The important aspect here is that we encrypt the data (so it cannot be
-revealed by those without the encryption key),
-and we also create cryptographic keyed hashes of the data (so
-we can search on the data if we have the hash key).
-The latter value is called a "blind index".
+revealed by those without the encryption key), while using deterministic
+encryption on the downcased email address (`email`) so we can efficiently
+index and query by email address (case-insensitively), and non-deterministic
+encryption on `original_email` to preserve the original case.
 
 We encrypt the email addresses using AES with 256-bit keys in
 GCM mode ('aes-256-gcm').  AES is a well-accepted widely-used
 encryption algorithm.  A 256-bit key is especially strong.
 The GCM mode is a widely-used strong encryption mode; it provides
-an integrity ("authentication") mechanism.
-Each separate encryption uses a separate long initialization vector (IV)
-created using a cryptographically-strong random number generator.
+an integrity ("authentication") mechanism. For non-deterministic
+encryption, Rails creates a separate initialization vector (IV) using
+a cryptographically-strong random number generator. The `email` field
+uses deterministic encryption so matching addresses can be queried.
 
-We also hash the email addresses, so they can be indexed.
-Indexing is necessary so that we can quickly find matching email addresses
-(e.g., for local user login).
-We hash them using the hashed key algorithm PBKDF2-HMAC-SHA256.
-SHA-256 is a widely-used cryptographic hash algorithm (in the SHA-2 family),
-and unlike SHA-1 it is not broken.
-Using sha256 directly would be vulnerable to a length extension attack.
-A length extension attack is probably irrelevant in this circumstance,
-but just in case, we counter that anyway.
-We counter the length extension problem by using HMAC and PBKDF2.
-HMAC is defined in RFC 2104, which is the algorithm
-H(K XOR opad, H(K XOR ipad, text)).
-This enables us to use a private key on the hash, counters length
-extension, and is very well-studied.
-We also use PBKDF2 for key extension.  This is another well-studied
-and widely-accepted algorithm.
-For our purposes we believe PBKDF2-HMAC-SHA256 is
-far stronger than needed, and thus is quite sufficient
-to protect the information.
-The hashes are of email addresses after they've been downcased;
-this supports case-insensitive searching for email addresses.
-
-The two keys used for email encryption are
-`EMAIL_ENCRYPTION_KEY` and `EMAIL_BLIND_INDEX_KEY`.
-Both are 256 bits long (aka 64 hexadecimal digits long).
-The production values for both keys were independently created as
-cryptographically random values using `rails secret`.
-
-Implementation note: the indexes created by `blind_index` always
-end in a newline.  That doesn't matter for security, but it can cause
-debugging problems if you weren't expecting that.
-
-Note that `attr_encrypted` depends on the gem `encryptor`.
-Encryptor version 2.0.0 had a
-[major security bug when using AES-\*-GCM algorithms](https://github.com/attr-encrypted/encryptor/pull/22).
-We do not use that version, but instead use
-a newer version that does not have that vulnerability.
-Some old documentation recommends using
-`attr_encryptor` instead because of this vulnerability, but the
-vulnerability has since been fixed and
-`attr_encryptor` is no longer maintained.
-Vulnerabilities are never a great sign, but we do take it as a good sign
-that the developers of encryptor were willing to make a breaking change
-to fix a security vulnerabilities.
+The application configures Rails encryption with
+`EMAIL_ENCRYPTION_KEY` as its primary key, and derives its deterministic
+key from `EMAIL_ENCRYPTION_KEY` with HMAC-SHA256, so holding only
+`EMAIL_BLIND_INDEX_KEY` is not enough to decrypt any email address.
+`EMAIL_BLIND_INDEX_KEY` is the key-derivation salt. Despite its legacy
+name, it is not used to create a blind index; deterministic encryption
+supports the email lookup.
+Both environment variables contain 256-bit values encoded as 64
+hexadecimal digits.
 
 We could easily claim this as a way to support confidentiality,
 instead of simply as a hardening measure.

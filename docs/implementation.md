@@ -99,8 +99,12 @@ The application is configured by various environment variables:
 * EMAIL_ENCRYPTION_KEY: Key to decrypt the stored user email addresses.
   Hexadecimal string, must be 64 hex digits (==32 bytes==256 bits).
   Used by aes-256-gcm (256-bit AES in GCM mode).
-* EMAIL_BLIND_INDEX_KEY: Key for blind index created for user email addresses
-  (used by PBKDF2-HMAC-SHA256).  Must be 64 hex digits (==32 bytes==256 bits).
+* EMAIL_BLIND_INDEX_KEY: Key-derivation salt for Active Record Encryption of
+  user email addresses (formerly the blind index key).
+  Must be 64 hex digits (==32 bytes==256 bits).
+  In production, if either email key is unset the application still boots,
+  but any attempt to encrypt or decrypt an email address raises an error
+  instead of falling back to the publicly known test keys.
 * BADGEAPP_BADPWKEY: Key used for additional protection for passwords
   when checking the bad password database. The list of bad passwords
   is converted by HMAC (using SHA-512 and this key) before being stored in

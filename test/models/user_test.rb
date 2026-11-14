@@ -86,30 +86,83 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test 'rekey test' do
-    # This is a somewhat complicated setup to create a user with an old key.
-    # We don't bother setting up an old blind index, because we're going
-    # to just obliterate it anyway.
-    user1 = User.new
-    # Set a different email address to initialize attr_encrypted
-    user1.email = 'wrong_email'
-    # Now insert some encrypted data using an "old" key
+    # This is a setup to create a user encrypted with both an "old" key and "old" salt.
+    user1 = User.new(provider: 'local')
     old_key = ['ea' * 32].pack('H*')
-    old_iv = Base64.decode64(user1.encrypted_email_iv)
+    old_salt = ['fb' * 32].pack('H*')
     email_address = 'bogus@stuff.com'
-    user1.encrypted_email = User.encrypt_email(
-      email_address,
-      key: old_key, iv: old_iv
+    old_provider = user1.send(:build_key_provider, old_key, old_salt)
+    old_ciphertext = ActiveRecord::Encryption.encryptor.encrypt(
+      email_address, key_provider: old_provider
     )
-    # Setup done, now invoke rekey to test rekeying the record.
-    user1.rekey(old_key)
-    # Check if rekey results are correct
-    assert email_address, user1.email
-    new_blind_index = BlindIndex.generate_bidx( # Recalc so test's less fragile
+    user1.write_attribute(:original_email, old_ciphertext)
+    user1.write_attribute(:email, old_ciphertext)
+    user1.write_attribute(:encrypted_email, 'old ciphertext')
+    user1.write_attribute(:encrypted_email_iv, 'old iv')
+    user1.write_attribute(:email_bidx, 'old blind index')
+    # Setup done, now invoke rekey with both old_key and old_salt.
+    user1.rekey(old_key, old_salt)
+    # Check if rekey results are correct under the current key and salt
+    assert_equal email_address, user1.email
+    assert_nil user1.encrypted_email
+    assert_nil user1.encrypted_email_iv
+    assert_nil user1.email_bidx
+    assert_equal(
       email_address,
-      key: [User::TEST_EMAIL_BLIND_INDEX_KEY].pack('H*'),
-      options: User.blind_indexes[:email]
+      ActiveRecord::Encryption.encryptor.decrypt(
+        user1.ciphertext_for(:original_email)
+      )
     )
-    assert new_blind_index, user1.email_bidx
+  end
+
+  test 'the blind index key alone cannot decrypt email addresses' do
+    user = users(:test_user)
+    blind_index_key = [User::TEST_EMAIL_BLIND_INDEX_KEY].pack('H*')
+    provider = user.send(
+      :build_key_provider, blind_index_key,
+      ActiveRecord::Encryption.config.key_derivation_salt
+    )
+    assert_raises(ActiveRecord::Encryption::Errors::Decryption) do
+      ActiveRecord::Encryption.encryptor.decrypt(
+        user.ciphertext_for(:email), key_provider: provider
+      )
+    end
+  end
+
+  test 'rekey_all rekeys users encrypted under the old keys' do
+    old_key = ['ea' * 32].pack('H*')
+    old_salt = ['fb' * 32].pack('H*')
+    user = users(:test_user)
+    old_provider = user.send(:build_key_provider, old_key, old_salt)
+    old_ciphertext = ActiveRecord::Encryption.encryptor.encrypt(
+      'rekeyed@example.org', key_provider: old_provider
+    )
+    store_raw_email_ciphertext(user, old_ciphertext)
+
+    assert_equal [], User.rekey_all(old_key, old_salt)
+    assert_equal 'rekeyed@example.org', user.reload.email
+  end
+
+  test 'rekey_all treats users already under the current keys as done' do
+    old_key = ['ea' * 32].pack('H*')
+    old_salt = ['fb' * 32].pack('H*')
+    email = users(:test_user).email
+
+    assert_equal [], User.rekey_all(old_key, old_salt)
+    assert_equal email, users(:test_user).reload.email
+  end
+
+  test 'rekey_all reports users it cannot decrypt' do
+    old_key = ['ea' * 32].pack('H*')
+    old_salt = ['fb' * 32].pack('H*')
+    user = users(:test_user)
+    other_provider = user.send(:build_key_provider, ['cd' * 32].pack('H*'), old_salt)
+    unreadable = ActiveRecord::Encryption.encryptor.encrypt(
+      'lost@example.org', key_provider: other_provider
+    )
+    store_raw_email_ciphertext(user, unreadable)
+
+    assert_equal [user.id], User.rekey_all(old_key, old_salt)
   end
 
   test 'associated projects should be destroyed' do
@@ -152,13 +205,15 @@ class UserTest < ActiveSupport::TestCase
 
   class StubUserEmail < User
     def email
-      raise OpenSSL::Cipher::CipherError
+      raise ActiveRecord::Encryption::Errors::Decryption
     end
   end
 
   test 'Test user.email_if_decryptable when not decryptable' do
     u = StubUserEmail.new
     assert_equal 'CANNOT_DECRYPT', u.email_if_decryptable
+    assert_equal "https://secure.gravatar.com/avatar/#{'0' * 32}",
+                 u.lookup_gravatar_url(decryption_available: true)
   end
 
   # deliverable_email? is the one place we decide whether an address can
@@ -184,18 +239,16 @@ class UserTest < ActiveSupport::TestCase
     assert_not_predicate u, :deliverable_email?
   end
 
-  test 'Data model encrypted email addresses and blind index keys work' do
+  test 'Data model encrypted email addresses work' do
     # We precompute the user data fixtures, and it's possible we got it wrong.
     # Walk through the data set to do sanity checks for each value.
     User.find_each do |user|
       # puts(user.name)
       assert user.name.present?, "Empty name for #{user.id}"
-      assert user.encrypted_email.present?,
-             "Email not present for #{user.name}"
-      assert(
-        user.encrypted_email_iv.present?,
-        "Email IV not present for #{user.name}"
-      )
+      assert user.ciphertext_for(:email).present?,
+             "Encrypted email not present for #{user.name}"
+      assert user.ciphertext_for(:original_email).present?,
+             "Encrypted original_email not present for #{user.name}"
       # This will also fail if the email is not encrypted correctly:
       assert user.email.present?, "Email not present for #{user.name}"
       assert user.provider.present?, "Provider not present for #{user.name}"
@@ -203,10 +256,8 @@ class UserTest < ActiveSupport::TestCase
         user.provider != 'local' || user.password_digest.present?,
         "Local user has no password: #{user.name}, #{user.email}"
       )
-      # An incorrect bidx could lead to confusing test results, so we
-      # *definitely* want the following check.
-      # Check that bidx was computed correctly:
-      assert_equal User.generate_email_bidx(user.email), user.email_bidx
+      # Check that deterministic encryption query finds the user:
+      assert_includes User.where(email: user.email), user
     end
   end
 
@@ -436,5 +487,14 @@ class UserTest < ActiveSupport::TestCase
     u = users(:github_user)
     User.purge_unactivated_accounts
     assert User.exists?(u.id)
+  end
+
+  private
+
+  # update_columns would encrypt the ciphertext again under the current keys.
+  def store_raw_email_ciphertext(user, ciphertext)
+    User.where(id: user.id).update_all(
+      ['original_email = ?, email = ?', ciphertext, ciphertext]
+    )
   end
 end

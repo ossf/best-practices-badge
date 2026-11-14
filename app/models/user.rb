@@ -49,20 +49,13 @@ class User < ApplicationRecord
   TEST_EMAIL_ENCRYPTION_KEY = '1' * DIGITS_OF_EMAIL_ENCRYPTION_KEY
   TEST_EMAIL_BLIND_INDEX_KEY = '2' * DIGITS_OF_EMAIL_BLIND_INDEX_KEY
 
-  # Email addresses are stored as encrypted values.
-  # Fixtures are encrypted with TEST_EMAIL_ENCRYPTION_KEY (see
-  # HexKeyManagement#hex_key, docs/login-session-evaluation.md finding #9).
-  attr_encrypted :email, algorithm: 'aes-256-gcm',
-                         key: hex_key(env_var: 'EMAIL_ENCRYPTION_KEY',
-                                      test_value: TEST_EMAIL_ENCRYPTION_KEY)
-
-  # Email addresses are indexed as blind indexes of downcased email addresses,
-  # so we can efficiently search for them while keeping them encrypted.
+  # Email addresses are stored as encrypted values using Rails' built-in
+  # Active Record Encryption. Deterministic encryption with ignore_case
+  # enables case-insensitive querying while preserving the original case
+  # in original_email.
   # Usage: User.where(email: 'test@example.org')
   # or:    User.where(email: 'test@example.org', provider: 'local')
-  blind_index :email, key: hex_key(env_var: 'EMAIL_BLIND_INDEX_KEY',
-                                   test_value: TEST_EMAIL_BLIND_INDEX_KEY),
-                      expression: ->(v) { v.try(:downcase) }
+  encrypts :email, deterministic: true, ignore_case: true
 
   scope :created_since, (
     lambda do |time|
@@ -83,7 +76,7 @@ class User < ApplicationRecord
   # We check uniqueness of local account email addresses *both* here in
   # the model *and* also directly in the database.
   # The database also enforces this uniqueness through
-  # the index `email_bidx` in file `db/schema.rb`.
+  # the index `email_local_unique` in file `db/schema.rb`.
   # We also perform a uniqueness check here in the model,
   # because it provides better error messages
   # and works regardless of the underlying RDBMS.  The RDBMS-level index
@@ -271,8 +264,11 @@ class User < ApplicationRecord
   # Returns the decrypted email address or error message if decryption fails.
   # @return [String] the email address or 'CANNOT_DECRYPT' if decryption fails
   def email_if_decryptable
+    # Calling `email` on a record with `ignore_case: true` reads `original_email`
+    # when `email` is encrypted; also ensure `email` itself can be decrypted.
+    type_for_attribute(:email).deserialize(ciphertext_for(:email))
     email
-  rescue OpenSSL::Cipher::CipherError
+  rescue OpenSSL::Cipher::CipherError, ActiveRecord::Encryption::Errors::Decryption
     'CANNOT_DECRYPT'
   end
 
@@ -409,23 +405,43 @@ class User < ApplicationRecord
   # This does not SAVE the user data - do a save afterwards if you want that!
   # This will raise an exception if the old key doesn't work.
   # @param old_key [String] the old encryption key used to decrypt the email
+  # @param old_salt [String] the old key derivation salt (default: current salt)
   # @return [void]
   # @raise [OpenSSL::Cipher::CipherError] if the old key is incorrect
-  def rekey(old_key)
-    return if encrypted_email_iv.blank? || encrypted_email.blank?
+  def rekey(old_key, old_salt = ActiveRecord::Encryption.config.key_derivation_salt)
+    ct = ciphertext_for(:original_email).presence || ciphertext_for(:email).presence
+    return if ct.blank?
 
-    old_iv = Base64.decode64(encrypted_email_iv)
-    # Get the old email address; this will raise an exception if the
-    # given key is wrong.
-    old_email_address = User.decrypt_email(
-      encrypted_email, iv: old_iv, key: old_key
+    old_provider = build_key_provider(old_key, old_salt)
+    old_email_address = ActiveRecord::Encryption.encryptor.decrypt(
+      ct, key_provider: old_provider
     )
-    # Change to new email address; this creates a new IV, re-encrypts,
-    # and recalculates the blind index using the current blind index key.
-    # This deals with a quirk of attr_encrypted: You have to set the
-    # old encrypted_mail value to nil before you can force a re-encrypt.
-    self.encrypted_email = nil
+    %i[encrypted_email encrypted_email_iv email_bidx email original_email].each do |field|
+      self[field] = nil
+    end
+    clear_attribute_changes(%i[email original_email])
     self.email = old_email_address
+  end
+
+  # Rekeys and saves every user's email address. A user whose address
+  # already decrypts under the current keys counts as done, so this is
+  # safe to re-run after an interruption.
+  # @param old_key [String] the old encryption key
+  # @param old_salt [String] the old key derivation salt
+  # @return [Array<Integer>] ids of users that could not be rekeyed
+  def self.rekey_all(old_key, old_salt)
+    failed_ids = []
+    find_each do |user|
+      user.rekey(old_key, old_salt)
+      user.save! if user.email.present?
+      Rails.logger.info "Rekeyed email address of user id #{user.id}"
+    rescue OpenSSL::Cipher::CipherError, ActiveRecord::Encryption::Errors::Decryption
+      next if user.email_if_decryptable != 'CANNOT_DECRYPT'
+
+      Rails.logger.info "Cannot rekey user #{user.id}"
+      failed_ids << user.id
+    end
+    failed_ids
   end
 
   GRAVATAR_PREFIX = 'https://secure.gravatar.com/avatar/'
@@ -439,8 +455,8 @@ class User < ApplicationRecord
   def lookup_gravatar_url(decryption_available: nil)
     decryption_available = self.class.email_decryption_available? if decryption_available.nil?
 
-    if decryption_available && encrypted_email?
-      GRAVATAR_PREFIX + Digest::MD5.hexdigest(email.downcase)
+    if decryption_available && deliverable_email?
+      GRAVATAR_PREFIX + Digest::MD5.hexdigest(email_if_decryptable.downcase)
     else
       GRAVATAR_PREFIX + BOGUS_GRAVATAR_MD5
     end
@@ -493,6 +509,19 @@ class User < ApplicationRecord
   end
 
   private
+
+  def build_key_provider(secret_key, salt)
+    key_generator = ActiveSupport::KeyGenerator.new(
+      secret_key,
+      hash_digest_class: ActiveRecord::Encryption.config.hash_digest_class
+    )
+    derived_secret = key_generator.generate_key(
+      salt, ActiveRecord::Encryption.cipher.key_length
+    )
+    ActiveRecord::Encryption::KeyProvider.new(
+      [ActiveRecord::Encryption::Key.new(derived_secret)]
+    )
+  end
 
   def github_user?
     provider == 'github'

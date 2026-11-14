@@ -178,11 +178,14 @@ class Project < ApplicationRecord
   BOOKKEEPING_FIELDS = (
     %w[
       lock_version
+      last_link_check_at
       last_reminder_at disabled_reminders
       unreported_badge_loss unreported_baseline_badge_loss
       unreported_badge_warning unreported_baseline_badge_warning
       last_loss_sent_at last_warning_sent_at
       loss_send_attempts warning_send_attempts
+      pending_broken_link_notifications
+      broken_link_notification_send_attempts
       badge_warning_effective_date
     ] + Sections::LEVEL_SAVED_FLAGS.values.map(&:to_s)
   ).to_set.freeze
@@ -427,7 +430,14 @@ class Project < ApplicationRecord
         validates criterion.name.status, inclusion: IN_STATUS_CHOICE_WITHOUT_NA
       end
       validates criterion.name.justification,
-                length: MAXIMUM_IS_MAX_TEXT_LENGTH,
+                length: {
+                  maximum: MAX_TEXT_LENGTH,
+                  if: lambda { |project|
+                    project.justification_exceeds_max_length?(
+                      criterion.name.justification
+                    )
+                  }
+                },
                 text: true
     end
   end
@@ -482,6 +492,8 @@ class Project < ApplicationRecord
 
     text =~ %r{https?://[^/. ]+\.[^ ]}
   end
+
+  delegate :extract_urls, to: :LinkChecker
 
   # Returns symbol indicating the status of a particular criterion in this project.
   # Return values:
@@ -971,7 +983,7 @@ class Project < ApplicationRecord
     old_baseline_level,
     new_baseline_level
   )
-    user = User.select('id, name, encrypted_email, encrypted_email_iv')
+    user = User.select('id, name, email, original_email')
                .find(project.user_id)
     email = user.email_if_decryptable
     prefix = "Project #{project.id} \"#{project.name}\" | " \
@@ -1091,7 +1103,7 @@ class Project < ApplicationRecord
   # Columns selected when loading a user for loss/warning notification sending.
   # Tight list; the loop loads at most MAX_BADGE_*_NOTIFICATIONS users.
   LOSS_NOTIFY_USER_FIELDS =
-    'id, important_notifications, encrypted_email, encrypted_email_iv, ' \
+    'id, important_notifications, email, original_email, ' \
     'preferred_locale'
 
   # Maximum number of reminders to send by email at one time.
@@ -1143,7 +1155,7 @@ class Project < ApplicationRecord
     #   not_recently_reminded = last_reminder_at IS NULL OR
     #     more than 60 days ago. Notice that if recently_reminded is null
     #     (no reminders have been sent), only the other criteria matter.
-    #   valid_email = users.encrypted_email (joined) is not null
+    #   valid_email = users.email (joined) is not null
     #   owner_accepts_emails = users.notification_emails is true
     # Prioritize. Sort by the last_reminder_at datetime
     #   (use updated_at if last_reminder_at is null), oldest first.
@@ -1172,7 +1184,7 @@ class Project < ApplicationRecord
     # If not, alternatives include creating a calculated field
     # (e.g., one that does the coalescing).
     Project
-      .select('projects.*, users.encrypted_email as user_encrypted_email')
+      .select('projects.*, users.email as user_encrypted_email')
       .where(
         'badge_percentage_0 < 100 AND ' \
         '(badge_percentage_baseline_1 IS NULL OR ' \
@@ -1188,7 +1200,7 @@ class Project < ApplicationRecord
              LAST_SENT_REMINDER.days.ago)
       .joins(:user).references(:user) # Need this to check email address
       .where('user_id IS NOT NULL') # Safety check
-      .where('users.encrypted_email IS NOT NULL')
+      .where('users.email IS NOT NULL')
       .where(users: { notification_emails: true })
       .reorder(Arel.sql('COALESCE(last_reminder_at, projects.updated_at)'))
       .first(MAX_REMINDERS)
@@ -1636,7 +1648,8 @@ class Project < ApplicationRecord
           :suppressed
         end
       sent += 1 if outcome == :sent
-      still_pending ||= record_outcome(project, kind, series, outcome, now)
+      # Record every series even when an earlier notification remains pending.
+      still_pending = record_outcome(project, kind, series, outcome, now) || still_pending
     end
     [sent, still_pending]
   end
@@ -1668,12 +1681,11 @@ class Project < ApplicationRecord
         project.badge_level
       end
     # The level is back, so there is no loss left to report.
-    unless Sections.badge_level_lost?(old_level, new_level)
-      return :not_relevant
-    end
+    return :not_relevant unless Sections.badge_level_lost?(old_level, new_level)
 
-    ReportMailer.email_owner_with_user(project, user, old_level, new_level,
-                                       true, badge_suffix).deliver_now
+    ReportMailer.email_owner_with_user(
+      project, user, old_level, new_level, true, badge_suffix
+    ).deliver_now!
     :sent
   end
   private_class_method :send_loss_email
@@ -1765,7 +1777,7 @@ class Project < ApplicationRecord
   #   in the past 14 days, ordered by reminder date ascending
   def self.recently_reminded
     Project
-      .select('projects.*, users.encrypted_email as user_encrypted_email')
+      .select('projects.*, users.email as user_encrypted_email')
       .joins(:user).references(:user) # Need this to check email address
       .where('last_reminder_at IS NOT NULL')
       .where(last_reminder_at: 14.days.ago..)
@@ -1780,6 +1792,125 @@ class Project < ApplicationRecord
   end
 
   WHAT_IS_ENOUGH = %i[criterion_passing criterion_barely].freeze
+
+  # Minimum number of days after a broken link is detected before marking
+  # the criterion as failing (grace period).
+  BROKEN_LINK_GRACE_DAYS =
+    (ENV['BADGEAPP_BROKEN_LINK_GRACE_DAYS'] || 14).to_i
+
+  # Maximum number of projects to check for broken links in a single batch run.
+  MAX_LINK_CHECKS = (ENV['BADGEAPP_MAX_LINK_CHECKS'] || 50).to_i
+
+  LINK_CHECK_MAX_DURATION = 30
+
+  # Maximum number of broken-link warning emails to send in one batch run.
+  MAX_BROKEN_LINK_NOTIFICATIONS =
+    (ENV['BADGEAPP_MAX_BROKEN_LINK_NOTIFICATIONS'] || 10).to_i
+
+  BROKEN_LINK_NOTIFICATION_BATCH_SIZE = 100
+  BROKEN_LINK_NOTIFICATION_MAX_DURATION = 10
+
+  BROKEN_LINK_NOTIFICATION_PROJECT_FIELDS =
+    'id, user_id, name, pending_broken_link_notifications, ' \
+    'broken_link_notification_send_attempts'
+
+  BROKEN_LINK_NOTIFICATION_KIND = {
+    flag: :pending_broken_link_notifications
+  }.freeze
+
+  # Return a hash mapping field/criterion symbol to an array of broken URLs
+  # found in homepage_url, repo_url, and all criterion justifications.
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
+  def broken_links(checker = LinkChecker.new)
+    broken = {}
+    if homepage_url.present? && checker.url_status(homepage_url) == :broken
+      broken[:homepage_url] = [homepage_url]
+    end
+    if repo_url.present? && checker.url_status(repo_url) == :broken
+      broken[:repo_url] = [repo_url]
+    end
+    Criteria.all.each do |criterion_name|
+      next if BrokenLinkDetective::PREREQUISITE_CRITERIA.include?(criterion_name)
+
+      justification = self[criterion_name.justification]
+      urls = LinkChecker.extract_urls_including_flagged(justification)
+      bad_urls = urls.select { |url| checker.url_status(url) == :broken }
+      broken[criterion_name] = bad_urls if bad_urls.present?
+    end
+    broken
+  end
+
+  # Check all links on this project, applying a grace period before marking
+  # criteria as failing, and notifying the owner when links break or expire.
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
+  def check_and_handle_broken_links!(
+    checker: LinkChecker.new,
+    grace_days: BROKEN_LINK_GRACE_DAYS,
+    current_time: Time.now.utc
+  )
+    state = { newly_detected: {}, expired: {}, recovered: [] }
+    check_base_links_with_grace(checker, grace_days, current_time, state)
+    check_criteria_links_with_grace(checker, grace_days, current_time, state)
+    persist_broken_link_changes!(state, grace_days, current_time)
+    state
+  end
+
+  # Queue a form-detected warning for the regular retryable notification worker.
+  # @param broken_links [Hash] criterion or URL field names mapped to broken URLs
+  # @param grace_days [Integer] length of the owner-facing grace period
+  # @return [Boolean, nil] whether the bookkeeping was written, or nil if empty
+  def queue_new_broken_link_notification(
+    broken_links, grace_days: BROKEN_LINK_GRACE_DAYS
+  )
+    return if broken_links.blank?
+
+    self.class.transaction do
+      reload_broken_link_notification_fields
+      queue_broken_link_notifications({ newly_detected: broken_links }, grace_days)
+      self.class.write_bookkeeping_columns(
+        self,
+        pending_broken_link_notifications: pending_broken_link_notifications,
+        broken_link_notification_send_attempts: broken_link_notification_send_attempts
+      )
+    end
+  end
+
+  # Periodically check links across projects and notify owners / admins.
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
+  def self.check_projects_links(
+    limit: MAX_LINK_CHECKS,
+    grace_days: BROKEN_LINK_GRACE_DAYS,
+    checker: nil
+  )
+    affected = []
+    link_cache = {}
+    projects = Project.reorder(
+      Arel.sql(
+        'last_link_check_at ASC NULLS FIRST, tiered_percentage DESC, ' \
+        'updated_at ASC, id ASC'
+      )
+    ).limit(limit)
+    projects.each do |project|
+      link_cache.delete_if { |_url, status| status == :skipped }
+      project_checker =
+        checker || LinkChecker.new(
+          max_total_duration: LINK_CHECK_MAX_DURATION, cache: link_cache
+        )
+      result = project.check_and_handle_broken_links!(
+        checker: project_checker, grace_days: grace_days
+      )
+      next if result[:newly_detected].empty? && result[:expired].empty?
+
+      affected << { project: project, result: result }
+    end
+    ReportMailer.report_broken_links_summary(affected).deliver_now if affected.any?
+    affected.map { |entry| entry[:project].id }
+  end
+
+  def justification_exceeds_max_length?(just_key)
+    val = self[just_key]
+    val && !CriterionFieldValidator.justification_within_max_length?(val)
+  end
 
   private
 
@@ -1829,8 +1960,9 @@ class Project < ApplicationRecord
   # This method is mirrored in assets/project-form.js as getMetResult
   # If you change this method, change getMetResult accordingly.
   def get_met_result(criterion, justification)
-    return :criterion_url_required if criterion.met_url_required? &&
-                                      !contains_url?(justification)
+    return :criterion_url_required if
+      (criterion.met_url_required? && !contains_url?(justification)) ||
+      broken_link_comment?(justification)
     return :criterion_justification_required if
       criterion.met_justification_required? &&
       !justification_good?(justification)
@@ -1841,11 +1973,386 @@ class Project < ApplicationRecord
   # This method is mirrored in assets/project-form.js as getNAResult
   # If you change this method, change getNAResult accordingly.
   def get_na_result(criterion, justification)
+    return :criterion_url_required if broken_link_comment?(justification)
     return :criterion_justification_required if
       criterion.na_justification_required? &&
       !justification_good?(justification)
 
     :criterion_passing
+  end
+
+  def broken_link_comment?(justification)
+    return false if justification.blank?
+
+    justification.start_with?('// Broken link:')
+  end
+
+  def check_base_links_with_grace(checker, grace_days, current_time, state)
+    return if homepage_url.blank?
+
+    handle_single_link_check(
+      checker, :homepage_url, [homepage_url],
+      %i[homepage_url_status], :homepage_url_justification,
+      'Unmet', grace_days, current_time, state
+    )
+  end
+
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
+  def check_criteria_links_with_grace(checker, grace_days, current_time, state)
+    seen = Set.new
+    Criteria.each_value do |level_criteria|
+      level_criteria.each_value do |criterion|
+        name = criterion.name
+        next if BrokenLinkDetective::PREREQUISITE_CRITERIA.include?(name) || seen.include?(name)
+
+        seen.add(name)
+        just_key = name.justification
+        urls = urls_for_criterion(name, self[just_key])
+        next if urls.empty?
+
+        fail_status = criterion.suggested? ? CriterionStatus::UNKNOWN : CriterionStatus::UNMET
+        handle_single_link_check(
+          checker, name, urls, [name.status], just_key,
+          fail_status, grace_days, current_time, state
+        )
+      end
+    end
+  end
+
+  def urls_for_criterion(criterion_name, justification)
+    base_urls =
+      case criterion_name
+      when :sites_https
+        [homepage_url].compact_blank
+      when :repo_public
+        [repo_url].compact_blank
+      else
+        []
+      end
+    (base_urls + LinkChecker.extract_urls_including_flagged(justification)).uniq
+  end
+
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize, Metrics/ParameterLists
+  def handle_single_link_check(
+    checker,
+    field_name,
+    urls,
+    status_keys,
+    just_key,
+    fail_status,
+    grace_days,
+    current_time,
+    state
+  )
+    current_just = self[just_key].to_s
+    statuses = urls.map { |url| checker.url_status(url) }
+    broken_url = urls.zip(statuses).find { |_url, status| status == :broken }&.first
+    return if broken_url.nil? && statuses.include?(:skipped)
+
+    if broken_url.nil?
+      recover_link_if_flagged(field_name, just_key, current_just, state)
+      return
+    end
+    return if LinkChecker.broken_prefix_url(current_just) == broken_url
+
+    # A future detected date in the user-editable marker restarts the grace
+    # period rather than holding it open.
+    detected_date = LinkChecker.grace_detected_date(current_just)
+    if grace_days.positive? &&
+       (detected_date.nil? || detected_date > current_time.to_date ||
+        LinkChecker.grace_warning_url(current_just) != broken_url)
+      date_str = current_time.to_date.iso8601
+      self[just_key] = LinkChecker.format_grace_warning(current_just, broken_url, date_str)
+      state[:newly_detected][field_name] = broken_url
+    elsif grace_period_expired?(current_just, grace_days, current_time.to_date)
+      status_keys.each { |key| self[key] = fail_status }
+      self[just_key] = LinkChecker.format_broken_prefix(current_just, broken_url)
+      state[:expired][field_name] = broken_url
+    end
+  end
+
+  def recover_link_if_flagged(field_name, just_key, current_just, state)
+    return if LinkChecker.grace_detected_date(current_just).nil? &&
+              !broken_link_comment?(current_just)
+
+    self[just_key] = LinkChecker.strip_broken_link_markers(current_just)
+    state[:recovered] << field_name
+  end
+
+  def grace_period_expired?(justification, grace_days, today)
+    return true if grace_days <= 0
+
+    detected_date = LinkChecker.grace_detected_date(justification)
+    return false if detected_date.nil?
+
+    (today - detected_date).to_i >= grace_days
+  end
+
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
+  def persist_broken_link_changes!(state, grace_days, current_time)
+    self.last_link_check_at = current_time
+    if state[:expired].any?
+      old_metal_level = badge_level
+      old_baseline_level = baseline_badge_level
+      self.class.transaction do
+        reload_broken_link_notification_fields if state[:newly_detected].any?
+        queue_broken_link_notifications(state, grace_days)
+        update_badge_percentages
+        self.class.__send__(
+          :record_pending_losses, self, old_metal_level, old_baseline_level
+        )
+        save!
+      end
+      self.class.__send__(:purge_project_cdn_data, self)
+      notify_if_levels_changed(old_metal_level, old_baseline_level)
+    elsif state[:newly_detected].any? || state[:recovered].any?
+      self.class.transaction do
+        reload_broken_link_notification_fields if state[:newly_detected].any?
+        queue_broken_link_notifications(state, grace_days)
+        PaperTrail.request(enabled: false) do
+          save!(touch: false)
+        end
+      end
+      self.class.__send__(:purge_project_cdn_data, self)
+    else
+      self.class.write_bookkeeping_columns(
+        self, last_link_check_at: current_time
+      )
+    end
+  end
+
+  def reload_broken_link_notification_fields
+    pending_value, attempts_value = self.class.where(id: id).lock.pick(
+      :pending_broken_link_notifications,
+      :broken_link_notification_send_attempts
+    )
+    self.pending_broken_link_notifications = pending_value
+    self.broken_link_notification_send_attempts = attempts_value
+  end
+
+  def queue_broken_link_notifications(state, grace_days)
+    return if state[:newly_detected].empty?
+
+    pending = JSON.parse(pending_broken_link_notifications.presence || '{}')
+    links = pending.fetch('links', {}).merge(
+      state[:newly_detected].transform_keys(&:to_s)
+    )
+    self.pending_broken_link_notifications = JSON.generate(
+      'links' => links, 'grace_days' => grace_days
+    )
+    self.broken_link_notification_send_attempts = 0
+  end
+
+  # Returns projects with a pending broken-link warning.
+  # @return [ActiveRecord::Relation]
+  def self.projects_with_pending_broken_link_notifications
+    Project
+      .select(BROKEN_LINK_NOTIFICATION_PROJECT_FIELDS)
+      .where.not(pending_broken_link_notifications: '')
+  end
+  private_class_method :projects_with_pending_broken_link_notifications
+
+  # Send current pending broken-link warnings in bounded database batches.
+  # @return [Integer] number of emails sent
+  # rubocop:disable-next Metrics/MethodLength
+  public_class_method def self.send_broken_link_notifications(checker: nil)
+    emails_sent = 0
+    projects_with_pending_broken_link_notifications.find_each(
+      batch_size: BROKEN_LINK_NOTIFICATION_BATCH_SIZE
+    ) do |project|
+      break if emails_sent >= MAX_BROKEN_LINK_NOTIFICATIONS
+
+      project_checker =
+        checker || LinkChecker.new(
+          max_total_duration: BROKEN_LINK_NOTIFICATION_MAX_DURATION
+        )
+      outcome = send_one_broken_link_notification(project, project_checker)
+      emails_sent += 1 if outcome == :sent
+    end
+    emails_sent
+  end
+
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
+  def self.send_one_broken_link_notification(project, checker)
+    user = User.select(LOSS_NOTIFY_USER_FIELDS).find_by(id: project.user_id)
+    return unless user&.important_notifications? && user.deliverable_email?
+
+    expected_payload = project.pending_broken_link_notifications
+    expected_attempts = project.broken_link_notification_send_attempts
+    notification = JSON.parse(expected_payload)
+    current = current_broken_link_notification(project, notification, checker)
+    return if current == :skipped
+
+    if current[:links].empty?
+      update_broken_link_notification(
+        project, expected_payload, expected_attempts,
+        pending_broken_link_notifications: '',
+        broken_link_notification_send_attempts: 0
+      )
+      return
+    end
+
+    if current[:links] != notification['links']
+      filtered_payload = JSON.generate(
+        notification.merge('links' => current[:links])
+      )
+      return unless update_broken_link_notification(
+        project, expected_payload, expected_attempts,
+        pending_broken_link_notifications: filtered_payload
+      )
+
+      expected_payload = filtered_payload
+    end
+
+    ReportMailer.email_broken_links_owner(
+      project, current[:links], current[:grace_days]
+    ).deliver_now!
+    update_broken_link_notification(
+      project, expected_payload, expected_attempts,
+      pending_broken_link_notifications: '',
+      broken_link_notification_send_attempts: 0
+    )
+    :sent
+  rescue StandardError => e
+    outcome = classify_send_error(e, project, BROKEN_LINK_NOTIFICATION_KIND)
+    record_broken_link_notification_failure(
+      project, outcome, expected_payload, expected_attempts
+    )
+  end
+  private_class_method :send_one_broken_link_notification
+
+  # rubocop:disable-next Metrics/MethodLength, Metrics/AbcSize
+  def self.current_broken_link_notification(project, notification, checker)
+    links = notification['links']
+    grace_days = Integer(notification['grace_days'])
+    fields =
+      links.keys.index_with { |field| broken_link_notification_fields(field) }
+    project_fields = fields.values.compact.flat_map do |field|
+      [field[:justification], *field[:base_urls]]
+    end.uniq
+    project_state =
+      if project_fields.empty?
+        {}
+      else
+        Project.where(id: project.id).select(*project_fields).first
+      end
+
+    current_links = {}
+    remaining_days = []
+    links.each do |field, url|
+      field_data = fields[field]
+      next unless field_data && project_state
+
+      justification = project_state[field_data[:justification]].to_s
+      current_urls =
+        field_data[:base_urls].filter_map do |url_field|
+          project_state[url_field]
+        end
+      current_urls.concat(LinkChecker.extract_urls_including_flagged(justification))
+      next if current_urls.exclude?(url)
+
+      marker = LinkChecker::BROKEN_LINK_GRACE_REGEX.match(justification)
+      next unless marker && marker[1] == url
+
+      detected_date = LinkChecker.grace_detected_date(justification)
+      next unless detected_date
+
+      days_left = grace_days - (Time.now.utc.to_date - detected_date).to_i
+      next unless days_left.positive?
+
+      status = checker.url_status(url)
+      return :skipped if status == :skipped
+      next unless status == :broken
+
+      current_links[field] = url
+      remaining_days << days_left
+    end
+    { links: current_links, grace_days: remaining_days.min }
+  end
+  private_class_method :current_broken_link_notification
+
+  # rubocop:disable-next Metrics/MethodLength
+  def self.broken_link_notification_fields(field)
+    if field == 'homepage_url'
+      return {
+        justification: :homepage_url_justification, base_urls: [:homepage_url]
+      }
+    end
+
+    criterion = Criteria.all.find { |name| name.to_s == field }
+    return unless criterion
+
+    base_urls =
+      case criterion
+      when :sites_https then [:homepage_url]
+      when :repo_public then [:repo_url]
+      else []
+      end
+    { justification: criterion.justification, base_urls: base_urls }
+  end
+  private_class_method :broken_link_notification_fields
+
+  # rubocop:disable-next Metrics/MethodLength
+  def self.update_broken_link_notification(
+    project, expected_payload, expected_attempts, columns
+  )
+    unknown = columns.keys.map(&:to_s) - column_names
+    raise ArgumentError, "Not projects columns: #{unknown}" if unknown.any?
+
+    assignments = columns.keys.map { |column| "#{column} = ?" }.join(', ')
+    sql = sanitize_sql_array(
+      [
+        "UPDATE projects SET #{assignments} " \
+        'WHERE id = ? AND pending_broken_link_notifications = ? ' \
+        'AND broken_link_notification_send_attempts = ?',
+        *columns.values, project.id, expected_payload, expected_attempts
+      ]
+    )
+    with_connection { |conn| conn.update(sql) == 1 }
+  end
+  private_class_method :update_broken_link_notification
+
+  # rubocop:disable-next Metrics/MethodLength
+  def self.record_broken_link_notification_failure(
+    project, outcome, expected_payload, expected_attempts
+  )
+    attempts = project.broken_link_notification_send_attempts + 1
+    if outcome == :transient_failure &&
+       attempts < MAX_NOTIFICATION_ATTEMPTS
+      update_broken_link_notification(
+        project, expected_payload, expected_attempts,
+        broken_link_notification_send_attempts: attempts
+      )
+      return
+    end
+
+    return unless update_broken_link_notification(
+      project, expected_payload, expected_attempts,
+      pending_broken_link_notifications: '',
+      broken_link_notification_send_attempts: attempts
+    )
+
+    message =
+      'Abandoning pending_broken_link_notifications for project ' \
+      "#{project.id} after #{attempts} attempt(s): #{outcome}."
+    Rails.logger.error(message)
+    Sentry.capture_message(message)
+  end
+  private_class_method :record_broken_link_notification_failure
+
+  def notify_if_levels_changed(old_metal_level, old_baseline_level)
+    notify_single_series_change(
+      old_metal_level, badge_level
+    )
+    notify_single_series_change(
+      old_baseline_level, baseline_badge_level
+    )
+  end
+
+  def notify_single_series_change(old_level, new_level)
+    return if new_level == old_level
+
+    ReportMailer.project_status_change(self, old_level, new_level).deliver_now
   end
 
   # This method is mirrored in assets/project-form.js as getUnmetResult

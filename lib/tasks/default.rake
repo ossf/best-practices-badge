@@ -1591,20 +1591,25 @@ end
 # Rekeys all stored user email addresses after an EMAIL_ENCRYPTION_KEY rotation.
 # See docs/secrets-policy.md for the full rotation procedure (including
 # how to use BADGEAPP_DENY_LOGIN to quiesce the database first).
-# Safe to re-run if interrupted; users that fail to rekey are skipped.
+# Safe to re-run if interrupted. Fails if any user could not be rekeyed,
+# so the old keys are not removed while some addresses still need them.
 desc 'Rekey (change keys) of email addresses'
 task rekey: :environment do
   old_key = [ENV.fetch('EMAIL_ENCRYPTION_KEY_OLD', nil)].pack('H*')
-  User.find_each do |u|
-    # rubocop:disable-next Style/RedundantBegin
-    begin
-      u.rekey(old_key) # Raises exception if there's a CipherError.
-      Rails.logger.info "Rekeyed email address of user id #{u.id}"
-      u.save! if u.email.present?
-    rescue OpenSSL::Cipher::CipherError
-      Rails.logger.info "Cannot rekey user #{u.id}"
+  old_salt_hex = ENV.fetch('EMAIL_BLIND_INDEX_KEY_OLD', nil).presence
+  old_salt =
+    if old_salt_hex
+      [old_salt_hex].pack('H*')
+    else
+      ActiveRecord::Encryption.config.key_derivation_salt
     end
-  end
+  failed_ids = User.rekey_all(old_key, old_salt)
+  next if failed_ids.empty?
+
+  abort(
+    "Could not rekey #{failed_ids.size} user(s): #{failed_ids.join(', ')}. " \
+    'Keep EMAIL_ENCRYPTION_KEY_OLD and EMAIL_BLIND_INDEX_KEY_OLD set.'
+  )
 end
 
 # "test:run" belongs to Rails, so this can only run once Rails has
@@ -1860,6 +1865,8 @@ task reminders: :environment do
   p Project.send_loss_notifications
   puts 'Sending badge-warning notifications. Emails sent:'
   p Project.send_warning_notifications
+  puts 'Sending broken-link notifications. Emails sent:'
+  p Project.send_broken_link_notifications
   true
 end
 # rubocop:enable Style/Send
@@ -1914,6 +1921,20 @@ desc 'Send badge-warning notifications (rate-limited); also runs via reminders.'
 task badge_warning_notifications: :environment do
   puts 'Sending badge-warning notifications. Emails sent:'
   p Project.send_warning_notifications
+  true
+end
+
+desc 'Send pending broken-link notifications (rate-limited); also runs via reminders.'
+task broken_link_notifications: :environment do
+  puts 'Sending broken-link notifications. Emails sent:'
+  p Project.send_broken_link_notifications
+  true
+end
+
+desc 'Check project links and handle broken links with grace period.'
+task check_broken_links: :environment do
+  puts 'Checking project links. List of project ids with broken links:'
+  p Project.check_projects_links
   true
 end
 
@@ -1991,7 +2012,7 @@ def real_search_email(email)
   # to prevent swapping the email & name fields when calling search_user.
   raise ArgumentError unless /.+@.+/.match?(email)
 
-  results = User.where(email: email).select('id, name, encrypted_email, encrypted_email_iv').pluck(
+  results = User.where(email: email).select('id, name, email, original_email').pluck(
     :id, :name
   )
   puts results
@@ -2014,7 +2035,7 @@ end
 def real_search_name(name)
   name_downcase = name.downcase
   results = User.where('lower(name) LIKE ?', "%#{name_downcase}%")
-                .select('id, name, encrypted_email, encrypted_email_iv')
+                .select('id, name, email, original_email')
                 .pluck(:id, :name)
   puts results
 end

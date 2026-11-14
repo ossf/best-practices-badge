@@ -10,7 +10,7 @@
       <%= link_to user.name, user %>
     | <%= user.provider %>
       <% if current_user&.admin? %>
-        <% if user.encrypted_email? %>
+        <% if user.ciphertext_for(:email).present? %>
     |     <a href="mailto:<%= CGI::escape(user.email_if_decryptable).html_safe %>">email
             <%= user.email_if_decryptable %></a>
         <% end %>
