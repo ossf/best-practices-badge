@@ -1,0 +1,19 @@
+This is an automated summary of broken links detected in project badge entries.
+
+<% @affected_entries.each do |entry| %>
+* Project <%= entry[:project].id %> (<%= entry[:project].name %>):
+<% if entry[:result][:newly_detected].any? %>
+  Newly detected broken links (grace period started):
+<% entry[:result][:newly_detected].each do |field, url| %>
+    - <%= field %>: <%= url %>
+<% end %>
+<% end %>
+<% if entry[:result][:expired].any? %>
+  Expired broken links (marked as not passing):
+<% entry[:result][:expired].each do |field, url| %>
+    - <%= field %>: <%= url %>
+<% end %>
+<% end %>
+<% end %>
+
+<%= t 'report_mailer.ending' %>

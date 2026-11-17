@@ -902,7 +902,7 @@ flowchart BT
     HardenCSRFEv[("<b>HardenCSRFEv</b>&nbsp;↗<br>protect_from_forgery with per-form tokens and origin-header check, enabled via load_defaults")]
     HardenRateInEv[("<b>HardenRateInEv</b>&nbsp;↗<br>Rack::Attack rate limits on requests, logins, and signups by client IP address")]
     HardenRateOutEv[("<b>HardenRateOutEv</b>&nbsp;↗<br>projects_to_remind class method and hard limit on outgoing reminder email count")]
-    HardenEmailEncEv[("<b>HardenEmailEncEv</b>&nbsp;↗<br>attr_encrypted and blind_index gems encrypt email addresses with AES-256-GCM and PBKDF2-HMAC-SHA256 index")]
+    HardenEmailEncEv[("<b>HardenEmailEncEv</b>&nbsp;↗<br>Active Record Encryption encrypts email addresses with AES-256-GCM; deterministic encryption supports lookup")]
     HardenGravatarEv[("<b>HardenGravatarEv</b>&nbsp;↗<br>use_gravatar boolean controls whether gravatar MD5 hash is revealed for each local user")]
     Dot1((" ")):::sacmDot
     click Hardening "https://github.com/ossf/best-practices-badge/blob/main/docs/case.md#claim-hardening"
@@ -4894,18 +4894,14 @@ on Heroku.
 Therefore, we encrypt data that is more sensitive, instead of
 encrypting everything.
 
-We encrypt email addresses using the Rails-specific approach outlined in
-["Securing User Emails in Rails" by Andrew Kane (May 14, 2018)](https://shorts.dokkuapp.com/securing-user-emails-in-rails/).
-We use the gem `attr_encrypted` to encrypt email addresses, and
-gem `blind_index` to index encrypted email addresses.
-This approach builds on standard general-purpose approaches for
-encrypting data and indexing the data, e.g., see
-["How to Search on Securely Encrypted Database Fields" by Scott Arciszewski](https://www.sitepoint.com/how-to-search-on-securely-encrypted-database-fields/).
+We encrypt email addresses using Rails' built-in Active Record Encryption
+(`encrypts :email, deterministic: true, ignore_case: true`), which replaced
+our earlier use of the `attr_encrypted` and `blind_index` gems.
 The important aspect here is that we encrypt the data (so it cannot be
-revealed by those without the encryption key),
-and we also create cryptographic keyed hashes of the data (so
-we can search on the data if we have the hash key).
-The latter value is called a "blind index".
+revealed by those without the encryption key), while using deterministic
+encryption on the downcased email address (`email`) so we can efficiently
+index and query by email address (case-insensitively), and non-deterministic
+encryption on `original_email` to preserve the original case.
 
 We encrypt the email addresses using AES with 256-bit keys in
 GCM mode ('aes-256-gcm').  AES is a well-accepted widely-used
@@ -4973,7 +4969,7 @@ to protect email addresses from being revealed.
 <!-- verocase element HardenEmailEncEv -->
 <!-- DO NOT EDIT text from here until "end verocase" -->
 <a id="evidence-hardenemailencev"></a>
-#### Evidence HardenEmailEncEv: attr_encrypted and blind_index gems encrypt email addresses with AES-256-GCM and PBKDF2-HMAC-SHA256 index
+#### Evidence HardenEmailEncEv: Active Record Encryption encrypts email addresses with AES-256-GCM; deterministic encryption supports lookup
 
 Referenced by: **[Package Hardening](#package-hardening)**
 
@@ -4982,7 +4978,7 @@ Supports: **[Claim HardenEmailEnc](#claim-hardenemailenc)**
 External Reference: [../app/models/user.rb](https://github.com/ossf/best-practices-badge/blob/main/docs/../app/models/user.rb)
 <!-- end verocase -->
 
-`attr_encrypted` and `blind_index` gems encrypt email addresses with AES-256-GCM and PBKDF2-HMAC-SHA256 index. See [../app/models/user.rb](../app/models/user.rb).
+Active Record Encryption encrypts email addresses with AES-256-GCM; deterministic encryption supports lookup. See [../app/models/user.rb](../app/models/user.rb).
 
 <!-- verocase element HardenGravatar -->
 <!-- DO NOT EDIT text from here until "end verocase" -->

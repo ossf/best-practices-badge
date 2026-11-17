@@ -51,7 +51,7 @@ class ApplicationController < ActionController::Base
 
   # Params excluded from a stashed pending resubmission (section 15 of
   # docs/login-session-implementation.md). Email is encrypted at rest
-  # everywhere else (attr_encrypted :email); a naive stash would write a
+  # everywhere else (encrypts :email); a naive stash would write a
   # plaintext pending email change into pending_resubmissions, so it's
   # excluded the same way password/password_confirmation already must be.
   SENSITIVE_STASH_KEYS = %w[password password_confirmation email].freeze

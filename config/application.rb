@@ -57,6 +57,26 @@ end
 
 Rails.application.configure do
   config.middleware.use Rack::Attack
+
+  # Configure Rails Active Record Encryption using existing environment
+  # variables (or deterministic test defaults when not set).
+  # We use hexadecimal encoding (0010=\x00\x10), NOT Base64 or other.
+  # 256-bit key in hex = 64 hex digits (256 / 8 * 2).
+  email_encryption_key = [
+    Rails.env.test? ? ('1' * 64) : (ENV['EMAIL_ENCRYPTION_KEY'] || ('1' * 64))
+  ].pack('H*')
+  email_blind_index_key = [
+    Rails.env.test? ? ('2' * 64) : (ENV['EMAIL_BLIND_INDEX_KEY'] || ('2' * 64))
+  ].pack('H*')
+  config.active_record.encryption.primary_key = email_encryption_key
+  # The deterministic key comes from the encryption key, not the blind index
+  # key, so whoever holds only the former blind index (HMAC) key cannot
+  # decrypt the deterministically encrypted email column.
+  config.active_record.encryption.deterministic_key = OpenSSL::HMAC.digest(
+    'SHA256', email_encryption_key, 'badgeapp deterministic email key'
+  )
+  config.active_record.encryption.key_derivation_salt = email_blind_index_key
+  config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
 end
 
 # NOTE: the only timezone we use is UTC.

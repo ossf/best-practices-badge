@@ -149,7 +149,8 @@ Approved licenses are recorded in `docs/dependency_decisions.yml`.
   - Heavy security validation and input sanitization
 
 - **User** - Project owners and contributors
-  - Email addresses are encrypted in database using `attr_encrypted`
+  - Email addresses are encrypted in database using Rails Active Record
+    Encryption
   - Uses OAuth (GitHub) and local authentication
   - Session management with automatic timeouts
 
@@ -162,7 +163,8 @@ Approved licenses are recorded in `docs/dependency_decisions.yml`.
 Security is *extremely* important to this project. Some features:
 
 - **Encrypted Data**: User emails encrypted with AES-256-GCM
-- **Blind Indexing**: Email searches use blind indices for privacy
+- **Deterministic Encryption**: Email searches match a deterministically
+  encrypted lowercase copy, so no plaintext email is stored
 - **CSRF Protection**: All forms protected with Rails CSRF tokens
 - **Rate Limiting**: Uses `rack-attack` for DoS protection
 - **Content Security Policy**: Strict CSP headers via `secure_headers` gem
@@ -271,7 +273,8 @@ Key environment variables for development:
 
 - `RAILS_ENV` - Rails environment (development/test/production)
 - `EMAIL_ENCRYPTION_KEY` - 64 hex digits for email encryption
-- `EMAIL_BLIND_INDEX_KEY` - 64 hex digits for email search indices
+- `EMAIL_BLIND_INDEX_KEY` - 64 hex digits, key-derivation salt for email
+  encryption (legacy name)
 - `BADGEAPP_REAL_PRODUCTION` - Set to "true" only on true production site
 - `PUBLIC_HOSTNAME` - Hostname for the application
 - `DB_POOL` - Database connection pool size

@@ -78,7 +78,7 @@ purpose, and where rotation is documented.
 |---|---|---|
 | `SECRET_KEY_BASE` | Rails session and cookie signing/encryption | See [Rotating SECRET_KEY_BASE](#rotating-secret_key_base) below |
 | `EMAIL_ENCRYPTION_KEY` | AES-256-GCM encryption of stored user email addresses | See [Rotating email keys](#rotating-email-encryption-keys) below |
-| `EMAIL_BLIND_INDEX_KEY` | PBKDF2-HMAC-SHA256 blind index for privacy-preserving email search | See [Rotating email keys](#rotating-email-encryption-keys) below |
+| `EMAIL_BLIND_INDEX_KEY` | Key-derivation salt for Active Record Encryption of user email addresses (formerly the blind index key) | See [Rotating email keys](#rotating-email-encryption-keys) below |
 | `SESSION_ID_HMAC_KEY` | HMAC-SHA256 key for `LoginSession`'s session id digest (`docs/login-session.md`) | See [Rotating SESSION_ID_HMAC_KEY](#rotating-session_id_hmac_key) below |
 | `PENDING_RESUBMISSION_HMAC_KEY` | HMAC-SHA256 key for `PendingResubmission`'s random-token digest (`docs/login-session-18.md` step 18) | See [Rotating PENDING_RESUBMISSION_HMAC_KEY](#rotating-pending_resubmission_hmac_key) below |
 | `BADGEAPP_BADPWKEY` | HMAC-SHA512 key protecting the bad-password database | See [Rotating BADGEAPP_BADPWKEY](#rotating-badgeapp_badpwkey) below |
@@ -141,25 +141,28 @@ heroku maintenance:on --app $APP
 NEW_ENC_KEY=$(openssl rand -hex 32)
 NEW_IDX_KEY=$(openssl rand -hex 32)
 
-# Capture the current encryption key before replacing it.
+# Capture the current encryption and salt keys before replacing them.
 OLD_ENC_KEY=$(heroku config:get EMAIL_ENCRYPTION_KEY --app $APP)
+OLD_IDX_KEY=$(heroku config:get EMAIL_BLIND_INDEX_KEY --app $APP)
 
-# Install the new keys, keeping the old one available for the rekey task.
+# Install the new keys, keeping the old ones available for the rekey task.
 heroku config:set \
   EMAIL_ENCRYPTION_KEY_OLD=$OLD_ENC_KEY \
+  EMAIL_BLIND_INDEX_KEY_OLD=$OLD_IDX_KEY \
   EMAIL_ENCRYPTION_KEY=$NEW_ENC_KEY \
   EMAIL_BLIND_INDEX_KEY=$NEW_IDX_KEY \
   --app $APP
 
 # Re-encrypt all user email addresses (takes a few minutes; safe to re-run).
 # This processes every email address in turn, decrypting the email addresses
-# using the old key EMAIL_ENCRYPTION_KEY_OLD, then
-# encrypting using the new key EMAIL_ENCRYPTION_KEY. It
-# noisily skips those addresses that failed to decrypt.
+# using the old keys EMAIL_ENCRYPTION_KEY_OLD and EMAIL_BLIND_INDEX_KEY_OLD,
+# then encrypting using the new keys EMAIL_ENCRYPTION_KEY and
+# EMAIL_BLIND_INDEX_KEY. It exits with an error listing any users whose
+# addresses could not be decrypted; investigate those before continuing.
 script/heroku_run $APP rake rekey
 
-# Remove the old key once rekey completes successfully.
-heroku config:unset EMAIL_ENCRYPTION_KEY_OLD --app $APP
+# Remove the old keys only once rekey completes without an error.
+heroku config:unset EMAIL_ENCRYPTION_KEY_OLD EMAIL_BLIND_INDEX_KEY_OLD --app $APP
 
 # Bring the site back online.
 heroku maintenance:off --app $APP

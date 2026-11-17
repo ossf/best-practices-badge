@@ -63,6 +63,12 @@ The application is configured by various environment variables:
   advance-warning emails to send per "rake reminders" run.
   These warn owners that their badge will be lost when updated criteria
   take effect. See docs/baseline_update.md for the full workflow.
+* BADGEAPP_MAX_BROKEN_LINK_NOTIFICATIONS (default 10): Maximum number of
+  broken-link warning emails to send in one batch run.
+* BADGEAPP_MAX_LINK_CHECKS (default 50): Maximum number of projects to
+  check for broken links per "rake check_broken_links" run.
+* BADGEAPP_BROKEN_LINK_GRACE_DAYS (default 14): Minimum number of days
+  after a broken link is detected before its criterion is marked failing.
 * LOST_PASSING_REMINDER (default 30): Minimum number of days since
   last lost a badge before sending reminder
 * LAST_UPDATED_REMINDER (default 30): Minimum number of days
