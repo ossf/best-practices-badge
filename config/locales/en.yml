@@ -1008,6 +1008,26 @@ en:
       practices" badge
     subject_project_deleted: Project %{project_id} named %{project_name}
       was deleted
+    subject_broken_links: Broken links detected in %{project_name}
+      badge entry
+    broken_links_body_html: |-
+      <h1>Broken Links Detected for %{project_name}</h1>
+      <p>
+      An automated check detected broken links in your OpenSSF Best Practices
+      badge entry for "%{project_name}" at
+      <a href="%{project_info_url}">%{project_info_url}</a>.
+      </p>
+      <p>
+      Please update these links within %{grace_days} days so that the
+      corresponding criteria remain passing:
+      </p>
+    broken_links_body_text: |-
+      An automated check detected broken links in your OpenSSF Best Practices
+      badge entry for "%{project_name}" at
+      %{project_info_url}
+
+      Please update these links within %{grace_days} days so that the
+      corresponding criteria remain passing:
     new_project_heading: >-
       Thanks for adding your project to the Best Practices Badging
       Program

@@ -213,6 +213,15 @@ class ChiefTest < ActiveSupport::TestCase
     assert_includes result, HowAccessRepoFilesDetective
   end
 
+  test 'broken link checks do not pull unrelated criterion producers' do
+    chief = Chief.new(@sample_project, proc { Octokit::Client.new })
+    result = chief.filter_needed_detectives(Set.new([:contribution_status]))
+
+    assert_includes result, BrokenLinkDetective
+    assert_not_includes result, HardenedSitesDetective
+    assert_not_includes result, BuildDetective
+  end
+
   test 'topological_sort_detectives returns same size array' do
     chief = Chief.new(@sample_project, proc { Octokit::Client.new })
     detectives = [FlossLicenseDetective, NameFromUrlDetective]

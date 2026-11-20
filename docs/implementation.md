@@ -63,6 +63,12 @@ The application is configured by various environment variables:
   advance-warning emails to send per "rake reminders" run.
   These warn owners that their badge will be lost when updated criteria
   take effect. See docs/baseline_update.md for the full workflow.
+* BADGEAPP_MAX_BROKEN_LINK_NOTIFICATIONS (default 10): Maximum number of
+  broken-link warning emails to send in one batch run.
+* BADGEAPP_MAX_LINK_CHECKS (default 50): Maximum number of projects to
+  check for broken links per "rake check_broken_links" run.
+* BADGEAPP_BROKEN_LINK_GRACE_DAYS (default 14): Minimum number of days
+  after a broken link is detected before its criterion is marked failing.
 * LOST_PASSING_REMINDER (default 30): Minimum number of days since
   last lost a badge before sending reminder
 * LAST_UPDATED_REMINDER (default 30): Minimum number of days
@@ -99,8 +105,12 @@ The application is configured by various environment variables:
 * EMAIL_ENCRYPTION_KEY: Key to decrypt the stored user email addresses.
   Hexadecimal string, must be 64 hex digits (==32 bytes==256 bits).
   Used by aes-256-gcm (256-bit AES in GCM mode).
-* EMAIL_BLIND_INDEX_KEY: Key for blind index created for user email addresses
-  (used by PBKDF2-HMAC-SHA256).  Must be 64 hex digits (==32 bytes==256 bits).
+* EMAIL_BLIND_INDEX_KEY: Key-derivation salt for Active Record Encryption of
+  user email addresses (formerly the blind index key).
+  Must be 64 hex digits (==32 bytes==256 bits).
+  In production, if either email key is unset the application still boots,
+  but any attempt to encrypt or decrypt an email address raises an error
+  instead of falling back to the publicly known test keys.
 * BADGEAPP_BADPWKEY: Key used for additional protection for passwords
   when checking the bad password database. The list of bad passwords
   is converted by HMAC (using SHA-512 and this key) before being stored in

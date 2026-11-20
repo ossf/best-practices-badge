@@ -48,7 +48,7 @@
    <%= t('.local_account') %>
   <% end %>
   <% if current_user && (@user == current_user || current_user.admin?) %>
-    <% if @user.encrypted_email?
+    <% if @user.ciphertext_for(:email).present?
          user_email = @user.email_if_decryptable
     %>
       | <a href="mailto:<%= CGI::escape(user_email).html_safe %>"><%=

@@ -6,6 +6,7 @@
 
 require 'test_helper'
 
+# rubocop:disable-next Metrics/ClassLength
 class CriterionFieldValidatorTest < ActiveSupport::TestCase
   test 'parse_status_value accepts case-insensitive status strings' do
     # Test all case variations of 'Met'
@@ -87,6 +88,22 @@ class CriterionFieldValidatorTest < ActiveSupport::TestCase
     text = 'a' * Project::MAX_TEXT_LENGTH
     result = CriterionFieldValidator.validate_justification(text)
     assert_equal text, result
+  end
+
+  test 'validate_justification bounds raw size including marker overhead' do
+    padded_text = "a#{' ' * Project::MAX_TEXT_LENGTH}"
+    assert_nil CriterionFieldValidator.validate_justification(padded_text)
+    assert_not CriterionFieldValidator.justification_within_max_length?(padded_text)
+
+    oversized_marker =
+      LinkChecker.format_broken_prefix(
+        'Valid text',
+        "https://example.org/#{'a' * (Project::MAX_TEXT_LENGTH * 3)}"
+      )
+    assert_nil CriterionFieldValidator.validate_justification(oversized_marker)
+    assert_not CriterionFieldValidator.justification_within_max_length?(
+      oversized_marker
+    )
   end
 
   test 'validate_justification rejects non-strings' do
