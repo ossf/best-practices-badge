@@ -1563,6 +1563,28 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to '/en/projects?status=passing'
   end
 
+  test 'should not redirect off-site when the path starts with extra slashes' do
+    # Addressable parses '////en/projects' as an empty host and the path
+    # '//en/projects'. Redirecting there would name the host 'en': only ever
+    # a locale code, since the path must still route to this action, and
+    # Rails' open-redirect protection rejects such a target anyway. Collapsing
+    # the slashes guarantees a same-host path regardless.
+    get 'http://www.example.com////en/projects?q=&status=passing'
+    assert_redirected_to '/en/projects?status=passing'
+  end
+
+  test 'should redirect extra leading slashes to the normalized path' do
+    get 'http://www.example.com////en/projects'
+    assert_redirected_to '/en/projects'
+  end
+
+  test 'should not redirect when the query string is empty' do
+    # Rack omits a bare trailing '?' from the full path, so the validated
+    # URL equals the requested one and the index is rendered directly.
+    get '/en/projects?'
+    assert_response :success
+  end
+
   test 'query JSON for passing projects' do
     get '/en/projects.json?gteq=100'
     assert_response :success
