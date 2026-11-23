@@ -186,7 +186,7 @@ executors:
       # Renovate proposes even numbered majors here and is configured
       # to skip odd ones, which Node never promotes to LTS. See the
       # cimg/node rule in .github/renovate.json5.
-      - image: cimg/node:26.13.0@sha256:109dac28a6a4af213fccf5776583d87092b3d919b18fed315e344f73cb36136a
+      - image: cimg/node:26.13.1@sha256:1530b603ed546e61bc7e7f892a32c8fd67a34cde7067bb088442e072d0728077
 
 commands:
   prepare_ruby:
