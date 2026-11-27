@@ -5,10 +5,12 @@
 # SPDX-License-Identifier: MIT
 
 require 'test_helper'
+require 'minitest/mock'
 
 # rubocop:disable-next Metrics/ClassLength
 class ProjectTest < ActiveSupport::TestCase
   setup do
+    stub_link_check_dns
     @user = users(:test_user)
     @project_built = @user.projects.build(
       homepage_url: 'https://www.example.org',
@@ -765,5 +767,629 @@ class ProjectTest < ActiveSupport::TestCase
     assert_equal 'en', @project_built.entry_locale, 'Empty locale normalized to en'
     @project_built.entry_locale = 'english'
     assert_not @project_built.valid?, 'Full language name should be rejected'
+  end
+
+  # rubocop:disable-next Metrics/BlockLength
+  test 'check_and_handle_broken_links! respects grace period and marks Unmet on expiry' do
+    broken_url = 'https://www.example.org/broken-doc'
+    stub_request(:get, 'https://www.example.org').to_return(status: 200)
+    stub_request(:get, 'https://www.example.org/').to_return(status: 200)
+    stub_request(:get, 'https://www.example.org/code3').to_return(status: 200)
+    stub_request(:get, broken_url).to_return(status: 404)
+
+    @project_passing.update!(
+      contribution_status: CriterionStatus::MET,
+      contribution_justification: "See #{broken_url} for details."
+    )
+    assert_equal 'passing', @project_passing.badge_level
+
+    day1 = Time.utc(2026, 10, 1, 12, 0, 0)
+    emails_before = ActionMailer::Base.deliveries.size
+    result1 = @project_passing.check_and_handle_broken_links!(
+      checker: LinkChecker.new, grace_days: 14, current_time: day1
+    )
+    assert_equal({ contribution: broken_url }, result1[:newly_detected])
+    assert_empty result1[:expired]
+    assert_equal emails_before, ActionMailer::Base.deliveries.size
+    pending_notification = JSON.parse(
+      @project_passing.reload.pending_broken_link_notifications
+    )
+    assert_equal({ 'contribution' => broken_url },
+                 pending_notification['links'])
+    assert_equal 14, pending_notification['grace_days']
+    # Still passing during the grace period!
+    assert_equal 'passing', @project_passing.badge_level
+    assert_includes(
+      @project_passing.contribution_justification,
+      "(// Broken link <#{broken_url}> detected on 2026-10-01)"
+    )
+
+    # After 14 days, the grace period expires and the criterion is marked Unmet
+    day15 = Time.utc(2026, 10, 16, 12, 0, 0)
+    result2 = @project_passing.check_and_handle_broken_links!(
+      checker: LinkChecker.new, grace_days: 14, current_time: day15
+    )
+    assert_equal({ contribution: broken_url }, result2[:expired])
+    @project_passing.reload
+    assert_equal CriterionStatus::UNMET, @project_passing.contribution_status
+    assert_equal 'in_progress', @project_passing.badge_level
+    assert @project_passing.contribution_justification.start_with?(
+      "// Broken link: <#{broken_url}>."
+    )
+  end
+
+  test 'skipped link checks preserve existing markers' do
+    broken_url = 'https://www.example.org/still-broken'
+    grace_warning = LinkChecker.format_grace_warning(
+      "See #{broken_url}", broken_url, '2026-10-01'
+    )
+    @project_passing.update!(
+      homepage_url: broken_url,
+      homepage_url_justification: LinkChecker.format_broken_prefix('', broken_url),
+      contribution_status: CriterionStatus::MET,
+      contribution_justification: grace_warning
+    )
+
+    checker = LinkChecker.new(max_total_duration: -1)
+    assert_empty @project_passing.broken_links(checker)
+    result = @project_passing.check_and_handle_broken_links!(
+      checker: checker, grace_days: 14, current_time: Time.utc(2026, 10, 20)
+    )
+
+    assert_empty result[:recovered]
+    @project_passing.reload
+    assert_equal(
+      LinkChecker.format_broken_prefix('', broken_url),
+      @project_passing.homepage_url_justification
+    )
+    assert_equal grace_warning, @project_passing.contribution_justification
+    assert_equal CriterionStatus::MET, @project_passing.contribution_status
+  end
+
+  test 'a different broken URL starts a fresh grace period' do
+    stub_request(:get, 'https://www.example.org').to_return(status: 200)
+    old_url = 'https://www.example.org/old-link'
+    new_url = 'https://www.example.org/new-link'
+    stub_request(:get, new_url).to_return(status: 404)
+    warning = LinkChecker.format_grace_warning(
+      "See #{new_url}", old_url, '2026-10-10'
+    )
+    @project_passing.update!(
+      contribution_status: CriterionStatus::MET,
+      contribution_justification: warning
+    )
+
+    result = @project_passing.check_and_handle_broken_links!(
+      checker: LinkChecker.new,
+      grace_days: 14,
+      current_time: Time.utc(2026, 10, 15)
+    )
+
+    assert_equal({ contribution: new_url }, result[:newly_detected])
+    assert_equal CriterionStatus::MET, @project_passing.reload.contribution_status
+    assert_equal(
+      LinkChecker.format_grace_warning(
+        "See #{new_url}", new_url, '2026-10-15'
+      ),
+      @project_passing.contribution_justification
+    )
+    notification = JSON.parse(@project_passing.pending_broken_link_notifications)
+    assert_equal new_url, notification.dig('links', 'contribution')
+  end
+
+  test 'a broken URL replacing an expired one starts a fresh grace period' do
+    stub_request(:get, 'https://www.example.org').to_return(status: 200)
+    old_url = 'https://www.example.org/expired-link'
+    new_url = 'https://www.example.org/replacement-link'
+    stub_request(:get, new_url).to_return(status: 404)
+    @project_passing.update!(
+      contribution_status: CriterionStatus::MET,
+      contribution_justification: "// Broken link: <#{old_url}>. See #{new_url}"
+    )
+
+    result = @project_passing.check_and_handle_broken_links!(
+      checker: LinkChecker.new,
+      grace_days: 14,
+      current_time: Time.utc(2026, 10, 15)
+    )
+
+    assert_equal({ contribution: new_url }, result[:newly_detected])
+    assert_equal(
+      LinkChecker.format_grace_warning("See #{new_url}", new_url, '2026-10-15'),
+      @project_passing.reload.contribution_justification
+    )
+  end
+
+  test 'a grace marker dated in the future restarts the grace period' do
+    stub_request(:get, 'https://www.example.org').to_return(status: 200)
+    bad_url = 'https://www.example.org/broken-link'
+    stub_request(:get, bad_url).to_return(status: 404)
+    @project_passing.update!(
+      contribution_status: CriterionStatus::MET,
+      contribution_justification: LinkChecker.format_grace_warning(
+        "See #{bad_url}", bad_url, '2099-01-01'
+      )
+    )
+
+    result = @project_passing.check_and_handle_broken_links!(
+      checker: LinkChecker.new,
+      grace_days: 14,
+      current_time: Time.utc(2026, 10, 15)
+    )
+
+    assert_equal({ contribution: bad_url }, result[:newly_detected])
+    assert_equal(
+      LinkChecker.format_grace_warning("See #{bad_url}", bad_url, '2026-10-15'),
+      @project_passing.reload.contribution_justification
+    )
+  end
+
+  # rubocop:disable-next Metrics/BlockLength
+  test 'broken-link warning delivery retries after a transient failure' do
+    project = projects(:one)
+    broken_url = 'https://www.example.org/broken-notification'
+    stub_request(:get, broken_url).to_return(status: 404)
+    notification = JSON.generate(
+      'links' => { 'contribution' => broken_url },
+      'grace_days' => 14
+    )
+    project.update_columns(
+      contribution_justification: LinkChecker.format_grace_warning(
+        "See #{broken_url}", broken_url, Time.now.utc.to_date.iso8601
+      ),
+      pending_broken_link_notifications: notification,
+      broken_link_notification_send_attempts: 0
+    )
+
+    project.user.update_column(:important_notifications, false)
+    assert_equal 0, Project.send_broken_link_notifications
+    assert_equal notification, project.reload.pending_broken_link_notifications
+    project.user.update_column(:important_notifications, true)
+
+    ReportMailer.stub(
+      :email_broken_links_owner,
+      ->(*) { raise Net::SMTPServerBusy, 'busy' }
+    ) do
+      assert_equal 0, Project.send_broken_link_notifications
+    end
+    project.reload
+    assert project.pending_broken_link_notifications.present?
+    assert_equal 1, project.broken_link_notification_send_attempts
+
+    delivery = Minitest::Mock.new
+    delivery.expect :deliver_now!, nil
+    ReportMailer.stub(
+      :email_broken_links_owner, ->(*) { delivery }
+    ) do
+      assert_equal 1, Project.send_broken_link_notifications
+    end
+    delivery.verify
+    project.reload
+    assert_equal '', project.pending_broken_link_notifications
+    assert_equal 0, project.broken_link_notification_send_attempts
+
+    project.update_columns(
+      pending_broken_link_notifications: notification,
+      broken_link_notification_send_attempts:
+        Project::MAX_NOTIFICATION_ATTEMPTS - 1
+    )
+    ReportMailer.stub(
+      :email_broken_links_owner,
+      ->(*) { raise Net::SMTPServerBusy, 'busy' }
+    ) do
+      assert_equal 0, Project.send_broken_link_notifications
+    end
+    project.reload
+    assert_equal '', project.pending_broken_link_notifications
+    assert_equal Project::MAX_NOTIFICATION_ATTEMPTS,
+                 project.broken_link_notification_send_attempts
+  end
+
+  # rubocop:disable-next Metrics/BlockLength
+  test 'broken-link warnings are discarded after recovery or grace expiry' do
+    project = projects(:one)
+    broken_url = 'https://www.example.org/recovered-notification'
+    notification = JSON.generate(
+      'links' => { 'contribution' => broken_url }, 'grace_days' => 14
+    )
+    project.user.update_column(:important_notifications, true)
+    project.update_columns(
+      contribution_justification: LinkChecker.format_grace_warning(
+        "See #{broken_url}", broken_url, Time.now.utc.to_date.iso8601
+      ),
+      pending_broken_link_notifications: notification,
+      broken_link_notification_send_attempts: 0
+    )
+    stub_request(:get, broken_url).to_return(status: 200)
+    ReportMailer.stub(
+      :email_broken_links_owner, ->(*) { flunk 'recovered link was emailed' }
+    ) do
+      assert_equal 0, Project.send_broken_link_notifications
+    end
+    assert_equal '', project.reload.pending_broken_link_notifications
+
+    active_url = 'https://www.example.org/active-notification'
+    mixed_notification = JSON.generate(
+      'links' => {
+        'contribution' => broken_url, 'sites_https' => active_url
+      },
+      'grace_days' => 14
+    )
+    project.update_columns(
+      contribution_justification: LinkChecker.format_grace_warning(
+        "See #{broken_url}", broken_url, Time.now.utc.to_date.iso8601
+      ),
+      sites_https_justification: LinkChecker.format_grace_warning(
+        "See #{active_url}", active_url, Time.now.utc.to_date.iso8601
+      ),
+      pending_broken_link_notifications: mixed_notification,
+      broken_link_notification_send_attempts: 0
+    )
+    stub_request(:get, broken_url).to_return(status: 200)
+    stub_request(:get, active_url).to_return(status: 404)
+    ReportMailer.stub(
+      :email_broken_links_owner, ->(*) { raise Net::SMTPServerBusy, 'busy' }
+    ) do
+      assert_equal 0, Project.send_broken_link_notifications
+    end
+    project.reload
+    assert_equal(
+      { 'sites_https' => active_url },
+      JSON.parse(project.pending_broken_link_notifications)['links']
+    )
+    assert_equal 1, project.broken_link_notification_send_attempts
+
+    expired_date = (Time.now.utc.to_date - 14).iso8601
+    project.update_columns(
+      contribution_justification: LinkChecker.format_grace_warning(
+        "See #{broken_url}", broken_url, expired_date
+      ),
+      pending_broken_link_notifications: notification,
+      broken_link_notification_send_attempts: 0
+    )
+    checker = Minitest::Mock.new
+    ReportMailer.stub(
+      :email_broken_links_owner, ->(*) { flunk 'expired link was emailed' }
+    ) do
+      assert_equal 0, Project.send_broken_link_notifications(checker: checker)
+    end
+    checker.verify
+    assert_equal '', project.reload.pending_broken_link_notifications
+  end
+
+  test 'a failed metal loss email does not prevent recording a successful baseline email' do
+    project = projects(:one)
+    project.user.update_column(:important_notifications, true)
+    project.update_columns(
+      tiered_percentage: 0, baseline_tiered_percentage: 0,
+      unreported_badge_loss: 1, unreported_baseline_badge_loss: 1,
+      loss_send_attempts: 0
+    )
+    delivery = Minitest::Mock.new
+    delivery.expect :deliver_now!, nil
+    mailer =
+      lambda do |_project, _user, _old, _new, _lost, suffix|
+        raise Net::SMTPServerBusy, 'busy' if suffix == 'badge'
+
+        delivery
+      end
+    ReportMailer.stub(:email_owner_with_user, mailer) do
+      assert_equal 1, Project.send_loss_notifications
+    end
+    delivery.verify
+    project.reload
+    assert_equal 1, project.unreported_badge_loss
+    assert_equal 0, project.unreported_baseline_badge_loss
+    assert_equal 1, project.loss_send_attempts
+  end
+
+  test 'obsolete queued criterion names are discarded without sending' do
+    project = projects(:one)
+    project.user.update_column(:important_notifications, true)
+    project.update_columns(
+      pending_broken_link_notifications: JSON.generate(
+        'links' => { 'retired_criterion' => 'https://www.example.org/retired' },
+        'grace_days' => 14
+      )
+    )
+
+    assert_no_difference('ActionMailer::Base.deliveries.size') do
+      assert_equal 0, Project.send_broken_link_notifications
+    end
+    assert_equal '', project.reload.pending_broken_link_notifications
+  end
+
+  test 'pending base URL warnings are checked against the current homepage and repository' do
+    project = projects(:one)
+    project.user.update_column(:important_notifications, true)
+    homepage = 'https://www.example.org/broken-home'
+    repository = 'https://www.example.org/broken-repo'
+    date = Time.now.utc.to_date.iso8601
+    links = { 'homepage_url' => homepage, 'repo_public' => repository }
+    project.update_columns(
+      homepage_url: homepage, repo_url: repository,
+      homepage_url_justification: LinkChecker.format_grace_warning('', homepage, date),
+      repo_public_justification: LinkChecker.format_grace_warning('', repository, date),
+      pending_broken_link_notifications: JSON.generate('links' => links, 'grace_days' => 14)
+    )
+    stub_request(:get, homepage).to_return(status: 404)
+    stub_request(:get, repository).to_return(status: 404)
+
+    assert_difference('ActionMailer::Base.deliveries.size', 1) do
+      assert_equal 1, Project.send_broken_link_notifications
+    end
+    assert_equal '', project.reload.pending_broken_link_notifications
+    assert_includes ActionMailer::Base.deliveries.last.body.encoded, homepage
+    assert_includes ActionMailer::Base.deliveries.last.body.encoded, repository
+  end
+
+  test 'broken-link warnings send only the remaining grace period' do
+    project = projects(:one)
+    broken_url = 'https://www.example.org/remaining-grace'
+    detected_date = (Time.now.utc.to_date - 3).iso8601
+    notification = JSON.generate(
+      'links' => { 'contribution' => broken_url }, 'grace_days' => 14
+    )
+    project.user.update_column(:important_notifications, true)
+    project.update_columns(
+      contribution_justification: LinkChecker.format_grace_warning(
+        "See #{broken_url}", broken_url, detected_date
+      ),
+      pending_broken_link_notifications: notification,
+      broken_link_notification_send_attempts: 0
+    )
+    stub_request(:get, broken_url).to_return(status: 404)
+    delivery = Minitest::Mock.new
+    delivery.expect :deliver_now!, nil
+    ReportMailer.stub(
+      :email_broken_links_owner,
+      lambda do |_project, _links, grace_days|
+        assert_equal 11, grace_days
+        delivery
+      end
+    ) do
+      assert_equal 1, Project.send_broken_link_notifications
+    end
+    delivery.verify
+  end
+
+  test 'skipped checks leave pending broken-link warnings queued' do
+    project = projects(:one)
+    broken_url = 'https://www.example.org/skipped-notification'
+    notification = JSON.generate(
+      'links' => { 'contribution' => broken_url }, 'grace_days' => 14
+    )
+    project.user.update_column(:important_notifications, true)
+    project.update_columns(
+      contribution_justification: LinkChecker.format_grace_warning(
+        "See #{broken_url}", broken_url, Time.now.utc.to_date.iso8601
+      ),
+      pending_broken_link_notifications: notification,
+      broken_link_notification_send_attempts: 0
+    )
+    ReportMailer.stub(
+      :email_broken_links_owner, ->(*) { flunk 'skipped link was emailed' }
+    ) do
+      assert_equal(
+        0,
+        Project.send_broken_link_notifications(
+          checker: LinkChecker.new(max_total_duration: -1)
+        )
+      )
+    end
+    assert_equal notification, project.reload.pending_broken_link_notifications
+  end
+
+  # rubocop:disable-next Metrics/BlockLength
+  test 'new broken-link warnings queued during delivery are not acknowledged' do
+    project = projects(:one)
+    first_url = 'https://www.example.org/first-pending'
+    second_url = 'https://www.example.org/second-pending'
+    notification = JSON.generate(
+      'links' => { 'contribution' => first_url }, 'grace_days' => 14
+    )
+    project.user.update_column(:important_notifications, true)
+    project.update_columns(
+      contribution_justification: LinkChecker.format_grace_warning(
+        "See #{first_url}", first_url, Time.now.utc.to_date.iso8601
+      ),
+      sites_https_justification: LinkChecker.format_grace_warning(
+        "See #{second_url}", second_url, Time.now.utc.to_date.iso8601
+      ),
+      pending_broken_link_notifications: notification,
+      broken_link_notification_send_attempts: 0
+    )
+    stub_request(:get, first_url).to_return(status: 404)
+    stub_request(:get, second_url).to_return(status: 404)
+    delivery = Minitest::Mock.new
+    delivery.expect :deliver_now!, nil
+    ReportMailer.stub(
+      :email_broken_links_owner,
+      lambda do |*|
+        project.reload.queue_new_broken_link_notification(
+          { sites_https: second_url }
+        )
+        delivery
+      end
+    ) do
+      assert_equal 1, Project.send_broken_link_notifications
+    end
+    delivery.verify
+    pending = JSON.parse(project.reload.pending_broken_link_notifications)
+    assert_equal(
+      {
+        'contribution' => first_url,
+        'sites_https' => second_url
+      },
+      pending['links']
+    )
+  end
+
+  # rubocop:disable-next Metrics/BlockLength
+  test 'batch link checking uses a finite checker for each project' do
+    project = Project.reorder(
+      Arel.sql(
+        'last_link_check_at ASC NULLS FIRST, tiered_percentage DESC, ' \
+        'updated_at ASC, id ASC'
+      )
+    ).first
+    broken_url = 'https://www.example.org/skipped-batch-link'
+    warning = LinkChecker.format_grace_warning(
+      "See #{broken_url}", broken_url, Time.now.utc.to_date.iso8601
+    )
+    project.update_columns(
+      contribution_justification: warning,
+      contribution_status: CriterionStatus::MET,
+      pending_broken_link_notifications: ''
+    )
+    expired_checker = LinkChecker.new(max_total_duration: -1)
+    calls = 0
+    factory =
+      lambda do |**options|
+        assert_equal Project::LINK_CHECK_MAX_DURATION,
+                     options[:max_total_duration]
+        assert_instance_of Hash, options[:cache]
+        calls += 1
+        expired_checker
+      end
+
+    LinkChecker.stub(:new, factory) do
+      Project.check_projects_links(limit: 1)
+    end
+
+    assert_equal 1, calls
+    project.reload
+    assert_equal warning, project.contribution_justification
+    assert_not_nil project.last_link_check_at
+  end
+
+  # rubocop:disable-next Metrics/BlockLength
+  test 'broken_links, recovery during grace period, and check_projects_links batch reporting' do
+    broken_url = 'https://www.example.org/broken-doc'
+    stub_request(:get, 'https://www.example.org').to_return(status: 404)
+    stub_request(:get, 'https://www.example.org/code3').to_return(status: 404)
+    stub_request(:get, broken_url).to_return(status: 404)
+
+    @project_passing.update!(
+      homepage_url: 'https://www.example.org',
+      repo_url: 'https://www.example.org/code3',
+      contribution_status: CriterionStatus::MET,
+      contribution_justification: "See #{broken_url} for details."
+    )
+
+    broken = @project_passing.broken_links(LinkChecker.new)
+    assert_equal ['https://www.example.org'], broken[:homepage_url]
+    assert_equal ['https://www.example.org/code3'], broken[:repo_url]
+    assert_equal [broken_url], broken[:contribution]
+
+    affected_ids = Project.check_projects_links(
+      limit: 5, grace_days: 14, checker: LinkChecker.new
+    )
+    assert_includes affected_ids, @project_passing.id
+
+    assert_nil ReportMailer.report_broken_links_summary([]).message.to
+
+    # When the links recover during the grace period, the warning markers are stripped
+    stub_request(:get, 'https://www.example.org').to_return(status: 200)
+    stub_request(:get, 'https://www.example.org/code3').to_return(status: 200)
+    stub_request(:get, broken_url).to_return(status: 200)
+
+    recovered = @project_passing.reload.check_and_handle_broken_links!(
+      checker: LinkChecker.new, grace_days: 14
+    )
+    assert_includes recovered[:recovered], :contribution
+    assert_equal "See #{broken_url} for details.",
+                 @project_passing.reload.contribution_justification
+  end
+
+  # rubocop:disable-next Metrics/BlockLength
+  test 'link checks advance ordering, preserve near-limit justifications, and notify baseline loss' do
+    broken_url = 'https://www.example.org/broken-max'
+    good_doc = 'https://www.example.org/good-doc'
+    stub_request(:get, 'https://www.example.org').to_return(status: 404)
+    stub_request(:get, 'https://www.example.org/code3').to_return(status: 200)
+    stub_request(:get, broken_url).to_return(status: 404)
+    stub_request(:get, good_doc).to_return(status: 200)
+
+    padding = 'a' * (Project::MAX_TEXT_LENGTH - broken_url.length - 1)
+    near_limit_just = "#{padding} #{broken_url}"
+    assert_equal Project::MAX_TEXT_LENGTH, near_limit_just.length
+
+    @project_passing.update!(
+      homepage_url: 'https://www.example.org',
+      sites_https_status: CriterionStatus::MET,
+      sites_https_justification: "Docs at #{good_doc}",
+      contribution_status: CriterionStatus::MET,
+      contribution_justification: near_limit_just
+    )
+
+    # First check detects broken homepage_url + contribution without failing MAX_TEXT_LENGTH
+    day1 = Time.utc(2026, 10, 1, 12, 0, 0)
+    @project_passing.check_and_handle_broken_links!(
+      checker: LinkChecker.new, grace_days: 14, current_time: day1
+    )
+    @project_passing.reload
+    assert_equal day1, @project_passing.last_link_check_at
+    assert_operator @project_passing.contribution_justification.length, :>, Project::MAX_TEXT_LENGTH
+    assert_not_nil CriterionFieldValidator.validate_justification(
+      @project_passing.contribution_justification
+    )
+    assert_nil CriterionFieldValidator.validate_justification('x' * (Project::MAX_TEXT_LENGTH + 1))
+
+    # User justification whose stripped length exceeds MAX_TEXT_LENGTH is still rejected
+    @project_passing.contribution_justification = 'x' * (Project::MAX_TEXT_LENGTH + 1)
+    assert_not @project_passing.valid?
+    @project_passing.reload
+
+    @project_passing.contribution_justification = "a#{' ' * Project::MAX_TEXT_LENGTH}"
+    assert_not @project_passing.valid?
+    @project_passing.reload
+
+    # Second check during grace period does not reset sites_https warning despite good_doc
+    day5 = Time.utc(2026, 10, 5, 12, 0, 0)
+    mid_res = @project_passing.check_and_handle_broken_links!(
+      checker: LinkChecker.new, grace_days: 14, current_time: day5
+    )
+    assert_empty mid_res[:recovered]
+    assert_equal day5, @project_passing.reload.last_link_check_at
+
+    # Baseline-1 project with owner opting out of important_notifications
+    Criteria['baseline-1'].each_key do |crit|
+      @project_passing[:"#{crit}_status"] = CriterionStatus::MET
+    end
+    @project_passing.osps_vm_02_01_justification = "Policy at #{broken_url}"
+    @project_passing.save!
+    assert_equal 'baseline-1', @project_passing.baseline_badge_level
+
+    owner = User.find(@project_passing.user_id)
+    owner.update!(important_notifications: false)
+
+    ActionMailer::Base.deliveries.clear
+    day20 = Time.utc(2026, 10, 20, 12, 0, 0)
+    exp_res = @project_passing.check_and_handle_broken_links!(
+      checker: LinkChecker.new, grace_days: 0, current_time: day20
+    )
+    assert_includes exp_res[:expired].keys, :sites_https
+    assert_includes exp_res[:expired].keys, :osps_vm_02_01
+    assert_equal 'in_progress', @project_passing.reload.baseline_badge_level
+    assert_operator @project_passing.unreported_baseline_badge_loss, :>, 0
+    assert(ActionMailer::Base.deliveries.none? { |m| m.to.include?(owner.email) })
+
+    owner.update!(important_notifications: true)
+    ReportMailer.stub(
+      :email_owner_with_user, ->(*) { raise Net::SMTPServerBusy, 'busy' }
+    ) do
+      assert_equal 0, Project.send_loss_notifications
+    end
+    assert_equal 1, @project_passing.reload.loss_send_attempts
+
+    delivery = Minitest::Mock.new
+    2.times { delivery.expect :deliver_now!, nil }
+    ReportMailer.stub(:email_owner_with_user, ->(*) { delivery }) do
+      assert_equal 2, Project.send_loss_notifications
+    end
+    delivery.verify
+    assert_equal 0, @project_passing.reload.unreported_badge_loss
+    assert_equal 0, @project_passing.unreported_baseline_badge_loss
   end
 end

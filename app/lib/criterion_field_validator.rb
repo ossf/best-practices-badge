@@ -8,6 +8,10 @@
 # fields. Used by detectives, controllers, and other components that need to
 # validate status values and justification text.
 module CriterionFieldValidator
+  # Generated markers duplicate a URL from the justification and add at most
+  # 64 characters of formatting.
+  AUTOMATED_MARKER_FORMATTING_OVERHEAD = 64
+
   # Parse status value string to integer with canonical form conversion.
   # For JSON automation - rejects '?' and empty (no automation value).
   # Accepts: 'met', 'unmet', 'n/a', 'na' (case-insensitive)
@@ -34,13 +38,32 @@ module CriterionFieldValidator
   # @return [String, nil] valid text or nil if invalid/empty
   def self.validate_justification(text)
     return unless text.is_a?(String)
+    return unless justification_within_max_length?(text)
 
     stripped = text.strip
     return if stripped.empty?
-    return if stripped.length > Project::MAX_TEXT_LENGTH
 
     # No need to check UTF-8 - if text came from JSON.parse, it's already UTF-8
     stripped
+  end
+
+  # Check the raw size and marker-stripped size of justification text.
+  # @param text [String] justification text
+  # @return [Boolean]
+  def self.justification_within_max_length?(text)
+    return false unless text.is_a?(String)
+
+    max_length = Project::MAX_TEXT_LENGTH
+    marker_overhead =
+      if LinkChecker::BROKEN_LINK_PREFIX_REGEX.match?(text) ||
+         LinkChecker::BROKEN_LINK_GRACE_REGEX.match?(text)
+        max_length + AUTOMATED_MARKER_FORMATTING_OVERHEAD
+      else
+        0
+      end
+    return false if text.length > max_length + marker_overhead
+
+    LinkChecker.strip_broken_link_markers(text).length <= max_length
   end
 
   # Check if field name is a valid criterion field.

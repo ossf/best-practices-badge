@@ -168,7 +168,7 @@
   - Claim HardenRateOut: Outgoing email rate limits enforced
     - Evidence HardenRateOutEv: projects_to_remind class method and hard limit on outgoing reminder email count (../app/models/project.rb)
   - Claim HardenEmailEnc: Email addresses encrypted
-    - Evidence HardenEmailEncEv: attr_encrypted and blind_index gems encrypt email addresses with AES-256-GCM and PBKDF2-HMAC-SHA256 index (../app/models/user.rb)
+    - Evidence HardenEmailEncEv: Active Record Encryption encrypts email addresses with AES-256-GCM; deterministic encryption supports lookup (../app/models/user.rb)
   - Claim HardenGravatar: Gravatar restricted
     - Evidence HardenGravatarEv: use_gravatar boolean controls whether gravatar MD5 hash is revealed for each local user (../app/models/user.rb)
 

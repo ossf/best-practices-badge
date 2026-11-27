@@ -76,9 +76,9 @@ gem 'activerecord', '~> 8.1.1' # Rails. ORM and query system.
 # gem 'activestorage' # Not used. Attaches cloud files to ActiveRecord.
 gem 'activesupport', '~> 8.1.1' # Rails. Underlying library.
 # gem 'activetext' # Not used. Text editor that fails to support markdown.
-gem 'attr_encrypted', '~> 4' # Simplify encrypting model attributes
+# Retained only for data-safe rollback of the email encryption migration.
+gem 'blind_index', '~> 2.8.1', require: false
 gem 'bcrypt', '~> 3.1.18' # Security - for salted hashed interacted passwords
-gem 'blind_index', '~> 2.8.1' # Index encrypted data (email addresses)
 gem 'bootstrap-sass', '~> 3.4' # Use bootstrap v3
 gem 'bootstrap-social-rails', '~> 4.12' # Pretty social media buttons
 gem 'bootstrap_form', '~> 2.7' # DO NOT update unless updating bootstrap

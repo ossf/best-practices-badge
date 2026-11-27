@@ -52,7 +52,10 @@ class Chief
   ALL_DETECTIVES = discover_detectives.freeze
 
   # List fields allowed to be written into Project (an ActiveRecord).
-  ALLOWED_FIELDS = Project::PROJECT_PERMITTED_FIELDS.to_set.freeze
+  ALLOWED_FIELDS = (
+    Project::PROJECT_PERMITTED_FIELDS +
+    %i[homepage_url_status homepage_url_justification]
+  ).to_set.freeze
 
   # rubocop:disable-next Style/ConditionalAssignment
   def initialize(project, client_factory, entry_locale: nil, detectives: ALL_DETECTIVES)
